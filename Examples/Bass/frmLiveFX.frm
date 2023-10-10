@@ -93,34 +93,16 @@
 		With GroupBox1
 			.Name = "GroupBox1"
 			.Text = "Input"
-			.TabIndex = 12
+			.TabIndex = 0
 			.Caption = "Input"
 			.SetBounds 10, 10, 230, 130
-			.Parent = @This
-		End With
-		' GroupBox2
-		With GroupBox2
-			.Name = "GroupBox2"
-			.Text = "Output"
-			.TabIndex = 13
-			.Caption = "Output"
-			.SetBounds 10, 150, 230, 80
-			.Parent = @This
-		End With
-		' GroupBox3
-		With GroupBox3
-			.Name = "GroupBox3"
-			.Text = "Stream"
-			.TabIndex = 22
-			.Caption = "Stream"
-			.SetBounds 10, 240, 230, 160
 			.Parent = @This
 		End With
 		' ComboBoxEdit1
 		With ComboBoxEdit1
 			.Name = "ComboBoxEdit1"
 			.Text = "ComboBoxEdit1"
-			.TabIndex = 0
+			.TabIndex = 1
 			.SetBounds 10, 20, 210, 21
 			.Designer = @This
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
@@ -130,17 +112,104 @@
 		With ComboBoxEdit2
 			.Name = "ComboBoxEdit2"
 			.Text = "ComboBoxEdit2"
-			.TabIndex = 1
+			.TabIndex = 2
 			.SetBounds 10, 50, 210, 21
 			.Designer = @This
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit2_Selected)
 			.Parent = @GroupBox1
 		End With
+		' Label2
+		With Label2
+			.Name = "Label2"
+			.Text = ""
+			.TabIndex = 3
+			.Alignment = AlignmentConstants.taCenter
+			.Caption = ""
+			.SetBounds 10, 80, 210, 20
+			.Parent = @GroupBox1
+		End With
+		' TrackBar2
+		With TrackBar2
+			.Name = "TrackBar2"
+			.Text = "TrackBar2"
+			.TabIndex = 4
+			.TickStyle = TickStyles.tsNone
+			.TickMark = TickMarks.tmBoth
+			.ThumbLength = 15
+			.MaxValue = 100
+			.SetBounds 10, 100, 210, 20
+			.Designer = @This
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar2_Change)
+			.Parent = @GroupBox1
+		End With
+		' GroupBox2
+		With GroupBox2
+			.Name = "GroupBox2"
+			.Text = "Output"
+			.TabIndex = 5
+			.Caption = "Output"
+			.SetBounds 10, 150, 230, 80
+			.Parent = @This
+		End With
+		' ComboBoxEdit3
+		With ComboBoxEdit3
+			.Name = "ComboBoxEdit3"
+			.Text = "ComboBoxEdit3"
+			.TabIndex = 6
+			.SetBounds 10, 20, 210, 21
+			.Designer = @This
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit3_Selected)
+			.Parent = @GroupBox2
+		End With
+		' TrackBar3
+		With TrackBar3
+			.Name = "TrackBar3"
+			.Text = "TrackBar3"
+			.TabIndex = 7
+			.TickStyle = TickStyles.tsNone
+			.TickMark = TickMarks.tmBoth
+			.ThumbLength = 15
+			.MaxValue = 100
+			.SetBounds 10, 50, 210, 20
+			.Designer = @This
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar3_Change)
+			.Parent = @GroupBox2
+		End With
+		' GroupBox3
+		With GroupBox3
+			.Name = "GroupBox3"
+			.Text = "Stream"
+			.TabIndex = 8
+			.Caption = "Stream"
+			.SetBounds 10, 240, 230, 160
+			.Parent = @This
+		End With
+		' ProgressBar1
+		With ProgressBar1
+			.Name = "ProgressBar1"
+			.Text = "ProgressBar1"
+			.SetBounds 10, 30, 210, 10
+			.Parent = @GroupBox3
+		End With
+		' TrackBar1
+		With TrackBar1
+			.Name = "TrackBar1"
+			.Text = "TrackBar1"
+			.TabIndex = 10
+			.TickStyle = TickStyles.tsNone
+			.TickMark = TickMarks.tmBoth
+			.ThumbLength = 15
+			.MaxValue = 100
+			.SetBounds 10, 50, 210, 20
+			.Designer = @This
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
+			.Parent = @GroupBox3
+		End With
 		' CheckBox1
 		With CheckBox1
 			.Name = "CheckBox1"
 			.Text = "Manage buffer level"
-			.TabIndex = 2
+			.TabIndex = 11
 			.Caption = "Manage buffer level"
 			.BackColor = 15790320
 			.BorderStyle = BorderStyles.bsNone
@@ -155,7 +224,7 @@
 		With Label1
 			.Name = "Label1"
 			.Text = ""
-			.TabIndex = 3
+			.TabIndex = 12
 			.Alignment = AlignmentConstants.taCenter
 			.ID = 1009
 			.Caption = ""
@@ -163,25 +232,11 @@
 			.SetBounds 150, 80, 70, 20
 			.Parent = @GroupBox3
 		End With
-		' TrackBar1
-		With TrackBar1
-			.Name = "TrackBar1"
-			.Text = "TrackBar1"
-			.TabIndex = 4
-			.TickStyle = TickStyles.tsNone
-			.TickMark = TickMarks.tmBoth
-			.ThumbLength = 15
-			.MaxValue = 100
-			.SetBounds 10, 50, 210, 20
-			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
-			.Parent = @GroupBox3
-		End With
 		' CheckBox2
 		With CheckBox2
 			.Name = "CheckBox2"
 			.Text = "Reverb"
-			.TabIndex = 5
+			.TabIndex = 13
 			.Caption = "Reverb"
 			.SetBounds 10, 110, 110, 20
 			.Designer = @This
@@ -192,7 +247,7 @@
 		With CheckBox3
 			.Name = "CheckBox3"
 			.Text = "Gargle"
-			.TabIndex = 6
+			.TabIndex = 14
 			.Caption = "Gargle"
 			.SetBounds 120, 110, 100, 20
 			.Designer = @This
@@ -203,7 +258,7 @@
 		With CheckBox4
 			.Name = "CheckBox4"
 			.Text = "Flanger"
-			.TabIndex = 7
+			.TabIndex = 15
 			.Caption = "Flanger"
 			.SetBounds 10, 130, 100, 20
 			.Designer = @This
@@ -214,7 +269,7 @@
 		With CheckBox5
 			.Name = "CheckBox5"
 			.Text = "Chorus"
-			.TabIndex = 8
+			.TabIndex = 16
 			.Caption = "Chorus"
 			.SetBounds 120, 130, 100, 20
 			.Designer = @This
@@ -230,61 +285,6 @@
 			.Designer = @This
 			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @This
-		End With
-		' Label2
-		With Label2
-			.Name = "Label2"
-			.Text = ""
-			.TabIndex = 9
-			.Alignment = AlignmentConstants.taCenter
-			.Caption = ""
-			.SetBounds 10, 80, 210, 20
-			.Parent = @GroupBox1
-		End With
-		' TrackBar2
-		With TrackBar2
-			.Name = "TrackBar2"
-			.Text = "TrackBar2"
-			.TabIndex = 10
-			.TickStyle = TickStyles.tsNone
-			.TickMark = TickMarks.tmBoth
-			.ThumbLength = 15
-			.MaxValue = 100
-			.SetBounds 10, 100, 210, 20
-			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar2_Change)
-			.Parent = @GroupBox1
-		End With
-		' ComboBoxEdit3
-		With ComboBoxEdit3
-			.Name = "ComboBoxEdit3"
-			.Text = "ComboBoxEdit3"
-			.TabIndex = 11
-			.SetBounds 10, 20, 210, 21
-			.Designer = @This
-			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit3_Selected)
-			.Parent = @GroupBox2
-		End With
-		' TrackBar3
-		With TrackBar3
-			.Name = "TrackBar3"
-			.Text = "TrackBar3"
-			.TabIndex = 21
-			.TickStyle = TickStyles.tsNone
-			.TickMark = TickMarks.tmBoth
-			.ThumbLength = 15
-			.MaxValue = 100
-			.SetBounds 10, 50, 210, 20
-			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar3_Change)
-			.Parent = @GroupBox2
-		End With
-		' ProgressBar1
-		With ProgressBar1
-			.Name = "ProgressBar1"
-			.Text = "ProgressBar1"
-			.SetBounds 10, 30, 210, 10
-			.Parent = @GroupBox3
 		End With
 	End Constructor
 	

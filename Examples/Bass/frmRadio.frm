@@ -82,7 +82,7 @@
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
-			.SetBounds 0, 0, 350, 400
+			.SetBounds 0, 0, 350, 380
 		End With
 		' GroupBox1
 		With GroupBox1
@@ -102,20 +102,11 @@
 			.SetBounds 10, 20, 80, 20
 			.Parent = @GroupBox1
 		End With
-		' Label2
-		With Label2
-			.Name = "Label2"
-			.Text = "Low bitrate"
-			.TabIndex = 2
-			.Caption = "Low bitrate"
-			.SetBounds 10, 50, 90, 20
-			.Parent = @GroupBox1
-		End With
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
 			.Text = "1"
-			.TabIndex = 3
+			.TabIndex = 2
 			.Caption = "1"
 			.SetBounds 120, 20, 30, 20
 			.Designer = @This
@@ -126,7 +117,7 @@
 		With CommandButton2
 			.Name = "CommandButton2"
 			.Text = "2"
-			.TabIndex = 4
+			.TabIndex = 3
 			.Caption = "2"
 			.SetBounds 160, 20, 30, 20
 			.Designer = @This
@@ -137,7 +128,7 @@
 		With CommandButton3
 			.Name = "CommandButton3"
 			.Text = "3"
-			.TabIndex = 5
+			.TabIndex = 4
 			.Caption = "3"
 			.SetBounds 200, 20, 30, 20
 			.Designer = @This
@@ -148,7 +139,7 @@
 		With CommandButton4
 			.Name = "CommandButton4"
 			.Text = "4"
-			.TabIndex = 6
+			.TabIndex = 5
 			.Caption = "4"
 			.SetBounds 240, 20, 30, 20
 			.Designer = @This
@@ -159,11 +150,20 @@
 		With CommandButton5
 			.Name = "CommandButton5"
 			.Text = "5"
-			.TabIndex = 7
+			.TabIndex = 6
 			.Caption = "5"
 			.SetBounds 280, 20, 30, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+			.Parent = @GroupBox1
+		End With
+		' Label2
+		With Label2
+			.Name = "Label2"
+			.Text = "Low bitrate"
+			.TabIndex = 7
+			.Caption = "Low bitrate"
+			.SetBounds 10, 50, 90, 20
 			.Parent = @GroupBox1
 		End With
 		' CommandButton6
@@ -238,6 +238,34 @@
 			.SetBounds 10, 20, 220, 21
 			.Style = ComboBoxEditStyle.cbDropDown
 			.Parent = @GroupBox2
+			.AddItem "http://www.radioparadise.com/m3u/mp3-128.m3u"
+			.AddItem "http://www.radioparadise.com/m3u/mp3-32.m3u"
+			.AddItem "http://icecast.timlradio.co.uk/vr160.ogg"
+			.AddItem "http://icecast.timlradio.co.uk/vr32.ogg"
+			.AddItem "http://icecast.timlradio.co.uk/a8160.ogg"
+			.AddItem "http://icecast.timlradio.co.uk/a832.ogg"
+			.AddItem "http://somafm.com/secretagent.pls"
+			.AddItem "http://somafm.com/secretagent24.pls"
+			.AddItem "http://somafm.com/suburbsofgoa.pls"
+			.AddItem "http://somafm.com/suburbsofgoa24.pls"
+			.AddItem "http://ai-radio.org/128.ogg"
+			.AddItem "http://ai-radio.org/256.ogg"
+			.AddItem "http://ai-radio.org/320.ogg"
+			.AddItem "http://ai-radio.org/44.flac"
+			.AddItem "http://ai-radio.org/320.opus"
+			.AddItem "https://www.wxxi.org/sites/default/files/am-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/am-mp3-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/fm-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/fm-mp3-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/rr-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/rr-mp3-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/weos-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/weos-mp3-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/with-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/with-mp3-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/wrur-aac-triton.m3u"
+			.AddItem "https://www.wxxi.org/sites/default/files/wrur-mp3-triton.m3u"
+			.ItemIndex = 0
 		End With
 		' CommandButton11
 		With CommandButton11
@@ -295,30 +323,30 @@
 			.Text = "Proxy server"
 			.TabIndex = 20
 			.Caption = "Proxy server"
-			.SetBounds 10, 290, 320, 70
+			.SetBounds 10, 290, 320, 50
 			.Parent = @This
-		End With
-		' TextBox1
-		With TextBox1
-			.Name = "TextBox1"
-			.Text = ""
-			.TabIndex = 21
-			.Enabled = False
-			.SetBounds 10, 20, 300, 20
-			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox1_Change)
-			.Parent = @GroupBox4
 		End With
 		' CheckBox1
 		With CheckBox1
 			.Name = "CheckBox1"
 			.Text = "Direct connection"
-			.TabIndex = 22
+			.TabIndex = 21
 			.Caption = "Direct connection"
 			.Checked = True
-			.SetBounds 10, 40, 140, 20
+			.SetBounds 10, 20, 110, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox1_Click)
+			.Parent = @GroupBox4
+		End With
+		' TextBox1
+		With TextBox1
+			.Name = "TextBox1"
+			.Text = ""
+			.TabIndex = 22
+			.Enabled = False
+			.SetBounds 140, 20, 170, 20
+			.Designer = @This
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox1_Change)
 			.Parent = @GroupBox4
 		End With
 		' TimerComponent1
@@ -436,34 +464,6 @@ Private Sub frmRadioType.Form_Create(ByRef Sender As Control)
 	BASS_PluginLoad("basshls.dll", 0) ' load BASSHLS (If present) For HLS support
 	
 	InitializeCriticalSection(@cLock)
-	
-	ComboBoxEdit1.AddItem "http://www.radioparadise.com/m3u/mp3-128.m3u"
-	ComboBoxEdit1.AddItem "http://www.radioparadise.com/m3u/mp3-32.m3u"
-	ComboBoxEdit1.AddItem "http://icecast.timlradio.co.uk/vr160.ogg"
-	ComboBoxEdit1.AddItem "http://icecast.timlradio.co.uk/vr32.ogg"
-	ComboBoxEdit1.AddItem "http://icecast.timlradio.co.uk/a8160.ogg"
-	ComboBoxEdit1.AddItem "http://icecast.timlradio.co.uk/a832.ogg"
-	ComboBoxEdit1.AddItem "http://somafm.com/secretagent.pls"
-	ComboBoxEdit1.AddItem "http://somafm.com/secretagent24.pls"
-	ComboBoxEdit1.AddItem "http://somafm.com/suburbsofgoa.pls"
-	ComboBoxEdit1.AddItem "http://somafm.com/suburbsofgoa24.pls"
-	ComboBoxEdit1.AddItem "http://ai-radio.org/128.ogg"
-	ComboBoxEdit1.AddItem "http://ai-radio.org/256.ogg"
-	ComboBoxEdit1.AddItem "http://ai-radio.org/320.ogg"
-	ComboBoxEdit1.AddItem "http://ai-radio.org/44.flac"
-	ComboBoxEdit1.AddItem "http://ai-radio.org/320.opus"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/am-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/am-mp3-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/fm-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/fm-mp3-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/rr-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/rr-mp3-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/weos-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/weos-mp3-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/with-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/with-mp3-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/wrur-aac-triton.m3u"
-	ComboBoxEdit1.AddItem "https://www.wxxi.org/sites/default/files/wrur-mp3-triton.m3u"
 End Sub
 
 Private Sub frmRadioType.CommandButton1_Click(ByRef Sender As Control)
