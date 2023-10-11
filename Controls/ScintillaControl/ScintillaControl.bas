@@ -776,6 +776,9 @@ End Property
 Private Property ScintillaControl.ViewCaretLine(ByVal bVal As Boolean)
 	SendMessage(FHandle, SCI_SETCARETLINEVISIBLEALWAYS, bVal, 0)
 	SendMessage(FHandle, SCI_SETCARETLINEVISIBLE, bVal, 0)
+	If bVal = False Then Exit Property
+	CaretLineBackAlpha = &H40
+	CaretLineBackColor = RGB(&h80, &h80, &h80)
 End Property
 
 Private Property ScintillaControl.ViewLineNo As Integer

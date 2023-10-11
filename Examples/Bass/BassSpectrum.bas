@@ -28,12 +28,12 @@ End Destructor
 #endif
 
 Private Property BassSpectrum.Mode() As Integer
-	Property = SpecMode
+	Property = specmode
 End Property
 
 Private Property BassSpectrum.Mode(ByVal nVal As Integer)
-	If nval < 0 Or nval > 3 Then Exit Property
-	SpecMode = nVal
+	If nVal < 0 Or nVal > 3 Then Exit Property
+	specmode = nVal
 	ReDim specbuf(SpecWidth * (SpecHeight + 1)) As Byte ' clear display
 End Property
 
@@ -84,9 +84,9 @@ Private Sub BassSpectrum.Update(Chan As DWORD, hWnd As HANDLE)
 		Dim As Integer c
 		Dim As Single buf()
 		Dim As BASS_CHANNELINFO ci
-		BASS_ChannelGetInfo(chan, @ci) ' Get number of channels
+		BASS_ChannelGetInfo(Chan, @ci) ' Get number of channels
 		ReDim buf(ci.chans * (SpecWidth + 1))
-		BASS_ChannelGetData(chan, @buf(0), ci.chans * SpecWidth * SizeOf(buf(0)) Or BASS_DATA_FLOAT) '  Get the sample Data
+		BASS_ChannelGetData(Chan, @buf(0), ci.chans * SpecWidth * SizeOf(buf(0)) Or BASS_DATA_FLOAT) '  Get the sample Data
 		ReDim specbuf(SpecWidth * (SpecHeight + 1))
 		For c = 0 To ci.chans - 1
 			For x = 0 To SpecWidth - 1
@@ -109,14 +109,14 @@ Private Sub BassSpectrum.Update(Chan As DWORD, hWnd As HANDLE)
 		Next
 	Else 
 		Dim As Single fft(1024)
-		BASS_ChannelGetData(chan, @fft(0), BASS_DATA_FFT2048) '  Get the FFT Data
+		BASS_ChannelGetData(Chan, @fft(0), BASS_DATA_FFT2048) '  Get the FFT Data
 
-		If specmode= 0 Then ' "normal" FFT Then
+		If specmode = 0 Then ' "normal" FFT Then
 			ReDim specbuf(SpecWidth * (SpecHeight + 1))
 			' memset(specbuf, 0, SpecWidth * SpecHeight)
 			For x = 0 To SpecWidth / 2 - 1
 #if 1
-				y = sqrt(fft(x + 1)) * 3 * SpecHeight - 4 '  scale it (sqrt To make low values more visible)
+				y = Sqrt(fft(x + 1)) * 3 * SpecHeight - 4 '  scale it (sqrt To make low values more visible)
 #else
 				y = fft(x + 1) * 10 * SpecHeight ' scale it (linearly)
 #endif
@@ -147,16 +147,16 @@ Private Sub BassSpectrum.Update(Chan As DWORD, hWnd As HANDLE)
 					b0 += 1
 					If peak < fft(1 + b0) Then peak = fft(1 + b0)
 				Loop While b0 < b1
-				y = sqrt(peak) * 3 * SpecHeight - 4 ' scale it (sqrt To make low values more visible)
+				y = Sqrt(peak) * 3 * SpecHeight - 4 ' scale it (sqrt To make low values more visible)
 				If (y > SpecHeight) Then y = SpecHeight ' cap it
 				While (y >= 0)
 					memset(@specbuf(y * SpecWidth + x * (SpecWidth / BANDS)), y + 1, SpecWidth / BANDS - 2) '  Draw bar
 					y -= 1
 				Wend
 			Next
-		Else '{  "3D"
+		Else '2 "3D"
 			For x = 0 To SpecHeight - 1
-				y = sqrt(fft(x + 1)) * 3 * 127 ' scale it (sqrt To make low values more visible)
+				y = Sqrt(fft(x + 1)) * 3 * 127 ' scale it (sqrt To make low values more visible)
 				If (y > 127) Then y = 127 ' cap it
 				specbuf(x * SpecWidth + specpos) = 128 + y ' plot it
 			Next

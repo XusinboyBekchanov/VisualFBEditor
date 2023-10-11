@@ -1,17 +1,19 @@
 ﻿'BASS for freebasic translate by Cm.Wang
 
 #pragma once
+#include once "crt\stdio.bi"
+#include once "win\mmsystem.bi"
 
 #define BUFSTEP 1000000 ' memory allocation unit
 
 Type WAVEHEADER_RIFF ' == 12 bytes ==
-	RIFF          As Long ' "RIFF" = &H46464952
+	RIFF          As Long = &H46464952 ' "RIFF"
 	riffBlockSize As DWORD ' reclen - 8
-	riffBlockType As Long ' "WAVE" = &H45564157
+	riffBlockType As Long = &H45564157 ' "WAVE"
 End Type
 
-Type WAVEFORMATCM ' == 24 bytes ==
-	wfBlockType As Long ' "fmt " = &H20746D66
+Type WAVEHEADER_FMT ' == 24 bytes ==
+	wfBlockType As Long = &H20746D66 ' "fmt "
 	wfBlockSize As DWORD ' == block size begins from here = 16 bytes
 	wFormatTag      As UShort
 	nChannels       As UShort
@@ -22,8 +24,14 @@ Type WAVEFORMATCM ' == 24 bytes ==
 End Type
 
 Type WAVEHEADER_DATA ' == 8 bytes ==
-	dataBlockType As Long ' "data" = &H61746164
+	dataBlockType As Long = &H61746164 ' "data"
 	dataBlockSize As DWORD ' reclen - 44
+End Type
+
+Type WAVEHEADER
+	riff As WAVEHEADER_RIFF
+	fmt As WAVEHEADER_FMT
+	data As WAVEHEADER_DATA
 End Type
 
 Type BassRecord
@@ -39,9 +47,7 @@ Private : '私有变量
 	RecStream As HSTREAM = 0
 	RecMonitoring As Boolean = False
 	RecStatus As BassStatus
-	wr As WAVEHEADER_RIFF Ptr
-	wf As WAVEFORMATCM Ptr
-	wd As WAVEHEADER_DATA Ptr
+	wavHeader As WAVEHEADER Ptr
 Private : '私有函数
 	Declare Sub Release()
 	Declare Static Function RecCallBack(ByVal handle As HRECORD, ByVal recbuffer As Const Any Ptr, ByVal reclength As DWORD, ByVal user As Any Ptr) As BOOL

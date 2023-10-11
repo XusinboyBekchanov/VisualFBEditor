@@ -140,31 +140,23 @@ Private Sub BassRecord.Stop()
 		RecStatus = BassStatus.BassStop
 		If RecMonitoring = False Then
 			'fill the WAVE header
-			wr = Cast(WAVEHEADER_RIFF Ptr, RecBuf)
-			wf = Cast(WAVEFORMATCM Ptr, RecBuf + 12)
-			wd = Cast(WAVEHEADER_DATA Ptr, RecBuf + 36)
+			wavHeader = Cast(WAVEHEADER Ptr, RecBuf)
 			
-			'Set WAV "RIFF" header
-			wr->RIFF          = &H46464952  '"RIFF"
-			'wr->riffBlockSize = 0          'after recording
-			wr->riffBlockType = &H45564157  '"WAVE"
+			wavHeader->riff.RIFF          = &H46464952  '"RIFF"
+			wavHeader->riff.riffBlockType = &H45564157  '"WAVE"
+			wavHeader->fmt.wfBlockType = &H20746D66     '"fmt "
+			wavHeader->fmt.wfBlockSize = 16
+			wavHeader->fmt.wFormatTag  = WAVE_FORMAT_PCM
+			wavHeader->fmt.nChannels      = RecChans
+			wavHeader->fmt.wBitsPerSample =  16
+			wavHeader->fmt.nSamplesPerSec = RecFreq
+			wavHeader->fmt.nBlockAlign     = wavHeader->fmt.nChannels      * wavHeader->fmt.wBitsPerSample / 8
+			wavHeader->fmt.nAvgBytesPerSec = wavHeader->fmt.nSamplesPerSec * wavHeader->fmt.nBlockAlign
+			wavHeader->data.dataBlockType = &H61746164  '"data"
 			
-			'Set WAV "fmt " header
-			wf->wfBlockType = &H20746D66    '"fmt "
-			wf->wfBlockSize = 16
-			wf->wFormatTag  = 1
-			
-			wf->nChannels      = RecChans
-			wf->wBitsPerSample =  16
-			wf->nSamplesPerSec = RecFreq
-			wf->nBlockAlign     = wf->nChannels      * wf->wBitsPerSample / 8
-			wf->nAvgBytesPerSec = wf->nSamplesPerSec * wf->nBlockAlign
-			
-			'set WAV "data" header
-			wd->dataBlockType = &H61746164  '"data"
-			
-			wr->riffBlockSize = RecLen - 8
-			wd->dataBlockSize = RecLen - 44
+			'after recording
+			wavHeader->riff.riffBlockSize = RecLen - SizeOf(WAVEHEADER_DATA)
+			wavHeader->data.dataBlockSize = RecLen - SizeOf(WAVEHEADER)
 		End If
 	End If
 End Sub
