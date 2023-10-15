@@ -9994,7 +9994,7 @@ Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			si.fMask  = SIF_RANGE Or SIF_PAGE
 			si.nMin   = 0
 			If dwClientX - iWidth < 0 Then
-				si.nMax   = iWidth - dwClientX
+				si.nMax   = ScaleX(iWidth - dwClientX)
 			Else
 				si.nMax   = 0
 			End If
@@ -10009,7 +10009,7 @@ Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			si.fMask  = SIF_RANGE Or SIF_PAGE
 			si.nMin   = 0
 			If dwClientY - iHeight < 0 Then
-				si.nMax   = iHeight - dwClientY
+				si.nMax   = ScaleY(iHeight - dwClientY)
 			Else
 				si.nMax   = 0
 			End If
