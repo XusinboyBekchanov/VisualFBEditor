@@ -611,9 +611,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Project Then
 			For i As Integer = 0 To Project->Components.Count - 1
 				If EndsWith(Project->Components.Item(i), Slash) Then
-					WAdd CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1)) & """"
+					WAdd CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """"
 				Else
-					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i)) & """"
+					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """"
 				End If
 			Next
 		Else
@@ -3081,7 +3081,7 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	miShowNextStatement->Enabled = bEnd
 End Sub
 
-#ifdef __USE_WINAPI__
+#ifdef __FB_WIN32__
 Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #else
 Sub TimerProc()
@@ -3407,12 +3407,12 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 	ElseIf StartsWith(Path, "../") OrElse StartsWith(Path, "..\") Then
 		Return GetOSPath(GetFolderName(GetFolderName(FromFile)) & Mid(Path, 4))
 	End If
-	Dim Result As UString = GetOSPath(ExePath & Slash & Path)
-	If FromFile = "" AndAlso FileExists(Result) Then
+	Dim Result As UString = GetOSPath(GetFolderName(FromFile) & Path)
+	If GetFolderName(FromFile) <> "" AndAlso FileExists(Result) Then
 		Return Result
 	Else
-		Dim Result As UString = GetOSPath(GetFolderName(FromFile) & Path)
-		If GetFolderName(FromFile) <> "" AndAlso FileExists(Result) Then
+		Dim Result As UString = GetOSPath(ExePath & Slash & Path)
+		If FromFile = "" AndAlso FileExists(Result) Then
 			Return Result
 		Else
 			Dim As Library Ptr CtlLibrary
