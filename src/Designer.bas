@@ -711,10 +711,12 @@ Namespace My.Sys.Forms
 			FCanMove    = False
 			FCanSize    = True
 			#ifdef __USE_GTK__
-				If G_IS_OBJECT(FDots(0, FDotIndex)) Then
-					FSelControl = g_object_get_data(G_OBJECT(FDots(0, FDotIndex)), "@@@Control")
-					SelectedControl = g_object_get_data(G_OBJECT(FDots(0, FDotIndex)), "@@@Control2")
-				End If
+				#ifndef __FB_WIN32__
+					If G_IS_OBJECT(FDots(0, FDotIndex)) Then
+						FSelControl = g_object_get_data(G_OBJECT(FDots(0, FDotIndex)), "@@@Control")
+						SelectedControl = g_object_get_data(G_OBJECT(FDots(0, FDotIndex)), "@@@Control2")
+					End If
+				#endif
 			#else
 				'If Not IsWindow(FSelControl) Then
 				FSelControl = GetProp(FDots(0, FDotIndex),"@@@Control")

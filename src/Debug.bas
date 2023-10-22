@@ -282,11 +282,11 @@ Dim Shared As tindexdata indexdata
 
 udt(0).nm="Unknown"
 
-#Ifdef __FB_64BIT__
+#ifdef __FB_64BIT__
 	udt(1).nm="long":udt(1).lg=Len(Long)
-#Else
+#else
 	udt(1).nm="Integer":udt(1).lg=Len(Integer)
-#EndIf
+#endif
 udt(2).nm="Byte":udt(2).lg=Len(Byte)
 udt(3).nm="Ubyte":udt(3).lg=Len(UByte)
 udt(4).nm="Zstring":udt(4).lg=Len(Integer)
@@ -294,23 +294,23 @@ udt(5).nm="Short":udt(5).lg=Len(Short)
 udt(6).nm="Ushort":udt(6).lg=Len(UShort)
 udt(7).nm="Void":udt(7).lg=Len(Integer)
 
-#Ifdef __FB_64BIT__
+#ifdef __FB_64BIT__
 	udt(8).nm="Ulong":udt(8).lg=Len(ULong)
-#Else
+#else
 	udt(8).nm="Uinteger":udt(8).lg=Len(UInteger)
-#EndIf
+#endif
 
-#Ifdef __FB_64BIT__
+#ifdef __FB_64BIT__
 	udt(9).nm="Integer":udt(9).lg=Len(Integer)
-#Else
+#else
 	udt(9).nm="Longint":udt(9).lg=Len(LongInt)
-#EndIf
+#endif
 
-#Ifdef __FB_64BIT__
+#ifdef __FB_64BIT__
 	udt(10).nm="Uinteger":udt(10).lg=Len(UInteger)
-#Else
+#else
 	udt(10).nm="Ulongint":udt(10).lg=Len(ULongInt)
-#EndIf
+#endif
 
 udt(11).nm="Single":udt(11).lg=Len(Single)
 udt(12).nm="Double":udt(12).lg=Len(Double)
@@ -669,13 +669,13 @@ Private Function brk_test Overload (adr1 As Integer, adr2 As Integer = 0, dataty
 	''35 --> = or >= or <=
 	''16 --> <>
 	
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		ReadProcessMemory(dbghand,Cast(LPCVOID,adr1),@recup1,8,0)
 	#else
 		recup1.vlongint=ReadMemLongInt(thread(threadcur).id, adr1)
 	#endif
 	If adr2 Then
-		#Ifdef __FB_WIN32__
+		#ifdef __FB_WIN32__
 			ReadProcessMemory(dbghand,Cast(LPCVOID,adr2),@recup2,8,0)
 		#else
 			recup2.vlongint=ReadMemLongInt(thread(threadcur).id, adr2)
@@ -886,7 +886,7 @@ Private Sub brk_unset(ubpon As Integer=False)
 				msgdata=0 ''restore sv everywhere
 				exec_order(KPT_CCALL)
 			End If
-		#EndIf
+		#endif
 		
 		
 		
@@ -1275,7 +1275,7 @@ Private Sub init_debuggee(srcstart As Integer)
 	'Wend
 	
 	
-	#Ifdef __FB_WIN32__
+	#ifdef __FB_WIN32__
 		put_breakcpu()
 	#endif
 	''srcstart contains the index for starting the loading of source codes
@@ -1843,6 +1843,8 @@ Private Sub var_tip(ope As Integer)
 	'ExpandTreeViewItem( GTVIEWVAR , vrr(idx).tv , 0)
 End Sub
 
+#define __crt_win32_unistd_bi__
+
 #ifndef __FB_WIN32__
 	#include once "crt.bi"
 	#include once "crt/linux/unistd.bi"
@@ -2293,7 +2295,7 @@ End Sub
 	Private Sub read_proc(filesyst As String)
 		Dim filein As Integer,lineread As String
 		filein = FreeFile
-		Open filesyst For Input As #Filein
+		Open filesyst For Input As #filein
 		dbg_prt2 "reading =";filesyst
 		Do While Not EOF(filein)
 			Line Input #filein,lineread
@@ -2357,7 +2359,7 @@ End Sub
 			reg_values(15)="Rip="+fmt(Str(regs.xip),20)+"/ "+Hex(regs.xip)
 			
 			For i As Long =0 To 15
-		#Else
+		#else
 			ReDim reg_values(8)
 			reg_values(0)="Edi="+fmt(Str(regs.edi),11)+"/ "+Hex(regs.edi)
 			reg_values(1)="Esi="+fmt(Str(regs.esi),11)+"/ "+Hex(regs.esi)
@@ -2622,7 +2624,7 @@ End Sub
 			bool2=False
 			Select case As Const msgcmd
 				
-			case KPT_CONT
+			Case KPT_CONT
 				dbg_prt2 "cont"
 				'bool1=true
 				'condsignal(condid)
@@ -2630,7 +2632,7 @@ End Sub
 				ptrace(PTRACE_CONT,thread(threadcur).id,0,0)
 				'exit while
 				
-			case KPT_CONTALL
+			Case KPT_CONTALL
 				For ith As Integer =0 To threadnb
 					dbg_prt2 "KPT_CONTALL idx,sts=";ith,thread(ith).sts
 					If thread(ith).sts=KTHD_STOP Then ' and rLine(thread(threadcur).sv).sv<>-1 then
@@ -2650,21 +2652,21 @@ End Sub
 				MutexUnlock blocker
 				Exit While
 				
-			case KPT_XIP ''update EIP or RIP
+			Case KPT_XIP ''update EIP or RIP
 				ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs)
 				dbg_prt2 "update xip=";Hex(regs.xip),Hex(msgad)
 				regs.xip=msgad
 				ptrace(PTRACE_SETREGS, thread(threadcur).id, NULL, @regs)
 				
-			case KPT_CCALL
+			Case KPT_CCALL
 				putremove_breaks(thread(threadcur).id,msgdata)
 				
-			case KPT_CC
+			Case KPT_CC
 				dta = ptrace(PTRACE_PEEKTEXT,thread(threadcur).id,Cast(Any Ptr,msgad),NULL)
 				dta = (dta And FIRSTBYTE ) Or &hCC
 				ptrace(PTRACE_POKETEXT,thread(threadcur).id,Cast(Any Ptr,msgad),Cast(Any Ptr,dta))
 				
-			case KPT_SSTEP
+			Case KPT_SSTEP
 				dta = ptrace(PTRACE_PEEKTEXT,thread(threadcur).id,Cast(Any Ptr,msgad),NULL)
 				dta = (dta And FIRSTBYTE ) Or msgdata
 				ptrace(PTRACE_POKETEXT,thread(threadcur).id,Cast(Any Ptr,msgad),Cast(Any Ptr,dta))
@@ -2677,23 +2679,23 @@ End Sub
 				ptrace(PTRACE_SINGLESTEP, thread(threadcur).id, NULL, NULL)
 				Exit While
 				
-			case KPT_GETREGS
+			Case KPT_GETREGS
 				If ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs) Then
 					dbg_prt2 "error in getregs=";errno
 				End If
 				
-			case KPT_SETREGS
+			Case KPT_SETREGS
 				If ptrace(PTRACE_SETREGS, thread(threadcur).id, NULL, @regs)=-1 Then
 					dbg_prt2 "error in setregs=";errno
 				End If
 				
-			case KPT_READMEM
+			Case KPT_READMEM
 				ReadProcessMemory_th2(thread(threadcur).id,Cast(Any Ptr,msgad),Cast(Any Ptr,msgad2),msgdata)
 				
-			case KPT_WRITEMEM
+			Case KPT_WRITEMEM
 				writeprocessmemory_th2(thread(threadcur).id,Cast(Any Ptr,msgad),Cast(Any Ptr,msgad2),msgdata)
 				
-			case KPT_RESTORE
+			Case KPT_RESTORE
 				dta = ptrace(PTRACE_PEEKTEXT,thread(threadcur).id,Cast(Any Ptr,msgad),NULL)
 				'dbg_prt2 "data read=";hex(dta),hex((dta and FIRSTBYTE )),hex(msgdata)
 				dta = (dta And FIRSTBYTE ) Or msgdata
@@ -2707,7 +2709,7 @@ End Sub
 				
 				Exit While
 				
-			case KPT_KILL
+			Case KPT_KILL
 				dbg_prt2 "sending sigkill"
 				linux_kill(debugpid,9) ''send SIGKILL
 				bool1=True
@@ -2716,7 +2718,7 @@ End Sub
 				prun=False
 				Exit While
 				
-			case KPT_SIGNAL
+			Case KPT_SIGNAL
 				''get pending signal no stop but signal is removed so need to be saved
 				threadsaved=waitpid(-1,@statussaved,__WNOHANG)
 				dbg_prt2 "KPT_SIGNAL thread=";threadsaved,"status=";Hex(statussaved)
@@ -2725,7 +2727,7 @@ End Sub
 				CondSignal(condid)
 				MutexUnlock blocker
 				
-			case Else ''can be used for exiting the loop
+			Case Else ''can be used for exiting the loop
 				dbg_prt2 "msgcmd not handled exiting loop=";msgcmd
 				bool1=True
 				CondSignal(condid)
@@ -5236,7 +5238,7 @@ Private Function cutup_names(strg As String) As String
 	'		Return nm+"."+nm2 '17/01/2015
 End Function
 
-#ifndef __USE_GTK__
+#ifdef __FB_WIN32__
 	Private Function cutup_array(gv As String,d As Integer,f As Byte) As Integer
 		Dim As Integer p=d,q,c
 		
@@ -11224,7 +11226,7 @@ Private Function line_call(regip As UInteger) As Integer 'find the calling line 
 	Return linenb
 End Function
 
-#ifdef __USE_WINAPI__
+#ifdef __FB_WIN32__
 	Private Sub proc_newfast()
 		Dim vcontext As CONTEXT
 		Dim libel As String
@@ -11301,8 +11303,10 @@ End Function
 				'If proc(procsv).nm="main" Then procr(procrnb).vr=1 'constructors for shared they are executed before main so reset index for first variable of main 04/02/2014
 				proc_watch(procrnb) 'reactivate watched var
 			Next
-			RedrawWindow tviewthd, 0, 0, 1
-			RedrawWindow tviewvar, 0, 0, 1
+			#ifdef __USE_WINAPI__
+				RedrawWindow tviewthd, 0, 0, 1
+				RedrawWindow tviewvar, 0, 0, 1
+			#endif
 		Next
 	End Sub
 	'====================================================================
@@ -11321,7 +11325,7 @@ Private Sub singlestep_on(tid As Integer,rln As Integer,running As Integer =1)
 
 			If running Then ''when not running initial code is already restored and no need to decrease EIP
 				''restore initial code
-				writeprocessmemory(dbghand,Cast(LPVOID,rline(rln).ad),@rline(rln).sv,1,0)
+				WriteProcessMemory(dbghand,Cast(LPVOID,rline(rln).ad),@rline(rln).sv,1,0)
 				''change EIP go back 1 byte
 				vcontext.regip-=1
 			End If
@@ -11704,7 +11708,7 @@ Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
 	thread_rsm()
 End Sub
 
-#ifdef __USE_WINAPI__
+#ifdef __FB_WIN32__
 	Private Sub debugstring_read(debugev As debug_event)
 		Dim As WString *400 wstrg
 		Dim As ZString *400 sstrg
@@ -11837,7 +11841,7 @@ End Sub
 									End If
 									bptyp=brkol(bpidx).typ
 									If bptyp=2 Or bptyp=3 Then  ''BP conditional
-										If brk_test(brkol(bpidx).adrvar1,brkol(bpidx).adrvar2,brkol(bpidx).datatype,brkol(bpidx).val,brkol(bpidx).ttb) Then
+										If brk_test(brkol(bpidx).adrvar1,brkol(bpidx).adrvar2,brkol(bpidx).datatype,brkol(bpidx).Val,brkol(bpidx).ttb) Then
 											thread_search(DebugEv.dwThreadId,CSCOND,bpidx)
 										Else
 											singlestep_on(DebugEv.dwThreadId,brkol(bpidx).index)
@@ -12154,9 +12158,15 @@ End Sub
 		brknb=0 'no break on line
 		brkol(0).ad=0   'no break on cursor
 		
-		SendMessage(tviewvar, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs/vars
-		SendMessage(tviewprc, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs
-		SendMessage(tviewthd, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'threads
+		#ifdef __USE_WINAPI__
+			SendMessage(tviewvar, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs/vars
+			SendMessage(tviewprc, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'procs
+			SendMessage(tviewthd, TVM_DELETEITEM, 0, Cast(LPARAM, TVI_ROOT)) 'threads
+		#else
+			tviewvar->Nodes.Clear
+			tviewprc->Nodes.Clear
+			tviewthd->Nodes.Clear
+		#endif
 		
 		'ShowWindow(tviewcur,SW_HIDE):tviewcur=tviewvar:ShowWindow(tviewcur,SW_SHOW)
 		'SendMessage(htab2,TCM_SETCURSEL,0,0)
@@ -12329,6 +12339,16 @@ Private Function check_bitness(ByRef fullname As WString) As Integer
 	Return -1
 End Function
 
+Sub DeleteDebugCursor
+	If CurEC <> 0 Then
+		Var curEC2 = CurEC
+		fcurlig = -1
+		CurEC->CurExecutedLine = -1
+		CurEC = 0
+		curEC2->Repaint
+	End If
+End Sub
+
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Dim Shared As Long pIn, pOut
 	
@@ -12447,16 +12467,6 @@ End Function
 			
 		End Function
 	#endif
-	
-	Sub DeleteDebugCursor
-		If CurEC <> 0 Then
-			Var curEC2 = CurEC
-			fcurlig = -1
-			CurEC->CurExecutedLine = -1
-			CurEC = 0
-			curEC2->Repaint
-		End If
-	End Sub
 	
 	Function GetPartPath(sPath As String) As String
 		

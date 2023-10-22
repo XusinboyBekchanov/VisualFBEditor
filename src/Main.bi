@@ -5,6 +5,10 @@
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
 '#########################################################
 
+#ifdef __FB_WIN32__
+	#define UNICODE
+	#include once "windows.bi"
+#endif
 #include once "mff/WStringList.bi"
 #include once "mff/Dictionary.bi"
 #include once "mff/Form.bi"
@@ -77,9 +81,9 @@ Namespace VisualFBEditor
 	End Type
 End Namespace
 
-#if defined(__FB_WIN32__) AndAlso defined(__USE_GTK__)
-	#define MAX_PATH 260
-#endif
+'#if defined(__FB_WIN32__) AndAlso defined(__USE_GTK__)
+'	#define MAX_PATH 260
+'#endif
 
 Type HelpOptions
 	CurrentPath As WString * MAX_PATH
@@ -248,12 +252,12 @@ Declare Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boo
 Declare Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)
 Declare Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)
-#ifdef __USE_GTK__
+#ifdef __FB_WIN32__
+	Common Shared As UINT_PTR CurrentTimer, CurrentTimerData
+	Declare Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+#else
 	Common Shared As Long CurrentTimer, CurrentTimerData
 	Declare Sub TimerProc()
-#else
-	Common Shared As UINT_PTR CurrentTimer, CurrentTimerData
-	Declare Sub TimerProc(hwnd As hwnd, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #endif
 Declare Function WithoutPointers(ByRef e As String) As String
 Declare Function WithoutQuotes(ByRef e As UString) As UString

@@ -6,6 +6,8 @@
 '#           Laurent GRAS                                #
 '#########################################################
 
+#define __crt_win32_unistd_bi__
+
 #include once "mff/TextBox.bi"
 #include once "EditControl.bi"
 #include once "TabWindow.bi"
@@ -42,13 +44,13 @@ Declare Sub DeleteDebugCursor
 
 #define fmt(t, l) Left(t, l) + Space(l - Len(t)) + "  "
 #define fmt2(t, l) Left(t, l) + Space(l - Len(t))
-#Define fmt3(t, l) Space(l - Len(t)) + Left(t, l)
+#define fmt3(t, l) Space(l - Len(t)) + Left(t, l)
 	
 #ifdef __FB_WIN32 ''sometime need of double & otherwise underlined next character
 	#define KAMPERSAND "&&"
 #else
 	#define KAMPERSAND "&"
-#EndIf
+#endif
 
 ''to handle new added field in array descriptor structure
 #if __FB_VERSION__ >= "1.08"
@@ -67,8 +69,8 @@ Declare Sub DeleteDebugCursor
 	#include once "TabWindow.bi"
 	
 	'' if they are not already defined
-	#Ifndef EXCEPTION_DEBUG_EVENT
-		#Define EXCEPTION_DEBUG_EVENT  1
+	#ifndef EXCEPTION_DEBUG_EVENT
+		#define EXCEPTION_DEBUG_EVENT  1
 		#define CREATE_THREAD_DEBUG_EVENT  2
 		#define CREATE_PROCESS_DEBUG_EVENT  3
 		#define EXIT_THREAD_DEBUG_EVENT  4
@@ -82,7 +84,7 @@ Declare Sub DeleteDebugCursor
 		#define DBG_TERMINATE_PROCESS          &h40010004
 		#define DBG_CONTROL_C                  &h40010005
 		#define DBG_CONTROL_BREAK              &h40010008
-	#EndIf
+	#endif
 	'' DBG_EXCEPTION_NOT_HANDLED = &H80010001
 	#define EXCEPTION_GUARD_PAGE_VIOLATION      &H80000001
 	#define EXCEPTION_NO_MEMORY                 &HC0000017
@@ -152,7 +154,7 @@ Declare Sub DeleteDebugCursor
 		#define FIRSTBYTE &hFFFFFFFFFFFFFF00
 	#else
 		#define FIRSTBYTE &hFFFFFF00
-	#EndIf
+	#endif
 
 	Enum PTRACE_REQUEST
 		PTRACE_TRACEME             =0
