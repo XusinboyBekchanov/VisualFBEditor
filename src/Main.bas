@@ -3412,7 +3412,7 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 		Return Result
 	Else
 		Dim Result As UString = GetOSPath(ExePath & Slash & Path)
-		If FromFile = "" AndAlso FileExists(Result) Then
+		If FileExists(Result) Then
 			Return Result
 		Else
 			Dim As Library Ptr CtlLibrary
