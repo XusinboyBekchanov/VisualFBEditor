@@ -1,4 +1,5 @@
-﻿*File=frmNtp.frm
+﻿File=ntp.bi
+*File=frmNtp.frm
 File=frmTimezone.frm
 ProjectType=0
 Subsystem=2
@@ -10,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=3
+BuildVersion=16
 AutoIncrementVersion=false
 ApplicationTitle="NTPClient"
 ApplicationIcon=""

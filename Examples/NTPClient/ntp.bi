@@ -13,8 +13,11 @@
 
 'https://learn.microsoft.com/en-us/windows/win32/winsock/winsock-functions
 
+Dim Shared ntpCancel As Boolean 
+
 '获取NTP服务器时间戳
 Function NTP_sec(NtpServ As ZString) As time_t
+	
 	If Len(NtpServ) < 1 Then
 		NtpServ = "time.nist.gov"
 	End If
@@ -23,7 +26,7 @@ Function NTP_sec(NtpServ As ZString) As time_t
 	
 	Dim wsa_ptr As WSADATA
 	
-	' 初始化Winsock库	
+	' 初始化Winsock库
 	If WSAStartup(MAKEWORD(2, 0), @wsa_ptr) = SOCKET_ERROR Then
 		Print "Failed to initialize Winsock"
 		Return 0
@@ -55,7 +58,7 @@ Function NTP_sec(NtpServ As ZString) As time_t
 	'local_addr.sin_port = htons(NTP_PORT)
 	'local_addr.sin_addr.s_addr = INADDR_ANY
 	'Print bind(sock, Cast(PSOCKADDR, @local_addr), SizeOf(local_addr))
-
+	
 	'设置NTP服务器地址和端口
 	Dim ia As IN_ADDR
 	Dim hostentry As HOSTENT Ptr
@@ -78,7 +81,7 @@ Function NTP_sec(NtpServ As ZString) As time_t
 	saddr.sin_family = AF_INET
 	saddr.sin_port    = htons(NTP_PORT)
 	saddr.sin_addr.s_addr =  ip_iaddr
-
+	
 	' 连接NTP服务器
 	If (connect(sock, Cast(PSOCKADDR, @saddr), Len(saddr)) = SOCKET_ERROR) Then
 		closesocket(sock)
@@ -86,29 +89,46 @@ Function NTP_sec(NtpServ As ZString) As time_t
 		Return 0
 	End If
 	
+	' 10/27 将套接字设置为非阻塞模式
+	Dim nonBlocking As u_long = 1
+	ioctlsocket(sock, FIONBIO, @nonBlocking)
+	
 	' 组装发送的NTP数据包
 	Dim ps_buff As UByte Ptr = CAllocate(NTP_PACKET_SIZE, SizeOf(Byte))
 	ps_buff[0] = &h1B
 	
-	'发送NTP数据包
-	If (send(sock, ps_buff, NTP_PACKET_SIZE, 0) <= 0) Then
+	' 发送NTP数据包
 	'If (sendto(sock, ps_buff, NTP_PACKET_SIZE, 0, Cast(PSOCKADDR, @saddr), SizeOf(saddr)) <= 0) Then
+	If (send(sock, ps_buff, NTP_PACKET_SIZE, 0) <= 0) Then
 		Print "Failed to send NTP request"
+		Deallocate(ps_buff)
 		closesocket(sock)
 		WSACleanup()
 		Return 0
 	End If
 	
-	' 接收NTP数据包
+	' 10/27 接收NTP数据包(阻塞)
+	'Dim pr_buff As UByte Ptr = CAllocate(NTP_PACKET_SIZE, SizeOf(Byte))
+	''Dim rcv_bytes As Integer = recvfrom(sock, pr_buff, NTP_PACKET_SIZE, MSG_PEEK, Cast(PSOCKADDR, @saddr), SizeOf(saddr))
+	'Dim rcv_bytes As Integer = recv(sock, pr_buff, NTP_PACKET_SIZE, MSG_PEEK)
+	'If (rcv_bytes < NTP_PACKET_SIZE Or Cast(UByte, pr_buff[40]) < 127) Then
+	'	Print "Failed to receive NTP response"
+	'	Deallocate(pr_buff)
+	'	closesocket(sock)
+	'	WSACleanup()
+	'	Return 0
+	'End If
+	
+	' 10/27 接收NTP数据包（非阻塞）
 	Dim pr_buff As UByte Ptr = CAllocate(NTP_PACKET_SIZE, SizeOf(Byte))
-	Dim rcv_bytes As Integer = recv(sock, pr_buff, NTP_PACKET_SIZE, MSG_PEEK)
-	'Dim rcv_bytes As Integer = recvfrom(sock, pr_buff, NTP_PACKET_SIZE, MSG_PEEK, Cast(PSOCKADDR, @saddr), SizeOf(saddr))
-	If (rcv_bytes < NTP_PACKET_SIZE Or Cast(UByte, pr_buff[40]) < 127) Then
-		Print "Failed to receive NTP response"
-		closesocket(sock)
-		WSACleanup()
-		Return 0
-	End If
+	Dim rcv_bytes As Integer
+	ntpCancel = False
+	Do
+		'rcv_bytes = recvfrom(sock, pr_buff, NTP_PACKET_SIZE, MSG_PEEK, Cast(PSOCKADDR, @saddr), SizeOf(saddr))
+		rcv_bytes = recv(sock, pr_buff, NTP_PACKET_SIZE, 0)
+		App.DoEvents
+		If ntpCancel Then Exit Do
+	Loop While(rcv_bytes <> NTP_PACKET_SIZE)
 	
 	' 将NTP时间戳转换为本地时间戳
 	Dim res_sec As time_t = 0
@@ -116,6 +136,9 @@ Function NTP_sec(NtpServ As ZString) As time_t
 	res_sec += pr_buff[41] Shl 16
 	res_sec += pr_buff[42] Shl 8
 	res_sec += pr_buff[43] Shl 0
+	
+	Deallocate(ps_buff)
+	Deallocate(pr_buff)
 
 	'关闭清理winsocke
 	closesocket(sock)
@@ -134,7 +157,7 @@ Function NTP_dbl(GMT_sec As time_t, timezonebias As Integer = -480) As Double
 	
 	If (GMT_sec > 0) Then
 		Dim As tm Ptr GMT_tm = gmtime(@GMT_sec)
-
+		
 		gmttime = DateSerial(GMT_tm->tm_year + 1900, GMT_tm->tm_mon + 1, GMT_tm->tm_mday)
 		gmttime += TimeSerial(GMT_tm->tm_hour, GMT_tm->tm_min, GMT_tm->tm_sec)
 		
