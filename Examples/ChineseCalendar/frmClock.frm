@@ -32,12 +32,14 @@
 		Declare Sub Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub mnuAlwaysOnTop_Click(ByRef Sender As MenuItem)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Destroy(ByRef Sender As Control)
+		Declare Sub Form_Message(ByRef Sender As Control, ByRef Msg As Message)
 		Declare Constructor
 		
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As Panel Picture1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar1, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar2, mnuAbout, mnuBar3, mnuExit, mnuClose
+		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar1, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar2, mnuAbout, mnuBar3, mnuExit, mnuClose, mnuHide
 	End Type
 	
 	Constructor frmClockType
@@ -45,11 +47,6 @@
 		With This
 			.Name = "frmClock"
 			.Text = "VFBE Clock 32"
-			#ifdef __USE_GTK__
-				This.Icon.LoadFromFile(ExePath & ".\clock.ico")
-			#else
-				This.Icon.LoadFromResourceID(1)
-			#endif
 			#ifdef __FB_64BIT__
 				.Caption = "VFBE Clock64"
 			#else
@@ -65,7 +62,9 @@
 			.Size = Type<My.Sys.Drawing.Size>(330, 130)
 			.ContextMenu = @PopupMenu1
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
-			.Opacity = 250
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Form_Message)
+			.Icon = "1"
 			.SetBounds 0, 0, 330, 140
 		End With
 		' TimerComponent1
@@ -137,6 +136,14 @@
 			.Name = "mnuTransparent"
 			.Designer = @This
 			.Caption = "Transparent"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuAlwaysOnTop_Click)
+			.Parent = @PopupMenu1
+		End With
+		' mnuHide
+		With mnuHide
+			.Name = "mnuHide"
+			.Designer = @This
+			.Caption = "Hide"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuAlwaysOnTop_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -221,6 +228,11 @@
 	#endif
 '#End Region
 
+'Region Tray Menu
+#include once "windows.bi"
+Dim Shared As NOTIFYICONDATA SystrayIcon
+Const WM_SHELLNOTIFY = WM_USER + 5
+
 #include once "frmDayCalendar.frm"
 #include once "frmMonthCalendar.frm"
 
@@ -234,7 +246,9 @@ Function CheckAutoStart() As Integer
 	
 	'open
 	lRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
-	If lRes <> ERROR_SUCCESS Then Exit Function
+	If lRes <> ERROR_SUCCESS Then
+		Exit Function
+	End If
 	
 	lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, 0, @lRegLen)
 	If lRes <> ERROR_SUCCESS Then Exit Function
@@ -332,15 +346,21 @@ Private Sub frmClockType.mnuAlwaysOnTop_Click(ByRef Sender As MenuItem)
 		Opacity = IIf(Sender.Checked = True, 127, 255)
 		frmDayCalendar.Opacity = IIf(Sender.Checked = True, 127, 255)
 		frmMonthCalendar.Opacity = IIf(Sender.Checked = True, 127, 255)
+	Case "mnuHide"
+		Sender.Checked = Sender.Checked = False
+		This.Visible = Sender.Checked = False
+		If mnuDayCalendar.Checked Then frmDayCalendar.Visible = This.Visible
+		If mnuMonthCalendar.Checked Then frmMonthCalendar.Visible = This.Visible
 	Case "mnuArrange"
-		frmDayCalendar.Move Left, Top + Height, Width, Height * 2
-		frmMonthCalendar.Move frmDayCalendar.Left, frmDayCalendar.Top + frmDayCalendar.Height, Width, Height * 2
+		If mnuDayCalendar.Checked Then frmDayCalendar.Move Left, Top + Height, Width, Height * 2
+		If mnuMonthCalendar.Checked Then frmMonthCalendar.Move frmDayCalendar.Left, frmDayCalendar.Top + frmDayCalendar.Height, Width, Height * 2
 	Case "mnuDayCalendar"
 		If Sender.Checked Then
 			frmDayCalendar.CloseForm
 			Sender.Checked = False
 		Else
 			frmDayCalendar.Show(frmClock)
+			frmDayCalendar.Visible = mnuHide.Checked = False
 			Sender.Checked = True
 		End If
 	Case "mnuMonthCalendar"
@@ -349,11 +369,12 @@ Private Sub frmClockType.mnuAlwaysOnTop_Click(ByRef Sender As MenuItem)
 			Sender.Checked = False
 		Else
 			frmMonthCalendar.Show(frmClock)
+			frmMonthCalendar.Visible = mnuHide.Checked = False
 			Sender.Checked = True
 		End If
 	Case "mnuClose"
-		frmDayCalendar.CloseForm
-		frmMonthCalendar.CloseForm
+		If mnuDayCalendar.Checked Then frmDayCalendar.CloseForm
+		If mnuMonthCalendar.Checked Then frmMonthCalendar.CloseForm
 	Case "mnuAbout"
 		MsgBox(!"Visual FB Editor\r\n\r\nChineseCalendar Example\r\nBy Cm Wang", "ChineseCalendar Example")
 	Case "mnuExit"
@@ -363,4 +384,41 @@ End Sub
 
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	If CheckAutoStart() Then mnuAutoStart.Checked = True
+	
+	With SystrayIcon
+		.cbSize = SizeOf(SystrayIcon)
+		.hWnd = Handle
+		.uID = This.ID
+		.uFlags = NIF_ICON Or NIF_TIP Or NIF_MESSAGE
+		.szTip = !"VisualFBEditor\r\nChineseCalendar\0"
+		.uCallbackMessage = WM_SHELLNOTIFY
+		.hIcon = This.Icon.Handle
+		.uVersion = NOTIFYICON_VERSION
+	End With
+	Shell_NotifyIcon(NIM_ADD, @SystrayIcon)
+	
+	With SystrayIcon
+		.uFlags =  NIF_INFO
+		.szInfo = !"Chinese Calendar\0"
+		.szInfoTitle = !"VisualFBEditor\0"
+		.uTimeout = 1
+		.dwInfoFlags = 1
+	End With
+	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+End Sub
+
+Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)
+	Shell_NotifyIcon(NIM_DELETE, @SystrayIcon)
+End Sub
+
+Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Message)
+	Select Case Msg.Msg
+	Case WM_SHELLNOTIFY
+		If Msg.lParam = WM_RBUTTONDOWN Then
+			Dim tPOINT As Point
+			GetCursorPos(@tPOINT)
+			SetForegroundWindow(Handle)
+			PopupMenu1.Popup(tPOINT.X, tPOINT.Y)
+		End If
+	End Select
 End Sub

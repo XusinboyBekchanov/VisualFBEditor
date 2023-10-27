@@ -14,7 +14,6 @@
 	#include once "mff/ListView.bi"
 	#include once "mff/ImageList.bi"
 	
-	#include once "ntp.bi"
 	#include once "../PipeProcess/PipeProcess.bi"
 	
 	#include once "frmTimezone.frm"
@@ -232,6 +231,8 @@
 	#endif
 '#End Region
 
+#include once "ntp.bi"
+
 Private Sub frmNtpType.Form_Create(ByRef Sender As Control)
 	Dim i As Long
 	Dim j As Long
@@ -274,38 +275,65 @@ Private Sub frmNtpType.CommandButton_Click(ByRef Sender As Control)
 		Dim a As frmTinezoneType Ptr = New frmTinezoneType
 		a->ShowModal This
 	Case "CommandButton3"
-		Dim t As Double = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), mTzBias)
-		Dim n As Double = Now()
-		ListView1.ListItems.Item(3)->Text(1) = Format(t, "yyyy/mm/dd hh:mm:ss")
-		ListView1.ListItems.Item(4)->Text(1) = Format(n, "yyyy/mm/dd hh:mm:ss")
-		If t = n Then
-			ListView1.ListItems.Item(5)->Text(1) = "Check Passed"
+		If Sender.Text = "Check" Then
+			Sender.Text = "Cancel"
+			CommandButton4.Enabled = False
+			Dim t As Double = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), mTzBias)
+			If ntpCancel Then
+				ListView1.ListItems.Item(3)->Text(1) = ""
+				ListView1.ListItems.Item(4)->Text(1) = ""
+				ListView1.ListItems.Item(5)->Text(1) = "Cancel"
+			Else
+				Dim n As Double = Now()
+				ListView1.ListItems.Item(3)->Text(1) = Format(t, "yyyy/mm/dd hh:mm:ss")
+				ListView1.ListItems.Item(4)->Text(1) = Format(n, "yyyy/mm/dd hh:mm:ss")
+				If t = n Then
+					ListView1.ListItems.Item(5)->Text(1) = "Check Passed"
+				Else
+					ListView1.ListItems.Item(5)->Text(1) = "Check Failed"
+				End If
+			End If
+			Sender.Text = "Check"
+			CommandButton4.Enabled = True
 		Else
-			ListView1.ListItems.Item(5)->Text(1) = "Check Failed"
+			ntpCancel = True
 		End If
 	Case "CommandButton4"
-		Print ProcessToken(@SE_SYSTEMTIME_NAME)
-		
-		Dim t As Double = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), 0)
-		Dim st As SYSTEMTIME Ptr = New SYSTEMTIME
-		st->wYear = Year(t)
-		st->wMonth = Month(t)
-		st->wDay = Day(t)
-		st->wHour = Hour(t)
-		st->wMinute= Minute(t)
-		st->wSecond = Second(t)
-		Dim b As Boolean = SetSystemTime(st)
-		
-		t = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), mTzBias)
-		Dim n As Double = Now()
-		
-		ListView1.ListItems.Item(3)->Text(1) = Format(t, "yyyy/mm/dd hh:mm:ss")
-		ListView1.ListItems.Item(4)->Text(1) = Format(n, "yyyy/mm/dd hh:mm:ss")
-		If b Then
-			ListView1.ListItems.Item(5)->Text(1) = "Calibrate Passed"
+		If Sender.Text = "Calibrate" Then
+			Sender.Text = "Cancel"
+			CommandButton3.Enabled = False
+			Print ProcessToken(@SE_SYSTEMTIME_NAME)
+			Dim t As Double = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), 0)
+			If ntpCancel Then
+				ListView1.ListItems.Item(3)->Text(1) = ""
+				ListView1.ListItems.Item(4)->Text(1) = ""
+				ListView1.ListItems.Item(5)->Text(1) = "Cancel"
+			Else
+				Dim st As SYSTEMTIME Ptr = New SYSTEMTIME
+				st->wYear = Year(t)
+				st->wMonth = Month(t)
+				st->wDay = Day(t)
+				st->wHour = Hour(t)
+				st->wMinute= Minute(t)
+				st->wSecond = Second(t)
+				Dim b As Boolean = SetSystemTime(st)
+				
+				t = NTP_dbl(NTP_sec(NTPAddress(ComboBoxEx1.ItemIndex)), mTzBias)
+				Dim n As Double = Now()
+				
+				ListView1.ListItems.Item(3)->Text(1) = Format(t, "yyyy/mm/dd hh:mm:ss")
+				ListView1.ListItems.Item(4)->Text(1) = Format(n, "yyyy/mm/dd hh:mm:ss")
+				If b Then
+					ListView1.ListItems.Item(5)->Text(1) = "Calibrate Passed"
+				Else
+					ListView1.ListItems.Item(5)->Text(1) = "Calibrate Failed"
+					MsgRunAs
+				End If
+			End If
+			Sender.Text = "Calibrate"
+			CommandButton3.Enabled = True
 		Else
-			ListView1.ListItems.Item(5)->Text(1) = "Calibrate Failed"
-			MsgRunAs
+			ntpCancel = True
 		End If
 	End Select
 End Sub
