@@ -3580,7 +3580,7 @@ End Sub
 			Else
 				#ifdef __USE_GTK__
 					tb->txtCode.SetSelection SelLinePos, SelLinePos, SelCharPos, i, True
-					tb->txtCode.ChangeText .Items.Item(ItemIndex)->Text & Symbol
+					tb->txtCode.ChangeText .ListItems.Item(ItemIndex)->Text(0) & Symbol
 					'tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Symbol & Mid(*sLine, i + 1)
 					i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0) & Symbol)
 				#else
