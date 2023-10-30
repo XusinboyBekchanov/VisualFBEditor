@@ -1356,7 +1356,7 @@ Namespace My.Sys.Forms
 			For i As Integer = 0 To Carets.Count - 1
 				teCurrent = Carets.Object(i)
 				If iSelStartLine >= teCurrent->StartLine AndAlso iSelStartLine <= teCurrent->EndLine AndAlso iSelEndLine >= teCurrent->StartLine AndAlso iSelEndLine <= teCurrent->EndLine AndAlso _
-					iSelStartChar >= teCurrent->StartChar AndAlso iSelStartChar <= teCurrent->EndChar AndAlso iSelEndChar >= teCurrent->StartChar AndAlso iSelEndChar <= teCurrent->EndChar Then
+					IIf(CharTo < 0, iSelStartChar > teCurrent->StartChar, iSelStartChar >= teCurrent->StartChar) AndAlso iSelStartChar <= teCurrent->EndChar AndAlso iSelEndChar >= teCurrent->StartChar AndAlso iSelEndChar <= teCurrent->EndChar Then
 					Var OldStartChar = teCurrent->StartChar
 					Var OldStartLine = teCurrent->StartLine
 					Var OldEndChar = teCurrent->EndChar
