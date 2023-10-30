@@ -897,6 +897,18 @@ Operator TabWindow.Cast As TabPage Ptr
 	Return Cast(TabPage Ptr, @This)
 End Operator
 
+Sub DeleteFromTypeElement(te As TypeElement Ptr)
+	If te->ElementType <> E_Enum Then
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			DeleteFromTypeElement(te->Elements.Object(j))
+		Next
+	End If
+	te->Types.Clear
+	te->Enums.Clear
+	te->Elements.Clear
+	_Delete(Cast(TypeElement Ptr, te))
+End Sub
+
 Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
 	If FileIndex <> 0 Then
@@ -927,11 +939,12 @@ Sub RemoveGlobalTypeElements(ByRef FileName As WString)
 		For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
 			te = pGlobalTypes->Object(i)
 			If te->FileName = FileName Then
-				For j As Integer = te->Elements.Count - 1 To 0 Step -1
-					_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
-				Next
-				te->Elements.Clear
-				_Delete(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
+				DeleteFromTypeElement(te)
+				'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+				'	_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
+				'Next
+				'te->Elements.Clear
+				'_Delete(Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
 				pGlobalTypes->Remove i
 			Else
 				For j As Integer = te->Elements.Count - 1 To 0 Step -1
@@ -7054,18 +7067,6 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			func->Elements.Add te->Name, te
 		Next
 	End If
-End Sub
-
-Sub DeleteFromTypeElement(te As TypeElement Ptr)
-	If te->ElementType <> E_Enum Then
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			DeleteFromTypeElement(te->Elements.Object(j))
-		Next
-	End If
-	te->Types.Clear
-	te->Enums.Clear
-	te->Elements.Clear
-	_Delete(Cast(TypeElement Ptr, te))
 End Sub
 
 Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, ByRef Content As EditControlContent)

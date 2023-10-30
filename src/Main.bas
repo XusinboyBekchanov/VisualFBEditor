@@ -3550,7 +3550,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim b As WString * 2048 ' for V1.07 Line Input not working fine
 	Dim As EditControlLine Ptr FECLine
 	Dim As Integer LastIndexFunction
-	Dim As WStringList Lines, Namespaces
+	Dim As WStringList Lines, Namespaces, OldTypes
+	Dim As IntegerList TypesPubProPri
 	PathFunction = Path
 	If ec <> 0 Then
 		With *Cast(EditControl Ptr, ec)
@@ -3700,21 +3701,39 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
 						tbi->Tag = CtlLibrary
 						If Comment <> "" Then tbi->Comment = Comment: Comment = ""
+						If inType Then OldTypes.Add t, tbi
 						typ = tbi
 						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
-						ElseIf InFunc = False AndAlso OldInType = False Then
-							Types.Add t, tbi
-							If Namespaces.Count > 0 Then
-								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tOrig, tbi
-								For n_i As Integer = 0 To Namespaces.Count - 1
-									tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
-								Next
+						ElseIf InFunc = False Then
+							If OldTypes.Count > 1 Then
+								Dim As TypeElement Ptr teOld = OldTypes.Object(OldTypes.Count - 2)
+								teOld->Elements.Add t, tbi
+								teOld->Types.Add t, tbi
+							Else
+								Types.Add t, tbi
+								If Namespaces.Count > 0 Then
+									Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tOrig, tbi
+									For n_i As Integer = 0 To Namespaces.Count - 1
+										tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+									Next
+								End If
 							End If
 						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__startofclassbody__ ") Then
-					inType = False
+					If OldTypes.Count > 0 Then
+						OldTypes.Remove OldTypes.Count - 1
+					End If
+					If OldTypes.Count > 0 Then
+						inType = True
+						typ = OldTypes.Object(OldTypes.Count - 1)
+						tbi = typ
+						Var Idx = TypesPubProPri.IndexOfObject(typ)
+						If Idx > -1 Then inPubProPri = TypesPubProPri.Item(Idx)
+					Else
+						inType = False
+					End If
 				ElseIf StartsWith(bTrimLCase, "union ") Then
 					inUnion = True
 					t = Trim(Mid(bTrim, 7))
@@ -3945,12 +3964,30 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				ElseIf inType OrElse inUnion Then
 					If bTrimLCase = "public:" Then
 						inPubProPri = 0
+						Var Idx = TypesPubProPri.IndexOfObject(tbi)
+						If Idx = -1 Then
+							TypesPubProPri.Add inPubProPri, tbi
+						Else
+							TypesPubProPri.Item(Idx) = inPubProPri
+						End If
 						Comment = ""
 					ElseIf bTrimLCase = "protected:" Then
 						inPubProPri = 1
+						Var Idx = TypesPubProPri.IndexOfObject(tbi)
+						If Idx = -1 Then
+							TypesPubProPri.Add inPubProPri, tbi
+						Else
+							TypesPubProPri.Item(Idx) = inPubProPri
+						End If
 						Comment = ""
 					ElseIf bTrimLCase = "private:" Then
 						inPubProPri = 2
+						Var Idx = TypesPubProPri.IndexOfObject(tbi)
+						If Idx = -1 Then
+							TypesPubProPri.Add inPubProPri, tbi
+						Else
+							TypesPubProPri.Item(Idx) = inPubProPri
+						End If
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As UString b2 = bTrim
@@ -4086,15 +4123,20 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->ElementType = E_Enum
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
-						If InFunc = False AndAlso inType = False Then
-							Enums.Add t, tbi
-						End If
-						If Namespaces.Count > 0 Then
-							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tbi->Name, tbi
-							For n_i As Integer = 0 To Namespaces.Count - 1
-								tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
-							Next
+						If InFunc = False Then
+							If inType Then
+								tbi->Elements.Add t, tbi
+								tbi->Enums.Add t, tbi
+							Else
+								Enums.Add t, tbi
+								If Namespaces.Count > 0 Then
+									Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+									If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tbi->Name, tbi
+									For n_i As Integer = 0 To Namespaces.Count - 1
+										tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+									Next
+								End If
+							End If
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
