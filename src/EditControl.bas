@@ -1253,17 +1253,19 @@ Namespace My.Sys.Forms
 		End If
 	End Function
 	
-	Sub EditControl.SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer)
+	Sub EditControl.SetSelection(iSelStartLine As Integer, iSelEndLine As Integer, iSelStartChar As Integer, iSelEndChar As Integer, WithoutShow As Boolean = False)
 		FSelStartChar = Max(0, iSelStartChar)
 		FSelEndChar = Max(0, iSelEndChar)
 		FSelStartLine = Min(Content.Lines.Count - 1, Max(0, iSelStartLine))
 		FSelEndLine = Min(Content.Lines.Count - 1, Max(0, iSelEndLine))
-		#ifdef __USE_GTK__
-			If Handle Then
-		#else
-			If Handle Then
-		#endif
-			ScrollToCaret
+		If Not WithoutShow Then
+			#ifdef __USE_GTK__
+				If Handle Then
+			#else
+				If Handle Then
+			#endif
+				ScrollToCaret
+			End If
 		End If
 		OldnCaretPosX = nCaretPosX
 		OldCharIndex = GetOldCharIndex

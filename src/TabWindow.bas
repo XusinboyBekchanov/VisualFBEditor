@@ -3579,13 +3579,17 @@ End Sub
 				tb->txtCode.SetSelection SelLinePos + yStartPlus, SelLinePos + yEndPlus, n + xStartPlus, n + xEndPlus
 			Else
 				#ifdef __USE_GTK__
-					tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Symbol & Mid(*sLine, i + 1)
+					tb->txtCode.SetSelection SelLinePos, SelLinePos, SelCharPos, i, True
+					tb->txtCode.ChangeText .Items.Item(ItemIndex)->Text & Symbol
+					'tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .ListItems.Item(ItemIndex)->Text(0) & Symbol & Mid(*sLine, i + 1)
 					i = SelCharPos + Len(.ListItems.Item(ItemIndex)->Text(0) & Symbol)
 				#else
-					tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Symbol & Mid(*sLine, i + 1)
+					tb->txtCode.SetSelection SelLinePos, SelLinePos, SelCharPos, i, True
+					tb->txtCode.ChangeText .Items.Item(ItemIndex)->Text & Symbol
+					'tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & .Items.Item(ItemIndex)->Text & Symbol & Mid(*sLine, i + 1)
 					i = SelCharPos + Len(.Items.Item(ItemIndex)->Text & Symbol)
 				#endif
-				tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
+				'tb->txtCode.SetSelection SelLinePos, SelLinePos, i, i
 			End If
 		End If
 		tb->txtCode.SetFocus
