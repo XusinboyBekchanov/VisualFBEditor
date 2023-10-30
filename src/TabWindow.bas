@@ -1205,7 +1205,7 @@ Sub TabWindow.FillProperties(ByRef ClassName As WString)
 	If ClassName = "" Then Exit Sub
 	Dim As Integer i, iIndex
 	If pComps->Contains(ClassName, , , , iIndex) Then
-		tbi = pComps->Object(iIndex)
+		Dim As TypeElement Ptr te, tbi = pComps->Object(iIndex)
 		If tbi Then
 			i = 0
 			Do While i <= tbi->Elements.Count - 1

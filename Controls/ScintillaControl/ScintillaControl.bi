@@ -5,8 +5,8 @@
 ' Freeware. Use at your own risk.
 
 #include once "mff/Control.bi"
-#include once "Scintilla.bi"
-#include once "Scilexer.bi"
+#include once "inc/Scintilla.bi"
+#include once "inc/Scilexer.bi"
 #include once "utf_conv.bi"
 #include once "vbcompat.bi"
 

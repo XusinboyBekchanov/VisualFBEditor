@@ -5,7 +5,7 @@
 
 #include once "mff/Component.bi"
 #ifndef __EXPORT_PROCS__
-	#include once "mariadb.bi"
+	#include once "inc/mariadb.bi"
 #endif
 
 Using My.Sys.ComponentModel

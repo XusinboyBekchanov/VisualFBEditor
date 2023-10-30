@@ -149,6 +149,7 @@ Namespace My.Sys.Forms
 		Name As String
 		DisplayName As String
 		OwnerTypeName As String
+		OwnerNamespace As String
 		EnumTypeName As String
 		TypeName As String
 		InCondition As String

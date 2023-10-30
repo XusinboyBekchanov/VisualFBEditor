@@ -3542,7 +3542,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Dim As String t, e, tOrig, bt
 	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart, i, j, iC, OldiC
 	Dim As TypeElement Ptr te, tbi, typ, lastfunctionte
-	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace, InAsm
+	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace, InAsm, OldInType
 	Dim As Boolean bTypeIsPointer
 	Dim As Integer inPubProPri = 0
 	Dim As Integer Result
@@ -3681,6 +3681,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							t = "My.Sys.Object"
 							e = ""
 						End If
+						OldInType = inType
 						inType = Pos3 = 0
 						inPubProPri = 0
 						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
@@ -3698,13 +3699,17 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
 						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
 						tbi->Tag = CtlLibrary
+						If Comment <> "" Then tbi->Comment = Comment: Comment = ""
 						typ = tbi
 						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
-						Else
+						ElseIf InFunc = False AndAlso OldInType = False Then
 							Types.Add t, tbi
 							If Namespaces.Count > 0 Then
 								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tOrig, tbi
+								For n_i As Integer = 0 To Namespaces.Count - 1
+									tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+								Next
 							End If
 						End If
 					End If
@@ -4037,7 +4042,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							End If
 							Var te = _New( TypeElement)
 							te->Name = res1(n)
-							te->DisplayName = te->Name
+							If tbi AndAlso tbi->Name <> "" Then
+								te->DisplayName = tbi->Name & "." & te->Name
+							Else
+								te->DisplayName = te->Name
+							End If
 							te->TypeName = CurType
 							Pos4 = InStr(te->TypeName, "'")
 							If Pos4 > 0 Then
@@ -4077,10 +4086,15 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->ElementType = E_Enum
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
-						Enums.Add t, tbi
+						If InFunc = False AndAlso inType = False Then
+							Enums.Add t, tbi
+						End If
 						If Namespaces.Count > 0 Then
 							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add tbi->Name, tbi
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								tbi->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
@@ -4488,6 +4502,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Namespaces.Count > 0 Then
 								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+								For n_i As Integer = 0 To Namespaces.Count - 1
+									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+								Next
 							End If
 						Next
 					End If
@@ -5049,9 +5066,13 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Comps.Sort
 	Var iOld = -1, iNew = 0
 	Dim As String it, g(1 To 4): g(1) = ML("Controls"): g(2) = ML("Containers"): g(3) = ML("Components"): g(4) = ML("Dialogs")
+	Dim As String wikiFolder = ExePath & "/Controls/MyFbFramework/MyFbFramework.wiki/"
+	Dim As String wikiTitle
+	Dim As List ECLines, teList
+	Dim As TypeElement Ptr tbi, te, te1
 	For i = 0 To Comps.Count - 1
+		tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
-		Var tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If tbi->ElementType = E_TypeCopy Then Continue For
 		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
@@ -5063,10 +5084,240 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
 			imgListTools.Add it, it, LibHandle
 		#endif
-		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup,it,,@ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap)
+		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, tstEnabled Or tstWrap)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
+	#if 0
+		For i = 0 To Comps.Count - 1
+			tbi = Cast(TypeElement Ptr, Comps.Object(i))
+			Dim As Integer Fn = FreeFile_
+			Open wikiFolder & Comps.Item(i) & ".mediawiki" For Output As #Fn
+			Print #Fn, "== Definition =="
+			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			Print #Fn, ""
+			Print #Fn, "'''" & Comps.Item(i) & "''' - " & tbi->Comment
+			Print #Fn, ""
+			Print #Fn, "== Properties =="
+			Print #Fn, "<table>"
+			Print #Fn, "<thead>"
+			Print #Fn, "<tr class=""header"">"
+			Print #Fn, "<th>Name</th>"
+			Print #Fn, "<th>Description</th>"
+			Print #Fn, "</tr>"
+			Print #Fn, "</thead>"
+			Print #Fn, "<tbody>"
+			FPropertyItems.Clear
+			TabWindow.FillProperties Comps.Item(i)
+			FPropertyItems.Sort
+			For j As Integer = 0 To FPropertyItems.Count - 1
+				te = FPropertyItems.Object(j)
+				If te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
+				Var Pos1 = InStr(te->DisplayName, "[")
+				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+				Print #Fn, "<tr class=""property"">"
+				Print #Fn, "<td><a href=""" & wikiTitle & """>" & FPropertyItems.Item(j) & "</a></td>"
+				'Print #Fn, "<td>[[" & wikiTitle & "|" & FPropertyItems.Item(j) & "]]</td>"
+				Print #Fn, "<td>" & te->Comment & "</td>"
+				Print #Fn, "</tr>"
+				Dim As Integer Fn1 = FreeFile_
+				Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
+				Print #Fn1, "== Definition =="
+				Print #Fn1, "Namespace: " & tbi->OwnerNamespace
+				Print #Fn1, ""
+				Print #Fn1, "'''" & wikiTitle & " Property" & "''' - " & te->Comment
+				Print #Fn1, ""
+				Print #Fn1, "<pre>"
+				Print #Fn1, te->Parameters
+				Print #Fn1, "</pre>"
+				Print #Fn1, ""
+				Print #Fn1, "== Property Value =="
+				Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+				CloseFile_(Fn1)
+			Next
+			Print #Fn, "</tbody>"
+			Print #Fn, "</table>"
+			Print #Fn, "== Methods =="
+			Print #Fn, "<table>"
+			Print #Fn, "<thead>"
+			Print #Fn, "<tr class=""header"">"
+			Print #Fn, "<th>Name</th>"
+			Print #Fn, "<th>Description</th>"
+			Print #Fn, "</tr>"
+			Print #Fn, "</thead>"
+			Print #Fn, "<tbody>"
+			For j As Integer = 0 To FPropertyItems.Count - 1
+				te = FPropertyItems.Object(j)
+				If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
+				Var Pos1 = InStr(te->DisplayName, "[")
+				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+				Print #Fn, "<tr class=""method"">"
+				Print #Fn, "<td><a href=""" & wikiTitle & """>" & FPropertyItems.Item(j) & "</a></td>"
+				'Print #Fn, "<td>[[" & wikiTitle & "|" & FPropertyItems.Item(j) & "]]</td>"
+				Print #Fn, "<td>" & te->Comment & "</td>"
+				Print #Fn, "</tr>"
+				If Not teList.Contains(te) Then
+					teList.Add te
+					Dim As Integer Fn1 = FreeFile_
+					Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
+					Print #Fn1, "== Definition =="
+					Print #Fn1, "Namespace: " & tbi->OwnerNamespace
+					Print #Fn1, ""
+					Print #Fn1, "'''" & wikiTitle & " Method" & "''' - " & te->Comment
+					Print #Fn1, ""
+					Print #Fn1, "<pre>"
+					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Function", "Sub") & " " & te->Parameters
+					Print #Fn1, "</pre>"
+					Print #Fn1, ""
+					Pos1 = InStr(te->Parameters, "(")
+					If Pos1 > 0 Then
+						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
+						Print #Fn1, "<h4>Parameters</h4>"
+						For k As Integer = 0 To te->Elements.Count - 1
+							If Trim(te->Elements.Item(k)) = "" Then Continue For
+							te1 = te->Elements.Object(k)
+							Print #Fn1, "<code>" & te->Elements.Item(k) & "</code> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te1->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te1->TypeName & """>" & te1->TypeName & "</a>", "[[" & te1->TypeName & "]]")
+							Print #Fn1, te1->Comment
+							Print #Fn1, ""
+						Next
+					End If
+					If te->ElementType = ElementTypes.E_Function Then
+						Print #Fn1, ""
+						Print #Fn1, "<h4>Returns</h4>"
+						Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+					End If
+					CloseFile_(Fn1)
+				End If
+			Next
+			Print #Fn, "</tbody>"
+			Print #Fn, "</table>"
+			Print #Fn, "== Events =="
+			Print #Fn, "<table>"
+			Print #Fn, "<thead>"
+			Print #Fn, "<tr class=""header"">"
+			Print #Fn, "<th>Name</th>"
+			Print #Fn, "<th>Description</th>"
+			Print #Fn, "</tr>"
+			Print #Fn, "</thead>"
+			Print #Fn, "<tbody>"
+			For j As Integer = 0 To FPropertyItems.Count - 1
+				te = FPropertyItems.Object(j)
+				If te->ElementType <> ElementTypes.E_Event Then Continue For
+				Var Pos1 = InStr(te->DisplayName, "[")
+				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+				Print #Fn, "<tr class=""event"">"
+				Print #Fn, "<td><a href=""" & wikiTitle & """>" & FPropertyItems.Item(j) & "</a></td>"
+				'Print #Fn, "<td>[[" & wikiTitle & "|" & FPropertyItems.Item(j) & "]]</td>"
+				Print #Fn, "<td>" & te->Comment & "</td>"
+				Print #Fn, "</tr>"
+				If Not teList.Contains(te) Then
+					teList.Add te
+					Dim As Integer Fn1 = FreeFile_
+					Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
+					Print #Fn1, "== Definition =="
+					Print #Fn1, "Namespace: " & tbi->OwnerNamespace
+					Print #Fn1, ""
+					Print #Fn1, "'''" & wikiTitle & " Event" & "''' - " & te->Comment
+					Print #Fn1, ""
+					Print #Fn1, "<pre>"
+					Print #Fn1, te->Parameters
+					Print #Fn1, "</pre>"
+					Print #Fn1, ""
+					Pos1 = InStr(te->Parameters, "(")
+					If Pos1 > 0 Then
+						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
+						Print #Fn1, "<h4>Parameters</h4>"
+						For k As Integer = 0 To te->Elements.Count - 1
+							If Trim(te->Elements.Item(k)) = "" Then Continue For
+							te1 = te->Elements.Object(k)
+							Print #Fn1, "<code>" & te->Elements.Item(k) & "</code> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te1->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te1->TypeName & """>" & te1->TypeName & "</a>", "[[" & te1->TypeName & "]]")
+							Print #Fn1, IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: <code>Designer.IsEmpty()</code>", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment))
+							Print #Fn1, ""
+						Next
+					End If
+					If StartsWith(LCase(te->TypeName), "function(") Then
+						Print #Fn1, ""
+						Print #Fn1, "<h4>Returns</h4>"
+						Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+					End If
+					CloseFile_(Fn1)
+				End If
+			Next
+			Print #Fn, "</tbody>"
+			Print #Fn, "</table>"
+			Print #Fn, ""
+			CloseFile_(Fn)
+		Next i
+		For i = 0 To Globals.Enums.Count - 1
+			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
+			Dim As Integer Fn = FreeFile_
+			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
+			Print #Fn, "== Definition =="
+			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			Print #Fn, ""
+			Print #Fn, "'''" & Globals.Enums.Item(i) & " Enum''' - " & tbi->Comment
+			Print #Fn, ""
+			Print #Fn, "== Fields =="
+			Print #Fn, "<table>"
+			Print #Fn, "<tbody>"
+			For j As Integer = 0 To tbi->Elements.Count - 1
+				te = tbi->Elements.Object(j)
+				Print #Fn, "<tr class=""property"">"
+				Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
+				Print #Fn, "<td>" & te->Value & "</td>"
+				Print #Fn, "<td>" & te->Comment & "</td>"
+				Print #Fn, "</tr>"
+			Next
+			Print #Fn, "</tbody>"
+			Print #Fn, "</table>"
+			Print #Fn, ""
+			CloseFile_(Fn)
+		Next i
+		For i = 0 To Globals.Functions.Count - 1
+			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
+			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
+			'Dim As Integer Fn = FreeFile_
+			'Open wikiFolder & Globals.Functions.Item(i) & ".mediawiki" For Output As #Fn
+			'Print #Fn, "== Definition =="
+			'Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			'Print #Fn, ""
+			'Print #Fn, "'''" & Globals.Functions.Item(i) & " Enum''' - " & tbi->Comment
+			'Print #Fn, ""
+			'Print #Fn, "== Fields =="
+			'Print #Fn, "<table>"
+			'Print #Fn, "<tbody>"
+			'For j As Integer = 0 To tbi->Elements.Count - 1
+			'	te = tbi->Elements.Object(j)
+			'	Print #Fn, "<tr class=""property"">"
+			'	Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
+			'	Print #Fn, "<td>" & te->Value & "</td>"
+			'	Print #Fn, "<td>" & te->Comment & "</td>"
+			'	Print #Fn, "</tr>"
+			'Next
+			'Print #Fn, "</tbody>"
+			'Print #Fn, "</table>"
+			'Print #Fn, ""
+			'CloseFile_(Fn)
+		Next i
+		For i = 0 To Globals.Args.Count - 1
+			tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
+			If tbi->Name <> "App" AndAlso tbi->Name <> "Clipboard" AndAlso tbi->Name <> "DebugWindowHandle" AndAlso tbi->Name <> "DefaultFont" Then Continue For
+			Dim As Integer Fn = FreeFile_
+			Open wikiFolder & tbi->Name & ".mediawiki" For Output As #Fn
+			Print #Fn, "== Definition =="
+			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			Print #Fn, ""
+			Print #Fn, "'''" & tbi->Name & "''' - " & tbi->Comment
+			Print #Fn, ""
+			Print #Fn, "<pre>"
+			Print #Fn, tbi->Parameters
+			Print #Fn, "</pre>"
+			Print #Fn, ""
+			Print #Fn, "== Property Value =="
+			Print #Fn, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(tbi->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & tbi->TypeName & """>" & tbi->TypeName & "</a>", "[[" & tbi->TypeName & "]]")
+			CloseFile_(Fn)
+		Next i
+	#endif
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
@@ -8825,7 +9076,7 @@ For i As Integer = 97 To 102
 	symbols(i - 87) = i
 Next
 
-Function isNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
 	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
 	Err = 0
 	
