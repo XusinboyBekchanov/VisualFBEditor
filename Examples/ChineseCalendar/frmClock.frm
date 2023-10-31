@@ -396,6 +396,15 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 		.uVersion = NOTIFYICON_VERSION
 	End With
 	Shell_NotifyIcon(NIM_ADD, @SystrayIcon)
+	App.DoEvents
+	
+	With SystrayIcon
+		.uFlags =  NIF_INFO
+		.szInfo = !"\0"
+		.szInfoTitle = !"\0"
+	End With
+	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	App.DoEvents
 	
 	With SystrayIcon
 		.uFlags =  NIF_INFO
