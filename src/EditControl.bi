@@ -169,6 +169,7 @@ Namespace My.Sys.Forms
 		ControlType As Integer
 		Find As Boolean
 		Used As Boolean
+		CtlLibrary As Any Ptr
 		Tag As Any Ptr
 		Types As WStringOrStringList
 		Enums As WStringOrStringList

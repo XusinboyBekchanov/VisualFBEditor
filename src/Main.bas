@@ -3699,6 +3699,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->FileName = PathFunction
 						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
 						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
+						tbi->CtlLibrary = CtlLibrary
 						tbi->Tag = CtlLibrary
 						If Comment <> "" Then tbi->Comment = Comment: Comment = ""
 						If inType Then OldTypes.Add t, tbi
@@ -3747,6 +3748,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					tbi->ElementType = E_Union
 					tbi->StartLine = i
 					tbi->FileName = PathFunction
+					tbi->CtlLibrary = CtlLibrary
 					Types.Add t, tbi
 					typ = tbi
 					If Namespaces.Count > 0 Then
@@ -3757,37 +3759,40 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				ElseIf CInt(StartsWith(bTrimLCase, "end union")) Then
 					inUnion = False
 				ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
-					Dim As UString b2 = Trim(Mid(bTrim, 9))
-					Pos1 = InStr(b2, " ")
-					Pos2 = InStr(b2, "(")
-					Pos3 = InStr(b2, ")")
-					If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
-					te = _New( TypeElement)
-					If Pos1 = 0 Then
-						te->Name = b2
-					Else
-						te->Name = Trim(Left(b2, Pos1 - 1))
-					End If
-					te->DisplayName = te->Name
-					te->ElementType = E_Define
-					te->Parameters = Trim(b2)
-					Pos4 = InStr(te->Parameters, "'")
-					If Pos4 > 0 Then
-						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
-					End If
-					If Pos1 > 0 Then
-						te->Value = Trim(Mid(b2, IIf(Pos3, Pos3, Pos1) + 1))
-					End If
-					te->StartLine = i
-					te->EndLine = i
-					If Comment <> "" Then te->Comment= Comment: Comment = ""
-					te->FileName = PathFunction
-					LastIndexFunction = Functions.Add(te->Name, te)
-					Globals.Defines.Add te->Name, te
-					lastfunctionte = te
-					If Namespaces.Count > 0 Then
-						Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-						If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+					If Not InFunc Then
+						Dim As UString b2 = Trim(Mid(bTrim, 9))
+						Pos1 = InStr(b2, " ")
+						Pos2 = InStr(b2, "(")
+						Pos3 = InStr(b2, ")")
+						If Pos2 > 0 AndAlso (Pos2 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos2
+						te = _New( TypeElement)
+						If Pos1 = 0 Then
+							te->Name = b2
+						Else
+							te->Name = Trim(Left(b2, Pos1 - 1))
+						End If
+						te->DisplayName = te->Name
+						te->ElementType = E_Define
+						te->Parameters = Trim(b2)
+						Pos4 = InStr(te->Parameters, "'")
+						If Pos4 > 0 Then
+							te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
+						End If
+						If Pos1 > 0 Then
+							te->Value = Trim(Mid(b2, IIf(Pos3, Pos3, Pos1) + 1))
+						End If
+						te->StartLine = i
+						te->EndLine = i
+						If Comment <> "" Then te->Comment= Comment: Comment = ""
+						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
+						LastIndexFunction = Functions.Add(te->Name, te)
+						Globals.Defines.Add te->Name, te
+						lastfunctionte = te
+						If Namespaces.Count > 0 Then
+							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "#macro ") Then
 					Pos1 = InStr(8, bTrim, " ")
@@ -3814,6 +3819,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					te->EndLine = i
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
+					te->CtlLibrary = CtlLibrary
 					LastIndexFunction = Functions.Add(te->Name, te)
 					Globals.Defines.Add te->Name, te
 					lastfunctionte = te
@@ -3848,6 +3854,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ControlType = nc
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						Globals.Namespaces.Add te->Name, te
 						If Namespaces.Count > 0 Then
 							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
@@ -3947,6 +3954,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					te->EndLine = i
 					If Comment <> "" Then te->Comment = Comment: Comment = ""
 					te->FileName = PathFunction
+					te->CtlLibrary = CtlLibrary
 					If inType AndAlso typ <> 0 AndAlso te->ElementType <> E_Constructor AndAlso te->ElementType <> E_Destructor Then
 						typ->Elements.Add te->Name, te
 					Else
@@ -4105,6 +4113,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
 							te->FileName = PathFunction
+							te->CtlLibrary = CtlLibrary
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
 							If tbi Then tbi->Elements.Add te->Name, te
 						Next
@@ -4123,6 +4132,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->ElementType = E_Enum
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
+						tbi->CtlLibrary = CtlLibrary
 						If InFunc = False Then
 							If inType Then
 								tbi->Elements.Add t, tbi
@@ -4184,6 +4194,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->StartLine = i
 						te->Parameters = Trim(res1(n))
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						Args.Add te->Name, te
 					Next n
 				Else 'If LoadParameter <> LoadParam.OnlyTypes Then
@@ -4225,6 +4236,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						LastIndexFunction = Functions.Add(te->Name, te)
 						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "destructor ")) OrElse _
@@ -4250,6 +4262,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						LastIndexFunction = Functions.Add(te->Name, te)
 						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "sub ")) OrElse _
@@ -4287,6 +4300,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -4356,6 +4370,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						End If
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -4425,6 +4440,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
+						te->CtlLibrary = CtlLibrary
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -4539,6 +4555,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType
 							te->FileName = PathFunction
+							te->CtlLibrary = CtlLibrary
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
 							Args.Add te->Name, te
 							If Namespaces.Count > 0 Then
@@ -5026,9 +5043,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As IniFile ini
 			#ifndef __USE_GTK__
 				#ifdef __FB_64BIT__
-					Temp = IIf(i = 0, "Controls\MyFbFramework\mff64.DLL", "")
+					Temp = IIf(i = 0, "Controls\MyFbFramework\mff64.dll", "")
 				#else
-					Temp = IIf(i = 0, "Controls\MyFbFramework\mff32.DLL", "")
+					Temp = IIf(i = 0, "Controls\MyFbFramework\mff32.dll", "")
 				#endif
 			#else
 				#ifdef __USE_GTK3__
@@ -5076,6 +5093,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Loop
 	End If
 	Dim As Library Ptr CtlLibrary
+	Dim As Library Ptr MFFCtlLibrary
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
@@ -5318,6 +5336,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
+			'?tbi->Name, tbi->IncludeFile
 			'Dim As Integer Fn = FreeFile_
 			'Open wikiFolder & Globals.Functions.Item(i) & ".mediawiki" For Output As #Fn
 			'Print #Fn, "== Definition =="
