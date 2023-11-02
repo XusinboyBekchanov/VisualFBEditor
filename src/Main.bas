@@ -3859,6 +3859,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Namespaces.Count > 0 Then
 							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & te->Name
+						Else
+							te->FullName = te->Name
 						End If
 						Namespaces.Add te->Name, te
 					Next
@@ -5034,51 +5040,52 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As Integer i, j
 	Dim As My.Sys.Drawing.Cursor cur
 	Dim As String IncludePath
-	Dim As UString Temp
+	Dim As UString MFF, Temp
 	Dim As UInteger Attr
+	Dim As Library Ptr MFFCtlLibrary
+	#ifndef __USE_GTK__
+		#ifdef __FB_64BIT__
+			MFF = IIf(i = 0, "Controls\MyFbFramework\mff64.dll", "")
+		#else
+			MFF = IIf(i = 0, "Controls\MyFbFramework\mff32.dll", "")
+		#endif
+	#else
+		#ifdef __USE_GTK3__
+			#ifdef __FB_WIN32__
+				#ifdef __FB_64BIT_
+					MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk3.dll", "")
+				#else
+					MFF = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk3.dll", "")
+				#endif
+			#else
+				#ifdef __FB_64BIT__
+					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk3.so", "")
+				#else
+					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk3.so", "")
+				#endif
+			#endif
+		#else
+			#ifdef __FB_WIN32__
+				#ifdef __FB_64BIT_
+					MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk2.dll", "")
+				#else
+					MFF = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk2.dll", "")
+				#endif
+			#else
+				#ifdef __FB_64BIT__
+					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk2.so", "")
+				#else
+					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk2.so", "")
+				#endif
+			#endif
+		#endif
+	#endif
 	If ForLibrary = 0 Then
 		IncludeMFFPath = iniSettings.ReadBool("Options", "IncludeMFFPath", True)
 		WLet(MFFPath, iniSettings.ReadString("Options", "MFFPath", "./Controls/MyFbFramework"))
 		Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
 			Dim As IniFile ini
-			#ifndef __USE_GTK__
-				#ifdef __FB_64BIT__
-					Temp = IIf(i = 0, "Controls\MyFbFramework\mff64.dll", "")
-				#else
-					Temp = IIf(i = 0, "Controls\MyFbFramework\mff32.dll", "")
-				#endif
-			#else
-				#ifdef __USE_GTK3__
-					#ifdef __FB_WIN32__
-						#ifdef __FB_64BIT_
-							Temp = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk3.dll", "")
-						#else
-							Temp = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk3.dll", "")
-						#endif
-					#else
-						#ifdef __FB_64BIT__
-							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk3.so", "")
-						#else
-							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk3.so", "")
-						#endif
-					#endif
-				#else
-					#ifdef __FB_WIN32__
-						#ifdef __FB_64BIT_
-							Temp = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk2.dll", "")
-						#else
-							Temp = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk2.dll", "")
-						#endif
-					#else
-						#ifdef __FB_64BIT__
-							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk2.so", "")
-						#else
-							Temp = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk2.so", "")
-						#endif
-					#endif
-				#endif
-			#endif
-			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), Temp)
+			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), MFF)
 			ini.Load GetFolderName(GetRelativePath(Temp)) & "Settings.ini"
 			Var CtlLibrary = _New(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
@@ -5089,11 +5096,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
 			CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
 			ControlLibraries.Add CtlLibrary
+			If Temp = MFF Then MFFCtlLibrary = CtlLibrary
 			i += 1
 		Loop
 	End If
 	Dim As Library Ptr CtlLibrary
-	Dim As Library Ptr MFFCtlLibrary
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
@@ -5148,9 +5155,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	#if 0
+	#if 1
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
+			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Comps.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
@@ -5310,6 +5318,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		For i = 0 To Globals.Enums.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
+			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
@@ -5333,10 +5342,65 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, ""
 			CloseFile_(Fn)
 		Next i
+		For i = 0 To Globals.Namespaces.Count - 1
+			tbi = Cast(TypeElement Ptr, Globals.Namespaces.Object(i))
+			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			If Not teList.Contains(tbi) Then
+				teList.Add tbi
+				Dim As Integer Fn = FreeFile_
+				Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn
+				Print #Fn, tbi->Comment
+				Print #Fn, ""
+				Print #Fn, "== Types =="
+				Print #Fn, "<table>"
+				Print #Fn, "<tbody>"
+				For j As Integer = 0 To tbi->Elements.Count - 1
+					te = tbi->Elements.Object(j)
+					If te->ElementType <> E_Type Then Continue For
+					Print #Fn, "<tr class=""property"">"
+					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
+					Print #Fn, "<td>" & te->Comment & "</td>"
+					Print #Fn, "</tr>"
+				Next
+				Print #Fn, "</tbody>"
+				Print #Fn, "</table>"
+				Print #Fn, ""
+				Print #Fn, "== Enums =="
+				Print #Fn, "<table>"
+				Print #Fn, "<tbody>"
+				For j As Integer = 0 To tbi->Elements.Count - 1
+					te = tbi->Elements.Object(j)
+					If te->ElementType <> E_Enum Then Continue For
+					Print #Fn, "<tr class=""property"">"
+					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
+					Print #Fn, "<td>" & te->Comment & "</td>"
+					Print #Fn, "</tr>"
+				Next
+				Print #Fn, "</tbody>"
+				Print #Fn, "</table>"
+				Print #Fn, ""
+				Print #Fn, "== Methods =="
+				Print #Fn, "<table>"
+				Print #Fn, "<tbody>"
+				For j As Integer = 0 To tbi->Elements.Count - 1
+					te = tbi->Elements.Object(j)
+					If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
+					Print #Fn, "<tr class=""method"">"
+					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
+					Print #Fn, "<td>" & te->Comment & "</td>"
+					Print #Fn, "</tr>"
+				Next
+				Print #Fn, "</tbody>"
+				Print #Fn, "</table>"
+				Print #Fn, ""
+				CloseFile_(Fn)
+			End If
+		Next i
 		For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
-			'?tbi->Name, tbi->IncludeFile
+			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			?tbi->Name, tbi->FileName
 			'Dim As Integer Fn = FreeFile_
 			'Open wikiFolder & Globals.Functions.Item(i) & ".mediawiki" For Output As #Fn
 			'Print #Fn, "== Definition =="
@@ -5363,6 +5427,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		For i = 0 To Globals.Args.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
 			If tbi->Name <> "App" AndAlso tbi->Name <> "Clipboard" AndAlso tbi->Name <> "DebugWindowHandle" AndAlso tbi->Name <> "DefaultFont" Then Continue For
+			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & tbi->Name & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="

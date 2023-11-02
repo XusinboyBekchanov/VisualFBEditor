@@ -148,6 +148,7 @@ Namespace My.Sys.Forms
 	Type TypeElement
 		Name As String
 		DisplayName As String
+		FullName As String
 		OwnerTypeName As String
 		OwnerNamespace As String
 		EnumTypeName As String
