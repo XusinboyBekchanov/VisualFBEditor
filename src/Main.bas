@@ -3792,6 +3792,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Namespaces.Count > 0 Then
 							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & te->Name
+						Else
+							te->FullName = te->Name
 						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "#macro ") Then
@@ -3826,6 +3832,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Namespaces.Count > 0 Then
 						Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 						If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+						For n_i As Integer = 0 To Namespaces.Count - 1
+							te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+						Next
+						te->FullName = te->OwnerNamespace & "." & te->Name
+					Else
+						te->FullName = te->Name
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "namespace ") AndAlso Pos3 = 0 Then
 					InNamespace = True
@@ -3972,6 +3984,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								If Index <> -1 Then
 									Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
 								End If
+								For n_i As Integer = 0 To Namespaces.Count - 1
+									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+								Next
+								te->FullName = te->OwnerNamespace & "." & te->Name
+							Else
+								te->FullName = te->Name
 							End If
 						End If
 					End If
@@ -4331,6 +4349,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Namespaces.Count > 0 Then
 								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+								For n_i As Integer = 0 To Namespaces.Count - 1
+									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+								Next
+								te->FullName = te->OwnerNamespace & "." & te->Name
+							Else
+								te->FullName = te->Name
 							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
@@ -4401,6 +4425,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Namespaces.Count > 0 Then
 								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
 								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+								For n_i As Integer = 0 To Namespaces.Count - 1
+									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+								Next
+								te->FullName = te->OwnerNamespace & "." & te->Name
+							Else
+								te->FullName = te->Name
 							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
@@ -5136,7 +5166,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As String wikiFolder = ExePath & "/Controls/MyFbFramework/MyFbFramework.wiki/"
 	Dim As String wikiTitle
 	Dim As List ECLines, teList
-	Dim As TypeElement Ptr tbi, te, te1
+	Dim As TypeElement Ptr tbi, tbi1, te, te1
 	For i = 0 To Comps.Count - 1
 		tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
@@ -5155,7 +5185,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	#if 0
+	#if 1
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
@@ -5347,52 +5377,202 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If Not teList.Contains(tbi) Then
 				teList.Add tbi
+				Dim As Boolean bNamespaces, bTypes, bEnums, bDefines, bMacros, bMethods, bConstants, bVariables
+				For ii As Integer = 0 To Globals.Namespaces.Count - 1
+					tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+					If tbi1->CtlLibrary <> MFFCtlLibrary Then Continue For
+					If tbi1->Name <> tbi->Name Then Continue For
+					For j As Integer = 0 To tbi1->Elements.Count - 1
+						te = tbi1->Elements.Object(j)
+						Select Case te->ElementType
+						Case E_Namespace: bNamespaces = True
+						Case E_Type, E_TypeCopy, E_Class, E_Union: bTypes = True
+						Case E_Enum: bEnums = True
+						Case E_Define: bDefines = True
+						Case E_Macro: bMacros = True
+						Case E_Function, E_Sub: bMethods = True
+						Case E_Constant: bConstants = True
+						Case E_CommonVariable, E_LocalVariable, E_ExternVariable, E_SharedVariable: bVariables = True
+						End Select
+					Next
+				Next
 				Dim As Integer Fn = FreeFile_
 				Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn
 				Print #Fn, tbi->Comment
 				Print #Fn, ""
-				Print #Fn, "== Types =="
-				Print #Fn, "<table>"
-				Print #Fn, "<tbody>"
-				For j As Integer = 0 To tbi->Elements.Count - 1
-					te = tbi->Elements.Object(j)
-					If te->ElementType <> E_Type Then Continue For
-					Print #Fn, "<tr class=""property"">"
-					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
-					Print #Fn, "<td>" & te->Comment & "</td>"
-					Print #Fn, "</tr>"
-				Next
-				Print #Fn, "</tbody>"
-				Print #Fn, "</table>"
-				Print #Fn, ""
-				Print #Fn, "== Enums =="
-				Print #Fn, "<table>"
-				Print #Fn, "<tbody>"
-				For j As Integer = 0 To tbi->Elements.Count - 1
-					te = tbi->Elements.Object(j)
-					If te->ElementType <> E_Enum Then Continue For
-					Print #Fn, "<tr class=""property"">"
-					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
-					Print #Fn, "<td>" & te->Comment & "</td>"
-					Print #Fn, "</tr>"
-				Next
-				Print #Fn, "</tbody>"
-				Print #Fn, "</table>"
-				Print #Fn, ""
-				Print #Fn, "== Methods =="
-				Print #Fn, "<table>"
-				Print #Fn, "<tbody>"
-				For j As Integer = 0 To tbi->Elements.Count - 1
-					te = tbi->Elements.Object(j)
-					If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
-					Print #Fn, "<tr class=""method"">"
-					Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
-					Print #Fn, "<td>" & te->Comment & "</td>"
-					Print #Fn, "</tr>"
-				Next
-				Print #Fn, "</tbody>"
-				Print #Fn, "</table>"
-				Print #Fn, ""
+				If bNamespaces Then
+					Dim As WStringList Namespaces
+					Print #Fn, "== Namespaces =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> E_Namespace Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							If Not Namespaces.Contains(te->Name) Then
+								Namespaces.Add te->Name
+								Print #Fn, "<tr class=""namespace"">"
+								Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
+								Print #Fn, "<td>" & te->Comment & "</td>"
+								Print #Fn, "</tr>"
+							End If
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bTypes Then
+					Print #Fn, "== Types =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""type"">"
+							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bEnums Then
+					Print #Fn, "== Enums =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> E_Enum Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""enum"">"
+							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bDefines Then
+					Print #Fn, "== Defines =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""define"">"
+							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bMacros Then
+					Print #Fn, "== Macros =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""macro"">"
+							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bMethods Then
+					Print #Fn, "== Methods =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							If te->Declaration Then Continue For
+							Print #Fn, "<tr class=""method"">"
+							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bConstants Then
+					Print #Fn, "== Constants =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> ElementTypes.E_Constant Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""constant"">"
+							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
+				If bVariables Then
+					Print #Fn, "== Variables =="
+					Print #Fn, "<table>"
+					Print #Fn, "<tbody>"
+					For ii As Integer = 0 To Globals.Namespaces.Count - 1
+						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
+						If tbi1->Name <> tbi->Name Then Continue For
+						For j As Integer = 0 To tbi1->Elements.Count - 1
+							te = tbi1->Elements.Object(j)
+							If te->ElementType <> ElementTypes.E_CommonVariable AndAlso te->ElementType <> ElementTypes.E_LocalVariable AndAlso te->ElementType <> ElementTypes.E_ExternVariable AndAlso te->ElementType <> ElementTypes.E_SharedVariable Then Continue For
+							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
+							Print #Fn, "<tr class=""variable"">"
+							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
+							Print #Fn, "<td>" & te->Comment & "</td>"
+							Print #Fn, "</tr>"
+						Next
+					Next
+					Print #Fn, "</tbody>"
+					Print #Fn, "</table>"
+					Print #Fn, ""
+				End If
 				CloseFile_(Fn)
 			End If
 		Next i
@@ -5400,7 +5580,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			'?tbi->Name, tbi->FileName
+			If tbi->Declaration Then Continue For
+			?tbi->Name, tbi->FileName
 			'Dim As Integer Fn = FreeFile_
 			'Open wikiFolder & Globals.Functions.Item(i) & ".mediawiki" For Output As #Fn
 			'Print #Fn, "== Definition =="
