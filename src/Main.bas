@@ -5185,7 +5185,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	#if 1
+	#if 0
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
@@ -5581,7 +5581,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->Declaration Then Continue For
-			?tbi->Name, tbi->FileName
+			'?tbi->Name, tbi->FileName
 			'Dim As Integer Fn = FreeFile_
 			'Open wikiFolder & Globals.Functions.Item(i) & ".mediawiki" For Output As #Fn
 			'Print #Fn, "== Definition =="
