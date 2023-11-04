@@ -5196,7 +5196,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	#if 1
+	#if 0
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
