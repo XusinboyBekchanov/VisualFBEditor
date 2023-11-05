@@ -713,7 +713,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 	lvImages.ListItems.Clear
 	ImageList1.Clear
 	ResourceFile = GetResourceFile(WithoutMainNode)
-	ExeFileName = GetFullPath(GetExeFileName(MainFile, sFirstLine & CompileLine), MainFile)
+	ExeFileName = GetFullPath(GetExeFileName(MainFile, CompileLine & " " & sFirstLine), MainFile)
 	FolderName = GetFolderName(ExeFileName)
 	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
 	Dim As Dictionary ResNamePaths

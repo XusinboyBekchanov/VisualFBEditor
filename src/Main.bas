@@ -194,7 +194,7 @@ Namespace VisualFBEditor
 			Dim As UString ProjectFile = ""
 			Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
 			Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
-			Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine & CompileLine)
+			Dim As UString ExeFile = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
 			If ProjectNode <> 0 Then ee = ProjectNode->Tag
 			If ee <> 0 Then ProjectFile = *ee->FileName
 			Select Case LCase(PropertyName)
@@ -537,7 +537,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project, CompileLine))
 		Versioning *MainFile, *FirstLine & CompileLine, Project, ProjectNode
 		Dim FileOut As Integer
-		WLet(ExeName, GetExeFileName(*MainFile, *FirstLine & CompileLine))
+		WLet(ExeName, GetExeFileName(*MainFile, CompileLine & " " & *FirstLine))
 		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
 			WLet(FbcExe, GetFullPath(*Project->CompilerPath))
 		Else
@@ -7138,7 +7138,7 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 	Dim As UString ProjectFile = ""
 	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
 	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
-	Dim As UString ExeFile = GetExeFileName(MainFile, FirstLine & CompileLine)
+	Dim As UString ExeFile = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
 	Dim As UString CurrentWord = ""
 	Dim As UString Params
 	If Trim(This.Path) <> "" AndAlso Not WithoutProgram Then

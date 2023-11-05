@@ -11532,6 +11532,73 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	'End If
 End Sub
 
+Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolean
+	If StartsWith(sLine, "not ") Then
+		Return Not CheckCondition(Mid(sLine, 5), ForWindows)
+	Else
+		Select Case sLine
+		Case "__fb_win32__", "defined(__fb_win32__)"
+			If ForWindows Then
+				Return True
+			Else
+				#ifdef __FB_WIN32__
+					Return True
+				#else
+					Return False
+				#endif
+			End If
+		Case "__fb_linux__", "defined(__fb_linux__)"
+			#ifdef __FB_LINUX__
+				Return True
+			#else
+				Return False
+			#endif
+		Case "__fb_main__", "defined(__fb_main__)"
+			Return True
+		Case "__fb_64bit__", "defined(__fb_64bit__)"
+			Return tbt64Bit->Checked
+		Case "__use_winapi__", "defined(__use_winapi__)"
+			Return InStr(LCase(UseDefine), "__use_winapi__") > 0
+		Case "__use_gtk2__", "defined(__use_gtk2__)"
+			Return InStr(LCase(UseDefine), "__use_gtk2__") > 0
+		Case "__use_gtk3__", "defined(__use_gtk3__)"
+			Return InStr(LCase(UseDefine), "__use_gtk3__") > 0
+		Case "__use_gtk4__", "defined(__use_gtk4__)"
+			Return InStr(LCase(UseDefine), "__use_gtk4__") > 0
+		Case "__use_gtk__", "defined(__use_gtk__)"
+			Return InStr(LCase(UseDefine), "__use_gtk__") > 0
+		Case Else
+			Return False
+		End Select
+	End If
+End Function
+
+Function CheckExpression(ByRef sLine As WString, ForWindows As Boolean) As Boolean
+	Dim As UString resultOrElse()
+	Split(sLine, " orelse ", resultOrElse())
+	Dim As Boolean bOrElse
+	For i As Integer = 0 To UBound(resultOrElse)
+		Dim As UString resultAndAlso()
+		Dim As UString item = Trim(resultOrElse(i))
+		Split(item, " andalso ", resultAndAlso())
+		Dim As Boolean bAndAlso
+		For j As Integer = 0 To UBound(resultAndAlso)
+			Dim As UString item = Trim(resultAndAlso(j))
+			If j = 0 Then
+				bAndAlso = CheckCondition(item, ForWindows)
+			Else
+				bAndAlso = bAndAlso AndAlso CheckCondition(item, ForWindows)
+			End If
+		Next
+		If i = 0 Then
+			bOrElse = bAndAlso
+		Else
+			bOrElse = bOrElse OrElse bAndAlso
+		End If
+	Next
+	Return bOrElse
+End Function
+
 Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As ProjectElement Ptr, CompileLine As UString, ForWindows As Boolean = False) As UString
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As UString Result
@@ -11602,8 +11669,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 	If FileOpenResult = 0 Then
 		Dim As WString * 1024 sLine
 		Dim As Integer i, n, l = 0
-		Dim As Boolean k(10)
+		Dim As Boolean k(10), kIfElseIf(10)
 		k(l) = True
+		kIfElseIf(l) = True
 		Do Until IIf(bFromTab, d = LinesCount, EOF(Fn))
 			If bFromTab Then
 				sLine = tb->txtCode.Lines(d)
@@ -11613,36 +11681,23 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			End If
 			If StartsWith(LTrim(LCase(sLine), Any !"\t "), "'") AndAlso Not StartsWith(LTrim(LCase(sLine), Any !"\t "), "'#compile ") Then
 				Continue Do
-			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_win32__") OrElse StartsWith(LTrim(LCase(sLine), Any !"\t "), "#if defined(__fb_win32__) andalso defined(__fb_main__)") Then
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#if ") Then
 				l = l + 1
-				If ForWindows Then
-					k(l) = True
-				Else
-					#ifdef __FB_WIN32__
-						k(l) = True
-					#else
-						k(l) = False
-					#endif
-				End If
-			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifndef __fb_win32__") Then
+				k(l) = CheckExpression(Mid(LTrim(LCase(sLine), Any !"\t "), 5), ForWindows)
+				kIfElseIf(l) = k(l)
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef ") Then
 				l = l + 1
-				If ForWindows Then
-					k(l) = True
-				Else
-					#ifndef __FB_WIN32__
-						k(l) = True
-					#else
-						k(l) = False
-					#endif
-				End If
-			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifdef __fb_64bit__") Then
+				k(l) = CheckExpression(Mid(LTrim(LCase(sLine), Any !"\t "), 8), ForWindows)
+				kIfElseIf(l) = k(l)
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifndef ") Then
 				l = l + 1
-				k(l) = tbt64Bit->Checked
-			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#ifndef __fb_64bit__") Then
-				l = l + 1
-				k(l) = Not tbt64Bit->Checked
+				k(l) = Not CheckExpression(Mid(LTrim(LCase(sLine), Any !"\t "), 9), ForWindows)
+				kIfElseIf(l) = k(l)
+			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#elseif ") Then
+				k(l) = CheckExpression(Mid(LTrim(LCase(sLine), Any !"\t "), 9), ForWindows)
+				kIfElseIf(l) = kIfElseIf(l) OrElse k(l)
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#else") Then
-				k(l) = Not k(l)
+				k(l) = Not kIfElseIf(l)
 			ElseIf StartsWith(LTrim(LCase(sLine), Any !"\t "), "#endif") Then
 				l = l - 1
 				If l < 0 Then Exit Do
@@ -11983,7 +12038,7 @@ Sub RunPr(Debugger As String = "")
 		If Workdir Then _Deallocate( Workdir)
 		If CmdL Then _Deallocate(CmdL)
 	Else
-		WLet(ExeFileName, (GetExeFileName(MainFile, FirstLine & CompileLine)))
+		WLet(ExeFileName, (GetExeFileName(MainFile, CompileLine & " " & FirstLine)))
 		#ifdef __USE_GTK__
 			Dim As GPid pid = 0
 			'		Dim As GtkWidget Ptr win, vte

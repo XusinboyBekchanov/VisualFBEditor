@@ -14854,7 +14854,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	ThreadsLeave()
 	If Not Restarting Then
 		'#IfNDef __USE_GTK__
-		exename = GetExeFileName(MainFile, FirstLine & CompileLine)
+		exename = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
 	Else
