@@ -4397,7 +4397,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							bt = ""
 							te->Locals = 0 'IIf(StartsWith(bTrimLCase, "private function "), 1, 0)
 						End If
-						Pos4 = InStr(bTrim, ")")
+						Pos4 = InStrRev(bTrim, ")")
 						Pos3 = InStr(Pos4, bTrimLCase, ")as ")
 						If Pos3 = 0 Then Pos3 = InStr(Pos4 + 1, bTrimLCase, " as ")
 						te->TypeName = Trim(Mid(bTrim, Pos3 + 4))
@@ -5076,6 +5076,15 @@ Sub LoadSnippets
 	Wend
 End Sub
 
+Function GetTypeLink(ByRef TypeName As String) As String
+	If StartsWith(TypeName, "Const ") Then
+		Dim As String NewTypeName = Trim(Mid(TypeName, 7))
+		Return "<a href=""https://www.freebasic.net/wiki/KeyPgConst"">Const</a> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(NewTypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & NewTypeName & """>" & NewTypeName & "</a>", "[[" & NewTypeName & "]]")
+	Else
+		Return IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & TypeName & """>" & TypeName & "</a>", "[[" & TypeName & "]]")
+	End If
+End Function
+
 Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As String f
 	Dim As Integer i, j
@@ -5203,7 +5212,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Comps.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
-			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			Print #Fn, ""
 			Print #Fn, "'''" & Comps.Item(i) & "''' - " & tbi->Comment
 			Print #Fn, ""
@@ -5231,17 +5240,20 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn, "</tr>"
 				Dim As Integer Fn1 = FreeFile_
 				Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
-				Print #Fn1, "== Definition =="
-				Print #Fn1, "Namespace: " & tbi->OwnerNamespace
-				Print #Fn1, ""
-				Print #Fn1, "'''" & wikiTitle & " Property" & "''' - " & te->Comment
-				Print #Fn1, ""
-				Print #Fn1, "<pre>"
+				Print #Fn1, "<h2>" & wikiTitle & " Property" & "</h2>"
+				Print #Fn1, te->Comment
+				If tbi->OwnerNamespace <> "" Then
+					Print #Fn1, "<h2>Definition</h2>"
+					Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+				End If
+				Print #Fn1, "<h2>Syntax</h2>"
+				Print #Fn1, "```fb"
 				Print #Fn1, te->Parameters
-				Print #Fn1, "</pre>"
-				Print #Fn1, ""
-				Print #Fn1, "== Property Value =="
-				Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+				Print #Fn1, "```"
+				Print #Fn1, "<h2>Property Value</h2>"
+				Print #Fn1, GetTypeLink(te->TypeName)
+				Print #Fn1, "<h2>See also</h2>"
+				Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
 				CloseFile_(Fn1)
 			Next
 			Print #Fn, "</tbody>"
@@ -5269,32 +5281,38 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					teList.Add te
 					Dim As Integer Fn1 = FreeFile_
 					Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
-					Print #Fn1, "== Definition =="
-					Print #Fn1, "Namespace: " & tbi->OwnerNamespace
-					Print #Fn1, ""
-					Print #Fn1, "'''" & wikiTitle & " Method" & "''' - " & te->Comment
-					Print #Fn1, ""
-					Print #Fn1, "<pre>"
-					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Function", "Sub") & " " & te->Parameters
-					Print #Fn1, "</pre>"
+					Print #Fn1, "<h2>" & wikiTitle & " Method" & "</h2>"
+					Print #Fn1, te->Comment
+					If tbi->OwnerNamespace <> "" Then
+						Print #Fn1, "<h2>Definition</h2>"
+						Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+					End If
+					Print #Fn1, "<h2>Syntax</h2>"
+					Print #Fn1, "```fb"
+					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters
+					Print #Fn1, "```"
 					Print #Fn1, ""
 					Pos1 = InStr(te->Parameters, "(")
 					If Pos1 > 0 Then
 						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-						Print #Fn1, "<h4>Parameters</h4>"
+						Print #Fn1, "<h2>Parameters</h2>"
+						Print #Fn1, "{|"
+						Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
 						For k As Integer = 0 To te->Elements.Count - 1
 							If Trim(te->Elements.Item(k)) = "" Then Continue For
 							te1 = te->Elements.Object(k)
-							Print #Fn1, "<code>" & te->Elements.Item(k) & "</code> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te1->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te1->TypeName & """>" & te1->TypeName & "</a>", "[[" & te1->TypeName & "]]")
-							Print #Fn1, te1->Comment
-							Print #Fn1, ""
+							Print #Fn1, "|-"
+							Print #Fn1, "|<code>" & te->Elements.Item(k) & "</code>||" & GetTypeLink(te1->TypeName) & "||" & te1->Comment
 						Next
+						Print #Fn1, "|}"
 					End If
 					If te->ElementType = ElementTypes.E_Function Then
 						Print #Fn1, ""
-						Print #Fn1, "<h4>Returns</h4>"
-						Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+						Print #Fn1, "<h2>Return Value</h2>"
+						Print #Fn1, GetTypeLink(te->TypeName)
 					End If
+					Print #Fn1, "<h2>See also</h2>"
+					Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
 					CloseFile_(Fn1)
 				End If
 			Next
@@ -5323,38 +5341,48 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					teList.Add te
 					Dim As Integer Fn1 = FreeFile_
 					Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
-					Print #Fn1, "== Definition =="
-					Print #Fn1, "Namespace: " & tbi->OwnerNamespace
-					Print #Fn1, ""
-					Print #Fn1, "'''" & wikiTitle & " Event" & "''' - " & te->Comment
-					Print #Fn1, ""
-					Print #Fn1, "<pre>"
+					Print #Fn1, "<h2>" & wikiTitle & " Event" & "</h2>"
+					Print #Fn1, te->Comment
+					If tbi->OwnerNamespace <> "" Then
+						Print #Fn1, "<h2>Definition</h2>"
+						Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+					End If
+					Print #Fn1, "<h2>Syntax</h2>"
+					Print #Fn1, "```fb"
 					Print #Fn1, te->Parameters
-					Print #Fn1, "</pre>"
+					Print #Fn1, "```"
 					Print #Fn1, ""
 					Pos1 = InStr(te->Parameters, "(")
 					If Pos1 > 0 Then
 						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-						Print #Fn1, "<h4>Parameters</h4>"
+						Print #Fn1, "<h2>Parameters</h2>"
+						Print #Fn1, "{|"
+						Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
 						For k As Integer = 0 To te->Elements.Count - 1
 							If Trim(te->Elements.Item(k)) = "" Then Continue For
 							te1 = te->Elements.Object(k)
-							Print #Fn1, "<code>" & te->Elements.Item(k) & "</code> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te1->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te1->TypeName & """>" & te1->TypeName & "</a>", "[[" & te1->TypeName & "]]")
-							Print #Fn1, IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: <code>Designer.IsEmpty()</code>", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment))
-							Print #Fn1, ""
+							Print #Fn1, "|-"
+							Print #Fn1, "|<code>" & te->Elements.Item(k) & "</code>||" & GetTypeLink(te1->TypeName) & "||" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: <code>Designer.IsEmpty()</code>", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment))
 						Next
+						Print #Fn1, "|}"
 					End If
 					If StartsWith(LCase(te->TypeName), "function(") Then
 						Print #Fn1, ""
-						Print #Fn1, "<h4>Returns</h4>"
-						Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te->TypeName & """>" & te->TypeName & "</a>", "[[" & te->TypeName & "]]")
+						Print #Fn1, "<h2>Return Value</h2>"
+						Print #Fn1, GetTypeLink(te->TypeName)
 					End If
+					Print #Fn1, ""
+					Print #Fn1, "<h2>See also</h2>"
+					Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
 					CloseFile_(Fn1)
 				End If
 			Next
 			Print #Fn, "</tbody>"
 			Print #Fn, "</table>"
-			Print #Fn, ""
+			If tbi->OwnerNamespace <> "" Then
+				Print #Fn, "<h2>See also</h2>"
+				Print #Fn, "* [[" & tbi->OwnerNamespace & "]]"
+			End If
 			CloseFile_(Fn)
 		Next i
 		For i = 0 To Globals.Enums.Count - 1
@@ -5362,12 +5390,13 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
-			Print #Fn, "== Definition =="
-			Print #Fn, "Namespace: " & tbi->OwnerNamespace
-			Print #Fn, ""
-			Print #Fn, "'''" & Globals.Enums.Item(i) & " Enum''' - " & tbi->Comment
-			Print #Fn, ""
-			Print #Fn, "== Fields =="
+			Print #Fn, "<h2>" & Globals.Enums.Item(i) & " Enum</h2>"
+			Print #Fn, tbi->Comment
+			If tbi->OwnerNamespace <> "" Then
+				Print #Fn, "<h2>Definition</h2>"
+				Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+			End If
+			Print #Fn, "<h2>Fields</h2>"
 			Print #Fn, "<table>"
 			Print #Fn, "<tbody>"
 			For j As Integer = 0 To tbi->Elements.Count - 1
@@ -5380,7 +5409,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Next
 			Print #Fn, "</tbody>"
 			Print #Fn, "</table>"
-			Print #Fn, ""
+			If tbi->OwnerNamespace <> "" Then
+				Print #Fn, "<h2>See also</h2>"
+				Print #Fn, "* [[" & tbi->OwnerNamespace & "]]"
+			End If
 			CloseFile_(Fn)
 		Next i
 		For i = 0 To Globals.Namespaces.Count - 1
@@ -5594,33 +5626,103 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->Declaration Then Continue For
 			Dim As Integer Fn1 = FreeFile_
 			Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn1
-			Print #Fn1, "== Definition =="
+			Print #Fn1, "<h2>" & tbi->FullName & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "</h2>"
+			Dim As UString Lines()
+			Split(tbi->Comment, Chr(13) & Chr(10), Lines())
+			Dim iLine As Integer
+			Do While iLine <= UBound(Lines) AndAlso Trim(Lines(iLine), Any !"\t ") <> "Parameters" AndAlso Trim(Lines(iLine), Any !"\t ") <> "Return Value" AndAlso Trim(Lines(iLine), Any !"\t ") <> "See also"
+				Print #Fn1, LTrim(Lines(iLine), Any !"\t ")
+				iLine += 1
+			Loop
+			'Print #Fn1, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
-				Print #Fn1, "Namespace: " & tbi->OwnerNamespace
+				Print #Fn1, "<h2>Definition</h2>"
+				Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			End If
+			Print #Fn1, "<h2>Syntax</h2>"
 			Print #Fn1, ""
-			Print #Fn1, "'''" & tbi->FullName & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "''' - " & tbi->Comment
-			Print #Fn1, ""
-			Print #Fn1, "<pre>"
+			Print #Fn1, "```fb"
 			Print #Fn1, IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters
-			Print #Fn1, "</pre>"
+			Print #Fn1, "```"
 			Print #Fn1, ""
 			Var Pos1 = InStr(tbi->Parameters, "(")
 			If Pos1 > 0 Then
 				SplitParameters tbi->Parameters, Pos1, Mid(tbi->Parameters, Pos1 + 1, Len(tbi->Parameters) - Pos1 - 1), tbi->FileName, tbi, tbi->StartLine, 0, ECLines, tbi->InCondition, tbi->Declaration, False
-				Print #Fn1, "<h4>Parameters</h4>"
+				Print #Fn1, "<h2>Parameters</h2>"
+				Print #Fn1, "{|"
+				Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
 				For k As Integer = 0 To tbi->Elements.Count - 1
-					If Trim(tbi->Elements.Item(k)) = "" Then Continue For
 					te1 = tbi->Elements.Object(k)
-					Print #Fn1, "<code>" & tbi->Elements.Item(k) & "</code> " & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(te1->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & te1->TypeName & """>" & te1->TypeName & "</a>", "[[" & te1->TypeName & "]]")
-					Print #Fn1, te1->Comment
-					Print #Fn1, ""
+					Dim As UString Comment = IIf(te1->Value = "", "Required. ", "Optional. ")
+					Dim As Boolean bFinded
+					For kk As Integer = iLine To UBound(Lines)
+						If LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k)) Then
+							bFinded = True
+						ElseIf bFinded Then
+							If Trim(Lines(kk), Any !"\t ") = "Return Value" OrElse Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" OrElse (k < tbi->Elements.Count - 1 AndAlso LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k + 1))) Then
+								iLine = kk
+								Exit For
+							Else
+								Comment = Comment & IIf(Comment = "", "", !"\r") & Trim(Lines(kk), Any !"\t ")
+							End If
+						End If
+					Next
+					If Trim(tbi->Elements.Item(k)) = "" Then Continue For
+					Print #Fn1, "|-"
+					Print #Fn1, "|<code>" & tbi->Elements.Item(k) & "</code>||" & GetTypeLink(te1->TypeName) & "||" & te1->Comment & Comment
 				Next
+				Print #Fn1, "|}"
 			End If
 			If tbi->ElementType = ElementTypes.E_Function Then
 				Print #Fn1, ""
-				Print #Fn1, "<h4>Returns</h4>"
-				Print #Fn1, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(tbi->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & tbi->TypeName & """>" & tbi->TypeName & "</a>", "[[" & tbi->TypeName & "]]")
+				Print #Fn1, "<h2>Return Value</h2>"
+				Print #Fn1, GetTypeLink(tbi->TypeName)
+				Print #Fn1, ""
+				Dim bFinded As Boolean
+				For kk As Integer = iLine To UBound(Lines)
+					If Trim(Lines(kk), Any !"\t ") = "Return Value" Then
+						bFinded = True
+					ElseIf bFinded Then
+						If Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" Then
+							iLine = kk
+							Exit For
+						Else
+							Print #Fn1, Trim(Lines(kk), Any !"\t ")
+						End If
+					End If
+				Next
+			End If
+			Dim As Boolean bSeeAlso, bExample
+			For kk As Integer = iLine To UBound(Lines)
+				If LTrim(Lines(kk), Any !"\t ") = "Remarks" Then
+					If bExample Then
+						Print #Fn1, "```"
+						bExample = False
+					End If
+					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
+				ElseIf LTrim(Lines(kk), Any !"\t ") = "Example" Then
+					bExample = True
+					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
+					Print #Fn1, "```fb"
+				ElseIf LTrim(Lines(kk), Any !"\t ") = "See also" Then
+					If bExample Then
+						Print #Fn1, "```"
+						bExample = False
+					End If
+					bSeeAlso = True
+					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
+				ElseIf bSeeAlso Then
+					If Trim(Lines(kk), Any !"\t ") = "" Then Continue For
+					Print #Fn1, "* [[" & LTrim(Lines(kk), Any !"\t ") & "]]"
+				ElseIf bExample Then
+					Print #Fn1, Lines(kk)
+				Else
+					Print #Fn1, LTrim(Lines(kk), Any !"\t ")
+				End If
+			Next
+			If tbi->OwnerNamespace <> "" AndAlso Not bSeeAlso Then
+				Print #Fn1, "<h2>See also</h2>"
+				Print #Fn1, "* [[" & te->OwnerNamespace & "]]"
 			End If
 			CloseFile_(Fn1)
 		Next i
@@ -5640,7 +5742,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, "</pre>"
 			Print #Fn, ""
 			Print #Fn, "== Property Value =="
-			Print #Fn, IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(tbi->TypeName), "<a href=""https://www.freebasic.net/wiki/KeyPg" & tbi->TypeName & """>" & tbi->TypeName & "</a>", "[[" & tbi->TypeName & "]]")
+			Print #Fn, GetTypeLink(tbi->TypeName)
 			CloseFile_(Fn)
 		Next i
 	#endif
