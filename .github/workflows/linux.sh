@@ -21,9 +21,9 @@ then
 fi
 
 cd MyFbFramework/mff
-fbc -b "mff.bi" -dll -x "../../libmff64_gtk3.so" -d __USE_GTK3__ -v
+fbc -b "mff.bi" -dll -x "../libmff64_gtk3.so" -d __USE_GTK3__ -v
 
-if [ ! -f ../../libmff64_gtk3.so ]
+if [ ! -f ../libmff64_gtk3.so ]
 then
     echo "libmff64_gtk3.so does not exist"
     exit 1
