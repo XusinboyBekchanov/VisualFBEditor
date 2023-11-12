@@ -7569,12 +7569,12 @@ tpToolbox->Name = "Toolbox"
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y
 			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
-			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, pnlLeft.Width, 0, @x, @y)
+			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, ScaleX(pnlLeft.Width), 0, @x, @y)
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
-			allocation->x = x - tbLeft.Width - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.Width, 0)
+			allocation->x = x - ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - ScaleX(pnlLeft.Width), 0)
 			allocation->y = y
-			allocation->width = tbLeft.Width
-			allocation->height = tbLeft.Height
+			allocation->width = ScaleX(tbLeft.Width)
+			allocation->height = ScaleY(tbLeft.Height)
 			Return True
 		End Function
 	#endif
@@ -8435,14 +8435,14 @@ tbRight.Parent = @pnlRightPin
 		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y, x1, y1
 			Dim As Control Ptr tb = IIf(tabRight.SelectedTab = tpProperties, @tbProperties, @tbEvents)
-			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.Width, 0, @x, @y)
+			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, ScaleX(pnlRight.Width), 0, @x, @y)
 			Dim As Control Ptr lv = IIf(tabRight.SelectedTab = tpProperties, @lvProperties, @lvEvents)
-			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->Width, 0, @x1, @y1)
+			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, ScaleX(lv->Width), 0, @x1, @y1)
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
-			allocation->x = x - tbRight.Width - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.Width - x1 + 1, 0)
+			allocation->x = x - ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, ScaleX(pnlRight.Width) - x1 + 1, 0)
 			allocation->y = y
-			allocation->width = tbRight.Width
-			allocation->height = tbRight.Height
+			allocation->width = ScaleX(tbRight.Width)
+			allocation->height = ScaleY(tbRight.Height)
 			Return True
 		End Function
 	#endif
