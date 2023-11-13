@@ -29,7 +29,7 @@
 	#include once "mff/Printer.bi"
 #endif
 
-#ifdef __FB_WIN32__
+#ifndef __USE_GTK__
 	#ifdef __FB_64BIT__
 		#define SettingsPath ExePath & "/Settings/VisualFBEditor64.ini"
 	#else
@@ -37,16 +37,32 @@
 	#endif
 #else
 	#ifdef __USE_GTK3__
-		#ifdef __FB_64BIT__
-			#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk3.ini"
+		#ifdef __FB_WIN32__
+			#ifdef __FB_64BIT__
+				#define SettingsPath ExePath & "/Settings/VisualFBEditor64_gtk3.ini"
+			#else
+				#define SettingsPath ExePath & "/Settings/VisualFBEditor32_gtk3.ini"
+			#endif
 		#else
-			#define SettingsPath ExePath & "/Settings/VisualFBEditorX32_gtk3.ini"
+			#ifdef __FB_64BIT__
+				#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk3.ini"
+			#else
+				#define SettingsPath ExePath & "/Settings/VisualFBEditorX32_gtk3.ini"
+			#endif
 		#endif
 	#else
-		#ifdef __FB_64BIT__
-			#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk2.ini"
+		#ifdef __FB_WIN32__
+			#ifdef __FB_64BIT_
+				#define SettingsPath ExePath & "/Settings/VisualFBEditor64_gtk2.ini"
+			#else
+				#define SettingsPath ExePath & "/Settings/VisualFBEditor32_gtk2.ini"
+			#endif
 		#else
-			#define SettingsPath ExePath & "/Settings/VisualFBEditorX32_gtk2.ini"
+			#ifdef __FB_64BIT__
+				#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk2.ini"
+			#else
+				#define SettingsPath ExePath & "/Settings/VisualFBEditorX32_gtk2.ini"
+			#endif
 		#endif
 	#endif
 #endif
