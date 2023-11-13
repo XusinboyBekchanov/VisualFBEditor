@@ -42,20 +42,20 @@
 		Label2.Name = "Label2"
 		Label2.Text = ML("Authors") & !":\r" & _
 		!"Xusinboy Bekchanov\r" & _
-		!"e-mail: <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
+		ML("e-mail") & !": <a href=""mailto:bxusinboy@mail.ru"">bxusinboy@mail.ru</a>\r" & _
 		!"Liu XiaLin\r" & _
-		!"e-mail: <a href=""mailto:liuziqi.hk@hotmail.com"">liuziqi.hk@hotmail.com</a>\r" & _
+		ML("e-mail") & !": <a href=""mailto:liuziqi.hk@hotmail.com"">liuziqi.hk@hotmail.com</a>\r" & _
 		!"Cm Wang\r" & _
-		!"e-mail: <a href=""mailto:cm.wang@126.com"">cm.wang@126.com</a>\r\r" & _
-		!"QQ Forums 1032313876 78458582 \r\r" & _
+		ML("e-mail") & !": <a href=""mailto:cm.wang@126.com"">cm.wang@126.com</a>\r\r" & _
+		ML("QQ Forums") & !" 1032313876 78458582 \r\r" & _
 		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r\r" & _
-		ML("Thanks to") & !" Nastase Eodor for codes of FreeBasic Windows GUI ToolKit and Simple Designer\r" & _
-		ML("Thanks to") & !" Stanislav Budinov for codes of GUI Library Window9 and FrontEnd GDB for freebasic\r" & _
-		ML("Thanks to") & !" Aloberoger for codes of GUITK-S Windows GUI FB Wrapper Library\r" & _
-		ML("Thanks to") & !" Leandro Ascierto for codes of Chart control\r" & _
-		ML("Thanks to") & !" Laurent GRAS for codes of FBDebugger\r" & _
-		ML("Thanks to") & !" Paul Squires for codes of WinFormsX\r" & _
-		ML("Thanks to") & !" José Roca for codes of Afx\r" & _
+		MS("Thanks to $1 for codes of $2 and $3", "Nastase Eodor", "FreeBasic Windows GUI ToolKit", "Simple Designer") & !"\r" & _
+		MS("Thanks to $1 for codes of $2 and $3", "Stanislav Budinov", "GUI Library Window9", "FrontEnd GDB for freebasic") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "Aloberoger", "GUITK-S Windows GUI FB Wrapper Library") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "Leandro Ascierto", "Chart control") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "Laurent GRAS", "FBDebugger") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "Paul Squires", "WinFormsX") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "José Roca", "Afx") & !"\r\r" & _
 		ML("Language files by") & !":\r" & _
 		!"Xusinboy Bekchanov (Russian, Uzbekcyril, Uzbeklatin)\r" & _
 		!"Liu XiaLin (Chinese)\r" & _

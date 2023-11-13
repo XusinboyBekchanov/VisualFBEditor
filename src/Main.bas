@@ -237,6 +237,26 @@ Function ML(ByRef V As WString) ByRef As WString
 	End If
 End Function
 
+Function MS cdecl(ByRef V As WString, ...) As UString
+	Dim As UString Result
+	Dim As Boolean bFind
+	If LCase(CurLanguage) <> "english" Then
+		Dim As Integer tIndex = mlKeys.IndexOfKey(V)
+		If tIndex >= 0 Then
+			Result = mlKeys.Item(tIndex)->Text
+			bFind = True
+		End If
+	End If
+	If Not bFind Then Result = V
+	Dim args As Cva_List
+	Cva_Start(args, V)
+	For i As Integer = 1 To Min(InStrCount(V, "$"), InStrCount(Result, "$"))
+		Result = Replace(Result, "$" & Trim(Str(i)), * (Cva_Arg(args, WString Ptr)))
+	Next
+	MS = Result
+	Cva_End(args)
+End Function
+
 Function MLCompilerFun(ByRef V As WString) ByRef As WString
 	If LCase(CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = mlCompiler.IndexOfKey(V) ' For improve the speed
@@ -9568,20 +9588,20 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 	End Type
 	Dim a As UInteger = 0
 	Dim tal As UInteger = UBound(ta)
-	Dim ms As mstring
+	Dim mstr As mstring
 	
 	'this is never deallocated..
-	ms.p = _Allocate( 0.25 * (tal + 1) * Len(WString))
+	mstr.p = _Allocate( 0.25 * (tal + 1) * Len(WString))
 	
 	' iterate array
 	Do While a <= tal
-		(*ms.p)[ms.l] = 256 * ta(a) + ta(a + 1)
+		(*mstr.p)[mstr.l] = 256 * ta(a) + ta(a + 1)
 		a += 2
-		ms.l += 1
+		mstr.l += 1
 	Loop
 	
-	(*ms.p)[ms.l] = 0
-	Function = *ms.p
+	(*mstr.p)[mstr.l] = 0
+	Function = *mstr.p
 End Function
 
 Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
