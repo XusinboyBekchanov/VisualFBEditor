@@ -6281,9 +6281,9 @@ Sub LoadLanguageTexts
 					ElseIf StartKeyWords = True Then
 						
 					ElseIf StartCompiler = True Then
-						mlCompiler.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						If Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then mlCompiler.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
 					ElseIf StartTemplates = True Then
-						mlTemplates.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						If Trim(Mid(Buff, Pos1 + 1), Any !"\t ") <> "" Then mlTemplates.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
 					End If
 				End If
 			Loop
