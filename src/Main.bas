@@ -974,6 +974,27 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									TmpStr = Trim(Left(*res(i), nPos - 1))
 								End If
 								ThreadsEnter()
+								#if 0
+									ML("FreeBASIC Compiler")
+									ML("Version")
+									ML("built for win32")
+									ML("Copyright")
+									ML("The FreeBASIC development team.")
+									ML("standalone")
+									ML("target")
+									ML("backend")
+									ML("compiling")
+									ML("compiling C")
+									ML("assembling")
+									ML("compiling rc")
+									ML("linking")
+									ML("OBJ file not made")
+									ML("creating import library")
+									ML("compiling rc failed")
+									ML("Restarting fbc")
+									ML("creating")
+									ML("archiving")
+								#endif
 								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 								ThreadsLeave()
 							End If

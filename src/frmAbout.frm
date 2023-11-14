@@ -52,7 +52,7 @@
 		MS("Thanks to $1 for codes of $2 and $3", "Nastase Eodor", "FreeBasic Windows GUI ToolKit", "Simple Designer") & !"\r" & _
 		MS("Thanks to $1 for codes of $2 and $3", "Stanislav Budinov", "GUI Library Window9", "FrontEnd GDB for freebasic") & !"\r" & _
 		MS("Thanks to $1 for codes of $2", "Aloberoger", "GUITK-S Windows GUI FB Wrapper Library") & !"\r" & _
-		MS("Thanks to $1 for codes of $2", "Leandro Ascierto", "Chart control") & !"\r" & _
+		MS("Thanks to $1 for codes of $2", "Leandro Ascierto", ML("Chart control")) & !"\r" & _
 		MS("Thanks to $1 for codes of $2", "Laurent GRAS", "FBDebugger") & !"\r" & _
 		MS("Thanks to $1 for codes of $2", "Paul Squires", "WinFormsX") & !"\r" & _
 		MS("Thanks to $1 for codes of $2", "José Roca", "Afx") & !"\r\r" & _

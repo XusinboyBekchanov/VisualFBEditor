@@ -2318,20 +2318,20 @@ pfOptions = @fOptions
 		' chkAllLNG
 		With chkAllLNG
 			.Name = "chkAllLNG"
-			.Text = ML("Update all language file.") & "(*.lng)"
+			.Text = ML("Update all language file (*.lng)")
 			.TabIndex = 201
 			.Checked = False
 			.Align = DockStyle.alTop
 			.ExtraMargins.Top = 5
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 15, 48, 217, 21
 			.Designer = @This
 			.Parent = @grbLanguage
 		End With
 		' cmdUpdateLngVFPFolds1
 		' cmdUpdateLngHTMLFolds1
-			'.Hint = ML("Supports batch replacement by Enter key separation.")
+			
 			
 		' cmdReplaceInFiles
 		' cmdReplaceInFiles1
@@ -2366,7 +2366,7 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 204
 			.Align = DockStyle.alTop
-			.AutoSize = true
+			.AutoSize = True
 			.ControlIndex = 7
 			.SetBounds 0, 363, 417, 20
 			.Designer = @This
@@ -2378,7 +2378,7 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 205
 			.Align = DockStyle.alBottom
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 15, 365, 387, 20
 			.Designer = @This
 			.Parent = @grbShortcuts
@@ -4985,6 +4985,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	Dim As WString Ptr lang_name
 	Dim As WString * 1024 Buff, FileNameLng, FileNameSrc
 	Dim As String tKey, f
+	Dim As UString tText
 	Dim As Integer Pos1, p, p1, n, Result, Fn1, Fn2
 	Dim As Dictionary mlKeysGeneral, mlKeysCompiler, mlKeysProperty, mlKeysTemplates, mlKeyWords, mlKeysCompilerEnglish, mlKeysPropertyEnglish, mlKeysTemplatesEnglish, mlKeyWordsEnglish, mlKeysGeneralEnglish
 	Dim As Boolean StartGeneral, StartKeyWords, StartProperty, StartCompiler, StartTemplates, IsComment = False
@@ -5039,17 +5040,20 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				'David Change For the Control Property's Language.
 				'note: "=" already Replaced by "~"
 				tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
-				If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
-				If StartGeneral = True Then
-					mlKeysGeneralEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-				ElseIf StartProperty = True Then
-					mlKeysPropertyEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-				ElseIf StartKeyWords = True Then
-					mlKeyWordsEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-				ElseIf StartCompiler = True Then
-					mlKeysCompilerEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-				ElseIf StartTemplates = True Then
-					mlKeysTemplatesEnglish.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				tText = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+				If tText <> "" Then
+					If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
+					If StartGeneral = True Then
+						mlKeysGeneralEnglish.Add tKey, tText
+					ElseIf StartProperty = True Then
+						mlKeysPropertyEnglish.Add tKey, tText
+					ElseIf StartKeyWords = True Then
+						mlKeyWordsEnglish.Add tKey, tText
+					ElseIf StartCompiler = True Then
+						mlKeysCompilerEnglish.Add tKey, tText
+					ElseIf StartTemplates = True Then
+						mlKeysTemplatesEnglish.Add tKey, tText
+					End If
 				End If
 			End If
 		Loop
@@ -5112,7 +5116,22 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 									End If
 								End If
 							End If
-							p = InStr(p1 + 1, LCase(Buff), "ml(""")
+							p = InStr(p + 1, LCase(Buff), "ml(""")
+						Loop
+						p = InStr(LCase(Buff), "ms(""")
+						Do While p > 0
+							p1 = InStr(p + 1, Buff, """,")
+							If p1 > 0 Then
+								tKey = Trim(Mid(Buff, p + 4, p1 - p - 4), Any !"\t ")
+								If tKey <> "" Then
+									If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
+										mlKeysGeneralEnglish.Add tKey, ""
+										tKey = Replace(tKey, "&", "")
+										If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then mlKeysGeneralEnglish.Add tKey, ""
+									End If
+								End If
+							End If
+							p = InStr(p + 1, LCase(Buff), "ms(""")
 						Loop
 					Loop
 					App.DoEvents
@@ -5133,6 +5152,20 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		Exit Sub
 	End If
 	CloseFile_(Fn1)
+	f = Dir(ExePath & "/Templates/Projects/*.vfp")
+	Dim As String TemplateName
+	While f <> ""
+		TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+		mlKeysGeneralEnglish.Add TemplateName
+		f = Dir()
+	Wend
+	Dim As String IconName
+	f = Dir(ExePath & "/Templates/Files/*")
+	While f <> ""
+		TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
+		mlKeysGeneralEnglish.Add TemplateName
+		f = Dir()
+	Wend
 	App.DoEvents
 	mlKeysGeneralEnglish.SortKeys
 	lblShowMsg.Text = ML("Save") & " " & FileNameLng
@@ -5210,7 +5243,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		If Result <> 0 Then Result = Open(FileNameLng For Input As #Fn1)
 		If Result = 0 Then
 			StartGeneral = True
-			This.Text =  "******* Updating ... " & FileNameLng
+			This.Text =  ML("Updating ...") & " " & FileNameLng
 			Line Input #Fn1, Buff
 			WLet(lang_name, Buff)
 			Do Until EOF(Fn1)
@@ -5251,17 +5284,21 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 					'David Change For the Control Property's Language.
 					'note: "=" already converted to "~"
 					tKey = Trim(..Left(Buff, Pos1 - 1), Any !"\t ")
+					If EndsWith(tKey, " (needs to be removed)") Then
+						tKey = Trim(..Left(tKey, Len(tKey) - 22), Any !"\t ")
+					End If
+					tText = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
 					If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
 					If StartGeneral = True Then
-						mlKeysGeneral.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						mlKeysGeneral.Add tKey, tText
 					ElseIf StartProperty = True Then
-						mlKeysProperty.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						mlKeysProperty.Add tKey, tText
 					ElseIf StartKeyWords = True Then
-						mlKeyWords.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						mlKeyWords.Add tKey, tText
 					ElseIf StartCompiler = True Then
-						mlKeysCompiler.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						mlKeysCompiler.Add tKey, tText
 					ElseIf StartTemplates = True Then
-						mlKeysTemplates.Add tKey, Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
+						mlKeysTemplates.Add tKey, tText
 					End If
 				End If
 			Loop
@@ -5342,6 +5379,52 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		CloseFile_(Fn1)
 		App.DoEvents
 		
+		For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
+			tKey = mlKeysGeneralEnglish.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" AndAlso Not mlKeysGeneral.ContainsKey(tKey) Then 
+				mlKeysGeneral.Add tKey, , CPtr(Any Ptr, 1)
+			Else
+				mlKeysGeneral.Item(mlKeysGeneral.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			End If
+		Next
+		For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
+			tKey = mlKeysPropertyEnglish.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" AndAlso Not mlKeysProperty.ContainsKey(tKey) Then 
+				mlKeysProperty.Add tKey, , CPtr(Any Ptr, 1)
+			Else
+				mlKeysProperty.Item(mlKeysProperty.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			End If
+		Next
+		For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
+			tKey = mlKeysCompilerEnglish.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" AndAlso Not mlKeysCompiler.ContainsKey(tKey) Then 
+				mlKeysCompiler.Add tKey, , CPtr(Any Ptr, 1)
+			Else
+				mlKeysCompiler.Item(mlKeysCompiler.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			End If
+		Next
+		For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
+			tKey = mlKeysTemplatesEnglish.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" AndAlso Not mlKeysTemplates.ContainsKey(tKey) Then 
+				mlKeysTemplates.Add tKey, , CPtr(Any Ptr, 1)
+			Else
+				mlKeysTemplates.Item(mlKeysTemplates.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			End If
+		Next
+		For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
+			tKey = mlKeyWordsEnglish.Item(i)->Key
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If tKey <> "" AndAlso Not mlKeyWords.ContainsKey(tKey) Then 
+				mlKeyWords.Add tKey, , CPtr(Any Ptr, 1)
+			Else
+				mlKeyWords.Item(mlKeyWords.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			End If
+		Next
+		
 		mlKeysGeneral.SortKeys
 		mlKeysProperty.SortKeys
 		mlKeysCompiler.SortKeys
@@ -5352,41 +5435,81 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		Fn1 = FreeFile_
 		Open FileNameLng For Output Encoding "utf-8" As #Fn1
 		Print #Fn1, *lang_name
-		lblShowMsg.Text = " Saving ... " & FileNameLng
+		lblShowMsg.Text = ML("Saving ...") & " " & FileNameLng
 		App.DoEvents
 		Print #Fn1, "[Keywords]"
 		For i As Integer = 0 To mlKeyWords.Count - 1
 			tKey = mlKeyWords.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeyWords.Item(i)->Text
+			If tKey <> "" Then
+				If mlKeyWords.Item(i)->Object = 0 Then
+					If mlKeyWords.Item(i)->Text <> "" Then
+						Print #Fn1, tKey & IIf(Not EndsWith(tKey, " (needs to be removed)"), " (needs to be removed)", "") & " = " & mlKeyWords.Item(i)->Text
+					End If
+				Else
+					Print #Fn1, tKey & " = " & mlKeyWords.Item(i)->Text
+				End If
+			End If
 		Next
 		App.DoEvents
 		Print #Fn1, "[Property]"
 		For i As Integer = 0 To mlKeysProperty.Count - 1
 			tKey = mlKeysProperty.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysProperty.Item(i)->Text
+			If tKey <> "" Then 
+				If mlKeysProperty.Item(i)->Object = 0 Then
+					If mlKeysProperty.Item(i)->Text <> "" Then
+						Print #Fn1, tKey & IIf(Not EndsWith(tKey, " (needs to be removed)"), " (needs to be removed)", "") & " = " & mlKeysProperty.Item(i)->Text
+					End If
+				Else
+					Print #Fn1, tKey & " = " & mlKeysProperty.Item(i)->Text
+				End If
+			End If
 		Next
 		App.DoEvents
 		Print #Fn1, "[Templates]"
 		For i As Integer = 0 To mlKeysTemplates.Count - 1
 			tKey = mlKeysTemplates.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysTemplates.Item(i)->Text
+			If tKey <> "" Then 
+				If mlKeysTemplates.Item(i)->Object = 0 Then
+					If mlKeysTemplates.Item(i)->Text <> "" Then
+						Print #Fn1, tKey & IIf(Not EndsWith(tKey, " (needs to be removed)"), " (needs to be removed)", "") & " = " & mlKeysTemplates.Item(i)->Text
+					End If
+				Else
+					Print #Fn1, tKey & " = " & mlKeysTemplates.Item(i)->Text
+				End If
+			End If
 		Next
 		App.DoEvents
 		Print #Fn1, "[Compiler]"
 		For i As Integer = 0 To mlKeysCompiler.Count - 1
 			tKey = mlKeysCompiler.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysCompiler.Item(i)->Text
+			If tKey <> "" Then
+				If mlKeysCompiler.Item(i)->Object = 0 Then
+					If mlKeysCompiler.Item(i)->Text <> "" Then
+						Print #Fn1, tKey & IIf(Not EndsWith(tKey, " (needs to be removed)"), " (needs to be removed)", "") & " = " & mlKeysCompiler.Item(i)->Text
+					End If
+				Else
+					Print #Fn1, tKey & " = " & mlKeysCompiler.Item(i)->Text
+				End If
+			End If
 		Next
 		App.DoEvents
 		Print #Fn1, "[General]"
 		For i As Integer = 0 To mlKeysGeneral.Count - 1
 			tKey = mlKeysGeneral.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" Then Print #Fn1, tKey & " = " & mlKeysGeneral.Item(i)->Text
+			If tKey <> "" Then
+				If mlKeysGeneral.Item(i)->Object = 0 Then
+					If mlKeysGeneral.Item(i)->Text <> "" Then
+						Print #Fn1, tKey & IIf(Not EndsWith(tKey, " (needs to be removed)"), " (needs to be removed)", "") & " = " & mlKeysGeneral.Item(i)->Text
+					End If
+				Else
+					Print #Fn1, tKey & " = " & mlKeysGeneral.Item(i)->Text
+				End If
+			End If
 		Next
 		CloseFile_(Fn1)
 		App.DoEvents
@@ -5404,6 +5527,9 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	mlKeysTemplatesEnglish.Clear
 	mlKeyWordsEnglish.Clear
 	cmdUpdateLng.Enabled = True
+	This.Text =  ML("Options")
+	lblShowMsg.Text = ML("Saved") & ": " & FileNameLng
+	
 	'WebBrowser1.Navigate("https://cn.bing.com/translator?ref=TThis&&text=&from=en&to=cn")
 	
 End Sub
