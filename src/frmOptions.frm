@@ -5166,6 +5166,34 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		mlKeysGeneralEnglish.Add TemplateName
 		f = Dir()
 	Wend
+	Fn1 = FreeFile_
+	If Open(ExePath & "/Settings/Others/Compiler error messages.txt" For Input Encoding "utf-8" As #Fn1) = 0 Then
+		Do Until EOF(Fn1)
+			Line Input #Fn1, Buff
+			Var Pos1 = InStr(Buff, "=")
+			If Pos1 > 0 Then
+				mlKeysCompilerEnglish.Add Trim(.Left(Buff, Pos1 - 1))
+			End If
+		Loop
+	End If
+	CloseFile_(Fn1)
+	Fn1 = FreeFile_
+	If Open(ExePath & "/Settings/Others/Properties.txt" For Input Encoding "utf-8" As #Fn1) = 0 Then
+		Do Until EOF(Fn1)
+			Line Input #Fn1, Buff
+			Var Pos1 = InStr(Buff, "=")
+			If Pos1 > 0 Then
+				mlKeysPropertyEnglish.Add Trim(.Left(Buff, Pos1 - 1))
+			End If
+		Loop
+	End If
+	CloseFile_(Fn1)
+	For i As Integer = 0 To Globals.Functions.Count - 1
+		Dim As TypeElement Ptr te = Globals.Functions.Object(i)
+		If te->ElementType = E_Keyword OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordSub Then
+			mlKeyWordsEnglish.Add te->Name
+		End If
+	Next
 	App.DoEvents
 	mlKeysGeneralEnglish.SortKeys
 	lblShowMsg.Text = ML("Save") & " " & FileNameLng
@@ -5382,46 +5410,56 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		For i As Integer = 0 To mlKeysGeneralEnglish.Count - 1
 			tKey = mlKeysGeneralEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" AndAlso Not mlKeysGeneral.ContainsKey(tKey) Then 
-				mlKeysGeneral.Add tKey, , CPtr(Any Ptr, 1)
-			Else
-				mlKeysGeneral.Item(mlKeysGeneral.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			If tKey <> "" Then
+				If Not mlKeysGeneral.ContainsKey(tKey) Then 
+					mlKeysGeneral.Add tKey, , CPtr(Any Ptr, 1)
+				Else
+					mlKeysGeneral.Item(mlKeysGeneral.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+				End If
 			End If
 		Next
 		For i As Integer = 0 To mlKeysPropertyEnglish.Count - 1
 			tKey = mlKeysPropertyEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" AndAlso Not mlKeysProperty.ContainsKey(tKey) Then 
-				mlKeysProperty.Add tKey, , CPtr(Any Ptr, 1)
-			Else
-				mlKeysProperty.Item(mlKeysProperty.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			If tKey <> "" Then
+				If Not mlKeysProperty.ContainsKey(tKey) Then 
+					mlKeysProperty.Add tKey, , CPtr(Any Ptr, 1)
+				Else
+					mlKeysProperty.Item(mlKeysProperty.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+				End If
 			End If
 		Next
 		For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
 			tKey = mlKeysCompilerEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" AndAlso Not mlKeysCompiler.ContainsKey(tKey) Then 
-				mlKeysCompiler.Add tKey, , CPtr(Any Ptr, 1)
-			Else
-				mlKeysCompiler.Item(mlKeysCompiler.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			If tKey <> "" Then
+				If Not mlKeysCompiler.ContainsKey(tKey) Then 
+					mlKeysCompiler.Add tKey, , CPtr(Any Ptr, 1)
+				Else
+					mlKeysCompiler.Item(mlKeysCompiler.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+				End If
 			End If
 		Next
 		For i As Integer = 0 To mlKeysTemplatesEnglish.Count - 1
 			tKey = mlKeysTemplatesEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" AndAlso Not mlKeysTemplates.ContainsKey(tKey) Then 
-				mlKeysTemplates.Add tKey, , CPtr(Any Ptr, 1)
-			Else
-				mlKeysTemplates.Item(mlKeysTemplates.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			If tKey <> "" Then
+				If Not mlKeysTemplates.ContainsKey(tKey) Then 
+					mlKeysTemplates.Add tKey, , CPtr(Any Ptr, 1)
+				Else
+					mlKeysTemplates.Item(mlKeysTemplates.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+				End If
 			End If
 		Next
 		For i As Integer = 0 To mlKeyWordsEnglish.Count - 1
 			tKey = mlKeyWordsEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
-			If tKey <> "" AndAlso Not mlKeyWords.ContainsKey(tKey) Then 
-				mlKeyWords.Add tKey, , CPtr(Any Ptr, 1)
-			Else
-				mlKeyWords.Item(mlKeyWords.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+			If tKey <> "" Then
+				If Not mlKeyWords.ContainsKey(tKey) Then 
+					mlKeyWords.Add tKey, , CPtr(Any Ptr, 1)
+				Else
+					mlKeyWords.Item(mlKeyWords.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+				End If
 			End If
 		Next
 		
