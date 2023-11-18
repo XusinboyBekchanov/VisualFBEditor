@@ -964,7 +964,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 								End If
 							Else
-								Dim As String TmpStr 
+								Dim As UString TmpStr
 								Dim As Integer nPos = InStr(*res(i), ":")
 								If nPos < 1 Then nPos = InStr(*res(i), " ")
 								If nPos < 1 Then
@@ -973,13 +973,18 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								Else
 									TmpStr = Trim(Left(*res(i), nPos - 1))
 								End If
-								ThreadsEnter()
+								If StartsWith(TmpStr, "FreeBASIC") Then 
+									nPos = Len(*res(i)) + 1
+									TmpStr = Replace(Replace(*res(i), "FreeBASIC Compiler", ML("FreeBASIC Compiler")), "Version", ML("Version"))
+									Var Pos1 = InStr(TmpStr, "built for ")
+									If Pos1 > 0 Then
+										TmpStr = Left(TmpStr, Pos1 - 1) & MS("built for $1", Mid(TmpStr, Pos1 + 10))
+									End If
+								ElseIf StartsWith(TmpStr, "Copyright") Then
+									nPos = Len(*res(i)) + 1
+									TmpStr = Replace(Replace(*res(i), "Copyright", ML("Copyright")), "The FreeBASIC development team.", ML("The FreeBASIC development team."))
+								End If
 								#if 0
-									ML("FreeBASIC Compiler")
-									ML("Version")
-									ML("built for win32")
-									ML("Copyright")
-									ML("The FreeBASIC development team.")
 									ML("standalone")
 									ML("target")
 									ML("backend")
@@ -995,6 +1000,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									ML("creating")
 									ML("archiving")
 								#endif
+								ThreadsEnter()
 								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 								ThreadsLeave()
 							End If
@@ -4780,7 +4786,7 @@ Sub LoadHelp
 		#endif
 		Dim As TypeElement Ptr te, te1
 		Dim As WString * 1024 Buff, StartBuff, bTrim
-		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart
+		Dim As Boolean bStart, bStartEnd, bDescriptionStart, bDescriptionEnd, bReturnValueStart, bOperator
 		Dim As Paragraph Parag
 		Dim As WString * 1024 MLSyntax = ML("Syntax"), MLUsage = ML("Usage"), MLParameters = ML("Parameters"), MLReturnValue = ML("Return Value"), MLDescription = ML("Description"), _
 		MLExample = ML("Example"), MLDifferencesFromQB = ML("Differences from QB"), MLSeeAlso = ML("See also"), MLMoreDetails = ML("More details ..."), MLDot = ML(".")
@@ -4821,7 +4827,9 @@ Sub LoadHelp
 					Pos2 = InStr(bTrim, "   ")  ' For good understanding, KeyWords + "   " + Local
 					If Pos2 > 0 Then bTrim = Trim(Left(bTrim, Pos2))
 					StartBuff = bTrim
-					If StartsWith(bTrim, "Operator ") Then bTrim = Trim(Mid(bTrim, 10))
+					bOperator = False
+					If StartsWith(bTrim, "Operator ") Then bOperator = True: bTrim = Trim(Mid(bTrim, 10))
+					If StartsWith(bTrim, "Placement ") Then bTrim = Trim(Mid(bTrim, 11))
 					Pos1 = InStr(bTrim, " ")
 					If Pos1 > 0 Then bTrim = Left(bTrim, Pos1 - 1)
 					Pos1 = InStr(bTrim, "...")
@@ -4831,7 +4839,11 @@ Sub LoadHelp
 					te = _New( TypeElement)
 					te->Name = bTrim
 					te->DisplayName = Trim(Buff)
-					te->ElementType = E_Keyword
+					If bOperator Then
+						te->ElementType = E_KeywordOperator
+					Else
+						te->ElementType = E_Keyword
+					End If
 					te->FileName = *KeywordsHelpPath
 					pFunctions->Add te->Name, te
 					bStartEnd = False

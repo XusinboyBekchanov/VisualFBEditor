@@ -127,7 +127,7 @@
 			.Name = "lblRun"
 			.Text = ML("run") & ":"
 			.TabIndex = 15
-			.SetBounds 16, 24, 66, 16
+			.SetBounds 16, 24, 256, 16
 			.Parent = @grbRun
 		End With
 		' cboCompiler32
@@ -171,13 +171,6 @@
 			.Parent = @grbRun
 		End With
 		' cboDebug
-		With cboDebug32
-			.Name = "cboDebug32"
-			.Text = "ComboBoxEdit112"
-			.TabIndex = 20
-			.SetBounds 90, 24, 278, 21
-			.Parent = @grbDebug
-		End With
 		' grbDebug
 		With grbDebug
 			.Name = "grbDebug"
@@ -199,7 +192,7 @@
 			.Name = "lblDebug32"
 			.Text = ML("debug") & " " & ML("32-bit") & ":"
 			.TabIndex = 19
-			.SetBounds 16, 28, 66, 16
+			.SetBounds 16, 28, 236, 16
 			.Parent = @grbDebug
 		End With
 		' lblDebug1
@@ -207,7 +200,7 @@
 			.Name = "lblDebug64"
 			.Text = ML("debug") & " " & ML("64-bit") & ":"
 			.TabIndex = 22
-			.SetBounds 16, 51, 66, 17
+			.SetBounds 16, 51, 266, 17
 			.Parent = @grbDebug
 		End With
 		' txtDebug64
@@ -222,6 +215,13 @@
 			.Name = "cboDebug64"
 			.TabIndex = 23
 			.SetBounds 90, 48, 278, 21
+			.Parent = @grbDebug
+		End With
+		With cboDebug32
+			.Name = "cboDebug32"
+			.Text = "ComboBoxEdit112"
+			.TabIndex = 20
+			.SetBounds 90, 24, 278, 21
 			.Parent = @grbDebug
 		End With
 	End Constructor

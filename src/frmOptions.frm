@@ -2469,7 +2469,7 @@ pfOptions = @fOptions
 		lvOtherEditors.Columns.Add ML("Version"), , 126
 		lvOtherEditors.Columns.Add ML("Extensions"), , 126
 		lvOtherEditors.Columns.Add ML("Path"), , 126
-		lvOtherEditors.Columns.Add ML("Commad line"), , 80
+		lvOtherEditors.Columns.Add ML("Command line"), , 80
 		lvCompilerPaths.Columns.Add ML("Version"), , 190
 		lvCompilerPaths.Columns.Add ML("Path"), , 190
 		lvCompilerPaths.Columns.Add ML("Command line"), , 80
@@ -5109,7 +5109,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 							If p1 > 0 Then
 								tKey = Trim(Mid(Buff, p + 4, p1 - p - 4), Any !"\t ")
 								If tKey <> "" Then
-									If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
+									If tKey <> """" AndAlso Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
 										mlKeysGeneralEnglish.Add tKey, ""
 										tKey = Replace(tKey, "&", "")
 										If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then mlKeysGeneralEnglish.Add tKey, ""
@@ -5124,7 +5124,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 							If p1 > 0 Then
 								tKey = Trim(Mid(Buff, p + 4, p1 - p - 4), Any !"\t ")
 								If tKey <> "" Then
-									If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
+									If tKey <> """" AndAlso Not mlKeysGeneralEnglish.ContainsKey(tKey) Then
 										mlKeysGeneralEnglish.Add tKey, ""
 										tKey = Replace(tKey, "&", "")
 										If Not mlKeysGeneralEnglish.ContainsKey(tKey) Then mlKeysGeneralEnglish.Add tKey, ""
@@ -5188,10 +5188,23 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		Loop
 	End If
 	CloseFile_(Fn1)
+	mlKeyWordsEnglish.Add "#endmacro"
+	mlKeyWordsEnglish.Add "EndIf"
 	For i As Integer = 0 To Globals.Functions.Count - 1
 		Dim As TypeElement Ptr te = Globals.Functions.Object(i)
 		If te->ElementType = E_Keyword OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordSub Then
 			mlKeyWordsEnglish.Add te->Name
+		ElseIf te->ElementType = E_KeywordOperator Then
+			Dim As Boolean bFind
+			For j As Integer = 1 To Len(te->Name)
+				If InStr("!#$&~)*+-./<>@[]\^=", Mid(te->Name, j, 1)) > 0 Then
+					bFind = True
+					Exit For
+				End If
+			Next
+			If Not bFind Then
+				mlKeyWordsEnglish.Add te->Name
+			End If
 		End If
 	Next
 	App.DoEvents
@@ -5316,17 +5329,19 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 						tKey = Trim(..Left(tKey, Len(tKey) - 22), Any !"\t ")
 					End If
 					tText = Trim(Mid(Buff, Pos1 + 1), Any !"\t ")
-					If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
-					If StartGeneral = True Then
-						mlKeysGeneral.Add tKey, tText
-					ElseIf StartProperty = True Then
-						mlKeysProperty.Add tKey, tText
-					ElseIf StartKeyWords = True Then
-						mlKeyWords.Add tKey, tText
-					ElseIf StartCompiler = True Then
-						mlKeysCompiler.Add tKey, tText
-					ElseIf StartTemplates = True Then
-						mlKeysTemplates.Add tKey, tText
+					If tText <> "" Then
+						If InStr(tKey, "~") Then tKey = Replace(tKey, "~", "=")
+						If StartGeneral = True Then
+							mlKeysGeneral.Add tKey, tText
+						ElseIf StartProperty = True Then
+							mlKeysProperty.Add tKey, tText
+						ElseIf StartKeyWords = True Then
+							mlKeyWords.Add tKey, tText
+						ElseIf StartCompiler = True Then
+							mlKeysCompiler.Add tKey, tText
+						ElseIf StartTemplates = True Then
+							mlKeysTemplates.Add tKey, tText
+						End If
 					End If
 				End If
 			Loop
@@ -5422,7 +5437,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			tKey = mlKeysPropertyEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 			If tKey <> "" Then
-				If Not mlKeysProperty.ContainsKey(tKey) Then 
+				If Not mlKeysProperty.ContainsKey(tKey) Then
 					mlKeysProperty.Add tKey, , CPtr(Any Ptr, 1)
 				Else
 					mlKeysProperty.Item(mlKeysProperty.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)

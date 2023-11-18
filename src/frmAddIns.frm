@@ -153,9 +153,9 @@ Sub ChangeItem(ItemIndex As Integer)
 	Item = fAddIns.lvAddIns.ListItems.Item(ItemIndex)
 	Add_In = AvailableAddIns.Item(ItemIndex)
 	If Add_In->LoadOnStartup Then
-		Item->Text(1) = "Startup / " & IIf(Add_In->Loaded, "Loaded", "Unloaded")
+		Item->Text(1) = ML("Startup") + " / " & IIf(Add_In->Loaded, ML("Loaded"), ML("Unloaded"))
 	Else
-		Item->Text(1) = IIf(Add_In->Loaded, "Loaded", "")
+		Item->Text(1) = IIf(Add_In->Loaded, ML("Loaded"), "")
 	End If
 End Sub
 

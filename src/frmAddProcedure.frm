@@ -205,7 +205,7 @@
 			.Text = ML("All Local variables as Statics")
 			.TabIndex = 31
 			.Hint = ML("Static specifies static storage for all local variables, objects and arrays, except temporary types and internal variables (objects not explicitly declared)")
-			.SetBounds 10, 480, 170, 20
+			.SetBounds 10, 480, 200, 20
 			.Designer = @This
 			.Parent = @This
 		End With
