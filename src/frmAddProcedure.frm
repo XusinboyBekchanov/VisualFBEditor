@@ -861,7 +861,7 @@ Private Sub frmAddProcedureType.Form_Create(ByRef Sender As Control)
 	txtDescription.Text = ""
 	txtParameters.Text = ""
 	cboType.Clear
-	cboType.AddItem "(not selected)"
+	cboType.AddItem ML("(not selected)")
 	For i As Integer = 0 To tb->txtCode.Content.Types.Count - 1
 		cboType.AddItem tb->txtCode.Content.Types.Item(i)
 	Next
