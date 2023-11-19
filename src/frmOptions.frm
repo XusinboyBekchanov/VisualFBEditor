@@ -5170,13 +5170,15 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 	If Open(ExePath & "/Settings/Others/Compiler error messages.txt" For Input Encoding "utf-8" As #Fn1) = 0 Then
 		Do Until EOF(Fn1)
 			Line Input #Fn1, Buff
-			Var Pos1 = InStr(Buff, "=")
+			If Not IsNumeric(.Left(Buff, 1)) Then Continue Do
+			Var Pos1 = InStr(Buff, " ")
 			If Pos1 > 0 Then
-				mlKeysCompilerEnglish.Add Trim(.Left(Buff, Pos1 - 1))
+				mlKeysCompilerEnglish.Add Trim(Mid(Buff, Pos1 + 1))
 			End If
 		Loop
 	End If
 	CloseFile_(Fn1)
+	mlKeysCompilerEnglish.SortKeys
 	Fn1 = FreeFile_
 	If Open(ExePath & "/Settings/Others/Properties.txt" For Input Encoding "utf-8" As #Fn1) = 0 Then
 		Do Until EOF(Fn1)
@@ -5426,10 +5428,10 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 			tKey = mlKeysGeneralEnglish.Item(i)->Key
 			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 			If tKey <> "" Then
-				If Not mlKeysGeneral.ContainsKey(tKey) Then 
+				If Not mlKeysGeneral.ContainsKey(tKey, , True) Then 
 					mlKeysGeneral.Add tKey, , CPtr(Any Ptr, 1)
 				Else
-					mlKeysGeneral.Item(mlKeysGeneral.IndexOfKey(tKey))->Object = CPtr(Any Ptr, 1)
+					mlKeysGeneral.Item(mlKeysGeneral.IndexOfKey(tKey, , True))->Object = CPtr(Any Ptr, 1)
 				End If
 			End If
 		Next
@@ -5446,7 +5448,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		Next
 		For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
 			tKey = mlKeysCompilerEnglish.Item(i)->Key
-			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			'If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 			If tKey <> "" Then
 				If Not mlKeysCompiler.ContainsKey(tKey) Then 
 					mlKeysCompiler.Add tKey, , CPtr(Any Ptr, 1)

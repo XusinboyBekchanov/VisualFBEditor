@@ -999,6 +999,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									ML("Restarting fbc")
 									ML("creating")
 									ML("archiving")
+									ML("Error")
+									ML("Warning")
 								#endif
 								ThreadsEnter()
 								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
@@ -1072,7 +1074,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Problems = IIf(NumberErr > 0, ML("Errors") & " (" & WStr(NumberErr) & " " & ML("Pos") & ")", "")
 			Problems &= IIf(NumberWarning > 0, IIf(Problems = "", "", ", ") & ML("Warnings") & " (" & WStr(NumberWarning) & " " & ML("Pos") & ")", "")
 			Problems &= IIf(NumberInfo > 0, IIf(Problems = "", "", ", ") & ML("Messages") & " (" & WStr(NumberInfo) & " " & ML("Pos") & ")", "")
-			ShowMessages(Str(Time) & ": " & ML("Found") & " " & Problems, False)
+			ShowMessages(Str(Time) & ": " & MS("Found $1.", *Problems.vptr), False)
 		Else
 			tpProblems->Caption = ML("Problems")
 		End If
