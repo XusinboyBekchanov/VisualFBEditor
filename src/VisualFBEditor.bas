@@ -445,7 +445,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			#endif
 		Else
 			'#ifndef __USE_GTK__
-				If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
+				If prun AndAlso kill_process(ML("Trying to launch but debuggee still running")) = False Then
 					Exit Sub
 				End If
 				runtype = RTFRUN

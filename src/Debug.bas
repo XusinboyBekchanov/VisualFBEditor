@@ -1545,7 +1545,7 @@ Private Sub restart(ByVal idx As Integer=0)
 		#ifndef __FB_WIN32__
 			afterkilled = KRESTART + idx
 		#endif
-		If kill_process("Trying to launch but debuggee still running")=False Then
+		If kill_process(ML("Trying to launch but debuggee still running")) = False Then
 			dbg_prt2 "in restart false ?????"
 			Exit Sub
 		End If
@@ -9497,8 +9497,8 @@ End Sub
 Private Function kill_process(text As String) As Integer
 	Dim As Long retcode,lasterr
 	If prun Then ''debuggee waiting or running Then
-		If MsgBox(ML("Kill current running Program?") & text + Chr(10) + Chr(10) + _
-			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK")+Chr(10)+ _
+		If MsgBox(ML("Kill current running Program?") & " " & text + Chr(10) + Chr(10) + _
+			ML("USE CARREFULLY SYSTEM CAN BECOME UNSTABLE, LOSS OF DATA, MEMORY LEAK") + Chr(10) + _
 			ML("Try to close your program first"), , mtWarning, btYesNo) = mrYes Then
 			flagkill = True
 			#ifdef __FB_WIN32__
@@ -15072,7 +15072,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				
 				If ThreadCreate(@start_pgm) = 0 Then
 					KillTimer(0, GTIMER001)
-					MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
+					MsgBox(ML("Debuggee not running"), ML("ERROR unable to start the thread managing the debuggee"))
 				EndIf
 				'pClass = NORMAL_PRIORITY_CLASS Or CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE Or DEBUG_PROCESS Or DEBUG_ONLY_THIS_PROCESS
 				'If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then

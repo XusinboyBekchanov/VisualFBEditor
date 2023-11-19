@@ -646,6 +646,19 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Else
 						WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
 					End If
+					Dim As UString LibFolder
+					If Bit32 Then
+						LibFolder = CtlLibrary->Lib32Folder
+					Else
+						LibFolder = CtlLibrary->Lib64Folder
+					End If
+					If LibFolder <> "" Then
+						If EndsWith(LibFolder, Slash) Then
+							WAdd CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """"
+						Else
+							WAdd CompileWith, " -p """ & LibFolder & """"
+						End If
+					End If
 				End If
 			Next
 		End If
@@ -2452,7 +2465,7 @@ End Sub
 
 Function CloseSession() As Boolean
 	#ifndef __USE_GTK__
-		If prun AndAlso kill_process("Trying to launch but debuggee still running") = False Then
+		If prun AndAlso kill_process(ML("Trying to launch but debuggee still running")) = False Then
 			Return False
 		End If
 	#endif
@@ -5199,6 +5212,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			CtlLibrary->HeadersFolder = ini.ReadString("Setup", "HeadersFolder")
 			CtlLibrary->SourcesFolder = ini.ReadString("Setup", "SourcesFolder")
 			CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
+			CtlLibrary->Lib32Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "Lib32Folder"), Temp))
+			CtlLibrary->Lib64Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "Lib64Folder"), Temp))
 			CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
 			ControlLibraries.Add CtlLibrary
 			If Temp = MFF Then MFFCtlLibrary = CtlLibrary
