@@ -647,11 +647,23 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
 					End If
 					Dim As UString LibFolder
-					If Bit32 Then
-						LibFolder = CtlLibrary->Lib32Folder
-					Else
-						LibFolder = CtlLibrary->Lib64Folder
-					End If
+					#ifdef __FB_WIN32__
+						#ifdef __FB_ARM__
+							LibFolder = CtlLibrary->Lib64ArmFolder
+						#else
+							If Bit32 Then
+								LibFolder = CtlLibrary->Lib32Folder
+							Else
+								LibFolder = CtlLibrary->Lib64Folder
+							End If
+						#endif
+					#else
+						If Bit32 Then
+							LibFolder = CtlLibrary->LibX32Folder
+						Else
+							LibFolder = CtlLibrary->LibX64Folder
+						End If
+					#endif
 					If LibFolder <> "" Then
 						If EndsWith(LibFolder, Slash) Then
 							WAdd CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """"
@@ -5214,6 +5226,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			CtlLibrary->IncludeFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "IncludeFolder"), Temp))
 			CtlLibrary->Lib32Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "Lib32Folder"), Temp))
 			CtlLibrary->Lib64Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "Lib64Folder"), Temp))
+			CtlLibrary->Lib64ArmFolder = GetFullPath(GetFullPath(ini.ReadString("Setup", "Lib64ArmFolder"), Temp))
+			CtlLibrary->LibX32Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "LibX32Folder"), Temp))
+			CtlLibrary->LibX64Folder = GetFullPath(GetFullPath(ini.ReadString("Setup", "LibX64Folder"), Temp))
 			CtlLibrary->Enabled = iniSettings.ReadBool("ControlLibraries", "Enabled_" & WStr(i), False)
 			ControlLibraries.Add CtlLibrary
 			If Temp = MFF Then MFFCtlLibrary = CtlLibrary

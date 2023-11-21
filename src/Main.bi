@@ -189,6 +189,9 @@ Type Library
 	IncludeFolder As UString
 	Lib32Folder As UString
 	Lib64Folder As UString
+	Lib64ArmFolder As UString
+	LibX32Folder As UString
+	LibX64Folder As UString
 	Enabled As Boolean
 	Handle As Any Ptr
 End Type
