@@ -1,5 +1,5 @@
 ﻿#ifdef __FB_WIN32__
-	'#Compile -exx "WebBrowser with IE.rc"
+	'#Compile -exx "WebBrowser Example (with IE).rc"
 #else
 	'#Compile -exx
 #endif

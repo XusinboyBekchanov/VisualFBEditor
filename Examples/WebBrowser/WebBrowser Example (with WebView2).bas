@@ -1,15 +1,15 @@
 ﻿#ifdef __FB_WIN32__
 	#ifdef __FB_64BIT__
 		#ifdef __FB_ARM__
-			#cmdline "-exx ""WebBrowser Example.rc"" -x ""Release/win-arm64/WebBrowser Example.exe"""
+			#cmdline "-exx ""WebBrowser (with WebView2).rc"" -x ""Release/win-arm64/WebBrowser (with WebView2).exe"""
 		#else
-			#cmdline "-exx ""WebBrowser Example.rc"" -x ""Release/win-x64/WebBrowser Example.exe"""
+			#cmdline "-exx ""WebBrowser (with WebView2).rc"" -x ""Release/win-x64/WebBrowser (with WebView2).exe"""
 		#endif
 	#else
-		#cmdline "-exx ""WebBrowser Example.rc"" -x ""Release/win-x86/WebBrowser Example.exe"""
+		#cmdline "-exx ""WebBrowser Example (with WebView2).rc"" -x ""Release/win-x86/WebBrowser (with WebView2).exe"""
 	#endif
 #else
-	#cmdline "-exx -x ""Release/linux/WebBrowser Example.exe"""
+	#cmdline "-exx -x ""Release/linux/WebBrowser (with WebView2).exe"""
 #endif
 #define __USE_GTK3__
 '#Region "Form"
