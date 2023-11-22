@@ -20,6 +20,7 @@ MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
 BuildVersion=411
+BuildVersion=413
 AutoIncrementVersion=true
 ApplicationTitle="BassAudio"
 ApplicationIcon=""

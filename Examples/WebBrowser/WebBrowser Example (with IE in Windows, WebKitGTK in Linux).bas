@@ -3,8 +3,8 @@
 #else
 	'#Compile -exx
 #endif
-#define __USE_GTK3__
 '#Region "Form"
+	#define __USE_GTK3__ ' for Linux
 	#include once "mff/Form.bi"
 	#include once "mff/WebBrowser.bi"
 	#include once "mff/CommandButton.bi"

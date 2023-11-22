@@ -9,11 +9,11 @@
 		#cmdline "-exx ""WebBrowser Example (with WebView2).rc"" -x ""Release/win-x86/WebBrowser (with WebView2).exe"""
 	#endif
 #else
-	#cmdline "-exx -x ""Release/linux/WebBrowser (with WebView2).exe"""
+	#cmdline "-exx -x ""Release/linux/WebBrowser (with WebKitGTK).exe"""
 #endif
-#define __USE_GTK3__
 '#Region "Form"
-	#define __USE_WEBVIEW2__
+	#define __USE_WEBVIEW2__ ' for Windows
+	#define __USE_GTK3__ ' for Linux
 	#include once "mff/Form.bi"
 	#include once "mff/WebBrowser.bi"
 	#include once "mff/CommandButton.bi"
