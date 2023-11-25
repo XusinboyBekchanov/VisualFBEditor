@@ -3413,20 +3413,6 @@ Namespace My.Sys.Forms
 		Return @This
 	End Operator
 	
-	mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
-	mnuDesigner.Add("-")
-		mnuDesigner.Add(ML("Copy") & !"\t Ctrl+C", "Copy", "Copy", @PopupClick)
-		mnuDesigner.Add(ML("Cut") & !"\t Ctrl+X", "Cut", "Cut", @PopupClick)
-		mnuDesigner.Add(ML("Paste") & !"\t Ctrl+V", "Paste", "Paste", @PopupClick)
-		mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
-		mnuDesigner.Add("-")
-		mnuDesigner.Add(ML("Duplicate") & !"\t Ctrl+D", "", "Duplicate", @mClick)
-	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Bring to Front"), "", "BringToFront", @PopupClick)
-	mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
-	mnuDesigner.Add("-")
-	mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
-	
 	Constructor Designer(ParentControl As Control Ptr)
 		FStepX      = 10
 		FStepY      = 10
@@ -3500,3 +3486,17 @@ Namespace My.Sys.Forms
 		WDeAllocate(FTemp)
 	End Destructor
 End Namespace
+
+mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
+mnuDesigner.Add("-")
+mnuDesigner.Add(ML("Copy") & !"\t Ctrl+C", "Copy", "Copy", @PopupClick)
+mnuDesigner.Add(ML("Cut") & !"\t Ctrl+X", "Cut", "Cut", @PopupClick)
+mnuDesigner.Add(ML("Paste") & !"\t Ctrl+V", "Paste", "Paste", @PopupClick)
+mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
+mnuDesigner.Add("-")
+mnuDesigner.Add(ML("Duplicate") & !"\t Ctrl+D", "", "Duplicate", @mClick)
+mnuDesigner.Add("-")
+mnuDesigner.Add(ML("Bring to Front"), "", "BringToFront", @PopupClick)
+mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
+mnuDesigner.Add("-")
+mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
