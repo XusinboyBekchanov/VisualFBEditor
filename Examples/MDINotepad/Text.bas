@@ -135,7 +135,7 @@ Private Function FindCountWStr Overload (ByRef SourceText As Const WString, Find
 		End If
 	Next
 	Count += 1
-	Reallocate(Finds, (Count + 1)*SizeOf(Integer))
+	Finds = Reallocate(Finds, (Count + 1) * SizeOf(Integer))
 	* (Finds + Count) = lenSource
 	Return Count
 End Function
