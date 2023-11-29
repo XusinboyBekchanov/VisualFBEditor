@@ -3613,7 +3613,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	'		Exit Sub
 	'	#endif
 	Dim As UString b1, Comment, PathFunction, LoadFunctionPath
-	Dim As String t, e, tOrig, bt
+	Dim As String t, e, tOrig, bt, CurrentCondition
 	Dim As Integer Pos1, Pos2, Pos3, Pos4, Pos5, l, n, nc, Index, iStart, i, j, iC, OldiC
 	Dim As TypeElement Ptr te, tbi, typ, lastfunctionte
 	Dim As Boolean inType, inUnion, inEnum, InFunc, InNamespace, InAsm, OldInType
@@ -3759,7 +3759,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						OldInType = inType
 						inType = Pos3 = 0
 						inPubProPri = 0
-						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
+						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction AndAlso Not inType Then
 							tbi = Types.Object(Idx)
 						Else
 							tbi = _New( TypeElement)
@@ -3769,6 +3769,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->TypeIsPointer = bTypeIsPointer
 						tbi->TypeName = e
 						tbi->ElementType = IIf(Pos3 > 0, E_TypeCopy, E_Type)
+						tbi->InCondition = CurrentCondition
 						tbi->StartLine = i
 						tbi->FileName = PathFunction
 						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
@@ -3798,6 +3799,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__startofclassbody__ ") Then
 					If OldTypes.Count > 0 Then
+						If OldTypes.Count > 1 AndAlso typ->InCondition = "Not " & Cast(TypeElement Ptr, OldTypes.Object(OldTypes.Count - 2))->InCondition Then
+							OldTypes.Remove OldTypes.Count - 1
+						End If
 						OldTypes.Remove OldTypes.Count - 1
 					End If
 					If OldTypes.Count > 0 Then
@@ -3832,6 +3836,18 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					'End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end union")) Then
 					inUnion = False
+				ElseIf StartsWith(bTrimLCase, "#if ") Then
+					CurrentCondition = Trim(Mid(bTrimLCase, 5))
+				ElseIf StartsWith(bTrimLCase, "#ifdef") Then
+					CurrentCondition = Trim(Mid(bTrimLCase, 7))
+				ElseIf StartsWith(bTrimLCase, "#ifndef") Then
+					CurrentCondition = "Not " & Trim(Mid(bTrimLCase, 8))
+				ElseIf StartsWith(bTrimLCase, "#elseif") Then
+					CurrentCondition = Trim(Mid(bTrimLCase, 8))
+				ElseIf StartsWith(bTrimLCase, "#else") Then
+					CurrentCondition = "Not " & CurrentCondition
+				ElseIf StartsWith(bTrimLCase, "#endif") Then
+					CurrentCondition = ""
 				ElseIf StartsWith(bTrimLCase & " ", "#define ") Then
 					If Not InFunc Then
 						Dim As UString b2 = Trim(Mid(bTrim, 9))

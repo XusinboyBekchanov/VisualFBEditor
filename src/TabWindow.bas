@@ -12984,7 +12984,7 @@ Sub TabWindow.Define
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					'Var Pos1 = InStr(te->FullName, ".")
-					If CBool(Len(te->OwnerTypeName) > 0) AndAlso CBool(te->FileName <> filename) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
+					If CBool(Len(te->OwnerTypeName) > 0) AndAlso CBool(te->FileName <> FileName) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
@@ -13119,7 +13119,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
 				If CBool(te <> 0) AndAlso CBool(LCase(Trim(te->Name)) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
-					If te->FileName = filename Then Continue For
+					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
@@ -13133,7 +13133,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pGlobalArgs->Count - 1
 				te = Cast(TypeElement Ptr, pGlobalArgs->Object(i))
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
-					If te->FileName = filename Then Continue For
+					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
@@ -13147,7 +13147,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pComps->Count - 1
 				te = pComps->Object(i)
 				If te <> 0 AndAlso LCase(Trim(pComps->Item(i))) = LCase(sWord) Then
-					If te->FileName = filename Then Continue For
+					If te->FileName = FileName Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
