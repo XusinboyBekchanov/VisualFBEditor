@@ -3759,7 +3759,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						OldInType = inType
 						inType = Pos3 = 0
 						inPubProPri = 0
-						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction AndAlso Not inType Then
+						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction AndAlso OldTypes.Count = 0 Then
 							tbi = Types.Object(Idx)
 						Else
 							tbi = _New( TypeElement)
