@@ -538,7 +538,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				#else
 					tb->NewLineType = NewLineTypes.LinuxLF
 				#endif
-				tb->FileEncoding = FileEncodings.PlainText
+				tb->FileEncoding = FileEncodings.Utf8
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
@@ -12276,14 +12276,14 @@ Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Intege
 						CInt(c <> "<" OrElse LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 4)) <> "type") AndAlso _
 						CInt(c <> ">" OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0) AndAlso _
 						CInt(c <> "-" OrElse InStr("([{,;:+-*/=<>eE", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 3)) <> " to" AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 5)) <> " step") AndAlso _
-						CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(isNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
+						CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse _
 						CInt(InStr(",:;=", c) > 0 AndAlso (c <> "=" OrElse cn <> ">") AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") OrElse _
 						CInt(c = """" AndAlso IsArg(Asc(cn))) OrElse CInt(c = ")" AndAlso IsArg(Asc(cn))) Then
 						WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
 					End If
 					If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> """") AndAlso CInt(c <> "'") AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso _
 						CInt(c <> ";") AndAlso CInt(c <> "(") AndAlso CInt(c <> ")") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso _
-						CInt(CInt(c <> "*") OrElse CInt(isNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
+						CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) AndAlso _
 						CInt(CInt(c <> ">") OrElse InStr(..Left(LCase(*ecl->Text), i - 1), "type<") = 0)) AndAlso _
 						CInt(CInt(c <> "-") OrElse CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(c <> "'") AndAlso _
 						CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0) AndAlso _
@@ -12355,7 +12355,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 					bChanged = True
 				End If
@@ -12604,7 +12604,7 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 			n = Len(*FECLine->Text) - Len(LTrim(*FECLine->Text))
 			If StartsWith(LTrim(*FECLine->Text, Any !"\t "), "?") Then
 				Var Pos1 = InStr(LTrim(*FECLine->Text), ":")
-				If isNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
+				If IsNumeric(Mid(..Left(LTrim(*FECLine->Text), Pos1 - 1), 2)) Then
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
@@ -12984,7 +12984,7 @@ Sub TabWindow.Define
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
 					If te->StartLine = iSelEndLine Then Continue For
 					'Var Pos1 = InStr(te->FullName, ".")
-					If CBool(Len(te->OwnerTypeName) > 0) AndAlso CBool(te->FileName <> FileName) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
+					If CBool(Len(te->OwnerTypeName) > 0) AndAlso CBool(te->FileName <> filename) AndAlso IsBase(TypeName, te->OwnerTypeName, @This) Then
 						.Add te->DisplayName
 						.Item(.Count - 1)->Text(1) = te->Parameters
 						.Item(.Count - 1)->Text(2) = WStr(te->StartLine + 1)
@@ -13119,7 +13119,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pGlobalFunctions->Count - 1
 				te = pGlobalFunctions->Object(i)
 				If CBool(te <> 0) AndAlso CBool(LCase(Trim(te->Name)) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
-					If te->FileName = FileName Then Continue For
+					If te->FileName = filename Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
@@ -13133,7 +13133,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pGlobalArgs->Count - 1
 				te = Cast(TypeElement Ptr, pGlobalArgs->Object(i))
 				If te <> 0 AndAlso LCase(Trim(te->Name)) = LCase(sWord) Then
-					If te->FileName = FileName Then Continue For
+					If te->FileName = filename Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
@@ -13147,7 +13147,7 @@ Sub TabWindow.Define
 			For i As Integer = 0 To pComps->Count - 1
 				te = pComps->Object(i)
 				If te <> 0 AndAlso LCase(Trim(pComps->Item(i))) = LCase(sWord) Then
-					If te->FileName = FileName Then Continue For
+					If te->FileName = filename Then Continue For
 					If te = te2 Then Continue For
 					.Add te->DisplayName
 					.Item(.Count - 1)->Text(1) = te->Parameters
