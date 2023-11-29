@@ -538,7 +538,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 				#else
 					tb->NewLineType = NewLineTypes.LinuxLF
 				#endif
-				tb->FileEncoding = FileEncodings.Utf8BOM
+				tb->FileEncoding = FileEncodings.PlainText
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
