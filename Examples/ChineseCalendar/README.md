@@ -10,8 +10,7 @@
 ![image](https://github.com/chunmingwang/ChineseCalendar/assets/35757455/a3328480-1d24-46b4-bab6-45b36a525ca2)
 
 ## System tray
-![image](https://github.com/chunmingwang/ChineseCalendar/assets/35757455/49e98558-a9a2-4ea1-981f-3d0b11fdad31)
+![image](https://github.com/chunmingwang/ChineseCalendar/assets/35757455/678486f7-390c-426c-93f3-d7568ad2ca09)
 
 ## Balloon
-
 ![image](https://github.com/chunmingwang/ChineseCalendar/assets/35757455/3a10e98c-79ea-463a-8046-97603d888dea)

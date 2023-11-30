@@ -27,6 +27,7 @@
 		Declare Sub Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Panel2_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2
@@ -124,10 +125,11 @@
 			.Align = DockStyle.alClient
 			.Location = Type<My.Sys.Drawing.Point>(0, 40)
 			.Size = Type<My.Sys.Drawing.Size>(334, 221)
-			.SetBounds 65180, 23, 314, 188
+			.SetBounds 0, 23, 314, 188
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel2_Paint)
 			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel2_MouseUp)
+			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel2_MouseMove)
 			.Parent = @This
 		End With
 	End Constructor
@@ -190,5 +192,11 @@ Private Sub frmMonthCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseBu
 End Sub
 
 Private Sub frmMonthCalendarType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	frmClock.mnuMonthCalendar.Checked = False 
+	frmClock.mnuMonthCalendar.Checked = False
+End Sub
+
+Private Sub frmMonthCalendarType.Panel2_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 Then Exit Sub
+	ReleaseCapture()
+	SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 End Sub

@@ -18,7 +18,7 @@ Private:
 	'index            0     1     2     3     4     5     6     7     8
 	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
 	mClr(5) As ULong
-	
+	mShowSec As Boolean = True
 	Declare Sub CalculateSize(Canvas As My.Sys.Drawing.Canvas)
 Public:
 	FontNameE As String
@@ -26,6 +26,8 @@ Public:
 	
 	Declare Constructor
 	Declare Destructor
+	Declare Property ShowSecond() As Boolean
+	Declare Property ShowSecond(b As Boolean)
 	Declare Property Colon() As String
 	Declare Property Colon(s As String)
 	Declare Function FontSize() As Integer
