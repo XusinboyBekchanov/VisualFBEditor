@@ -399,9 +399,9 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Else
 			Sender.Checked = True
 		End If
-		HideCaption = Sender.Checked
-		frmDayCalendar.HideCaption = HideCaption
-		frmMonthCalendar.HideCaption = HideCaption
+		ShowCaption = Not Sender.Checked
+		frmDayCalendar.ShowCaption = ShowCaption
+		frmMonthCalendar.ShowCaption = ShowCaption
 	Case "mnuShowSec"
 		If Sender.Checked Then
 			Sender.Checked = False
@@ -443,7 +443,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Else
 			frmDayCalendar.Show(frmClock)
 			frmDayCalendar.Visible = mnuHide.Checked = False
-			frmDayCalendar.HideCaption = HideCaption
+			frmDayCalendar.ShowCaption = ShowCaption
 			frmDayCalendar.BorderStyle = BorderStyle
 			Sender.Checked = True
 		End If
@@ -454,7 +454,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Else
 			frmMonthCalendar.Show(frmClock)
 			frmMonthCalendar.Visible = mnuHide.Checked = False
-			frmMonthCalendar.HideCaption = HideCaption
+			frmMonthCalendar.ShowCaption = ShowCaption
 			frmMonthCalendar.BorderStyle = BorderStyle
 			Sender.Checked = True
 		End If
