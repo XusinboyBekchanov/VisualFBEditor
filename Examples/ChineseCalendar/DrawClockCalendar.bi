@@ -23,7 +23,7 @@ Private:
 Public:
 	FontNameE As String
 	FontNameC As String
-	
+	Mark As Long
 	Declare Constructor
 	Declare Destructor
 	Declare Property ShowSecond() As Boolean

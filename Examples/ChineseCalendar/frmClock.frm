@@ -97,7 +97,7 @@
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.Size = Type<My.Sys.Drawing.Size>(324, 91)
 			.Enabled = False
-			.SetBounds 65190, 0, 314, 101
+			.SetBounds 65250, 0, 314, 101
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture1_Paint)
 			.Parent = @This
@@ -283,15 +283,16 @@ Function CheckAutoStart() As Integer
 	'open
 	lRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
 	If lRes <> ERROR_SUCCESS Then
+		RegCloseKey(hReg)
 		Exit Function
 	End If
 	
 	lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, 0, @lRegLen)
-	If lRes <> ERROR_SUCCESS Then Exit Function
+	If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
 	
 	sNewRegValue = Reallocate(sNewRegValue, (lRegLen + 1) * 2)
 	lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, Cast(Byte Ptr, sNewRegValue), @lRegLen)
-	If lRes <> ERROR_SUCCESS Then Exit Function
+	If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
 	
 	'close registry
 	RegCloseKey(hReg)
@@ -335,12 +336,17 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		TimerComponent2.Enabled = False
 		TimerComponent2.Enabled = True
 	End If
-	DClock.DrawClock Picture1.Canvas, dnow, 1
+	
+	DClock.Mark = 1
+	Picture1.Repaint
+	'DClock.DrawClock Picture1.Canvas, dnow, 1
 End Sub
 
 Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 	TimerComponent2.Enabled = False
-	DClock.DrawClock Picture1.Canvas, Now, 0
+	DClock.Mark = 0
+	Picture1.Repaint
+	'DClock.DrawClock Picture1.Canvas, Now, 0
 End Sub
 
 Private Sub frmClockType.Picture1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)

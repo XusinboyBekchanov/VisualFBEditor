@@ -94,7 +94,8 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	mDt = Format(Minute(DateTime), "00")
 	Canvas.TextOut mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2)
 	'冒号(-1保持, 0不绘, 1绘制)
-	If Mark >-1 Then sMark = Mark
+	'If Mark >-1 Then sMark = Mark
+	sMark = This.Mark
 	If sMark <> 0 Then Canvas.TextOut mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3)
 	
 	If mShowSec = False Then Exit Sub
@@ -299,7 +300,7 @@ Private Sub MonthCalendar.DrawMonthCalendar(ByRef Canvas As My.Sys.Drawing.Canva
 	'星期区域
 	Canvas.Pen.Color = mClr(0)
 	Canvas.Line 0, 0, mWidth, mCellHeight, mClr(0), "F"
-	Canvas.Font.Name= FontNameC
+	Canvas.Font.Name = FontNameC
 	Canvas.Font.Bold = True
 	Canvas.Font.Size = mFontSize
 	
