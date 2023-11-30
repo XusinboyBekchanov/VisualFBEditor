@@ -47,12 +47,11 @@
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
-			.StartPosition = FormStartPosition.DefaultLocation
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
 			.Opacity = 250
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.Icon = "3"
-			.SetBounds 0, 0, 330, 250
+			.SetBounds 0, 0, 330, 254
 		End With
 		' Panel1
 		With Panel1

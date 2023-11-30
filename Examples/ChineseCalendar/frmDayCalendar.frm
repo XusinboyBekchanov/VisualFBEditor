@@ -38,7 +38,7 @@
 			#endif
 			.Designer = @This
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
-			.Opacity = 250
+			.Opacity = 254
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.Icon = "2"
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)

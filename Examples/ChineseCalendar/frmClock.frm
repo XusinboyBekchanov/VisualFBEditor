@@ -40,7 +40,7 @@
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As Panel Picture1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar1, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar2, mnuAbout, mnuBar3, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuShowCaption
+		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar1, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar2, mnuAbout, mnuBar3, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuHideCaption, mnuNoneBorder
 	End Type
 	
 	Constructor frmClockType
@@ -57,7 +57,6 @@
 			.Font.Name = "Consolas"
 			.Font.Size = 12
 			.Font.Bold = True
-			.BorderStyle = FormBorderStyle.Sizable
 			.StartPosition = FormStartPosition.CenterScreen
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.Size = Type<My.Sys.Drawing.Size>(330, 130)
@@ -65,8 +64,9 @@
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
 			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Form_Message)
-			.Icon = "1"
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
+			.Opacity = 254
+			.Icon = "1"
 			.SetBounds 0, 0, 330, 140
 		End With
 		' TimerComponent1
@@ -141,6 +141,15 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
+		' mnuBlinkColon
+		With mnuBlinkColon
+			.Name = "mnuBlinkColon"
+			.Designer = @This
+			.Caption = "Blink colon"
+			.Checked = True
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
 		' mnuShowSec
 		With mnuShowSec
 			.Name = "mnuShowSec"
@@ -150,21 +159,19 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
-		' mnuShowCaption
-		With mnuShowCaption
-			.Name = "mnuShowCaption"
+		' mnuHideCaption
+		With mnuHideCaption
+			.Name = "mnuHideCaption"
 			.Designer = @This
-			.Caption = "Show caption"
-			.Checked = True
+			.Caption = "Hide caption"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
-		' mnuBlinkColon
-		With mnuBlinkColon
-			.Name = "mnuBlinkColon"
+		' mnuNoneBorder
+		With mnuNoneBorder
+			.Name = "mnuNoneBorder"
 			.Designer = @This
-			.Caption = "Blink colon"
-			.Checked = True
+			.Caption = "None border"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -375,22 +382,26 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 			Sender.Checked = True
 		End If
 		Opacity = IIf(Sender.Checked = True, 127, 255)
-		frmDayCalendar.Opacity = IIf(Sender.Checked = True, 127, 255)
-		frmMonthCalendar.Opacity = IIf(Sender.Checked = True, 127, 255)
-	Case "mnuShowCaption"
+		frmDayCalendar.Opacity = Opacity
+		frmMonthCalendar.Opacity = Opacity
+	Case "mnuNoneBorder"
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
 			Sender.Checked = True
 		End If
-		Dim style As Long = GetWindowLong(Handle, GWL_STYLE)
+		BorderStyle = IIf(Sender.Checked, FormBorderStyle.None, FormBorderStyle.Sizable)
+		frmDayCalendar.BorderStyle = BorderStyle
+		frmMonthCalendar.BorderStyle = BorderStyle
+	Case "mnuHideCaption"
 		If Sender.Checked Then
-			style = style Or WS_CAPTION
+			Sender.Checked = False
 		Else
-			style = style Xor WS_CAPTION
+			Sender.Checked = True
 		End If
-		SetWindowLong(Handle, GWL_STYLE, style)
-		SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
+		HideCaption = Sender.Checked
+		frmDayCalendar.HideCaption = HideCaption
+		frmMonthCalendar.HideCaption = HideCaption
 	Case "mnuShowSec"
 		If Sender.Checked Then
 			Sender.Checked = False
@@ -410,8 +421,21 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		If mnuDayCalendar.Checked Then frmDayCalendar.Visible = This.Visible
 		If mnuMonthCalendar.Checked Then frmMonthCalendar.Visible = This.Visible
 	Case "mnuArrange"
-		If mnuDayCalendar.Checked Then frmDayCalendar.Move Left, Top + Height, Width, Height * 2
-		If mnuMonthCalendar.Checked Then frmMonthCalendar.Move frmDayCalendar.Left, frmDayCalendar.Top + frmDayCalendar.Height, Width, Height * 2
+		If frmDayCalendar.Handle Then
+			frmDayCalendar.Move Left, Top + Height, Width, Height * 1.8
+			If frmMonthCalendar.Handle Then
+				frmMonthCalendar.Move frmDayCalendar.Left, frmDayCalendar.Top + frmDayCalendar.Height, Width, Height * 1.8
+			Else
+				Print "frmMonthCalendar"
+			End If
+		Else
+			Print "frmDayCalendar"
+			If frmMonthCalendar.Handle Then
+				frmMonthCalendar.Move Left, Top + Height, Width, Height * 1.8
+			Else
+				Print "frmMonthCalendar"
+			End If
+		End If
 	Case "mnuDayCalendar"
 		If Sender.Checked Then
 			frmDayCalendar.CloseForm
@@ -419,6 +443,8 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Else
 			frmDayCalendar.Show(frmClock)
 			frmDayCalendar.Visible = mnuHide.Checked = False
+			frmDayCalendar.HideCaption = HideCaption
+			frmDayCalendar.BorderStyle = BorderStyle
 			Sender.Checked = True
 		End If
 	Case "mnuMonthCalendar"
@@ -428,6 +454,8 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Else
 			frmMonthCalendar.Show(frmClock)
 			frmMonthCalendar.Visible = mnuHide.Checked = False
+			frmMonthCalendar.HideCaption = HideCaption
+			frmMonthCalendar.BorderStyle = BorderStyle
 			Sender.Checked = True
 		End If
 	Case "mnuClose"
