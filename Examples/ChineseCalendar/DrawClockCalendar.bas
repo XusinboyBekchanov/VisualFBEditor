@@ -24,6 +24,14 @@ Constructor DitalClock
 	mClr(5) = vbRGB(mC(0), mC(0), mC(0)) 'forecolor_sec
 End Constructor
 
+Private Property DitalClock.ShowSecond() As Boolean
+	Return mShowSec
+End Property
+
+Private Property DitalClock.ShowSecond(b As Boolean)
+	mShowSec = b
+End Property
+
 Private Property DitalClock.Colon() As String
 	Return mColon
 End Property
@@ -45,21 +53,23 @@ Private Function DitalClock.FontSize() As Integer
 End Function
 
 Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas)
-	mFontSize = Canvas.Height / 1.5
+	mDt = "00" & mColon & "00"
+	mFontSize = Canvas.Height / 1.5     '时分字体大小
 	Canvas.Font.Size = mFontSize
 	Canvas.Font.Name = FontNameE
 	Canvas.Font.Bold = True
 	
-	mDt = "00" & mColon & "00"
-	mH(0) = Canvas.TextHeight(mDt)
-	
-	mW(1) = Canvas.TextWidth(mDt)
-	Canvas.Font.Size = mFontSize / 3
-	mW(2) = Canvas.TextWidth(" MW")
-	mW(0) = mW(1) + mW(2)
-	
-	mOx = (Canvas.Width - mW(0)) / 2
-	mOy = (Canvas.Height - mH(0)) / 2
+	mH(0) = Canvas.TextHeight(mDt)      '整体高度
+	mW(1) = Canvas.TextWidth(mDt)       '时分宽度
+	Canvas.Font.Size = mFontSize / 3    '秒字体大小
+	mW(2) = Canvas.TextWidth(" MW")     '秒宽度
+	If mShowSec Then
+		mW(0) = mW(1) + mW(2)           '整体宽度
+	Else
+		mW(0) = mW(1)                   '整体宽度
+	End If
+	mOx = (Canvas.Width - mW(0)) / 2    'x偏移
+	mOy = (Canvas.Height - mH(0)) / 2   'y偏移
 End Sub
 
 Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal Mark As Integer = -1)
@@ -86,6 +96,9 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	'冒号(-1保持, 0不绘, 1绘制)
 	If Mark >-1 Then sMark = Mark
 	If sMark <> 0 Then Canvas.TextOut mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3)
+	
+	If mShowSec = False Then Exit Sub
+	
 	'上下午
 	Canvas.Font.Size = mFontSize * 3 / 8
 	mDt = IIf(Hour(DateTime) < 12, "AM", "PM")
