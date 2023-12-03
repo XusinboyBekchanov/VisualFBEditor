@@ -124,6 +124,8 @@
 			.Align = DockStyle.alClient
 			.Location = Type<My.Sys.Drawing.Point>(0, 40)
 			.Size = Type<My.Sys.Drawing.Size>(334, 221)
+			.DoubleBuffered = True
+			.BackColor = -1
 			.SetBounds 0, 23, 314, 188
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel2_Paint)
