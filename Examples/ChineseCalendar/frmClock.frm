@@ -98,7 +98,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(324, 91)
 			.Enabled = False
 			.BackColor = -1
-			.DoubleBuffered = true
+			.DoubleBuffered = True
 			.SetBounds 0, 0, 314, 101
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture1_Paint)
@@ -266,65 +266,74 @@
 	#endif
 '#End Region
 
-'Region Tray Menu
-#include once "windows.bi"
-Dim Shared As NOTIFYICONDATA SystrayIcon
-Const WM_SHELLNOTIFY = WM_USER + 5
+#ifdef __USE_WINAPI__
+	'Region Tray Menu
+	#include once "windows.bi"
+	Dim Shared As NOTIFYICONDATA SystrayIcon
+	Const WM_SHELLNOTIFY = WM_USER + 5
+#endif
 
 #include once "frmDayCalendar.frm"
 #include once "frmMonthCalendar.frm"
 
 Function CheckAutoStart() As Integer
-	'Region registry
-	Dim As Any Ptr hReg
-	Static As WString Ptr sNewRegValue= 0
-	Dim As DWORD lRegLen = 0
-	Dim As DWORD lpType  = 0
-	Dim As Long lRes
+	#ifdef __USE_WINAPI__
+		'Region registry
+		Dim As Any Ptr hReg
 	
-	'open
-	lRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
-	If lRes <> ERROR_SUCCESS Then
+		Static As WString Ptr sNewRegValue= 0
+		Dim As DWORD lRegLen = 0
+		Dim As DWORD lpType  = 0
+		Dim As Long lRes
+		
+		'open
+		lRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
+		If lRes <> ERROR_SUCCESS Then
+			RegCloseKey(hReg)
+			Exit Function
+		End If
+		
+		lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, 0, @lRegLen)
+		If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
+		
+		sNewRegValue = Reallocate(sNewRegValue, (lRegLen + 1) * 2)
+		lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, Cast(Byte Ptr, sNewRegValue), @lRegLen)
+		If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
+		
+		'close registry
 		RegCloseKey(hReg)
-		Exit Function
-	End If
-	
-	lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, 0, @lRegLen)
-	If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
-	
-	sNewRegValue = Reallocate(sNewRegValue, (lRegLen + 1) * 2)
-	lRes = RegQueryValueEx(hReg, WStr("VFBE ChineseCalendar"), 0, @lpType, Cast(Byte Ptr, sNewRegValue), @lRegLen)
-	If lRes <> ERROR_SUCCESS Then RegCloseKey(hReg): Exit Function
-	
-	'close registry
-	RegCloseKey(hReg)
-	
-	Return lRegLen
+		
+		Return lRegLen
+	#else
+		Return 0
+	#endif
 End Function
 
 Sub AutoStartReg(flag As Boolean = True)
-	'Region registry
-	Dim As Any Ptr hReg
-	Dim As WString Ptr sNewRegValue
-	Dim As Integer lRegLen = (Len(WChr(34) & Command(0) & WChr(34) & WChr(0)) + 1) * 2
-	
-	sNewRegValue = Allocate(lRegLen)
-	*sNewRegValue = WChr(34) & Command(0) & WChr(34) & WChr(0)
-	
-	'open
-	RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
-	
-	If flag Then
-		RegSetValueEx(hReg, WStr("VFBE ChineseCalendar"), NULL, REG_SZ, Cast(Byte Ptr, sNewRegValue), lRegLen)
-	Else
-		RegDeleteValue(hReg, WStr("VFBE ChineseCalendar"))
-	End If
-	
-	RegFlushKey(hReg)
-	
-	'close registry
-	RegCloseKey(hReg)
-	Deallocate(sNewRegValue)
+	#ifdef __USE_WINAPI__
+		'Region registry
+		Dim As Any Ptr hReg
+		Dim As WString Ptr sNewRegValue
+		Dim As Integer lRegLen = (Len(WChr(34) & Command(0) & WChr(34) & WChr(0)) + 1) * 2
+		
+		sNewRegValue = Allocate(lRegLen)
+		*sNewRegValue = WChr(34) & Command(0) & WChr(34) & WChr(0)
+		
+		'open
+		RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
+		
+		If flag Then
+			RegSetValueEx(hReg, WStr("VFBE ChineseCalendar"), NULL, REG_SZ, Cast(Byte Ptr, sNewRegValue), lRegLen)
+		Else
+			RegDeleteValue(hReg, WStr("VFBE ChineseCalendar"))
+		End If
+		
+		RegFlushKey(hReg)
+		
+		'close registry
+		RegCloseKey(hReg)
+		Deallocate(sNewRegValue)
+	#endif
 End Sub
 
 Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
@@ -360,20 +369,32 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 	Case "mnuAlwaysOnTop"
 		If Sender.Checked Then
 			Sender.Checked = False
-			SetWindowPos Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOACTIVATE
-			SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TOPMOST Or WS_EX_LAYERED)
+			#ifdef __USE_WINAPI__
+				SetWindowPos Handle, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOACTIVATE
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TOPMOST Or WS_EX_LAYERED)
+			#else
+				FormStyle = FormStyles.fsNormal
+			#endif
 		Else
 			Sender.Checked = True
-			SetWindowPos Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOACTIVATE
-			SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TOPMOST Or WS_EX_LAYERED)
+			#ifdef __USE_WINAPI__
+				SetWindowPos Handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOACTIVATE
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TOPMOST Or WS_EX_LAYERED)
+			#else
+				FormStyle = FormStyles.fsStayOnTop
+			#endif
 		End If
 	Case "mnuClickThrough"
 		If Sender.Checked Then
 			Sender.Checked = False
-			SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT Or WS_EX_LAYERED)
+			#ifdef __USE_WINAPI__
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT Or WS_EX_LAYERED)
+			#endif
 		Else
 			Sender.Checked = True
-			SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT Or WS_EX_LAYERED)
+			#ifdef __USE_WINAPI__
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT Or WS_EX_LAYERED)
+			#endif
 		End If
 	Case "mnuAutoStart"
 		If Sender.Checked Then
@@ -479,55 +500,63 @@ End Sub
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	If CheckAutoStart() Then mnuAutoStart.Checked = True
 	
-	With SystrayIcon
-		.cbSize = SizeOf(SystrayIcon)
-		.hWnd = Handle
-		.uID = This.ID
-		.uFlags = NIF_ICON Or NIF_TIP Or NIF_MESSAGE
-		.szTip = !"VisualFBEditor\r\nChineseCalendar\0"
-		.uCallbackMessage = WM_SHELLNOTIFY
-		.hIcon = This.Icon.Handle
-		.uVersion = NOTIFYICON_VERSION
-	End With
-	Shell_NotifyIcon(NIM_ADD, @SystrayIcon)
-	App.DoEvents
-	
-	With SystrayIcon
-		.uFlags =  NIF_INFO
-		.szInfo = !"\0"
-		.szInfoTitle = !"\0"
-	End With
-	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
-	App.DoEvents
-	
-	With SystrayIcon
-		.uFlags =  NIF_INFO
-		.szInfo = !"Chinese Calendar\0"
-		.szInfoTitle = !"VisualFBEditor\0"
-		.uTimeout = 1
-		.dwInfoFlags = 1
-	End With
-	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	#ifdef __USE_WINAPI__
+		With SystrayIcon
+			.cbSize = SizeOf(SystrayIcon)
+			.hWnd = Handle
+			.uID = This.ID
+			.uFlags = NIF_ICON Or NIF_TIP Or NIF_MESSAGE
+			.szTip = !"VisualFBEditor\r\nChineseCalendar\0"
+			.uCallbackMessage = WM_SHELLNOTIFY
+			.hIcon = This.Icon.Handle
+			.uVersion = NOTIFYICON_VERSION
+		End With
+		Shell_NotifyIcon(NIM_ADD, @SystrayIcon)
+		App.DoEvents
+		
+		With SystrayIcon
+			.uFlags =  NIF_INFO
+			.szInfo = !"\0"
+			.szInfoTitle = !"\0"
+		End With
+		Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+		App.DoEvents
+		
+		With SystrayIcon
+			.uFlags =  NIF_INFO
+			.szInfo = !"Chinese Calendar\0"
+			.szInfoTitle = !"VisualFBEditor\0"
+			.uTimeout = 1
+			.dwInfoFlags = 1
+		End With
+		Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	#endif
 End Sub
 
 Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)
-	Shell_NotifyIcon(NIM_DELETE, @SystrayIcon)
+	#ifdef __USE_WINAPI__
+		Shell_NotifyIcon(NIM_DELETE, @SystrayIcon)
+	#endif
 End Sub
 
 Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Message)
-	Select Case Msg.Msg
-	Case WM_SHELLNOTIFY
-		If Msg.lParam = WM_RBUTTONDOWN Then
-			Dim tPOINT As Point
-			GetCursorPos(@tPOINT)
-			SetForegroundWindow(Handle)
-			PopupMenu1.Popup(tPOINT.X, tPOINT.Y)
-		End If
-	End Select
+	#ifdef __USE_WINAPI__
+		Select Case Msg.Msg
+		Case WM_SHELLNOTIFY
+			If Msg.lParam = WM_RBUTTONDOWN Then
+				Dim tPOINT As Point
+				GetCursorPos(@tPOINT)
+				SetForegroundWindow(Handle)
+				PopupMenu1.Popup(tPOINT.X, tPOINT.Y)
+			End If
+		End Select
+	#endif
 End Sub
 
 Private Sub frmClockType.Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 0 Then Exit Sub
-	ReleaseCapture()
-	SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#ifdef __USE_WINAPI__
+		ReleaseCapture()
+		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#endif
 End Sub

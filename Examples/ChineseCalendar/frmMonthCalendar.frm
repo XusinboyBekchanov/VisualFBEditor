@@ -126,7 +126,7 @@
 			.Size = Type<My.Sys.Drawing.Size>(334, 221)
 			.DoubleBuffered = True
 			.BackColor = -1
-			.SetBounds 0, 23, 314, 188
+			.SetBounds 0, 23, 314, 192
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel2_Paint)
 			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel2_MouseUp)
@@ -201,6 +201,8 @@ End Sub
 
 Private Sub frmMonthCalendarType.Panel2_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 0 Then Exit Sub
-	ReleaseCapture()
-	SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#ifdef __USE_WINAPI__
+		ReleaseCapture()
+		SendMessage(Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#endif
 End Sub

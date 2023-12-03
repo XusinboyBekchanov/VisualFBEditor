@@ -86,6 +86,8 @@ End Sub
 
 Private Sub frmDayCalendarType.Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 0 Then Exit Sub
-	ReleaseCapture()
-	SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#ifdef __USE_WINAPI__
+		ReleaseCapture()
+		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	#endif
 End Sub
