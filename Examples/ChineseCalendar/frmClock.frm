@@ -97,7 +97,9 @@
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.Size = Type<My.Sys.Drawing.Size>(324, 91)
 			.Enabled = False
-			.SetBounds 65250, 0, 314, 101
+			.BackColor = -1
+			.DoubleBuffered = true
+			.SetBounds 0, 0, 314, 101
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Picture1_Paint)
 			.Parent = @This
