@@ -1,5 +1,7 @@
 # Chinese Calendar
 
+This project needs to rely on SapiTTS
+
 ## Digital Clock
 ![image](https://github.com/chunmingwang/ChineseCalendar/assets/35757455/28620b70-f11a-4e06-819f-6124c7f488a1)
 
