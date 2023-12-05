@@ -33,7 +33,7 @@ Public:
 	Declare Function FontSize() As Integer
 	Declare Property Width() As Integer
 	Declare Property Height() As Integer
-	Declare Sub DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal Mark As Integer = -1)
+	Declare Sub DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double)
 End Type
 
 Type DayCalendar

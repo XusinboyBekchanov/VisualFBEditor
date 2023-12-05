@@ -72,8 +72,7 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas)
 	mOy = (Canvas.Height - mH(0)) / 2   'y偏移
 End Sub
 
-Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal Mark As Integer = -1)
-	Static sMark As Long
+Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double)
 	Dim cal As LunarCalendar
 	
 	CalculateSize(Canvas)
@@ -81,22 +80,22 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	'时钟区域
 	Canvas.Pen.Color = mClr(0)
 	Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
-	'Canvas.Line mOx, mOy, mOx + mW(0), mOy + mH(0), mClr(0) , "F"
 	
 	Canvas.Font.Name = FontNameE
 	Canvas.Font.Bold = True
 	Canvas.Font.Size = mFontSize
 	
 	'时
-	mDt = Format(Hour(DateTime), "00")
-	Canvas.TextOut mOx, mOy, mDt, mClr(1)
+	'mDt = Format(Hour(DateTime), "00")
+	'Canvas.TextOut mOx, mOy, mDt, mClr(1)
+	mDt = Format(Hour(DateTime), "0")
+	Canvas.TextOut mOx + Canvas.TextWidth("00") - Canvas.TextWidth(mDt), mOy, mDt, mClr(1)
 	'分
 	mDt = Format(Minute(DateTime), "00")
 	Canvas.TextOut mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2)
-	'冒号(-1保持, 0不绘, 1绘制)
-	'If Mark >-1 Then sMark = Mark
-	sMark = This.Mark
-	If sMark <> 0 Then Canvas.TextOut mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3)
+
+	'Mark冒号(0不绘, 1绘制)
+	If Mark Then Canvas.TextOut mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3)
 	
 	If mShowSec = False Then Exit Sub
 	

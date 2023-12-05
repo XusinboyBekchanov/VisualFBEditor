@@ -45,11 +45,11 @@
 				.Caption = "VFBE MonthCalendar 32"
 			#endif
 			.Designer = @This
-			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
-			.Opacity = 250
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.Opacity = 254
 			.Icon = "3"
 			.SetBounds 0, 0, 330, 254
 		End With
@@ -124,9 +124,7 @@
 			.Align = DockStyle.alClient
 			.Location = Type<My.Sys.Drawing.Point>(0, 40)
 			.Size = Type<My.Sys.Drawing.Size>(334, 221)
-			.DoubleBuffered = True
-			.BackColor = -1
-			.SetBounds 0, 23, 314, 192
+			.SetBounds 0, 23, 314, 188
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel2_Paint)
 			.OnMouseUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel2_MouseUp)
@@ -162,7 +160,6 @@ End Sub
 
 Private Sub frmMonthCalendarType.ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Panel2.Repaint
-	'Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
 Private Sub frmMonthCalendarType.CommandButton1_Click(ByRef Sender As Control)
@@ -170,7 +167,6 @@ Private Sub frmMonthCalendarType.CommandButton1_Click(ByRef Sender As Control)
 	ComboBoxEdit2.ItemIndex = Month(Now) - 1
 	ComboBoxEdit3.ItemIndex = Day(Now) - 1
 	Panel2.Repaint
-	'Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
 Private Sub frmMonthCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
@@ -181,9 +177,13 @@ Private Sub frmMonthCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Can
 		Caption = "VFBE MonthCalendar32 - " & Format(DateTime, "yyyy/mm/dd")
 	#endif
 	DMCalendar.DrawMonthCalendar(Canvas, DateTime)
-	frmDayCalendar.DCDate = DateTime
-	frmDayCalendar.Panel1.Repaint
-	'frmDayCalendar.Panel1_Paint Sender, frmDayCalendar.Panel1.Canvas
+	Static Sdt As Double
+	If Sdt = DateTime Then Exit Sub
+	Sdt = DateTime
+	If frmDayCalendar.Handle Then
+		frmDayCalendar.DCDate= DateTime
+		frmDayCalendar.Panel1.Repaint
+	End If
 End Sub
 
 Private Sub frmMonthCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -192,7 +192,6 @@ Private Sub frmMonthCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseBu
 	ComboBoxEdit2.ItemIndex = Month(DateTime) - 1
 	ComboBoxEdit3.ItemIndex = Day(DateTime) - 1
 	Panel2.Repaint
-	'Panel2_Paint Sender, Panel2.Canvas
 End Sub
 
 Private Sub frmMonthCalendarType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
