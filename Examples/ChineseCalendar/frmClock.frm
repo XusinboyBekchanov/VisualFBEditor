@@ -821,20 +821,25 @@ Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)
 End Sub
 
 Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Message)
-	Select Case Msg.Msg
-	Case WM_SHELLNOTIFY
-		Select Case Msg.lParam
-		Case WM_LBUTTONDBLCLK
-			mnu_Click(mnuHide)
-		Case WM_RBUTTONDOWN
-			#ifdef __USE_WINAPI__
+	#ifdef __USE_WINAPI__
+		Select Case Msg.Msg
+		Case WM_SHELLNOTIFY
+			Select Case Msg.lParam
+			Case WM_LBUTTONDBLCLK
+				mnu_Click(mnuHide)
+			Case WM_RBUTTONDOWN
 				Dim tPOINT As Point
 				GetCursorPos(@tPOINT)
 				SetForegroundWindow(Handle)
 				PopupMenu1.Popup(tPOINT.X, tPOINT.Y)
-			#endif
+			End Select
+		Case WM_NCCALCSIZE
+			If Not ShowCaption Then
+				Dim As LPNCCALCSIZE_PARAMS pncc = Cast(LPNCCALCSIZE_PARAMS, Msg.lParam)
+				pncc->rgrc(0).Top -= 6
+			End If
 		End Select
-	End Select
+	#endif
 End Sub
 
 Private Sub frmClockType.Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
