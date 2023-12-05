@@ -38,10 +38,10 @@
 			#endif
 			.Designer = @This
 			.Size = Type<My.Sys.Drawing.Size>(330, 250)
-			.Opacity = 254
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
-			.Icon = "2"
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
+			.Icon = "2"
+			.Opacity = 254
 			.SetBounds 0, 0, 330, 250
 		End With
 		' Panel1
@@ -81,7 +81,7 @@ Private Sub frmDayCalendarType.Panel1_Paint(ByRef Sender As Control, ByRef Canva
 End Sub
 
 Private Sub frmDayCalendarType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	frmClock.mnuDayCalendar.Checked = False 
+	frmClock.mnuDayCalendar.Checked = False
 End Sub
 
 Private Sub frmDayCalendarType.Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
