@@ -20,6 +20,7 @@
 			.OnKeyPress = @Form_KeyPress_
 			.OnMouseUp = @_Form_MouseUp
 			.ContextMenu = @PopupMenu1
+			.DoubleBuffered = true
 			.SetBounds 0, 0, 850, 460
 		End With
 		' picActive
@@ -143,7 +144,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 	Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
 	Dim As SymbolsType Ptr stCurrentStatusBar = Des->Symbols(CurrentStatusBar)
 	With Canvas
-		.CreateDoubleBuffer
+		'.CreateDoubleBuffer
 		.Font = This.Font
 		If g_darkModeEnabled Then
 			.Brush.Color = darkBkColor
@@ -534,8 +535,8 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 				End If
 			Next
 		End If
-		.TransferDoubleBuffer
-		.DeleteDoubleBuffer
+		'.TransferDoubleBuffer
+		'.DeleteDoubleBuffer
 	End With
 End Sub
 
