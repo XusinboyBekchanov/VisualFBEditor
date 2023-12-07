@@ -17,7 +17,7 @@ Constructor LunarCalendar
 	BitPower(31) = &H80000000
 End Constructor
 
-'位测试 ,测试位为1 返回真
+'位测试 ,测试位为1返回真
 Private Function LunarCalendar.mvarBitTest32(Number As Long, bit As Long) As Boolean
 	If bit < 0 Or bit > 31 Then '不是整数位
 		Return False

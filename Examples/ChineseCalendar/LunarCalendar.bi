@@ -166,13 +166,15 @@ Private:
 	
 Public:
 	MonthNameS(11) As String = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
-	MonthName(11) As String = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"}
+	MonthNameEn(12) As String = {"*", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"}
+	MonthNameCn(12) As String = {"*", "一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"}
 	'时辰———十二地支纪一昼24小时为十二时辰
 	HourName(23) As String = {"子正", "丑初", "丑正", "寅初", "寅正", "卯初", "卯正", "辰初", "辰正", "巳初", "巳正", "午初", "午正", "未初", "未正", "申初", "申正", "酉初", "酉正", "戌初", "戌正", "亥初", "亥正", "子初"}
 	'农历月份名
 	MonName(12) As String = {"*", "正", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "腊"}
 	'星期名称
-	WeekName(7) As String = {" * ", "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"}
+	WeekNameEn(7) As String = {" * ", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"}
+	WeekNameCn(7) As String = {" * ", "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"}
 	WeekNameS(7) As String = {" * ", "日", "一", "二", "三", "四", "五", "六"}
 	
 	Declare Constructor

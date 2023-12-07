@@ -34,7 +34,7 @@
 			'pTokenItem As Afx_ISpObjectToken Ptr
 		#endif
 		
-		DClock As DitalClock
+		mDClock As DitalClock
 		mVoiceCount As Integer = -1
 		mAudioCount As Integer = -1
 		mLanguage As Integer = 0
@@ -60,7 +60,7 @@
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As Panel Panel1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar3, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar4, mnuAbout, mnuBar5, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuHideCaption, mnuNoneBorder, mnuBar2, mnuAnnounce, mnuAnnounce1, mnuAnnounce2, mnuAnnounce3, mnuAnnounce0, mnuSpeechNow, mnuABar1, mnuBar1, mnuAudio, mnuVoice, mnuABar2
+		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar3, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar4, mnuAbout, mnuBar5, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuHideCaption, mnuNoneBorder, mnuBar2, mnuAnnounce, mnuAnnounce1, mnuAnnounce2, mnuAnnounce3, mnuAnnounce0, mnuSpeechNow, mnuABar1, mnuBar1, mnuAudio, mnuVoice, mnuABar2, mnuHeight, mnuOpacity
 	End Type
 	
 	Constructor frmClockType
@@ -88,6 +88,7 @@
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Move)
 			.Opacity = 254
+			.TransparentColor = mDClock.mClr(0)
 			.Icon = "1"
 			.SetBounds 0, 0, 330, 140
 		End With
@@ -164,6 +165,14 @@
 			.Caption = "-"
 			.Parent = @PopupMenu1
 		End With
+		' mnuOpacity
+		With mnuOpacity
+			.Name = "mnuOpacity"
+			.Designer = @This
+			.Caption = "Opacity"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
 		' mnuTransparent
 		With mnuTransparent
 			.Name = "mnuTransparent"
@@ -214,6 +223,15 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
+		' mnuHeight
+		With mnuHeight
+			.Name = "mnuHeight"
+			.Designer = @This
+			.Caption = "Height size"
+			.Checked = True
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
 		' mnuBar2
 		With mnuBar2
 			.Name = "mnuBar2"
@@ -241,6 +259,7 @@
 			.Name = "mnuArrange"
 			.Designer = @This
 			.Caption = "Arrange"
+			.Checked = True
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -304,7 +323,7 @@
 			.Name = "mnuVoice"
 			.Designer = @This
 			.Caption = "Voice"
-			.Enabled = false
+			.Enabled = False
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAudio
@@ -312,7 +331,7 @@
 			.Name = "mnuAudio"
 			.Designer = @This
 			.Caption = "Audio"
-			.Enabled = false
+			.Enabled = False
 			.Parent = @mnuAnnounce
 		End With
 		' mnuABar1
@@ -460,7 +479,7 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		TimerComponent2.Enabled = False
 		TimerComponent2.Enabled = True
 	End If
-	DClock.Mark = 1
+	mDClock.Mark = 1
 	Panel1.Repaint
 	
 	If mnuAnnounce0.Checked Then Exit Sub
@@ -608,12 +627,12 @@ End Sub
 
 Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 	TimerComponent2.Enabled = False
-	DClock.Mark = 0
+	mDClock.Mark = 0
 	Panel1.Repaint
 End Sub
 
 Private Sub frmClockType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	DClock.DrawClock Canvas, Now
+	mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
 End Sub
 
 Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
@@ -640,11 +659,16 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		Sender.Checked = Not Sender.Checked
 		AutoStartReg Sender.Checked
 		CheckAutoStart
-	Case "mnuTransparent"
+	Case "mnuOpacity"
 		Sender.Checked = Not Sender.Checked
 		Opacity = IIf(Sender.Checked = True, 127, 255)
 		If frmDayCalendar.Handle Then frmDayCalendar.Opacity = Opacity
 		If frmMonthCalendar.Handle Then frmMonthCalendar.Opacity = Opacity
+	Case "mnuTransparent"
+		Sender.Checked = Not Sender.Checked
+		Transparent = Sender.Checked
+		If frmDayCalendar.Handle Then frmDayCalendar.Transparent = Transparent
+		If frmMonthCalendar.Handle Then frmMonthCalendar.Transparent = Transparent
 	Case "mnuAnnounce0"
 		mnuAnnounce0.Checked = True
 		mnuAnnounce1.Checked = False
@@ -679,7 +703,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		If frmMonthCalendar.Handle Then frmMonthCalendar.ShowCaption = ShowCaption
 	Case "mnuShowSec"
 		Sender.Checked = Not Sender.Checked
-		DClock.ShowSecond = Sender.Checked
+		mDClock.ShowSecond = Sender.Checked
 	Case "mnuBlinkColon"
 		Sender.Checked = Not Sender.Checked
 	Case "mnuHide"
@@ -687,6 +711,12 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		This.Visible = Sender.Checked = False
 		If frmDayCalendar.Handle Then frmDayCalendar.Visible = This.Visible
 		If frmMonthCalendar.Handle Then frmMonthCalendar.Visible = This.Visible
+	Case "mnuHeight"
+		Sender.Checked = Not Sender.Checked
+		Panel1.Repaint
+		If frmDayCalendar.Handle Then frmDayCalendar.Panel1.Repaint
+		If frmMonthCalendar.Handle Then frmMonthCalendar.Panel2.Repaint
+		Panel1.Repaint
 	Case "mnuArrange"
 		Sender.Checked = Not Sender.Checked
 		Form_Resize(This, 0, 0)
@@ -706,6 +736,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 				.ShowCaption = ShowCaption
 				.BorderStyle = BorderStyle
 				.Opacity = Opacity
+				.Transparent = Transparent 
 			Else
 				If .Handle Then .CloseForm
 			End If
@@ -727,6 +758,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 				.ShowCaption = ShowCaption
 				.BorderStyle = BorderStyle
 				.Opacity = Opacity
+				.Transparent = Transparent 
 			Else
 				If .Handle Then .CloseForm
 			End If
@@ -834,6 +866,9 @@ Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Mess
 				PopupMenu1.Popup(tPOINT.X, tPOINT.Y)
 			End Select
 		Case WM_NCCALCSIZE
+			'Have a small bar after hide the caption, this code to remove it.
+			'There also have a None Border option for full display on the form.
+			'If you like the small bar, then remark it.
 			If Not ShowCaption Then
 				Dim As LPNCCALCSIZE_PARAMS pncc = Cast(LPNCCALCSIZE_PARAMS, Msg.lParam)
 				pncc->rgrc(0).Top -= 6
@@ -853,10 +888,10 @@ End Sub
 Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	If mnuArrange.Checked Then
 		If frmDayCalendar.Handle Then
-			frmDayCalendar.Move Left, Top + Height, Width, Height * 1.8
-			If frmMonthCalendar.Handle Then frmMonthCalendar.Move Left, Top + Height * 2.8, Width, Height * 1.8
+			frmDayCalendar.Move Left, Top + Height, Width, Height * 1.78
+			If frmMonthCalendar.Handle Then frmMonthCalendar.Move Left, Top + Height * 2.78, Width, Height * 1.78
 		Else
-			If frmMonthCalendar.Handle Then frmMonthCalendar.Move Left, Top + Height, Width, Height * 1.8
+			If frmMonthCalendar.Handle Then frmMonthCalendar.Move Left, Top + Height, Width, Height * 1.78
 		End If
 	End If
 End Sub

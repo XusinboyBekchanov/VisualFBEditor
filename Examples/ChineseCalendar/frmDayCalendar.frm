@@ -12,19 +12,23 @@
 	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/Panel.bi"
+	#include once "mff/Menus.bi"
 	
 	Using My.Sys.Forms
 	
 	Type frmDayCalendarType Extends Form
-		DDCalendar As DayCalendar
-		DCDate As Double
+		mDayCal As DayCalendar
+		mDispDate As Double     'Display date
 		
 		Declare Sub Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		Declare Sub mnu_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		
 		Dim As Panel Panel1
+		Dim As PopupMenu PopupMenu1
+		Dim As MenuItem mnuBoth, mnuGregorian, mnuLunar
 	End Type
 	
 	Constructor frmDayCalendarType
@@ -42,6 +46,8 @@
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
 			.Icon = "2"
 			.Opacity = 254
+			.ContextMenu = @PopupMenu1
+			.TransparentColor = mDayCal.mClr(6)
 			.SetBounds 0, 0, 330, 250
 		End With
 		' Panel1
@@ -58,6 +64,38 @@
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Paint)
 			.Parent = @This
 		End With
+		' PopupMenu1
+		With PopupMenu1
+			.Name = "PopupMenu1"
+			.SetBounds 50, 10, 16, 16
+			.Designer = @This
+			.Parent = @Panel1
+		End With
+		' mnuBoth
+		With mnuBoth
+			.Name = "mnuBoth"
+			.Designer = @This
+			.Caption = "Both"
+			.Checked = True
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
+		' mnuGregorian
+		With mnuGregorian
+			.Name = "mnuGregorian"
+			.Designer = @This
+			.Caption = "Gregorian calendar"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
+		' mnuLunar
+		With mnuLunar
+			.Name = "mnuLunar"
+			.Designer = @This
+			.Caption = "Lunar calendar"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @PopupMenu1
+		End With
 	End Constructor
 	
 	Dim Shared frmDayCalendar As frmDayCalendarType
@@ -71,12 +109,12 @@
 '#End Region
 
 Private Sub frmDayCalendarType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	If DCDate= 0 Then DCDate= Now
-	DDCalendar.DrawDayCalendar Canvas, DCDate
+	If mDispDate = 0 Then mDispDate = Now
+	mDayCal.DrawDayCalendar(Canvas, mDispDate, frmClock.mnuHeight.Checked)
 	#ifdef __FB_64BIT__
-		Caption = "VFBE DayCalendar64 " & Format(DCDate, "yyyy/mm/dd")
+		Caption = "VFBE DayCalendar64 " & Format(mDispDate, "yyyy/mm/dd")
 	#else
-		Caption = "VFBE DayCalendar32 " & Format(DCDate, "yyyy/mm/dd")
+		Caption = "VFBE DayCalendar32 " & Format(mDispDate, "yyyy/mm/dd")
 	#endif
 End Sub
 
@@ -90,4 +128,22 @@ Private Sub frmDayCalendarType.Form_MouseMove(ByRef Sender As Control, MouseButt
 		ReleaseCapture()
 		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	#endif
+End Sub
+
+Private Sub frmDayCalendarType.mnu_Click(ByRef Sender As MenuItem)
+	mnuBoth.Checked = False 
+	mnuGregorian.Checked = False 
+	mnuLunar.Checked = False 
+	Select Case Sender.Name
+	Case "mnuBoth"
+		Sender.Checked = True
+		mDayCal.DrawStyle= 0
+	Case "mnuGregorian"
+		Sender.Checked = True
+		mDayCal.DrawStyle= 1
+	Case "mnuLunar"
+		Sender.Checked = True
+		mDayCal.DrawStyle= 2
+	End Select
+	Panel1.Repaint
 End Sub
