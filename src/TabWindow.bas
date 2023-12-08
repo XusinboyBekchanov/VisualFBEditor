@@ -8986,7 +8986,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								If ConstructBlocks.Count > 1 Then
 									blockprev = ConstructBlocks.Item(ConstructBlocks.Count - 2)
 								End If
-								If blockprev Then
+								If blockprev AndAlso blockprev->ConstructionIndex <> C_Namespace Then
 									Select Case blockprev->ConstructionIndex
 									Case C_Enum, C_Type, C_Union, C_Class
 										If blockprev->Construction Then
