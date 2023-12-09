@@ -81,8 +81,8 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	Dim cal As LunarCalendar
 	
 	'时钟区域
-	'Canvas.Pen.Color = mClr(0)
-	'Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
+	Canvas.Pen.Color = mClr(0)
+	Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
 	CalculateSize(Canvas, byHeight)
 	Canvas.Font.Name = FontNameClock
 	Canvas.Font.Bold = True
