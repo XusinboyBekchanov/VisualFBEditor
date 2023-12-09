@@ -9,20 +9,25 @@
 Type DitalClock
 Private:
 	mFontSize As Integer
-	mDt As String
-	mColon As String
-	mW(2) As Integer
-	mH(0) As Integer
-	mOx As Integer
-	mOy As Integer
-	'index            0     1     2     3     4     5     6     7     8
-	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
-	mShowSec As Boolean = True
+	mDt       As String
+	mDh       As String
+	mDm       As String
+	mDS       As String
+	mDPM      As String
+	mColon    As String
+	mW(2)     As Integer
+	mH(0)     As Integer
+	mOx       As Integer
+	mOy       As Integer
+	'index                 0     1     2     3     4     5     6     7     8
+	mC(8)     As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
+	mShowSec  As Boolean = True
 	Declare Sub CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHeight As Boolean = True)
 Public:
 	mClr(5) As ULong
 	FontNameE As String
 	FontNameC As String
+	FontNameClock As String
 	Mark As Long
 	Declare Constructor
 	Declare Destructor

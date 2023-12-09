@@ -13,6 +13,7 @@ End Destructor
 Constructor DitalClock
 	mColon = ":"
 	FontNameE = "Arial"
+	FontNameClock = "FX-LED"
 	FontNameC = "微软雅黑"
 	
 	'调颜色
@@ -60,7 +61,7 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHe
 		mFontSize = Canvas.Width / 4.3     '时分字体大小
 	End If
 	Canvas.Font.Size = mFontSize
-	Canvas.Font.Name = FontNameE
+	Canvas.Font.Name = FontNameClock
 	Canvas.Font.Bold = True
 	
 	mH(0) = Canvas.TextHeight(mDt)      '整体高度
@@ -79,24 +80,25 @@ End Sub
 Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal byHeight As Boolean = True)
 	Dim cal As LunarCalendar
 	
-	CalculateSize(Canvas, byHeight)
-	
 	'时钟区域
-	Canvas.Pen.Color = mClr(0)
-	Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
-	
-	Canvas.Font.Name = FontNameE
+	'Canvas.Pen.Color = mClr(0)
+	'Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
+	CalculateSize(Canvas, byHeight)
+	Canvas.Font.Name = FontNameClock
 	Canvas.Font.Bold = True
 	Canvas.Font.Size = mFontSize
-	
 	'时
-	'mDt = Format(Hour(DateTime), "00")
-	'Canvas.TextOut(mOx, mOy, mDt, mClr(1))
 	mDt = Format(Hour(DateTime), "0")
-	Canvas.TextOut(mOx + Canvas.TextWidth("00") - Canvas.TextWidth(mDt), mOy, mDt, mClr(1))
+	If Trim(mDh) = "" OrElse mDh <> mDt Then
+		Canvas.TextOut(mOx + Canvas.TextWidth("00") - Canvas.TextWidth(mDt), mOy, mDt, mClr(1))
+		mDh = mDt
+	End If
 	'分
 	mDt = Format(Minute(DateTime), "00")
-	Canvas.TextOut(mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2))
+	If Trim(mDm) = "" OrElse mDm <> mDt Then
+		Canvas.TextOut(mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2))
+		mDh = mDt
+	End If
 	
 	'Mark冒号(0不绘, 1绘制)
 	If Mark Then Canvas.TextOut(mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3))
@@ -106,10 +108,16 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	'上下午
 	Canvas.Font.Size = mFontSize * 3 / 8
 	mDt = IIf(Hour(DateTime) < 12, "AM", "PM")
+	'If Trim(mDPM) = "" OrElse mDPM <> mDt Then
 	Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2 - Canvas.TextHeight(mDt) , mDt, mClr(4))
+	mDPM = mDt
+	'End If
 	'秒
 	mDt = Format(Second(DateTime), "00")
-	Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2, mDt, mClr(5))
+	If Trim(mDS) = "" OrElse mDS <> mDt Then
+		Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2, mDt, mClr(5))
+		mDS = mDt
+	End If
 End Sub
 
 'DayCalendar############################################################
@@ -185,7 +193,7 @@ End Property
 
 Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, ByVal DateTime As Double, ByVal byHeight As Boolean = True)
 	Dim cal As LunarCalendar
-	
+	Canvas.Font.Name = FontNameE
 	CalculateSize(Canvas, byHeight)
 	
 	cal.sInitDate(Year(DateTime), Month(DateTime), Day(DateTime))
