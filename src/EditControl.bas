@@ -3015,10 +3015,10 @@ Namespace My.Sys.Forms
 		dwClientY = ClientHeight
 	End Sub
 	
-	Function EditControlContent.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1, pList2 As WStringOrStringList Ptr = 0, ByRef teOld As TypeElement Ptr = 0) As Boolean
+	Function EditControlContent.ContainsIn(ByRef ClassName As String, ByRef ItemText As String, pList As WStringOrStringList Ptr, pFiles As WStringList Ptr, pFileLines As IntegerList Ptr, bLocal As Boolean = False, bAll As Boolean = False, TypesOnly As Boolean = False, ByRef te As TypeElement Ptr = 0, LineIndex As Integer = -1, pList2 As WStringOrStringList Ptr = 0, ByRef teOld As TypeElement Ptr = 0, CheckFile As Boolean = True) As Boolean
 		If ClassName = "" OrElse pList = 0 Then Return False
 		Var Index = -1
-		If pList = @Types OrElse pList = @Enums OrElse pList = @Namespaces OrElse pList = pList2 Then
+		If pList = @Types OrElse pList = @Enums OrElse pList = @Namespaces OrElse pList = pList2 OrElse CInt(CheckFile = False) Then
 			Index = pList->IndexOf(ClassName)
 		Else
 			Index = IndexOfInListFiles(pList, ClassName, pFiles, pFileLines)
@@ -3406,6 +3406,10 @@ Namespace My.Sys.Forms
 			If ContainsIn(TypeName, sTemp, @Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
 			ElseIf ContainsIn(TypeName, sTemp, @Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
 			ElseIf ContainsIn(TypeName, sTemp, @Namespaces, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
+			ElseIf (ECLine <> 0) AndAlso (ECLine->InConstructionBlock <> 0) AndAlso CInt(ContainsIn(TypeName, sTemp, @ECLine->InConstructionBlock->Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld, False)) Then
+			ElseIf (ECLine <> 0) AndAlso (ECLine->InConstructionBlock <> 0) AndAlso CInt(ContainsIn(TypeName, sTemp, @ECLine->InConstructionBlock->Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld, False)) Then
+			ElseIf (ECLine <> 0) AndAlso (ECLine->InConstructionBlock <> 0) AndAlso (ECLine->InConstructionBlock->Construction <> 0) AndAlso CInt(ContainsIn(TypeName, sTemp, @ECLine->InConstructionBlock->Construction->Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld, False) ) Then
+			ElseIf (ECLine <> 0) AndAlso (ECLine->InConstructionBlock <> 0) AndAlso (ECLine->InConstructionBlock->Construction <> 0) AndAlso CInt(ContainsIn(TypeName, sTemp, @ECLine->InConstructionBlock->Construction->Enums, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld, False)) Then
 			ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Types, pFiles, pFileLines, True, , , te, iSelEndLine, @Oldte->Types, teEnumOld) Then
 			ElseIf (Oldte <> 0) AndAlso ContainsIn(TypeName, sTemp, @Oldte->Enums, pFiles, pFileLines, True, , , te, iSelEndLine, @Oldte->Enums, teEnumOld) Then
 			ElseIf (Globals <> 0) AndAlso ContainsIn(TypeName, sTemp, @Globals->Types, pFiles, pFileLines, True, , , te, iSelEndLine, , teEnumOld) Then
@@ -3793,7 +3797,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			iC = 0
-			vlc = min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
