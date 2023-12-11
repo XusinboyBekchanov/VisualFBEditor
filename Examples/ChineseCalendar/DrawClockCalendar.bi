@@ -39,6 +39,7 @@ Public:
 	Declare Property Width() As Integer
 	Declare Property Height() As Integer
 	Declare Sub DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal byHeight As Boolean = True)
+	Declare Sub DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, fDiameter As Integer, CenterX As Integer = 0, CenterY As Integer = 0)
 End Type
 
 Type DayCalendar
