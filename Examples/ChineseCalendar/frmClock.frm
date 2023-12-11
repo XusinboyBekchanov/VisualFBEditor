@@ -11,9 +11,9 @@
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
+	#include once "mff/Picture.bi"
 	#include once "mff/Panel.bi"
 	#include once "mff/TimerComponent.bi"
-	#include once "mff/Picture.bi"
 	#include once "mff/Menus.bi"
 	
 	#include once "string.bi"
@@ -24,6 +24,7 @@
 	#include once "../SapiTTS/Speech.bi"
 	
 	Using My.Sys.Forms
+	Using My.Sys.Drawing
 	Using Speech
 	
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
@@ -55,6 +56,7 @@
 		Declare Sub Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Move(ByRef Sender As Control)
+		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Constructor
 		
 		Dim As TimerComponent TimerComponent1, TimerComponent2
@@ -74,11 +76,17 @@
 			#else
 				.Caption = "VFBE Clock32"
 			#endif
-			.Designer = @This
 			.Font.Name = "Consolas"
 			.Font.Size = 12
 			.Font.Bold = True
 			.StartPosition = FormStartPosition.CenterScreen
+			.Transparent = True
+			.Graphic.Visible= True 
+			.Graphic.CenterImage= True 
+			.Graphic.StretchImage= StretchMode.smStretchProportional
+			.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
+			.BorderStyle= FormBorderStyle.FixedSingle
+			.Designer = @This
 			.ContextMenu = @PopupMenu1
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
@@ -86,10 +94,11 @@
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Move)
-			.Opacity = 254
-			.TransparentColor = mDClock.mClr(0)
+			'.Opacity = 254
+			'.TransparentColor = mDClock.mClr(0)
+			.BackColor = clGray
 			.Icon = "1"
-			.BackColor = clPink
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
 			.SetBounds 0, 0, 330, 140
 		End With
 		' TimerComponent1
@@ -120,10 +129,6 @@
 			.Enabled = False
 			.BackColor = clPink
 			.DoubleBuffered = True
-			.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
-			.Graphic.CenterImage= True
-			.Graphic.StretchImage= StretchMode.smStretchProportional
-			.Graphic.Visible = True
 			.Transparent = True
 			.SetBounds 0, 0, 319, 112
 			'.Canvas.UsingGdip = True
@@ -432,6 +437,7 @@
 	Dim Shared frmClock As frmClockType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True 
 		frmClock.MainForm = True
 		frmClock.Show
 		App.Run
@@ -517,7 +523,11 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		TimerComponent2.Enabled = True
 	End If
 	mDClock.Mark = 1
-	Panel1.Repaint
+	If mShowClockMode < 1 Then 
+		Panel1.Repaint
+	Else
+		frmClock.Repaint
+	End If
 	
 	If mnuAnnounce0.Checked Then Exit Sub
 	If Second(dnow) <> 0 Then Exit Sub
@@ -665,15 +675,18 @@ End Sub
 Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 	TimerComponent2.Enabled = False
 	mDClock.Mark = 0
-	Panel1.Repaint
+	If mShowClockMode = 0 Then Panel1.Repaint
 End Sub
 
 Private Sub frmClockType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	Dim As Single R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.9
-	If mShowClockMode = 0 Then
-		mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
-	Else
-	
+	If mShowClockMode = 0 Then mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
+End Sub
+
+
+Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Debug.Print "Form_Paint " & Now
+	If mShowClockMode > 0 Then
+		Dim As Single R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.85
 		'TODO The Center of clock is not the same of image
 		Dim As Single CenterOffsetX
 		Dim As Single CenterOffsetY
@@ -689,9 +702,11 @@ Private Sub frmClockType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As M
 		'End If
 		'Debug.Print CenterOffsetX, CenterOffsetY
 		If mShowClockMode = 2 Then R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.5
-		mDClock.DrawClockImg(Canvas, Now, R, Canvas.Width / 2 + CenterOffsetX, Canvas.Height / 2 + CenterOffsetY)
+		mDClock.DrawClockImg(Canvas, Now(), R, Canvas.Width / 2 + CenterOffsetX, Canvas.Height / 2 + CenterOffsetY)
 	End If
 End Sub
+
+
 Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
 	Case "mnuAlwaysOnTop"
@@ -750,10 +765,8 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mnuShowDigital.Checked = True
 		mnuShowsClock.Checked = False
 		mnuShowStopwatch.Checked = False
-		ShowCaption = True 
-		Panel1.BackColor = clPink
-		BackColor = clPink
-		SetLayeredWindowAttributes This.Handle, clYellow, 0, LWA_COLORKEY
+		Panel1.Visible = True
+		ShowCaption = Not mnuHideCaption.Checked
 		mShowClockMode = 0
 		BorderStyle= FormBorderStyle.Sizable
 		Panel1.Graphic.Visible = False 
@@ -764,11 +777,8 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mShowClockMode = 1
 		ShowCaption = False 
 		BorderStyle= FormBorderStyle.FixedSingle
-		Panel1.BackColor = clYellow
-		BackColor = clYellow
-		SetLayeredWindowAttributes This.Handle, clYellow, 0, LWA_COLORKEY
-		Panel1.Graphic.Visible = True
-		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
+		Panel1.Visible = False
+		Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
 	Case "mnuShowStopwatch"
 		mnuShowsClock.Checked = False
 		mnuShowStopwatch.Checked = True
@@ -776,11 +786,8 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mShowClockMode = 2
 		ShowCaption = False
 		BorderStyle= FormBorderStyle.FixedSingle
-		Panel1.BackColor = clYellow
-		BackColor = clYellow
-		SetLayeredWindowAttributes This.Handle, clYellow, 0, LWA_COLORKEY
-		Panel1.Graphic.Visible = True
-		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/Stopwatch.png")
+		Panel1.Visible = False
+		Graphic.LoadFromFile(ExePath & "/Resources/Stopwatch.png")
 	Case "mnuSpeechNow"
 		SpeechNow(Now(), mLanguage)
 	Case "mnuNoneBorder"
@@ -930,14 +937,11 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 			.dwInfoFlags = 1
 		End With
 		Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
-		Panel1.BackColor = clYellow
-		ShowCaption = False 
-		BorderStyle= FormBorderStyle.FixedSingle
-		SetLayeredWindowAttributes This.Handle, clYellow, 0, LWA_COLORKEY
-		Panel1.Graphic.Visible = True
 	#else
 		
 	#endif
+	Panel1.Visible = False
+	ShowCaption = False 		
 End Sub
 
 Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)
@@ -994,5 +998,6 @@ Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Intege
 End Sub
 
 Private Sub frmClockType.Form_Move(ByRef Sender As Control)
-	Form_Resize(This, 0, 0)
+	'Form_Resize(This, 0, 0)
 End Sub
+

@@ -84,20 +84,25 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHe
 End Sub
 
 Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, fDiameter As Integer, CenterX As Integer = 0, CenterY As Integer = 0)
-	GdipGraphicsClear(Canvas.GdipGraphics, &h00000000)
+	'GdipGraphicsClear(Canvas.GdipGraphics, &h00000000)
 	'GdipDrawImageRect(Canvas.GdipGraphics, Canvas.GdipImage, 0, 0, fDiameter, fDiameter)
+	mDt = Format(Second(DateTime), "00")
+	If Trim(mDS) = "" OrElse mDS <> mDt Then
+		mDS = mDt
+	Else 
+		Exit Sub
+	End If
 	Dim As UByte iSec = CUByte(Format(Second(DateTime), "00"))
 	Dim As UByte iMin = CUByte(Format(Minute(DateTime), "00"))
 	'iHr = tTime.wHour + iHr_Delta
 	Dim As UByte iHr = CUByte(Format(Hour(DateTime), "00"))
 	'Dim As UByte fMSec = CUByte(Format(DateTime-iHr * 3600 - iMin * 60 - iSec, "#0.000"))
 	'Debug.Print iHr, iMin, iSec, fMSec 
-	Dim As Single Radius = fDiameter / 2 *.40
-	
+	Dim As Single Radius = fDiameter / 2 *.37
 	'Draw Hour hands
 	If iHr > 12 Then iHr -= 12
-	Dim As Single hourX = CenterX + (Radius + .05*Radius) * Sin((iHr + iHr / 60.0) * 30 * fRad)
-	Dim As Single hourY = CenterY - (Radius + .05*Radius) * Cos((iHr + iHr / 60.0) * 30 * fRad)
+	Dim As Single hourX = CenterX + (Radius) * Sin((iHr + iHr / 60.0) * 30 * fRad)
+	Dim As Single hourY = CenterY - (Radius) * Cos((iHr + iHr / 60.0) * 30 * fRad)
 	Canvas.DrawWidth = 1
 	Canvas.Circle(CenterX, CenterY, Radius *.05)
 	Canvas.DrawWidth = 8
@@ -106,14 +111,14 @@ Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateT
 	
 	
 	'Draw minute hands
-	Dim As Single minuteX = CenterX + (Radius + .06*Radius) * Sin(iMin * 6 * fRad)
-	Dim As Single minuteY = CenterY - (Radius + .06*Radius) * Cos(iMin * 6 * fRad)
+	Dim As Single minuteX = CenterX + (Radius + .05*Radius) * Sin(iMin * 6 * fRad)
+	Dim As Single minuteY = CenterY - (Radius + .05*Radius) * Cos(iMin * 6 * fRad)
 	Canvas.DrawWidth = 5
 	Canvas.Line(CenterX, CenterY, minuteX, minuteY)
 		
 	'Draw second hands
-	Dim As Single secondX = CenterX + (Radius + .16*Radius) * Sin(iSec * 6 * fRad)
-	Dim As Single secondY = CenterY - (Radius + .16*Radius) * Cos(iSec * 6 * fRad)
+	Dim As Single secondX = CenterX + (Radius + .15*Radius) * Sin(iSec * 6 * fRad)
+	Dim As Single secondY = CenterY - (Radius + .15*Radius) * Cos(iSec * 6 * fRad)
 	Canvas.DrawWidth = 3
 	Canvas.Pen.Color = clRed
 	Canvas.Line(CenterX, CenterY, secondX, secondY)
