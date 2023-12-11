@@ -95,8 +95,9 @@ Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateT
 	Dim As Single Radius = fDiameter / 2 *.40
 	
 	'Draw Hour hands
-	Dim As Single hourX = CenterX + (Radius + .05*Radius) * Sin((iHr \ 12 + iHr / 60.0) * 30 * fRad)
-	Dim As Single hourY = CenterY - (Radius + .05*Radius) * Cos((iHr \ 12 + iHr / 60.0) * 30 * fRad)
+	If iHr > 12 Then iHr -= 12
+	Dim As Single hourX = CenterX + (Radius + .05*Radius) * Sin((iHr + iHr / 60.0) * 30 * fRad)
+	Dim As Single hourY = CenterY - (Radius + .05*Radius) * Cos((iHr + iHr / 60.0) * 30 * fRad)
 	Canvas.DrawWidth = 1
 	Canvas.Circle(CenterX, CenterY, Radius *.05)
 	Canvas.DrawWidth = 8
