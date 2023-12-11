@@ -5,6 +5,12 @@
 #include once "DrawClockCalendar.bi"
 
 'DitalClock############################################################
+Dim Shared As Single fPi, fRad, fDeg
+fPi = Acos(-1)
+fRad = fPi / 180
+fDeg = 180 / fPi
+Dim Shared As ULong iShadowColor, iShadowColor2 = &h90000000
+iShadowColor = &h20A0A0A0
 
 Destructor DitalClock
 	
@@ -77,12 +83,47 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHe
 	mOy = (Canvas.Height - mH(0)) / 2   'y偏移
 End Sub
 
+Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, fDiameter As Integer, CenterX As Integer = 0, CenterY As Integer = 0)
+	GdipGraphicsClear(Canvas.GdipGraphics, &h00000000)
+	'GdipDrawImageRect(Canvas.GdipGraphics, Canvas.GdipImage, 0, 0, fDiameter, fDiameter)
+	Dim As UByte iSec = CUByte(Format(Second(DateTime), "00"))
+	Dim As UByte iMin = CUByte(Format(Minute(DateTime), "00"))
+	'iHr = tTime.wHour + iHr_Delta
+	Dim As UByte iHr = CUByte(Format(Hour(DateTime), "00"))
+	'Dim As UByte fMSec = CUByte(Format(DateTime-iHr * 3600 - iMin * 60 - iSec, "#0.000"))
+	'Debug.Print iHr, iMin, iSec, fMSec 
+	Dim As Single Radius = fDiameter / 2 *.40
+	
+	'Draw Hour hands
+	Dim As Single hourX = CenterX + (Radius + .05*Radius) * Sin((iHr \ 12 + iHr / 60.0) * 30 * fRad)
+	Dim As Single hourY = CenterY - (Radius + .05*Radius) * Cos((iHr \ 12 + iHr / 60.0) * 30 * fRad)
+	Canvas.DrawWidth = 1
+	Canvas.Circle(CenterX, CenterY, Radius *.05)
+	Canvas.DrawWidth = 8
+	Canvas.Pen.Color = clBlack
+	Canvas.Line(CenterX, CenterY, hourX, hourY)
+	
+	
+	'Draw minute hands
+	Dim As Single minuteX = CenterX + (Radius + .06*Radius) * Sin(iMin * 6 * fRad)
+	Dim As Single minuteY = CenterY - (Radius + .06*Radius) * Cos(iMin * 6 * fRad)
+	Canvas.DrawWidth = 5
+	Canvas.Line(CenterX, CenterY, minuteX, minuteY)
+		
+	'Draw second hands
+	Dim As Single secondX = CenterX + (Radius + .16*Radius) * Sin(iSec * 6 * fRad)
+	Dim As Single secondY = CenterY - (Radius + .16*Radius) * Cos(iSec * 6 * fRad)
+	Canvas.DrawWidth = 3
+	Canvas.Pen.Color = clRed
+	Canvas.Line(CenterX, CenterY, secondX, secondY)
+	
+End Sub
 Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal byHeight As Boolean = True)
 	Dim cal As LunarCalendar
 	
 	'时钟区域
-	Canvas.Pen.Color = mClr(0)
-	Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
+	'Canvas.Pen.Color = mClr(0)
+	'Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
 	CalculateSize(Canvas, byHeight)
 	Canvas.Font.Name = FontNameClock
 	Canvas.Font.Bold = True
