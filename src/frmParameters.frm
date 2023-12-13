@@ -58,6 +58,7 @@
 		With txtfbc64
 			.Name = "txtfbc64"
 			.TabIndex = 6
+			.RightMargin = 0
 			.SetBounds 376, 48, 321, 21
 			.Parent = @grbCompile
 		End With
@@ -65,6 +66,8 @@
 		With txtfbc32
 			.Name = "txtfbc32"
 			.TabIndex = 3
+			.RightMargin = 10
+			.ID = 1116
 			.SetBounds 376, 24, 321, 21
 			.Parent = @grbCompile
 		End With
