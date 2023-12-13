@@ -7,6 +7,7 @@
 
 #include once "frmParameters.bi"
 #include once "Main.bi"
+#include once "frmCompilerOptions.frm"
 
 '#Region "Form"
 	Constructor frmParameters
@@ -224,6 +225,34 @@
 			.SetBounds 90, 24, 278, 21
 			.Parent = @grbDebug
 		End With
+		' lblAddCompilerOption32
+		With lblAddCompilerOption32
+			.Name = "lblAddCompilerOption32"
+			.Text = "+"
+			.Graphic = "//Add"
+			.ID = 1175
+			.BorderStyle = BorderStyles.bsNone
+			.Style = LabelStyle.lsText
+			.Transparent = False
+			.SetBounds 680, 28, 12, 12
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @lblAddCompilerOption32_Click)
+			.Parent = @grbCompile
+		End With
+		' lblAddCompilerOption64
+		With lblAddCompilerOption64
+			.Name = "lblAddCompilerOption64"
+			.Text = "+"
+			.ControlIndex = 6
+			.Graphic = "//Add"
+			.Caption = "+"
+			.Style = LabelStyle.lsText
+			.ID = 1058
+			.SetBounds 680, 51, 12, 12
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @lblAddCompilerOption64_Click)
+			.Parent = @grbCompile
+		End With
 	End Constructor
 	
 	Dim Shared fParameters As frmParameters
@@ -336,3 +365,26 @@ Private Sub frmParameters.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef
 	fParameters.CloseForm
 End Sub
 
+Private Sub frmParameters.lblAddCompilerOption32_Click(ByRef Sender As Label)
+	If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+		For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
+			If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
+				txtfbc32.Text = RTrim(txtfbc32.Text) & " " & frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Text(0)
+			End If
+		Next
+		frmCompilerOptions.CloseForm
+		Me.BringToFront
+	End If
+End Sub
+
+Private Sub frmParameters.lblAddCompilerOption64_Click(ByRef Sender As Label)
+	If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+		For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
+			If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
+				txtfbc64.Text = RTrim(txtfbc64.Text) & " " & frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Text(0)
+			End If
+		Next
+		frmCompilerOptions.CloseForm
+		Me.BringToFront
+	End If
+End Sub
