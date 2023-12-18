@@ -986,9 +986,11 @@ Namespace My.Sys.Forms
 						If Ctrl Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
 							If (ALeft > FBeginX And ALeft + AWidth < FNewX) And (ATop > FBeginY And ATop + AHeight < FNewY) Then
-								Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
-								If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
-									SelectedControls.Add Ctrl
+								If SelectedControls.Count > 0 Then
+									Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
+									If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
+										SelectedControls.Add Ctrl
+									End If
 								End If
 							End If
 						End If
