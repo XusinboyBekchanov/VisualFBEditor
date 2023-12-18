@@ -25,6 +25,7 @@ pfGoto = @fGoto
 	End Sub
 	
 	Constructor frmGoto
+		This.Name = "frmGoto"
 		This.Width = 320
 		This.Height = 100
 		#ifdef __USE_GTK__
@@ -34,31 +35,77 @@ pfGoto = @fGoto
 		#endif
 		This.StartPosition = FormStartPosition.CenterParent
 		lblFind.Caption = ML("Line") & ":"
-		lblFind.SetBounds 10, 10, 80, 20
-		lblFind.Parent = @This
-		txtFind.SetBounds 90, 10, 203, 20
-		txtFind.Anchor.Left = asAnchor
-		txtFind.Anchor.Right = asAnchor
-		txtFind.Parent = @This
-		btnFind.Caption = ML("&Go")
-		btnFind.Default = True
-		btnFind.SetBounds 90, 36, 100, 20
-		btnFind.Anchor.Right = asAnchor
-		btnFind.Parent = @This
+		lblFind.Align = DockStyle.alLeft
+		lblFind.CenterImage = True
+		lblFind.ID = 1095
+		lblFind.SetBounds 65180, 0, 74, 20
+		lblFind.Parent = @Panel1
+		txtFind.Name = "txtFind"
+		txtFind.Align = DockStyle.alClient
+		txtFind.SetBounds 65254, 0, 210, 20
+		txtFind.Anchor.Left = AnchorStyle.asNone
+		txtFind.Anchor.Right = AnchorStyle.asNone
+		txtFind.Parent = @Panel1
 		btnCancel.Caption = ML("&Cancel")
-		btnCancel.Anchor.Right = asAnchor
-		btnCancel.SetBounds 194, 36, 100, 20
-		btnCancel.Parent = @This
+		btnCancel.Anchor.Right = AnchorStyle.asNone
+		btnCancel.Align = DockStyle.alRight
+		btnCancel.ExtraMargins.Left = 10
+		btnCancel.SetBounds 184, 0, 100, 20
+		btnCancel.Parent = @Panel2
 		'AddRange 10, @lblFind, @txtFind, @lblReplace, @txtReplace, @chkRegistr, @btnFind, @btnReplace, @btnFindAll, @btnReplaceAll, @btnCancel
 		OnShow = @_Form_Show_
-		btnFind.Text = ML("&Go")
-		btnFind.OnClick = @_btnFind_Click_
 		btnCancel.Text = ML("&Cancel")
 		btnCancel.OnClick = @_btnCancel_Click_
+		btnFind.Caption = ML("&Go")
+		btnFind.Default = True
+		btnFind.Align = DockStyle.alRight
+		btnFind.SetBounds 74, 0, 100, 20
+		btnFind.Anchor.Right = AnchorStyle.asNone
+		btnFind.Parent = @Panel2
+		btnFind.Text = ML("&Go")
+		btnFind.OnClick = @_btnFind_Click_
 		This.DefaultButton = @btnFind
 		This.Caption = ML("Goto")
+		This.Margins.Top = 10
+		This.Margins.Right = 10
+		This.Margins.Left = 10
+		This.Margins.Bottom = 10
+		This.AutoSize = True
 		This.CancelButton = @btnCancel
 		'This.BorderStyle = 2
+		' VerticalBox1
+		With VerticalBox1
+			.Name = "VerticalBox1"
+			.Text = "VerticalBox1"
+			.TabIndex = 5
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 304, 20
+			.Designer = @This
+			.Parent = @This
+		End With
+		' Panel1
+		With Panel1
+			.Name = "Panel1"
+			.Text = "Panel1"
+			.TabIndex = 6
+			.AutoSize = True
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 284, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' Panel2
+		With Panel2
+			.Name = "Panel2"
+			.Text = "Panel2"
+			.TabIndex = 7
+			.Align = DockStyle.alTop
+			.ExtraMargins.Top = 10
+			.AutoSize = True
+			.SetBounds 0, 20, 284, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
 	End Constructor
 	
 	Destructor frmGoto

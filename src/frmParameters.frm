@@ -54,20 +54,20 @@
 		cmdCancel.SetBounds 624, 340, 96, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
-		' txtfbc64
-		With txtfbc64
-			.Name = "txtfbc64"
-			.TabIndex = 6
-			.RightMargin = 20
-			.SetBounds 376, 48, 321, 21
-			.Parent = @grbCompile
-		End With
 		' txtfbc32
 		With txtfbc32
 			.Name = "txtfbc32"
 			.TabIndex = 3
 			.RightMargin = 20
 			.SetBounds 376, 24, 321, 21
+			.Parent = @grbCompile
+		End With
+		' txtfbc64
+		With txtfbc64
+			.Name = "txtfbc64"
+			.TabIndex = 6
+			.RightMargin = 20
+			.SetBounds 376, 48, 321, 21
 			.Parent = @grbCompile
 		End With
 		' txtMake1
@@ -238,7 +238,7 @@
 			.Transparent = False
 			.SetBounds 680, 28, 12, 12
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @lblAddCompilerOption32_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblAddCompilerOption32_Click)
 			.Parent = @grbCompile
 		End With
 		' lblAddCompilerOption64
@@ -252,7 +252,7 @@
 			.ID = 1058
 			.SetBounds 680, 51, 12, 12
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Label), @lblAddCompilerOption64_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lblAddCompilerOption64_Click)
 			.Parent = @grbCompile
 		End With
 	End Constructor
@@ -389,4 +389,5 @@ Private Sub frmParameters.lblAddCompilerOption64_Click(ByRef Sender As Label)
 		frmCompilerOptions.CloseForm
 		Me.BringToFront
 	End If
+	
 End Sub

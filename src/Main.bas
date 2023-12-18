@@ -6236,6 +6236,9 @@ Sub LoadSettings
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
 	ProjectAutoSuggestions = False
 
+	If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
+		*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
+	End If
 	#ifdef __USE_WINAPI__
 		If DarkMode Then
 			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)

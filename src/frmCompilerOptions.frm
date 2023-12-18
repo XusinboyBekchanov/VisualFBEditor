@@ -17,6 +17,7 @@
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub cmdCancel_Click(ByRef Sender As Control)
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
+		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Constructor
 		
 		Dim As ListView lvCompilerOptions
@@ -33,6 +34,7 @@
 			.ShowCaption = True
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.Caption = ML("Compiler Options")
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.SetBounds 0, 0, 350, 420
 		End With
 		' lvCompilerOptions
@@ -122,4 +124,12 @@ End Sub
 Private Sub frmCompilerOptionsType.cmdOK_Click(ByRef Sender As Control)
 	ModalResult = ModalResults.OK
 	Me.Hide
+End Sub
+
+Private Sub frmCompilerOptionsType.Form_Show(ByRef Sender As Form)
+	For i As Integer = 0 To lvCompilerOptions.ListItems.Count - 1
+		If lvCompilerOptions.ListItems.Item(i)->Checked Then
+			lvCompilerOptions.ListItems.Item(i)->Checked = False
+		End If
+	Next
 End Sub

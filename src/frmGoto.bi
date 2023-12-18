@@ -9,6 +9,8 @@
 #include once "mff/NumericUpDown.bi"
 #include once "mff/CommandButton.bi"
 #include once "TabWindow.bi"
+#include once "mff/VerticalBox.bi"
+#include once "mff/Panel.bi"
 
 #define Me3 (*Cast(frmGoto Ptr, Sender.GetForm))
 
@@ -29,6 +31,8 @@ Using My.Sys.Forms
 		Dim As Label lblFind
 		Dim As NumericUpDown txtFind
 		Dim As CommandButton btnFind, btnCancel
+		Dim As VerticalBox VerticalBox1
+		Dim As Panel Panel1, Panel2
 	End Type
 	
 	Common Shared As frmGoto Ptr pfGoto
