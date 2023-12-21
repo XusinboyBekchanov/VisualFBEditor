@@ -39,7 +39,7 @@
 		mVoiceCount As Integer = -1
 		mAudioCount As Integer = -1
 		mLanguage As Integer = 0
-		mShowClockMode  As Integer = 1
+		mShowClockMode  As Integer
 		mnuVoiceSub(Any) As MenuItem Ptr
 		mnuAudioSub(Any) As MenuItem Ptr
 		
@@ -80,12 +80,10 @@
 			.Font.Size = 12
 			.Font.Bold = True
 			.StartPosition = FormStartPosition.CenterScreen
+			.BackColor = clPink
 			.Transparent = True
-			.Graphic.Visible= True 
-			.Graphic.CenterImage= True 
-			.Graphic.StretchImage= StretchMode.smStretchProportional
-			.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
-			.BorderStyle= FormBorderStyle.FixedSingle
+			.DoubleBuffered = True
+			.BorderStyle= FormBorderStyle.Sizable
 			.Designer = @This
 			.ContextMenu = @PopupMenu1
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
@@ -94,9 +92,8 @@
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Move)
-			'.Opacity = 254
+			.Opacity = 254
 			'.TransparentColor = mDClock.mClr(0)
-			.BackColor = clGray
 			.Icon = "1"
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
 			.SetBounds 0, 0, 330, 140
@@ -130,6 +127,10 @@
 			.BackColor = clPink
 			.DoubleBuffered = True
 			.Transparent = True
+			.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
+			.Graphic.CenterImage = True 
+			.Graphic.StretchImage = StretchMode.smStretchProportional
+			.Graphic.Visible= False 
 			.SetBounds 0, 0, 319, 112
 			'.Canvas.UsingGdip = True
 			.Designer = @This
@@ -187,6 +188,7 @@
 			.Name = "mnuTransparent"
 			.Designer = @This
 			.Caption = "Transparent"
+			.Checked = True 
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -213,6 +215,7 @@
 			.Name = "mnuShowClock"
 			.Designer = @This
 			.Caption = "Clock"
+			.Checked = True 
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -236,7 +239,6 @@
 		With mnuShowsClock
 			.Name = "mnuShowsClock"
 			.Designer = @This
-			.Checked = True
 			.Caption = "Clock"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @mnuShowClock
@@ -523,12 +525,7 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		TimerComponent2.Enabled = True
 	End If
 	mDClock.Mark = 1
-	If mShowClockMode < 1 Then 
-		Panel1.Repaint
-	Else
-		frmClock.Repaint
-	End If
-	
+	Panel1.Repaint
 	If mnuAnnounce0.Checked Then Exit Sub
 	If Second(dnow) <> 0 Then Exit Sub
 	Dim m As Integer = Minute(dnow)
@@ -548,8 +545,8 @@ Private Sub frmClockType.SpeechInit()
 	#ifdef __USE_WINAPI__
 		' // Create an instance of the SpVoice object
 		Dim classID As IID, riid As IID
-		CLSIDFromString(AFX_CLSID_SpVoice, @classID)
-		IIDFromString(AFX_IID_ISpVoice, @riid)
+		CLSIDFromString(Afx_CLSID_SpVoice, @classID)
+		IIDFromString(Afx_IID_ISpVoice, @riid)
 		CoCreateInstance(@classID, NULL, CLSCTX_ALL, @riid, @pSpVoice)
 		If pSpVoice = NULL Then Exit Sub
 		
@@ -675,17 +672,13 @@ End Sub
 Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 	TimerComponent2.Enabled = False
 	mDClock.Mark = 0
-	If mShowClockMode = 0 Then Panel1.Repaint
+	Panel1.Repaint
 End Sub
 
 Private Sub frmClockType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	If mShowClockMode = 0 Then mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
-End Sub
-
-
-Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	Debug.Print "Form_Paint " & Now
-	If mShowClockMode > 0 Then
+	If mShowClockMode = 0 Then 
+		mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
+	Else
 		Dim As Single R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.85
 		'TODO The Center of clock is not the same of image
 		Dim As Single CenterOffsetX
@@ -707,26 +700,31 @@ Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.
 End Sub
 
 
+Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	
+End Sub
+
+
 Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
 	Case "mnuAlwaysOnTop"
 		Sender.Checked = Not Sender.Checked
 		FormStyle = IIf(Sender.Checked, FormStyles.fsStayOnTop, FormStyles.fsNormal)
 	Case "mnuClickThrough"
-		Sender.Checked = Not Sender.Checked
-		If Sender.Checked Then
-			#ifdef __USE_WINAPI__
-				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-				If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-				If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-			#endif
-		Else
-			#ifdef __USE_WINAPI__
-				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-				If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-				If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-			#endif
-		End If
+		'Sender.Checked = Not Sender.Checked
+		'If Sender.Checked Then
+		'	#ifdef __USE_WINAPI__
+		'		SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+		'		If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+		'		If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+		'	#endif
+		'Else
+		'	#ifdef __USE_WINAPI__
+		'		SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+		'		If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+		'		If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+		'	#endif
+		'End If
 	Case "mnuAutoStart"
 		Sender.Checked = Not Sender.Checked
 		AutoStartReg Sender.Checked
@@ -765,8 +763,11 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mnuShowDigital.Checked = True
 		mnuShowsClock.Checked = False
 		mnuShowStopwatch.Checked = False
-		Panel1.Visible = True
+		Panel1.BackColor = clPink
+		Panel1.Canvas.Cls
+		Panel1.Transparent = False 
 		ShowCaption = Not mnuHideCaption.Checked
+		Panel1.Graphic.Visible = False
 		mShowClockMode = 0
 		BorderStyle= FormBorderStyle.Sizable
 		Panel1.Graphic.Visible = False 
@@ -775,19 +776,23 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mnuShowStopwatch.Checked = False
 		mnuShowDigital.Checked = False
 		mShowClockMode = 1
+		Panel1.Canvas.Cls
+		Panel1.Transparent = True
 		ShowCaption = False 
-		BorderStyle= FormBorderStyle.FixedSingle
-		Panel1.Visible = False
-		Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
+		BorderStyle= FormBorderStyle.Sizable
+		Panel1.Graphic.Visible = True 
+		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
 	Case "mnuShowStopwatch"
 		mnuShowsClock.Checked = False
 		mnuShowStopwatch.Checked = True
 		mnuShowDigital.Checked = False
 		mShowClockMode = 2
+		Panel1.Canvas.Cls
+		Panel1.Transparent = True
 		ShowCaption = False
-		BorderStyle= FormBorderStyle.FixedSingle
-		Panel1.Visible = False
-		Graphic.LoadFromFile(ExePath & "/Resources/Stopwatch.png")
+		BorderStyle= FormBorderStyle.Sizable
+		Panel1.Graphic.Visible = True
+		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/Stopwatch.png")
 	Case "mnuSpeechNow"
 		SpeechNow(Now(), mLanguage)
 	Case "mnuNoneBorder"
@@ -940,8 +945,7 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	#else
 		
 	#endif
-	Panel1.Visible = False
-	ShowCaption = False 		
+	ShowCaption = False 
 End Sub
 
 Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)

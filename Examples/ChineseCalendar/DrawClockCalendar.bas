@@ -89,8 +89,6 @@ Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateT
 	mDt = Format(Second(DateTime), "00")
 	If Trim(mDS) = "" OrElse mDS <> mDt Then
 		mDS = mDt
-	Else 
-		Exit Sub
 	End If
 	Dim As UByte iSec = CUByte(Format(Second(DateTime), "00"))
 	Dim As UByte iMin = CUByte(Format(Minute(DateTime), "00"))
