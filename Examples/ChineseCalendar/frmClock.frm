@@ -735,10 +735,10 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		If frmDayCalendar.Handle Then frmDayCalendar.Opacity = Opacity
 		If frmMonthCalendar.Handle Then frmMonthCalendar.Opacity = Opacity
 	Case "mnuTransparent"
-		'Sender.Checked = Not Sender.Checked
-		'Transparent = Sender.Checked
-		'If frmDayCalendar.Handle Then frmDayCalendar.Transparent = Transparent
-		'If frmMonthCalendar.Handle Then frmMonthCalendar.Transparent = Transparent
+		Sender.Checked = Not Sender.Checked
+		Transparent = Sender.Checked
+		If frmDayCalendar.Handle Then frmDayCalendar.Transparent = Transparent
+		If frmMonthCalendar.Handle Then frmMonthCalendar.Transparent = Transparent
 	Case "mnuAnnounce0"
 		mnuAnnounce0.Checked = True
 		mnuAnnounce1.Checked = False
