@@ -325,13 +325,18 @@ Private Function VBTimer() As Double
 	Return locTime.wHour * 3600 + locTime.wMinute* 60 + locTime.wSecond + locTime.wMilliseconds / 1000
 End Function
 
-Private Function AnalogClockText(fWidth As Single, fHeight As Single, ByVal fColor As ARGB = &h000000, ByVal fTimeFormat As String = "h:mm:ss", ByVal fFontSize As Single = 0.125, ByVal fOffsetX As Single = 1, ByVal fOffsetY As Single = 1, ByVal fAlpha As UByte= 255) As Any Ptr
+Private Function AnalogClockText(fWidth As Single, fHeight As Single, fName As WString, fBold As Boolean, ByVal fColor As ARGB = &h000000, ByVal fAlpha As UByte= 255) As Any Ptr
+	Dim fTimeFormat As String = "h:mm:ss"
+	Dim fFontSize As Single = 0.125
+	Dim fOffsetX As Single = 1 
+	Dim fOffsetY As Single = 1.4
+	
 	Static tmpBitmap As gdipBitmap
-	tmpBitmap.Initlal(fWidth, fHeight)
+	tmpBitmap.Initial(fWidth, fHeight)
 	
 	Dim tmpTxt As gdipText
 	tmpTxt.Initial(fWidth, fHeight)
-	tmpTxt.SetFont("Arial", fWidth * fFontSize, FontStyleBold)
+	tmpTxt.SetFont(fName, fWidth * fFontSize, IIf(fBold, FontStyleBold, FontStyleRegular))
 
 	Dim sx As Single = (fWidth - tmpTxt.TextWidth(Format(Now, fTimeFormat))) / 2 * fOffsetX
 	Dim sy As Single = (fHeight - tmpTxt.TextHeight(Format(Now, fTimeFormat))) / 2 * fOffsetY
@@ -682,3 +687,147 @@ Private Function AnalogClockScale(fDiameter As Single, ByVal fAlpha As UByte = 2
 	
 	Return hBitmap
 End Function
+
+
+Private Sub gdipBitmap.DrawScaleImage(pImage As GpImage Ptr)
+	'填满拉伸绘制
+	If pImage = NULL Then Exit Sub
+	
+	Dim As Single fNewWidth, fNewHeight
+	fNewWidth = mWidth
+	fNewHeight = mHeight
+	
+	Dim As Single fOriginalWidth, fOriginalHeight
+	GdipGetImageDimension(pImage, @fOriginalWidth, @fOriginalHeight)
+	
+	'准备画布和位图
+	Dim fResizedImage As Any Ptr
+	Dim fGraphics As GpGraphics Ptr
+	GdipCreateBitmapFromScan0(fNewWidth, fNewHeight, 0, PixelFormat32bppARGB, 0, @fResizedImage)
+	GdipGetImageGraphicsContext(fResizedImage, @fGraphics)
+	
+	'创建一个缩放矩阵
+	Dim fMatrix As GpMatrix Ptr
+	GdipCreateMatrix(@fMatrix)
+	GdipScaleMatrix(fMatrix, fNewWidth / fOriginalWidth, fNewHeight / fOriginalHeight, 0)
+	GdipSetWorldTransform(fGraphics, fMatrix)
+	
+	'绘制图像
+	GdipDrawImageRect(fGraphics, pImage, 0, 0, fOriginalWidth, fOriginalHeight)
+	'绘制缩放后的图像
+	GdipDrawImageRect(mGraphics, fResizedImage, 0, 0, mWidth, mHeight)
+	
+	'释放资源
+	GdipDeleteGraphics(fGraphics)
+	GdipDeleteMatrix(fMatrix)
+	GdipDisposeImage(fResizedImage)
+End Sub
+
+Private Sub gdipBitmap.DrawAlphaImage(pImage As GpImage Ptr, pAlpha As Single)
+	'Alpha绘制
+	Dim As Single fOriginalWidth, fOriginalHeight
+	GdipGetImageDimension(pImage, @fOriginalWidth, @fOriginalHeight)
+	
+	' 创建图像属性
+	Dim fImageAttr As GpImageAttributes Ptr
+	GdipCreateImageAttributes(@fImageAttr)
+	
+	' 设置颜色矩阵进行 alpha 混合
+	Dim fColorMatrix As ColorMatrix = Type( _
+	{{1.0, 0.0, 0.0, 0.0, 0.0}, _
+	{0.0, 1.0, 0.0, 0.0, 0.0}, _
+	{0.0, 0.0, 1.0, 0.0, 0.0}, _
+	{0.0, 0.0, 0.0, pAlpha, 0.0}, _
+	{0.0, 0.0, 0.0, 0.0, 1.0}} _
+	)
+	
+	GdipSetImageAttributesColorMatrix(fImageAttr, ColorAdjustTypeBitmap, True, @fColorMatrix, NULL, ColorMatrixFlagsDefault)
+
+	' 绘制 alpha 混合后的图像
+	GdipDrawImageRectRectI(mGraphics, pImage, 0, 0, fOriginalWidth, fOriginalHeight, 0, 0, fOriginalWidth, fOriginalHeight, UnitPixel, fImageAttr, NULL, NULL)
+End Sub
+
+Private Sub gdipBitmap.DrawRotateImage(pImage As GpImage Ptr, pAngle As Single)
+	'旋转绘制
+	If pImage = NULL Then Exit Sub
+	
+	Dim As Single fOriginalWidth, fOriginalHeight
+	GdipGetImageDimension(pImage, @fOriginalWidth, @fOriginalHeight)
+	Dim fCenterX As Single = fOriginalWidth / 2.0
+	Dim fCenterY As Single = fOriginalHeight / 2.0
+	
+	'准备画布和位图
+	Dim fResizedImage As Any Ptr
+	Dim fGraphics As GpGraphics Ptr
+	GdipCreateBitmapFromScan0(fOriginalWidth, fOriginalHeight, 0, PixelFormat32bppARGB, 0, @fResizedImage)
+	GdipGetImageGraphicsContext(fResizedImage, @fGraphics)
+	
+	'创建一个缩放矩阵
+	Dim fMatrix As GpMatrix Ptr
+	GdipCreateMatrix(@fMatrix)
+	GdipTranslateMatrix(fMatrix, fCenterX, fCenterY, MatrixOrderPrepend)
+	GdipRotateMatrix(fMatrix, pAngle, MatrixOrderPrepend)
+	GdipTranslateMatrix(fMatrix, -fCenterX, -fCenterY, MatrixOrderPrepend)
+	GdipSetWorldTransform(fGraphics, fMatrix)
+	
+	'绘制图像
+	GdipDrawImageRect(fGraphics, pImage, 0, 0, fOriginalWidth, fOriginalHeight)
+	'绘旋转后的图像
+	GdipDrawImageRect(mGraphics, fResizedImage, 0, 0, mWidth, mHeight)
+	
+	'释放资源
+	GdipDeleteGraphics(fGraphics)
+	GdipDeleteMatrix(fMatrix)
+	GdipDisposeImage(fResizedImage)
+End Sub
+
+Private Sub gdipBitmap.DrawImage Overload (pImage As GpImage Ptr, pX As Single, pY As Single)
+	'原始尺寸绘制
+	If pImage = NULL Then Exit Sub
+	Dim As Single sWidth, sHeight
+	GdipGetImageDimension(pImage, @sWidth, @sHeight)
+	GdipDrawImageRect(mGraphics, pImage, pX, pY, sWidth, sHeight)
+End Sub
+Private Sub gdipBitmap.Release()
+	GdipDisposeImage(mBitmap)
+	mBitmap = NULL
+	GdipDeleteGraphics(mGraphics)
+	mGraphics = NULL
+End Sub
+Private Sub gdipBitmap.Initial(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
+	Release()
+	'准备画布和位图
+	mWidth = pWidth
+	mHeight = pHeight
+	GdipCreateBitmapFromScan0(mWidth, mHeight, 0, PixelFormat32bppARGB, 0, @mBitmap)
+	GdipGetImageGraphicsContext(mBitmap, @mGraphics)
+	GdipSetSmoothingMode(mGraphics, SmoothingModeAntiAlias)
+	GdipSetPixelOffsetMode(mGraphics, PixelOffsetModeHighQuality)
+	GdipSetTextRenderingHint(mGraphics, TextRenderingHintAntiAlias)
+End Sub
+'Private Property gdipBitmap.Bitmap(pImage As GpBitmap Ptr)
+'
+'End Property
+Private Property gdipBitmap.Image() As GpImage Ptr
+	Return mBitmap
+End Property
+'Private Property gdipBitmap.Graphics(pGraphics As GpGraphics Ptr)
+'
+'End Property
+Private Property gdipBitmap.Graphics() As GpGraphics Ptr
+	Return mGraphics
+End Property
+Private Property gdipBitmap.Height() As Single
+	Return mHeight
+End Property
+Private Property gdipBitmap.Width() As Single
+	Return mWidth
+End Property
+
+Private Constructor gdipBitmap(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
+	Initial(pWidth, pHeight)
+End Constructor
+
+Private Destructor gdipBitmap
+	Release()
+End Destructor

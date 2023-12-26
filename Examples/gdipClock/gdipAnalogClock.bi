@@ -12,8 +12,12 @@ Type AnalogClock
 	mTray As Boolean = True
 	mHand As Boolean = True
 	mScale As Boolean = True
+	
 	mText As Boolean = True
-
+	mFontName As WString Ptr
+	mFontColor As ARGB = &HFF000000
+	mFontBold As Boolean = True
+	
 	mBackground As Boolean = False
 	mBGScale As Single = 1
 	mImgBack As gdipImage
