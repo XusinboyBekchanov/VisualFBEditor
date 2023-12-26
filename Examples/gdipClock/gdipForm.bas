@@ -111,17 +111,17 @@ Private Sub gdipForm.Transform(ByVal Alpha As Integer = 255)
 		.AlphaFormat = AC_SRC_ALPHA
 	End With
 	
-	Dim lRT As RECT
+	Dim lRT As Rect
 	'获取控件矩形
 	GetWindowRect(mHandle, @lRT)
 	With ULWpptDst
-		.x = lRT.left
-		.y = lRT.top
+		.X = lRT.Left
+		.Y = lRT.Top
 	End With
 	
 	With ULWpptSrc
-		.x = 0
-		.y = 0
+		.X = 0
+		.Y = 0
 	End With
 	
 	'设置窗口WS_EX_LAYERED
