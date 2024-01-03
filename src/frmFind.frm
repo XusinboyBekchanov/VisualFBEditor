@@ -377,9 +377,9 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 						plvSearch->ListItems.Item(jj)->Text(2) = Str(iPos)
 						If CBool(Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1) Then jj += 1 Else Exit Do
 					Else
-						If plvSearch->ListItems.Item(jj)->Text(1) <> Str(i + 1) Then
-							'plvSearch->ListItems.Insert(jj, txt->Lines(i)) 'Add the new finding
-							'SearchCount = plvSearch->ListItems.Count - 1
+						If plvSearch->ListItems.Item(jj)->Text(1) <> Str(i + 1) OrElse CBool(plvSearch->ListItems.Item(jj)->Text(3) <> tb->FileName) Then
+							plvSearch->ListItems.Insert(jj, txt->Lines(i)) 'Add the new finding
+							SearchCount = plvSearch->ListItems.Count - 1
 						End If
 						plvSearch->ListItems.Item(jj)->Text(1) = Str(i + 1)
 						plvSearch->ListItems.Item(jj)->Text(2) = Str(iPos)
@@ -389,12 +389,18 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 				Else
 					'Remove the extra line if insert some line after searching
 					If jj <= SearchCount AndAlso jj > 0 Then
+						Dim As Boolean bFind
 						For ii As Integer  = jj To SearchCount
 							If ii > plvSearch->ListItems.Count - 1 Or ii < 0 Then Exit For
 							Item = plvSearch->ListItems.Item(ii)
-							If CBool(Val(Item->Text(1)) - 1 < txt->LinesCount) AndAlso CBool(Mid(txt->Lines(Val(Item->Text(1)) - 1), Val(Item->Text(2)), SearchLen) <> *gSearchSave) AndAlso CBool(Item->Text(3) = tb->FileName) Then
-								'plvSearch->ListItems.Remove ii
-								'SearchCount = plvSearch->ListItems.Count - 1
+							If bMatchCase Then
+								bFind = Mid(txt->Lines(Val(Item->Text(1)) - 1), Val(Item->Text(2)), SearchLen) <> *gSearchSave
+							Else
+								bFind = LCase(Mid(txt->Lines(Val(Item->Text(1)) - 1), Val(Item->Text(2)), SearchLen)) <> LCase(*gSearchSave) 
+							End If
+							If CBool(Val(Item->Text(1)) - 1 < txt->LinesCount) AndAlso bFind AndAlso CBool(Item->Text(3) = tb->FileName) Then
+								plvSearch->ListItems.Remove ii
+								SearchCount = plvSearch->ListItems.Count - 1
 							ElseIf CBool(Val(Item->Text(1)) <> i + 1) OrElse CBool(Item->Text(3) <> tb->FileName) Then
 								Exit Do
 							End If
