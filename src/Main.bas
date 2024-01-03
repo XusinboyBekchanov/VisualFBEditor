@@ -9147,46 +9147,48 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-Dim Shared As Integer iLine, iChar, CanvasHeight, CanvasWidth
-Sub Document_PrintPage(ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 Then Return
-	Canvas.Font = tb->txtCode.Font
-	If iLine = 0 AndAlso iChar = 0 Then
-		CanvasWidth = Sender.PrinterSettings.PrintableWidth
-		CanvasHeight = Sender.PrinterSettings.PrintableHeight
-	End If
-	Dim As Integer CharHeight = Canvas.TextHeight("P")
-	Dim As Integer CharWidth = Canvas.TextWidth("P")
-	Dim As Integer CharsCount = (CanvasWidth - PageSetupD.LeftMargin - PageSetupD.RightMargin) / CharWidth, LinesCount = 0, LineCharsCount, SpacePos
-	Dim As UString sLine, sLineToPrint
-	For i As Integer = iLine To tb->txtCode.LinesCount - 1
-		sLine = Replace(tb->txtCode.Lines(i), !"\t", Space(TabWidth))
-		LineCharsCount = Len(sLine)
-		Do
-			LinesCount += 1
-			If PageSetupD.TopMargin + PageSetupD.BottomMargin + LinesCount * CharHeight > CanvasHeight Then
-				iLine = i
-				HasMorePages = True
-				Exit Sub
-			End If
-			sLineToPrint = Mid(sLine, iChar + 1, CharsCount)
-			SpacePos = InStrRev(sLineToPrint, " ")
-			If LineCharsCount > iChar + CharsCount AndAlso SpacePos > 0 Then
-				sLineToPrint = Left(sLineToPrint, SpacePos) '& "_"
-				iChar += SpacePos
-			Else
-				iChar += CharsCount
-			End If
-			Canvas.TextOut PageSetupD.LeftMargin, PageSetupD.TopMargin + (LinesCount - 1) * CharHeight, sLineToPrint
-		Loop While LineCharsCount > iChar
-		iChar = 0
-	Next
-	'Canvas.Line 10, 10, 20, 20
-	iLine = 0
-End Sub
-
-PrintPreviewD.Document->OnPrintPage = @Document_PrintPage
+#ifdef __USE_WINAPI__
+	Dim Shared As Integer iLine, iChar, CanvasHeight, CanvasWidth
+	Sub Document_PrintPage(ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb = 0 Then Return
+		Canvas.Font = tb->txtCode.Font
+		If iLine = 0 AndAlso iChar = 0 Then
+			CanvasWidth = Sender.PrinterSettings.PrintableWidth
+			CanvasHeight = Sender.PrinterSettings.PrintableHeight
+		End If
+		Dim As Integer CharHeight = Canvas.TextHeight("P")
+		Dim As Integer CharWidth = Canvas.TextWidth("P")
+		Dim As Integer CharsCount = (CanvasWidth - PageSetupD.LeftMargin - PageSetupD.RightMargin) / CharWidth, LinesCount = 0, LineCharsCount, SpacePos
+		Dim As UString sLine, sLineToPrint
+		For i As Integer = iLine To tb->txtCode.LinesCount - 1
+			sLine = Replace(tb->txtCode.Lines(i), !"\t", Space(TabWidth))
+			LineCharsCount = Len(sLine)
+			Do
+				LinesCount += 1
+				If PageSetupD.TopMargin + PageSetupD.BottomMargin + LinesCount * CharHeight > CanvasHeight Then
+					iLine = i
+					HasMorePages = True
+					Exit Sub
+				End If
+				sLineToPrint = Mid(sLine, iChar + 1, CharsCount)
+				SpacePos = InStrRev(sLineToPrint, " ")
+				If LineCharsCount > iChar + CharsCount AndAlso SpacePos > 0 Then
+					sLineToPrint = Left(sLineToPrint, SpacePos) '& "_"
+					iChar += SpacePos
+				Else
+					iChar += CharsCount
+				End If
+				Canvas.TextOut PageSetupD.LeftMargin, PageSetupD.TopMargin + (LinesCount - 1) * CharHeight, sLineToPrint
+			Loop While LineCharsCount > iChar
+			iChar = 0
+		Next
+		'Canvas.Line 10, 10, 20, 20
+		iLine = 0
+	End Sub
+	
+	PrintPreviewD.Document->OnPrintPage = @Document_PrintPage
+#endif
 
 Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
