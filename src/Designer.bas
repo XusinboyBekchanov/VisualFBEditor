@@ -899,8 +899,8 @@ Namespace My.Sys.Forms
 				#else
 					FHDC = GetDC(FDialog)
 					'SetROP2(hdc, R2_NOTXORPEN)
-					DrawFocusRect(FHDC, @Type<..Rect>(ScaleX(min(FBeginX, FOldX)), ScaleY(min(FBeginY, FOldY)), ScaleX(Max(FBeginX, FOldX)), ScaleY(Max(FBeginY, FOldY))))
-					DrawFocusRect(FHDC, @Type<..Rect>(ScaleX(min(FBeginX, FNewX)), ScaleX(min(FBeginY, FNewY)), ScaleX(Max(FBeginX, FNewX)), ScaleY(Max(FBeginY, FNewY))))
+					DrawFocusRect(FHDC, @Type<..Rect>(ScaleX(Min(FBeginX, FOldX)), ScaleY(Min(FBeginY, FOldY)), ScaleX(Max(FBeginX, FOldX)), ScaleY(Max(FBeginY, FOldY))))
+					DrawFocusRect(FHDC, @Type<..Rect>(ScaleX(Min(FBeginX, FNewX)), ScaleX(Min(FBeginY, FNewY)), ScaleX(Max(FBeginX, FNewX)), ScaleY(Max(FBeginY, FNewY))))
 				#endif
 				FOldX = FNewX
 				FOldY = FNewY
@@ -958,7 +958,7 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub Designer.MouseUp(X As Integer, Y As Integer, Shift As Integer)
-		Dim As ..Rect R
+		Dim As Rect R
 		If FDown Then
 			'    	if (FBeginX > FEndX and FBeginY > FEndY) then
 			'            swap FBeginX, FNewX
@@ -985,7 +985,7 @@ Namespace My.Sys.Forms
 						Ctrl = Objects.Item(i)
 						If Ctrl Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
-							If (ALeft > FBeginX And ALeft + AWidth < FNewX) And (ATop > FBeginY And ATop + AHeight < FNewY) Then
+							If (ALeft + AWidth / 2  > FBeginX AndAlso ATop + AHeight / 2 > FBeginY) AndAlso (ALeft + AWidth / 2 < FNewX AndAlso ATop + AHeight / 2 < FNewY) Then
 								If SelectedControls.Count > 0 Then
 									Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
 									If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
@@ -997,22 +997,20 @@ Namespace My.Sys.Forms
 					Next i
 				#else
 					FHDC = GetDC(FDialog)
-					DrawFocusRect(FHDC, @Type<..Rect>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
+					DrawFocusRect(FHDC, @Type<Rect>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
 					ReleaseDC(FDialog, FHDC)
 					SelectedControl = DesignControl
 					FSelControl = FDialog
-					Dim As ..Rect R
+					Dim As Rect R
 					Dim As Any Ptr Ctrl
 					'GetChilds()
 					For i As Integer = Objects.Count - 1 To 0 Step -1
-						'For i As Integer = 0 To FChilds.Count -1
 						Ctrl = Objects.Item(i)
-						'If IsWindowVisible(FChilds.Child[i]) Then
 						Dim As SymbolsType Ptr st = Symbols(Ctrl)
 						If Ctrl AndAlso st AndAlso st->ReadPropertyFunc <> 0 AndAlso st->ReadPropertyFunc(Ctrl, "Handle") AndAlso IsWindowVisible(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle"))) Then
 							GetWindowRect(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle")), @R)
-							MapWindowPoints(0, FDialog, Cast(..Point Ptr, @R) ,2)
-							If (UnScaleX(R.Left) > FBeginX And UnScaleX(R.Right) < FNewX) And (UnScaleY(R.Top) > FBeginY And UnScaleY(R.Bottom) < FNewY) Then
+							MapWindowPoints(0, FDialog, Cast(Point Ptr, @R) , 2)
+							If UnScaleX((R.Left + R.Right) / 2) > FBeginX AndAlso UnScaleY((R.Top + R.Bottom) / 2) > FBeginY AndAlso UnScaleX((R.Left + R.Right) / 2) < FNewX AndAlso UnScaleY((R.Top + R.Bottom) / 2) < FNewY Then
 								If SelectedControls.Count = 0 OrElse (Symbols(SelectedControls.Items[0]) AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc <> 0 AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = st->ReadPropertyFunc(Ctrl, "Parent")) Then
 									SelectedControls.Add Ctrl
 								End If
