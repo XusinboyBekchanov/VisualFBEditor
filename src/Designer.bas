@@ -986,7 +986,7 @@ Namespace My.Sys.Forms
 						Ctrl = Objects.Item(i)
 						If Ctrl Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
-							If (ALeft + AWidth / 2  > FBeginX AndAlso ATop + AHeight / 2 > FBeginY) AndAlso (ALeft + AWidth / 2 < FNewX AndAlso ATop + AHeight / 2 < FNewY) Then  
+							If ALeft + AWidth / 2  > FBeginX AndAlso ATop + AHeight / 2 > FBeginY AndAlso ALeft + AWidth / 2 < FNewX AndAlso ATop + AHeight / 2 < FNewY Then  
 								bSelection = True
 							ElseIf ALeft > FBeginX AndAlso ALeft < FNewX AndAlso ATop > FBeginY AndAlso ATop < FNewY Then 
 								bSelection = True
@@ -1025,9 +1025,9 @@ Namespace My.Sys.Forms
 							GetWindowRect(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle")), @R)
 							MapWindowPoints(0, FDialog, Cast(Point Ptr, @R) , 2)
 							R1 = Type<Rect>(UnScaleX(R.Left), UnScaleY(R.Top), UnScaleX(R.Right), UnScaleY(R.Bottom))
-							If (R1.Left + R1.Right) / 2) > FBeginX AndAlso (R1.Top + R1.Bottom) / 2) > FBeginY AndAlso (R1.Left + R1.Right) / 2 < FNewX AndAlso (R1.Top + R1.Bottom) / 2 < FNewY Then
+							If (R1.Left + R1.Right) / 2 > FBeginX AndAlso (R1.Top + R1.Bottom) / 2 > FBeginY AndAlso (R1.Left + R1.Right) / 2 < FNewX AndAlso (R1.Top + R1.Bottom) / 2 < FNewY Then
 								bSelection = True
-							If R1.Left > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top < FNewY Then
+							ElseIf R1.Left > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top < FNewY Then
 								bSelection = True
 							ElseIf R1.Left > FBeginX AndAlso R1.Top + R1.Bottom > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top + R1.Bottom < FNewY Then
 								 bSelection = True
