@@ -3479,7 +3479,11 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
-			FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
+			If QWString(st->ReadPropertyFunc(Ctrl, "ClassName")) = "TimerComponent" Then
+				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnTimer"
+			Else
+				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
+			End If
 			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
 				tb->tbrTop.Buttons.Item("Code")->Checked = True
 				tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
