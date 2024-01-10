@@ -1029,11 +1029,11 @@ Namespace My.Sys.Forms
 								bSelection = True
 							ElseIf R1.Left > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top < FNewY Then
 								bSelection = True
-							ElseIf R1.Left > FBeginX AndAlso R1.Top + R1.Bottom > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top + R1.Bottom < FNewY Then
+							ElseIf R1.Left > FBeginX AndAlso R1.Bottom > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Bottom < FNewY Then
 								 bSelection = True
-							ElseIf R1.Left + R1.Right > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Left + R1.Right < FNewX AndAlso R1.Top < FNewY Then
+							ElseIf R1.Right > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Right < FNewX AndAlso R1.Top < FNewY Then
 								 bSelection = True
-							ElseIf R1.Left + R1.Right > FBeginX AndAlso R1.Top + R1.Bottom > FBeginY AndAlso R1.Left + R1.Right < FNewX AndAlso R1.Top + R1.Bottom < FNewY Then
+							ElseIf R1.Right > FBeginX AndAlso R1.Bottom > FBeginY AndAlso R1.Right < FNewX AndAlso R1.Bottom < FNewY Then
 								bSelection = True
 							Else
 								bSelection = False
