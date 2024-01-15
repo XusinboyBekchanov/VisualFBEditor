@@ -20,8 +20,7 @@
 			.OnKeyPress = @Form_KeyPress_
 			.OnMouseUp = @_Form_MouseUp
 			.ContextMenu = @PopupMenu1
-			.DoubleBuffered = True
-			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.DoubleBuffered = true
 			.SetBounds 0, 0, 850, 460
 		End With
 		' picActive
@@ -1042,10 +1041,4 @@ End Sub
 
 Private Sub frmMenuEditor.mnuMoveDown_Click(ByRef Sender As MenuItem)
 	MoveDownMenuItem
-End Sub
-
-Private Sub frmMenuEditor.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	ActiveRect = 0
-	ParentRect = 0
-	ActiveCtrl = 0
 End Sub
