@@ -39,6 +39,7 @@
 		Declare Sub mnuMoveUp_Click(ByRef Sender As MenuItem)
 		Declare Static Sub mnuMoveDown_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem)
 		Declare Sub mnuMoveDown_Click(ByRef Sender As MenuItem)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As Picture picActive
