@@ -1431,7 +1431,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Sub Designer.UnHookControl(Control As HWND)
-			If IsWindow(Control) Then
+			If Control AndAlso IsWindow(Control) Then
 				If GetWindowLongPtr(Control, GWLP_WNDPROC) = @HookChildProc Then
 					SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(GetProp(Control, "@@@Proc")))
 					RemoveProp(Control, "@@@Designer")
@@ -2928,14 +2928,16 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.UnHook
 		#ifndef __USE_GTK__
-			SetWindowLongPtr(FDialog, GWLP_WNDPROC, CInt(GetProp(FDialog, "@@@Proc")))
-			RemoveProp(FDialog, "@@@Designer")
-			RemoveProp(FDialog, "@@@Proc")
-			UnHookParent
-			GetChilds
-			For i As Integer = 0 To FChilds.Count-1
-				UnHookControl(FChilds.Child[i])
-			Next
+			If FDialog Then
+				SetWindowLongPtr(FDialog, GWLP_WNDPROC, CInt(GetProp(FDialog, "@@@Proc")))
+				RemoveProp(FDialog, "@@@Designer")
+				RemoveProp(FDialog, "@@@Proc")
+				UnHookParent
+				GetChilds
+				For i As Integer = 0 To FChilds.Count-1
+					UnHookControl(FChilds.Child[i])
+				Next
+			End If
 		#endif
 	End Sub
 	
@@ -2975,9 +2977,11 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.UnHookParent
 		#ifndef __USE_GTK__
-			SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(GetProp(GetParent(FDialog), "@@@Proc")))
-			RemoveProp(FDialog, "@@@Designer")
-			RemoveProp(FDialog, "@@@Proc")
+			If FDialog Then
+				SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(GetProp(GetParent(FDialog), "@@@Proc")))
+				RemoveProp(FDialog, "@@@Designer")
+				RemoveProp(FDialog, "@@@Proc")
+			End If
 		#endif
 	End Sub
 	
