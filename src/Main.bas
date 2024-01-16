@@ -92,7 +92,7 @@ Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
-Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures
+Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
 Dim Shared As ToolPalette tbToolBox
@@ -6980,6 +6980,9 @@ Sub CreateMenusAndToolBars
 	mnuWatch.Add(ML("Show String"), "", "ShowStringWatch", @mClick)
 	mnuWatch.Add(ML("Show/Expand Variable"), "", "ShowExpandVariableWatch", @mClick)
 	
+	mnuProblems.Add(ML("Copy "), "", "ProblemsCopy", @mClick)
+	mnuProblems.Add(ML("Copy All"), "", "ProblemsCopyAll", @mClick)
+	
 	mnuProcedures.Add(ML("Locate procedure (source)"), "", "LocateProcedure", @mClick)
 	mnuProcedures.Add(ML("Toggle sort by module or by procedure"), "", "ToggleSort", @mClick)
 	mnuProcedures.Add("-")
@@ -8454,6 +8457,8 @@ Sub lvWatches_CellEdited(ByRef Designer As My.Sys.Object, ByRef Sender As TreeLi
 	End If
 End Sub
 
+lvProblems.ContextMenu = @mnuProblems
+
 lvWatches.Align = DockStyle.alClient
 lvWatches.ContextMenu = @mnuVars
 lvWatches.EditLabels = True
@@ -8588,7 +8593,7 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 '	pLocalArgs = @tb->Args
 	If tb->tn Then tb->tn->SelectItem
 	For i As Integer = 3 To miWindow->Count - 1
-		miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
+		If miWindow->Item(i) > 0 AndAlso tb->mi > 0 Then miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
 	Next
 	If tbOld AndAlso tb = tbOld Then Exit Sub
 	If tbOld > 0 Then
@@ -8895,7 +8900,7 @@ lvSuggestions.Align = DockStyle.alClient
 lvSuggestions.Columns.Add ML("Content"), , 500, cfLeft
 lvSuggestions.Columns.Add ML("Line"), , 50, cfRight
 lvSuggestions.Columns.Add ML("Column"), , 50, cfRight
-lvSuggestions.Columns.Add ML("File"), , 500, cfLeft
+lvSuggestions.Columns.Add ML("File"), , 700, cfLeft
 lvSuggestions.Columns.Add ML("Project"), , 500, cfLeft
 lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
 
