@@ -979,27 +979,13 @@ Namespace My.Sys.Forms
 					If GTK_IS_WIDGET(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 					Dim As Integer ALeft, ATop, AWidth, AHeight
 					Dim As Any Ptr Ctrl
-					Dim As Boolean bSelection
 					SelectedControl = DesignControl
 					FSelControl = FDialog
 					For i As Integer = Objects.Count - 1 To 0 Step -1
 						Ctrl = Objects.Item(i)
 						If Ctrl Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
-							If ALeft + AWidth / 2  > FBeginX AndAlso ATop + AHeight / 2 > FBeginY AndAlso ALeft + AWidth / 2 < FNewX AndAlso ATop + AHeight / 2 < FNewY Then  
-								bSelection = True
-							ElseIf ALeft > FBeginX AndAlso ALeft < FNewX AndAlso ATop > FBeginY AndAlso ATop < FNewY Then 
-								bSelection = True
-							ElseIf ALeft > FBeginX AndAlso ALeft < FNewX AndAlso ATop + AHeight > FBeginY AndAlso ATop + AHeight < FNewY Then 
-								bSelection = True
-							ElseIf ALeft + AWidth > FBeginX AndAlso ALeft + AWidth < FNewX AndAlso ATop > FBeginY AndAlso ATop < FNewY Then 
-								bSelection = True
-							ElseIf ALeft + AWidth > FBeginX AndAlso ALeft + AWidth < FNewX AndAlso ATop + AHeight > FBeginY AndAlso ATop + AHeight < FNewY Then
-								bSelection = True
-							Else
-								bSelection = False
-							End If
-							If bSelection Then
+							If Not (ALeft + AWidth < FBeginX OrElse ALeft > FNewX OrElse ATop > FNewY OrElse ATop + AHeight < FBeginY) Then
 								If SelectedControls.Count > 0 Then
 									Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
 									If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
@@ -1016,7 +1002,6 @@ Namespace My.Sys.Forms
 					SelectedControl = DesignControl
 					FSelControl = FDialog
 					Dim As Rect R, R1
-					Dim As Boolean bSelection
 					Dim As Any Ptr Ctrl
 					For i As Integer = Objects.Count - 1 To 0 Step -1
 						Ctrl = Objects.Item(i)
@@ -1025,20 +1010,7 @@ Namespace My.Sys.Forms
 							GetWindowRect(*Cast(HWND Ptr, st->ReadPropertyFunc(Ctrl, "Handle")), @R)
 							MapWindowPoints(0, FDialog, Cast(Point Ptr, @R) , 2)
 							R1 = Type<Rect>(UnScaleX(R.Left), UnScaleY(R.Top), UnScaleX(R.Right), UnScaleY(R.Bottom))
-							If (R1.Left + R1.Right) / 2 > FBeginX AndAlso (R1.Top + R1.Bottom) / 2 > FBeginY AndAlso (R1.Left + R1.Right) / 2 < FNewX AndAlso (R1.Top + R1.Bottom) / 2 < FNewY Then
-								bSelection = True
-							ElseIf R1.Left > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Top < FNewY Then
-								bSelection = True
-							ElseIf R1.Left > FBeginX AndAlso R1.Bottom > FBeginY AndAlso R1.Left < FNewX AndAlso R1.Bottom < FNewY Then
-								 bSelection = True
-							ElseIf R1.Right > FBeginX AndAlso R1.Top > FBeginY AndAlso R1.Right < FNewX AndAlso R1.Top < FNewY Then
-								 bSelection = True
-							ElseIf R1.Right > FBeginX AndAlso R1.Bottom > FBeginY AndAlso R1.Right < FNewX AndAlso R1.Bottom < FNewY Then
-								bSelection = True
-							Else
-								bSelection = False
-							End If
-							If bSelection Then
+							If Not (R1.Right < FBeginX OrElse R1.Left > FNewX OrElse R1.Top > FNewY OrElse R1.Bottom < FBeginY) Then
 								If SelectedControls.Count = 0 OrElse (Symbols(SelectedControls.Items[0]) AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc <> 0 AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = st->ReadPropertyFunc(Ctrl, "Parent")) Then
 									SelectedControls.Add Ctrl
 								End If
@@ -1459,7 +1431,7 @@ Namespace My.Sys.Forms
 	
 	#ifndef __USE_GTK__
 		Sub Designer.UnHookControl(Control As HWND)
-			If IsWindow(Control) Then
+			If Control AndAlso IsWindow(Control) Then
 				If GetWindowLongPtr(Control, GWLP_WNDPROC) = @HookChildProc Then
 					SetWindowLongPtr(Control, GWLP_WNDPROC, CInt(GetProp(Control, "@@@Proc")))
 					RemoveProp(Control, "@@@Designer")
@@ -2956,14 +2928,16 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.UnHook
 		#ifndef __USE_GTK__
-			SetWindowLongPtr(FDialog, GWLP_WNDPROC, CInt(GetProp(FDialog, "@@@Proc")))
-			RemoveProp(FDialog, "@@@Designer")
-			RemoveProp(FDialog, "@@@Proc")
-			UnHookParent
-			GetChilds
-			For i As Integer = 0 To FChilds.Count-1
-				UnHookControl(FChilds.Child[i])
-			Next
+			If FDialog Then
+				SetWindowLongPtr(FDialog, GWLP_WNDPROC, CInt(GetProp(FDialog, "@@@Proc")))
+				RemoveProp(FDialog, "@@@Designer")
+				RemoveProp(FDialog, "@@@Proc")
+				UnHookParent
+				GetChilds
+				For i As Integer = 0 To FChilds.Count-1
+					UnHookControl(FChilds.Child[i])
+				Next
+			End If
 		#endif
 	End Sub
 	
@@ -3003,9 +2977,11 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.UnHookParent
 		#ifndef __USE_GTK__
-			SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(GetProp(GetParent(FDialog), "@@@Proc")))
-			RemoveProp(FDialog, "@@@Designer")
-			RemoveProp(FDialog, "@@@Proc")
+			If FDialog Then
+				SetWindowLongPtr(GetParent(FDialog), GWLP_WNDPROC, CInt(GetProp(GetParent(FDialog), "@@@Proc")))
+				RemoveProp(FDialog, "@@@Designer")
+				RemoveProp(FDialog, "@@@Proc")
+			End If
 		#endif
 	End Sub
 	
