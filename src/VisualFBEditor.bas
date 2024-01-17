@@ -217,6 +217,15 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
+	Case "ProblemsCopy":                        Clipboard.SetAsText lvProblems.SelectedItem->Text(0)
+	Case "ProblemsCopyAll":
+		Dim As WString Ptr tmpStrPtr
+		If lvProblems.ListItems.Count < 1 Then Return
+		For j As Integer = 0 To lvProblems.ListItems.Count - 1
+			WAdd(tmpStrPtr, Chr(13, 10) & lvProblems.ListItems.Item(j)->Text(0))
+		Next
+		Clipboard.SetAsText *tmpStrPtr
+		Deallocate tmpStrPtr
 	Case "DarkMode":
 		DarkMode = Not DarkMode
 		App.DarkMode = DarkMode
