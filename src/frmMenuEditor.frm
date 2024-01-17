@@ -1048,4 +1048,5 @@ Private Sub frmMenuEditor.Form_Close(ByRef Sender As Form, ByRef Action As Integ
 	ActiveRect = 0
 	ParentRect = 0
 	ActiveCtrl = 0
+	picActive.Visible = False
 End Sub

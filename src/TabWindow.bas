@@ -3444,31 +3444,48 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
 	Select Case QWString(st->ReadPropertyFunc(Ctrl, "ClassName"))
 	Case "MainMenu", "PopupMenu"
+		pfMenuEditor->UpdateLock
+		pfMenuEditor->ActiveCtrl = 0
+		pfMenuEditor->ActiveRect = 0
+		pfMenuEditor->ParentRect = 0
+		pfMenuEditor->picActive.Visible = False
 		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = Ctrl
 		pfMenuEditor->CurrentToolBar = 0
 		pfMenuEditor->CurrentStatusBar = 0
-		pfMenuEditor->ParentRect = 0
 		pfMenuEditor->Caption = ML("Menu Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->UpdateUnLock
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ToolBar"
+		pfMenuEditor->UpdateLock
+		pfMenuEditor->ActiveCtrl = 0
+		pfMenuEditor->ActiveRect = 0
+		pfMenuEditor->ParentRect = 0
+		pfMenuEditor->picActive.Visible = False
 		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = 0
 		pfMenuEditor->CurrentToolBar = Ctrl
 		pfMenuEditor->CurrentStatusBar = 0
 		pfMenuEditor->Caption = ML("ToolBar Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->UpdateUnLock
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "StatusBar"
+		pfMenuEditor->UpdateLock
+		pfMenuEditor->ActiveCtrl = 0
+		pfMenuEditor->ActiveRect = 0
+		pfMenuEditor->ParentRect = 0
+		pfMenuEditor->picActive.Visible = False
 		pfMenuEditor->tb = tb
 		pfMenuEditor->Des = @Sender
 		pfMenuEditor->CurrentMenu = 0
 		pfMenuEditor->CurrentToolBar = 0
 		pfMenuEditor->CurrentStatusBar = Ctrl
 		pfMenuEditor->Caption = ML("StatusBar Editor") & ": " & QWString(st->ReadPropertyFunc(Ctrl, "Name"))
+		pfMenuEditor->UpdateUnLock
 		pfMenuEditor->Repaint
 		pfMenuEditor->Show *pfrmMain
 	Case "ImageList"
