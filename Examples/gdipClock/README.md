@@ -18,9 +18,9 @@ Save settings
 
 Simple theme/skin
 
-![image](https://github.com/chunmingwang/gdipClock/assets/35757455/ca2cce49-85f4-46ba-bf1f-83a3a0f0bb8b)
+![image](https://github.com/chunmingwang/gdipClock/assets/35757455/be13f1b1-40ff-479a-bc5b-a665b72d1d7e)
 
-![image](https://github.com/chunmingwang/gdipClock/assets/35757455/9cffe190-02f6-4681-899a-f10845e0f174)
+![image](https://github.com/chunmingwang/gdipClock/assets/35757455/7f7e79e8-baa0-42f5-88fe-8ee2cdca40fc)
 
 Speech time
 

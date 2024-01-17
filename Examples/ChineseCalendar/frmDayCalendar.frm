@@ -1,5 +1,5 @@
 ﻿' Chinese Calendar 中国日历
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -59,6 +59,7 @@
 			.Location = Type<My.Sys.Drawing.Point>(0, 0)
 			.Size = Type<My.Sys.Drawing.Size>(334, 261)
 			.Enabled = False
+			.DoubleBuffered = true
 			.SetBounds 0, 0, 314, 211
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Paint)

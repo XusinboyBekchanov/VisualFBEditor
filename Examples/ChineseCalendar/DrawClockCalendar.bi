@@ -1,33 +1,30 @@
 ﻿' DrawClockCalendar 绘制时钟日历
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "mff/Canvas.bi"
-
+#include once "Lunar.bi"
+	
 #define vbRGB(r, g, b) CULng((CUByte(b) Shl 16) Or (CUByte(g) Shl 8) Or CUByte(r))
 
 Type DitalClock
 Private:
 	mFontSize As Integer
-	mDt       As String
-	mDh       As String
-	mDm       As String
-	mDS       As String
-	mDPM      As String
-	mColon    As String
-	mW(2)     As Integer
-	mH(0)     As Integer
-	mOx       As Integer
-	mOy       As Integer
-	'index                 0     1     2     3     4     5     6     7     8
-	mC(8)     As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
-	mShowSec  As Boolean = True
+	mDt As String
+	mColon As String
+	mW(2) As Integer
+	mH(0) As Integer
+	mOx As Integer
+	mOy As Integer
+	mCal As Lunar
+	'index            0     1     2     3     4     5     6     7     8
+	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
+	mShowSec As Boolean = True
 	Declare Sub CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHeight As Boolean = True)
 Public:
 	mClr(5) As ULong
 	FontNameE As String
 	FontNameC As String
-	FontNameClock As String
 	Mark As Long
 	Declare Constructor
 	Declare Destructor
@@ -39,18 +36,16 @@ Public:
 	Declare Property Width() As Integer
 	Declare Property Height() As Integer
 	Declare Sub DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal byHeight As Boolean = True)
-	Declare Sub DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, fDiameter As Integer, CenterX As Integer = 0, CenterY As Integer = 0)
 End Type
 
 Type DayCalendar
 Private:
 	mFontSize As Integer
 	mDt As String
-	mColon As String
 	mShowCalendar As Boolean
 	mW(0) As Single
 	mH(3) As Single
-	
+	mCal As Lunar
 	'index            0     1     2     3     4     5     6     7     8
 	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
 	mDrawStyle As Integer=0
@@ -86,7 +81,7 @@ Private:
 	mCellHeight As Single
 	'格子宽
 	mCellWidth As Single
-	cal As LunarCalendar
+	mCal As Lunar
 	
 	mColCount As Integer = 7
 	

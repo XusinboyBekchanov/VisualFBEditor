@@ -1,5 +1,5 @@
 ﻿' Chinese Calendar 中国日历
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -150,7 +150,7 @@
 			.Name = "mnuWeeks"
 			.Designer = @This
 			.Caption = "Show weeks"
-			.Checked = true
+			.Checked = True
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWeeks_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -167,7 +167,7 @@
 
 Private Sub frmMonthCalendarType.Form_Create(ByRef Sender As Control)
 	Dim i As Integer
-	For i = 2020 To 2049
+	For i = 1901 To 2199
 		ComboBoxEdit1.AddItem "" & i
 	Next
 	
@@ -186,14 +186,14 @@ Private Sub frmMonthCalendarType.ComboBoxEdit1_Selected(ByRef Sender As ComboBox
 End Sub
 
 Private Sub frmMonthCalendarType.CommandButton1_Click(ByRef Sender As Control)
-	ComboBoxEdit1.ItemIndex = Year(Now) - 2020
+	ComboBoxEdit1.ItemIndex = Year(Now) - 1901
 	ComboBoxEdit2.ItemIndex = Month(Now) - 1
 	ComboBoxEdit3.ItemIndex = Day(Now) - 1
 	Panel2.Repaint
 End Sub
 
 Private Sub frmMonthCalendarType.Panel2_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	Dim DateTime As Double = DateSerial(ComboBoxEdit1.ItemIndex + 2020, ComboBoxEdit2.ItemIndex + 1, ComboBoxEdit3.ItemIndex + 1)
+	Dim DateTime As Double = DateSerial(ComboBoxEdit1.ItemIndex + 1901, ComboBoxEdit2.ItemIndex + 1, ComboBoxEdit3.ItemIndex + 1)
 	#ifdef __FB_64BIT__
 		Caption = "VFBE MonthCalendar64 - " & Format(DateTime, "yyyy/mm/dd")
 	#else
@@ -213,7 +213,7 @@ Private Sub frmMonthCalendarType.Panel2_MouseUp(ByRef Sender As Control, MouseBu
 	Select Case MouseButton
 	Case 0 'left
 		Dim DateTime As Double = mMonCale.XY2Date(x, y)
-		ComboBoxEdit1.ItemIndex = Year(DateTime) - 2020
+		ComboBoxEdit1.ItemIndex = Year(DateTime) - 1901
 		ComboBoxEdit2.ItemIndex = Month(DateTime) - 1
 		ComboBoxEdit3.ItemIndex = Day(DateTime) - 1
 		Panel2.Repaint

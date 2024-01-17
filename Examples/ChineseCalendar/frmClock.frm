@@ -1,5 +1,5 @@
 ﻿' Chinese Calendar 中国日历
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -11,20 +11,18 @@
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
-	#include once "mff/Picture.bi"
 	#include once "mff/Panel.bi"
 	#include once "mff/TimerComponent.bi"
+	#include once "mff/Picture.bi"
 	#include once "mff/Menus.bi"
 	
 	#include once "string.bi"
 	#include once "vbcompat.bi"
 	
-	#include once "LunarCalendar.bi"
 	#include once "DrawClockCalendar.bi"
 	#include once "../SapiTTS/Speech.bi"
 	
 	Using My.Sys.Forms
-	Using My.Sys.Drawing
 	Using Speech
 	
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
@@ -32,14 +30,13 @@
 	Type frmClockType Extends Form
 		#ifdef __USE_WINAPI__
 			pSpVoice As Afx_ISpVoice Ptr
-			'pTokenItem As Afx_ISpObjectToken Ptr
 		#endif
 		
 		mDClock As DitalClock
 		mVoiceCount As Integer = -1
 		mAudioCount As Integer = -1
 		mLanguage As Integer = 0
-		mShowClockMode  As Integer
+		
 		mnuVoiceSub(Any) As MenuItem Ptr
 		mnuAudioSub(Any) As MenuItem Ptr
 		
@@ -49,21 +46,19 @@
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub TimerComponent2_Timer(ByRef Sender As TimerComponent)
 		Declare Sub Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-		Declare Sub mnu_Click(ByRef Sender As MenuItem)
+		Declare Sub mnuMenu_Click(ByRef Sender As MenuItem)
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Message(ByRef Sender As Control, ByRef Msg As Message)
 		Declare Sub Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Move(ByRef Sender As Control)
-		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Constructor
 		
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As Panel Panel1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar3, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar4, mnuAbout, mnuBar5, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuHideCaption, mnuNoneBorder, mnuBar2, mnuAnnounce, mnuAnnounce1, mnuAnnounce2, mnuAnnounce3, mnuAnnounce0, mnuSpeechNow, mnuABar1, mnuBar1, mnuAudio, mnuVoice, mnuABar2, mnuHeight, mnuOpacity
-		Dim As MenuItem mnuShowClock, mnuShowsClock, mnuShowStopwatch, mnuShowDigital
+		Dim As MenuItem mnuAlwaysOnTop, mnuClickThrough, mnuAutoStart, mnuTransparent, mnuBar3, mnuArrange, mnuDayCalendar, mnuMonthCalendar, mnuBar4, mnuAbout, mnuBar5, mnuExit, mnuClose, mnuHide, mnuBlinkColon, mnuShowSec, mnuHideCaption, mnuNoneBorder, mnuBar2, mnuAnnounce, mnuAnnounce1, mnuAnnounce2, mnuAnnounce3, mnuAnnounce0, mnuABar1, mnuBar1, mnuAudio, mnuVoice, mnuHeight, mnuOpacity, mnuSpeechNow
 	End Type
 	
 	Constructor frmClockType
@@ -76,15 +71,13 @@
 			#else
 				.Caption = "VFBE Clock32"
 			#endif
+			.Designer = @This
 			.Font.Name = "Consolas"
 			.Font.Size = 12
 			.Font.Bold = True
 			.StartPosition = FormStartPosition.CenterScreen
-			.BackColor = clPink
-			.Transparent = True
-			.DoubleBuffered = True
-			.BorderStyle= FormBorderStyle.Sizable
-			.Designer = @This
+			.Location = Type<My.Sys.Drawing.Point>(0, 0)
+			.Size = Type<My.Sys.Drawing.Size>(330, 130)
 			.ContextMenu = @PopupMenu1
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
@@ -93,15 +86,14 @@
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Move)
 			.Opacity = 254
-			'.TransparentColor = mDClock.mClr(0)
+			.TransparentColor = mDClock.mClr(0)
 			.Icon = "1"
-			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
 			.SetBounds 0, 0, 330, 140
 		End With
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
-			.Interval = 200
+			.Interval = 20
 			.Enabled = True
 			.SetBounds 10, 10, 16, 16
 			.Designer = @This
@@ -123,16 +115,11 @@
 			.Text = ""
 			.TabIndex = 0
 			.Align = DockStyle.alClient
+			.Location = Type<My.Sys.Drawing.Point>(0, 0)
+			.Size = Type<My.Sys.Drawing.Size>(324, 91)
 			.Enabled = False
-			.BackColor = clPink
 			.DoubleBuffered = True
-			.Transparent = True
-			.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
-			.Graphic.CenterImage = True 
-			.Graphic.StretchImage = StretchMode.smStretchProportional
-			.Graphic.Visible= False 
-			.SetBounds 0, 0, 319, 112
-			'.Canvas.UsingGdip = True
+			.SetBounds 65280, 0, 314, 101
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Paint)
 			.Parent = @This
@@ -149,7 +136,7 @@
 			.Name = "mnuAlwaysOnTop"
 			.Designer = @This
 			.Caption = "Always on top"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuClickThrough
@@ -157,7 +144,7 @@
 			.Name = "mnuClickThrough"
 			.Designer = @This
 			.Caption = "Click through"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuAutoStart
@@ -165,7 +152,7 @@
 			.Name = "mnuAutoStart"
 			.Designer = @This
 			.Caption = "Auto start"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuBar1
@@ -180,7 +167,7 @@
 			.Name = "mnuOpacity"
 			.Designer = @This
 			.Caption = "Opacity"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuTransparent
@@ -188,8 +175,7 @@
 			.Name = "mnuTransparent"
 			.Designer = @This
 			.Caption = "Transparent"
-			.Checked = True 
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuBlinkColon
@@ -198,7 +184,7 @@
 			.Designer = @This
 			.Caption = "Blink colon"
 			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuShowSec
@@ -207,48 +193,15 @@
 			.Designer = @This
 			.Caption = "Show second"
 			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
-		End With
-		' mnuShowClock
-		With mnuShowClock
-			.Name = "mnuShowClock"
-			.Designer = @This
-			.Caption = "Clock"
-			.Checked = True 
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @PopupMenu1
-		End With
-		' mnuShowDigital
-		With mnuShowDigital
-			.Name = "mnuShowDigital"
-			.Designer = @This
-			.Caption = "Digital clock"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @mnuShowClock
-		End With
-		' mnuShowStopwatch
-		With mnuShowStopwatch
-			.Name = "mnuShowStopwatch"
-			.Designer = @This
-			.Caption = "Stopwatch"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @mnuShowClock
-		End With
-		' mnuShowClock
-		With mnuShowsClock
-			.Name = "mnuShowsClock"
-			.Designer = @This
-			.Caption = "Clock"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @mnuShowClock
 		End With
 		' mnuHideCaption
 		With mnuHideCaption
 			.Name = "mnuHideCaption"
 			.Designer = @This
 			.Caption = "Hide caption"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuNoneBorder
@@ -256,7 +209,7 @@
 			.Name = "mnuNoneBorder"
 			.Designer = @This
 			.Caption = "None border"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuHide
@@ -264,7 +217,7 @@
 			.Name = "mnuHide"
 			.Designer = @This
 			.Caption = "Hide clock"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuHeight
@@ -273,7 +226,7 @@
 			.Designer = @This
 			.Caption = "Height size"
 			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuBar2
@@ -291,6 +244,14 @@
 			.Enabled = False
 			.Parent = @PopupMenu1
 		End With
+		' mnuSpeechNow
+		With mnuSpeechNow
+			.Name = "mnuSpeechNow"
+			.Designer = @This
+			.Caption = "Speech time"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @PopupMenu1
+		End With
 		' mnuBar3
 		With mnuBar3
 			.Name = "mnuBar3"
@@ -304,7 +265,7 @@
 			.Designer = @This
 			.Caption = "Arrange"
 			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuDayCalendar
@@ -312,7 +273,7 @@
 			.Name = "mnuDayCalendar"
 			.Designer = @This
 			.Caption = "Day calendar"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuMonthCalendar
@@ -320,7 +281,7 @@
 			.Name = "mnuMonthCalendar"
 			.Designer = @This
 			.Caption = "Month calendar"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuClose
@@ -328,7 +289,7 @@
 			.Name = "mnuClose"
 			.Designer = @This
 			.Caption = "Close"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuBar4
@@ -343,7 +304,7 @@
 			.Name = "mnuAbout"
 			.Designer = @This
 			.Caption = "About"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuBar5
@@ -351,7 +312,7 @@
 			.Name = "mnuBar5"
 			.Designer = @This
 			.Caption = "-"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuExit
@@ -359,7 +320,7 @@
 			.Name = "mnuExit"
 			.Designer = @This
 			.Caption = "Exit"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
 		' mnuVoice
@@ -391,7 +352,7 @@
 			.Designer = @This
 			.Caption = "None"
 			.Checked = False
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce1
@@ -399,7 +360,7 @@
 			.Name = "mnuAnnounce1"
 			.Designer = @This
 			.Caption = "Hourly"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce2
@@ -407,7 +368,7 @@
 			.Name = "mnuAnnounce2"
 			.Designer = @This
 			.Caption = "Half hour"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce3
@@ -416,22 +377,7 @@
 			.Designer = @This
 			.Caption = "Quarter hour"
 			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @mnuAnnounce
-		End With
-		' mnuABar2
-		With mnuABar2
-			.Name = "mnuABar2"
-			.Designer = @This
-			.Caption = "-"
-			.Parent = @mnuAnnounce
-		End With
-		' mnuSpeechNow
-		With mnuSpeechNow
-			.Name = "mnuSpeechNow"
-			.Designer = @This
-			.Caption = "Speech now"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 	End Constructor
@@ -439,7 +385,6 @@
 	Dim Shared frmClock As frmClockType
 	
 	#if _MAIN_FILE_ = __FILE__
-		App.DarkMode = True 
 		frmClock.MainForm = True
 		frmClock.Show
 		App.Run
@@ -454,15 +399,18 @@ Const WM_SHELLNOTIFY = WM_USER + 5
 #include once "frmDayCalendar.frm"
 #include once "frmMonthCalendar.frm"
 
-Function CheckAutoStart() As Integer
+
+
+Private Function CheckAutoStart() As Integer
+	Dim As Integer CheckResult = 0
 	#ifdef __USE_WINAPI__
 		'Region registry
+		
 		Dim As Any Ptr hReg
-		Static As WString Ptr sNewRegValue= 0
+		Dim As WString Ptr sNewRegValue = NULL
 		Dim As DWORD lRegLen = 0
 		Dim As DWORD lpType  = 0
 		Dim As Long lRes
-		
 		'open
 		lRes = RegOpenKeyEx(HKEY_CURRENT_USER, "SOFTWARE\Microsoft\Windows\CurrentVersion\Run", 0, KEY_ALL_ACCESS, @hReg)
 		If lRes <> ERROR_SUCCESS Then
@@ -479,14 +427,13 @@ Function CheckAutoStart() As Integer
 		
 		'close registry
 		RegCloseKey(hReg)
-		
-		Return lRegLen
-	#else
-		Return 0
+		CheckResult = InStr(*sNewRegValue, Command(0))
+		Deallocate(sNewRegValue)
 	#endif
+	Return CheckResult
 End Function
 
-Sub AutoStartReg(flag As Boolean = True)
+Private Sub AutoStartReg(flag As Boolean = True)
 	#ifdef __USE_WINAPI__
 		'Region registry
 		Dim As Any Ptr hReg
@@ -526,6 +473,7 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	End If
 	mDClock.Mark = 1
 	Panel1.Repaint
+	
 	If mnuAnnounce0.Checked Then Exit Sub
 	If Second(dnow) <> 0 Then Exit Sub
 	Dim m As Integer = Minute(dnow)
@@ -584,12 +532,14 @@ Private Sub frmClockType.SpeechInit()
 				mnuVoiceSub(i)->Parent = @mnuVoice
 				mnuVoiceSub(i)->Name = "mnuVoiceSub" & i
 				mnuVoiceSub(i)->Caption = *pStr
-				mnuVoiceSub(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+				mnuVoiceSub(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 				mnuVoiceSub(i)->Tag = pTokenItem
 				
 				mnuVoice.Add mnuVoiceSub(i)
 			Next
 			mnuVoiceSub(0)->Checked = True
+			mnuVoice.Enabled = True
+			mnuMenu_Click(*mnuVoiceSub(0))
 			
 			pVoice->Release()
 			pVoice = NULL
@@ -597,43 +547,41 @@ Private Sub frmClockType.SpeechInit()
 			pTokenCategory = NULL
 			pTokenEnum->Release()
 			pTokenEnum = NULL
-			
-			mnuVoice.Enabled = True 
 		End If
 		
-		'pSpVoice->GetOutputObjectToken(@pAudio)
-		'pAudio->GetCategory(@pTokenCategory)
-		'pTokenCategory->EnumTokens(@"", @"", @pTokenEnum)
-		'pTokenEnum->GetCount(@pCount)
-		'mAudioCount = pCount - 1
-		'
-		'If mAudioCount >-1 Then
-		'	ReDim mnuAudioSub(mAudioCount)
-		'	For i = 0 To mAudioCount
-		'		pTokenEnum->Item(i, @pTokenItem)
-		'		pTokenItem->GetStringValue(NULL, @pStr)
-		'		
-		'		mnuAudioSub(i) = New MenuItem
-		'		mnuAudioSub(i)->Designer = @This
-		'		mnuAudioSub(i)->Parent = @mnuAudio
-		'		mnuAudioSub(i)->Name = "mnuAudioSub" & i
-		'		mnuAudioSub(i)->Caption = *pStr
-		'		mnuAudioSub(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-		'		mnuAudioSub(i)->Tag = pTokenItem
-		'		
-		'		mnuAudio.Add mnuAudioSub(i)
-		'	Next
-		'	mnuAudioSub(0)->Checked = True
-		'	
-		'	pAudio->Release()
-		'	pAudio = NULL
-		'	pTokenCategory->Release()
-		'	pTokenCategory = NULL
-		'	pTokenEnum->Release()
-		'	pTokenEnum = NULL
-		'	
-		'	mnuAudio.Enabled = True 
-		'End If
+		pSpVoice->GetOutputObjectToken(@pAudio)
+		pAudio->GetCategory(@pTokenCategory)
+		pTokenCategory->EnumTokens(@"", @"", @pTokenEnum)
+		pTokenEnum->GetCount(@pCount)
+		mAudioCount = pCount - 1
+		
+		If mAudioCount >-1 Then
+			ReDim mnuAudioSub(mAudioCount)
+			For i = 0 To mAudioCount
+				pTokenEnum->Item(i, @pTokenItem)
+				pTokenItem->GetStringValue(NULL, @pStr)
+		
+				mnuAudioSub(i) = New MenuItem
+				mnuAudioSub(i)->Designer = @This
+				mnuAudioSub(i)->Parent = @mnuAudio
+				mnuAudioSub(i)->Name = "mnuAudioSub" & i
+				mnuAudioSub(i)->Caption = *pStr
+				mnuAudioSub(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+				mnuAudioSub(i)->Tag = pTokenItem
+		
+				mnuAudio.Add mnuAudioSub(i)
+			Next
+			mnuAudioSub(0)->Checked = True
+		
+			pAudio->Release()
+			pAudio = NULL
+			pTokenCategory->Release()
+			pTokenCategory = NULL
+			pTokenEnum->Release()
+			pTokenEnum = NULL
+		
+			mnuAudio.Enabled = True
+		End If
 	#endif
 End Sub
 
@@ -676,55 +624,29 @@ Private Sub frmClockType.TimerComponent2_Timer(ByRef Sender As TimerComponent)
 End Sub
 
 Private Sub frmClockType.Panel1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	If mShowClockMode = 0 Then 
-		mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
-	Else
-		Dim As Single R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.85
-		'TODO The Center of clock is not the same of image
-		Dim As Single CenterOffsetX
-		Dim As Single CenterOffsetY
-		'Debug.Print Panel1.Graphic.Bitmap.Width, Panel1.Graphic.Bitmap.Height, Canvas.Width, Canvas.Height, This.Width, This.Height
-		'If Panel1.Graphic.Bitmap.Handle> 0 Then
-		'	If Panel1.Graphic.Bitmap.Width > Panel1.Graphic.Bitmap.Height Then
-		'		CenterOffsetX = 0 '(UnScaleX(Panel1.Graphic.Bitmap.Width - Panel1.Graphic.Bitmap.Height) / 2) '* (Panel1.Graphic.Bitmap.Height / Panel1.Graphic.Bitmap.Width
-		'		CenterOffsetY = 0
-		'	Else
-		'		CenterOffsetX = 0
-		'		CenterOffsetY = 0 '(UnScaleY(Panel1.Graphic.Bitmap.Height - Panel1.Graphic.Bitmap.Width) / 2) '/ (Panel1.Graphic.Bitmap.Height / Panel1.Graphic.Bitmap.Width)
-		'	End If
-		'End If
-		'Debug.Print CenterOffsetX, CenterOffsetY
-		If mShowClockMode = 2 Then R = Min(ScaleX(Canvas.Width), ScaleY(Canvas.Height)) *.5
-		mDClock.DrawClockImg(Canvas, Now(), R, Canvas.Width / 2 + CenterOffsetX, Canvas.Height / 2 + CenterOffsetY)
-	End If
+	mDClock.DrawClock(Canvas, Now, mnuHeight.Checked)
 End Sub
 
-
-Private Sub frmClockType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	
-End Sub
-
-
-Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
+Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
 	Case "mnuAlwaysOnTop"
 		Sender.Checked = Not Sender.Checked
 		FormStyle = IIf(Sender.Checked, FormStyles.fsStayOnTop, FormStyles.fsNormal)
 	Case "mnuClickThrough"
-		'Sender.Checked = Not Sender.Checked
-		'If Sender.Checked Then
-		'	#ifdef __USE_WINAPI__
-		'		SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-		'		If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-		'		If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
-		'	#endif
-		'Else
-		'	#ifdef __USE_WINAPI__
-		'		SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-		'		If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-		'		If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
-		'	#endif
-		'End If
+		Sender.Checked = Not Sender.Checked
+		If Sender.Checked Then
+			#ifdef __USE_WINAPI__
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+				If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+				If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT)
+			#endif
+		Else
+			#ifdef __USE_WINAPI__
+				SetWindowLongPtr(Handle, GWL_EXSTYLE, GetWindowLongPtr(Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+				If frmDayCalendar.Handle Then SetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmDayCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+				If frmMonthCalendar.Handle Then SetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE, GetWindowLongPtr(frmMonthCalendar.Handle, GWL_EXSTYLE) Xor WS_EX_TRANSPARENT)
+			#endif
+		End If
 	Case "mnuAutoStart"
 		Sender.Checked = Not Sender.Checked
 		AutoStartReg Sender.Checked
@@ -759,40 +681,6 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 		mnuAnnounce1.Checked = False
 		mnuAnnounce2.Checked = False
 		mnuAnnounce3.Checked = True
-	Case "mnuShowDigital"
-		mnuShowDigital.Checked = True
-		mnuShowsClock.Checked = False
-		mnuShowStopwatch.Checked = False
-		Panel1.BackColor = clPink
-		Panel1.Canvas.Cls
-		Panel1.Transparent = False 
-		ShowCaption = Not mnuHideCaption.Checked
-		Panel1.Graphic.Visible = False
-		mShowClockMode = 0
-		BorderStyle= FormBorderStyle.Sizable
-		Panel1.Graphic.Visible = False 
-	Case "mnuShowsClock"
-		mnuShowsClock.Checked = True
-		mnuShowStopwatch.Checked = False
-		mnuShowDigital.Checked = False
-		mShowClockMode = 1
-		Panel1.Canvas.Cls
-		Panel1.Transparent = True
-		ShowCaption = False 
-		BorderStyle= FormBorderStyle.Sizable
-		Panel1.Graphic.Visible = True 
-		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/ClockWhite.png")
-	Case "mnuShowStopwatch"
-		mnuShowsClock.Checked = False
-		mnuShowStopwatch.Checked = True
-		mnuShowDigital.Checked = False
-		mShowClockMode = 2
-		Panel1.Canvas.Cls
-		Panel1.Transparent = True
-		ShowCaption = False
-		BorderStyle= FormBorderStyle.Sizable
-		Panel1.Graphic.Visible = True
-		Panel1.Graphic.LoadFromFile(ExePath & "/Resources/Stopwatch.png")
 	Case "mnuSpeechNow"
 		SpeechNow(Now(), mLanguage)
 	Case "mnuNoneBorder"
@@ -840,7 +728,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 				.ShowCaption = ShowCaption
 				.BorderStyle = BorderStyle
 				.Opacity = Opacity
-				.Transparent = Transparent 
+				.Transparent = Transparent
 			Else
 				If .Handle Then .CloseForm
 			End If
@@ -862,7 +750,7 @@ Private Sub frmClockType.mnu_Click(ByRef Sender As MenuItem)
 				.ShowCaption = ShowCaption
 				.BorderStyle = BorderStyle
 				.Opacity = Opacity
-				.Transparent = Transparent 
+				.Transparent = Transparent
 			Else
 				If .Handle Then .CloseForm
 			End If
@@ -909,6 +797,8 @@ End Sub
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	If CheckAutoStart() Then mnuAutoStart.Checked = True
 	
+	SetWindowLong Handle, GWL_EXSTYLE, GetWindowLong(Handle, GWL_EXSTYLE) Or WS_EX_LAYERED
+	
 	#ifdef __USE_WINAPI__
 		CoInitialize(NULL)
 		SpeechInit()
@@ -945,7 +835,6 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	#else
 		
 	#endif
-	ShowCaption = False 
 End Sub
 
 Private Sub frmClockType.Form_Destroy(ByRef Sender As Control)
@@ -963,7 +852,7 @@ Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Mess
 		Case WM_SHELLNOTIFY
 			Select Case Msg.lParam
 			Case WM_LBUTTONDBLCLK
-				mnu_Click(mnuHide)
+				mnuMenu_Click(mnuHide)
 			Case WM_RBUTTONDOWN
 				Dim tPOINT As Point
 				GetCursorPos(@tPOINT)
@@ -974,10 +863,10 @@ Private Sub frmClockType.Form_Message(ByRef Sender As Control, ByRef Msg As Mess
 			'Have a small bar after hide the caption, this code to remove it.
 			'There also have a None Border option for full display on the form.
 			'If you like the small bar, then remark it.
-			If Not ShowCaption Then
-				Dim As LPNCCALCSIZE_PARAMS pncc = Cast(LPNCCALCSIZE_PARAMS, Msg.lParam)
-				pncc->rgrc(0).Top -= 6
-			End If
+			'If Not ShowCaption Then
+			'	Dim As LPNCCALCSIZE_PARAMS pncc = Cast(LPNCCALCSIZE_PARAMS, Msg.lParam)
+			'	pncc->rgrc(0).Top -= 6
+			'End If
 		End Select
 	#endif
 End Sub
@@ -1002,6 +891,5 @@ Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Intege
 End Sub
 
 Private Sub frmClockType.Form_Move(ByRef Sender As Control)
-	'Form_Resize(This, 0, 0)
+	Form_Resize(This, 0, 0)
 End Sub
-

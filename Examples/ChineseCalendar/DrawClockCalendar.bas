@@ -1,16 +1,10 @@
 ﻿' DrawClockCalendar 绘制时钟日历
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "DrawClockCalendar.bi"
 
 'DitalClock############################################################
-Dim Shared As Single fPi, fRad, fDeg
-fPi = Acos(-1)
-fRad = fPi / 180
-fDeg = 180 / fPi
-Dim Shared As ULong iShadowColor, iShadowColor2 = &h90000000
-iShadowColor = &h20A0A0A0
 
 Destructor DitalClock
 	
@@ -18,8 +12,7 @@ End Destructor
 
 Constructor DitalClock
 	mColon = ":"
-	FontNameE = "Arial"
-	FontNameClock = "FX-LED"
+	FontNameE = "Arial"'"FX-LED"
 	FontNameC = "微软雅黑"
 	
 	'调颜色
@@ -67,7 +60,7 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHe
 		mFontSize = Canvas.Width / 4.3     '时分字体大小
 	End If
 	Canvas.Font.Size = mFontSize
-	Canvas.Font.Name = FontNameClock
+	Canvas.Font.Name = FontNameE
 	Canvas.Font.Bold = True
 	
 	mH(0) = Canvas.TextHeight(mDt)      '整体高度
@@ -83,67 +76,25 @@ Private Sub DitalClock.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byHe
 	mOy = (Canvas.Height - mH(0)) / 2   'y偏移
 End Sub
 
-Private Sub DitalClock.DrawClockImg(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, fDiameter As Integer, CenterX As Integer = 0, CenterY As Integer = 0)
-	'GdipGraphicsClear(Canvas.GdipGraphics, &h00000000)
-	'GdipDrawImageRect(Canvas.GdipGraphics, Canvas.GdipImage, 0, 0, fDiameter, fDiameter)
-	mDt = Format(Second(DateTime), "00")
-	If Trim(mDS) = "" OrElse mDS <> mDt Then
-		mDS = mDt
-	End If
-	Dim As UByte iSec = CUByte(Format(Second(DateTime), "00"))
-	Dim As UByte iMin = CUByte(Format(Minute(DateTime), "00"))
-	'iHr = tTime.wHour + iHr_Delta
-	Dim As UByte iHr = CUByte(Format(Hour(DateTime), "00"))
-	'Dim As UByte fMSec = CUByte(Format(DateTime-iHr * 3600 - iMin * 60 - iSec, "#0.000"))
-	'Debug.Print iHr, iMin, iSec, fMSec 
-	Dim As Single Radius = fDiameter / 2 *.37
-	'Draw Hour hands
-	If iHr > 12 Then iHr -= 12
-	Dim As Single hourX = CenterX + (Radius) * Sin((iHr + iHr / 60.0) * 30 * fRad)
-	Dim As Single hourY = CenterY - (Radius) * Cos((iHr + iHr / 60.0) * 30 * fRad)
-	Canvas.DrawWidth = 1
-	Canvas.Circle(CenterX, CenterY, Radius *.05)
-	Canvas.DrawWidth = 8
-	Canvas.Pen.Color = clBlack
-	Canvas.Line(CenterX, CenterY, hourX, hourY)
-	
-	
-	'Draw minute hands
-	Dim As Single minuteX = CenterX + (Radius + .05*Radius) * Sin(iMin * 6 * fRad)
-	Dim As Single minuteY = CenterY - (Radius + .05*Radius) * Cos(iMin * 6 * fRad)
-	Canvas.DrawWidth = 5
-	Canvas.Line(CenterX, CenterY, minuteX, minuteY)
-		
-	'Draw second hands
-	Dim As Single secondX = CenterX + (Radius + .15*Radius) * Sin(iSec * 6 * fRad)
-	Dim As Single secondY = CenterY - (Radius + .15*Radius) * Cos(iSec * 6 * fRad)
-	Canvas.DrawWidth = 3
-	Canvas.Pen.Color = clRed
-	Canvas.Line(CenterX, CenterY, secondX, secondY)
-	
-End Sub
 Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime As Double, ByVal byHeight As Boolean = True)
-	Dim cal As LunarCalendar
+	CalculateSize(Canvas, byHeight)
 	
 	'时钟区域
-	'Canvas.Pen.Color = mClr(0)
-	'Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
-	CalculateSize(Canvas, byHeight)
-	Canvas.Font.Name = FontNameClock
+	Canvas.Pen.Color = mClr(0)
+	Canvas.Line 0, 0, Canvas.Width, Canvas.Height, mClr(0) , "F"
+	
+	Canvas.Font.Name = FontNameE
 	Canvas.Font.Bold = True
 	Canvas.Font.Size = mFontSize
+	
 	'时
+	'mDt = Format(Hour(DateTime), "00")
+	'Canvas.TextOut(mOx, mOy, mDt, mClr(1))
 	mDt = Format(Hour(DateTime), "0")
-	If Trim(mDh) = "" OrElse mDh <> mDt Then
-		Canvas.TextOut(mOx + Canvas.TextWidth("00") - Canvas.TextWidth(mDt), mOy, mDt, mClr(1))
-		mDh = mDt
-	End If
+	Canvas.TextOut(mOx + Canvas.TextWidth("00") - Canvas.TextWidth(mDt), mOy, mDt, mClr(1))
 	'分
 	mDt = Format(Minute(DateTime), "00")
-	If Trim(mDm) = "" OrElse mDm <> mDt Then
-		Canvas.TextOut(mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2))
-		mDh = mDt
-	End If
+	Canvas.TextOut(mOx + mW(1) - Canvas.TextWidth(mDt), mOy, mDt, mClr(2))
 	
 	'Mark冒号(0不绘, 1绘制)
 	If Mark Then Canvas.TextOut(mOx + (mW(1) - Canvas.TextWidth(mColon)) / 2, mOy, mColon, mClr(3))
@@ -153,16 +104,10 @@ Private Sub DitalClock.DrawClock(ByRef Canvas As My.Sys.Drawing.Canvas, DateTime
 	'上下午
 	Canvas.Font.Size = mFontSize * 3 / 8
 	mDt = IIf(Hour(DateTime) < 12, "AM", "PM")
-	'If Trim(mDPM) = "" OrElse mDPM <> mDt Then
 	Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2 - Canvas.TextHeight(mDt) , mDt, mClr(4))
-	mDPM = mDt
-	'End If
 	'秒
 	mDt = Format(Second(DateTime), "00")
-	If Trim(mDS) = "" OrElse mDS <> mDt Then
-		Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2, mDt, mClr(5))
-		mDS = mDt
-	End If
+	Canvas.TextOut(mOx + mW(1) + (mW(2) - Canvas.TextWidth(mDt)) / 2 , mOy + mH(0) / 2, mDt, mClr(5))
 End Sub
 
 'DayCalendar############################################################
@@ -172,7 +117,6 @@ Destructor DayCalendar
 End Destructor
 
 Constructor DayCalendar
-	mColon = ":"
 	mShowCalendar = False
 	FontNameE = "Arial"
 	FontNameC = "微软雅黑"
@@ -218,7 +162,7 @@ Private Sub DayCalendar.CalculateSize(Canvas As My.Sys.Drawing.Canvas, ByVal byH
 	Canvas.Font.Name = FontNameE
 	Canvas.Font.Bold = True
 	
-	mDt = "00" & mColon & "00"
+	mDt = "0"
 	mH(0) = Canvas.Height
 	mH(1) = Canvas.TextHeight(mDt)
 	mH(2) = mH(1) * 0.4
@@ -237,11 +181,9 @@ Private Property DayCalendar.DrawStyle(val As Integer)
 End Property
 
 Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, ByVal DateTime As Double, ByVal byHeight As Boolean = True)
-	Dim cal As LunarCalendar
-	Canvas.Font.Name = FontNameE
 	CalculateSize(Canvas, byHeight)
 	
-	cal.sInitDate(Year(DateTime), Month(DateTime), Day(DateTime))
+	mCal.Init(Year(DateTime), Month(DateTime), Day(DateTime))
 	
 	'年区域
 	Canvas.Pen.Color = mClr(2)
@@ -273,16 +215,16 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, (mH(2) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(3)
 		Canvas.Font.Name = FontNameC
 		'农历年
-		mDt = cal.GanZhi(cal.lYear) & "." & cal.YearAttribute(cal.lYear) & ""
+		mDt = mCal.GanZhi(mCal.lYear) & "." & mCal.YearAttribute(mCal.lYear) & ""
 		Canvas.TextOut(xOffset + (xOffset - Canvas.TextWidth(mDt)) / 2, (mH(2) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(3))
 		
 		'月
 		Canvas.Font.Size = mFontSize / 3.5
 		'公历月
-		mDt = cal.MonthNameCn(Month(DateTime))
+		mDt = mCal.sMonthName(Month(DateTime))
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
 		'农历月
-		mDt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月"
+		mDt = IIf(mCal.IsLeap, "闰", "") & mCal.lMonthName(mCal.lMonth)
 		Canvas.TextOut(xOffset + (xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5))
 		
 		'公历日
@@ -295,7 +237,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		'农历日
 		Canvas.Font.Name = FontNameC
 		Canvas.Font.Size = mFontSize / 5 * 3
-		mDt = cal.CDayStr(cal.lDay)
+		mDt = mCal.lDayName(mCal.lDay)
 		Canvas.TextOut(xOffset + (xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + mH(3) + (mH(0) - mH(2) - mH(3) * 2 - Canvas.TextHeight(mDt)) / 2, mDt, mClr(7))
 		
 		'星期
@@ -304,12 +246,12 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		Canvas.Font.Size = mFontSize / 4.5
 		
 		'公历节日
-		mDt = cal.sHoliday & cal.wHoliday
-		If mDt = "" Then mDt = cal.WeekNameCn(Weekday(DateTime))
+		mDt = mCal.sHoliday & mCal.wHoliday
+		If mDt = "" Then mDt = mCal.WeekName(Weekday(DateTime))
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
 		
 		'农历节日
-		mDt = cal.lSolarTerm & cal.lHoliday
+		mDt = mCal.lSolarTerm & mCal.lHoliday
 		If mDt = "" Then mDt = "第 " & DatePart("ww", DateTime) & " 周"
 		Canvas.TextOut(xOffset + (xOffset - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9))
 	Case 1 '公历
@@ -325,7 +267,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		'月
 		Canvas.Font.Size = mFontSize / 3.5
 		'公历月
-		mDt = cal.MonthNameCn(Month(DateTime))
+		mDt = mCal.sMonthName(Month(DateTime))
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
 		
 		'公历日
@@ -341,8 +283,8 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		Canvas.Font.Size = mFontSize / 4.5
 		
 		'公历节日
-		mDt = cal.sHoliday & cal.wHoliday
-		If mDt = "" Then mDt = cal.WeekNameCn(Weekday(DateTime))
+		mDt = mCal.sHoliday & mCal.wHoliday
+		If mDt = "" Then mDt = mCal.WeekNameFull(Weekday(DateTime))
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
 	Case 2 '农历
 		'年
@@ -350,19 +292,19 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		Canvas.Font.Bold = True
 		Canvas.Font.Size = mFontSize / 2.5
 		'农历年
-		mDt = cal.GanZhi(cal.lYear) & "." & cal.YearAttribute(cal.lYear) & ""
+		mDt = mCal.GanZhi(mCal.lYear) & "." & mCal.YearAttribute(mCal.lYear) & ""
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, (mH(2) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(3)
 		
 		'月
 		Canvas.Font.Size = mFontSize / 3.5
 		'农历月
-		mDt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月"
+		mDt = IIf(mCal.IsLeap, "闰", "") & mCal.lMonthName(mCal.lMonth)
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(5)
 		
 		'农历日
 		Canvas.Font.Name = FontNameC
 		Canvas.Font.Size = mFontSize / 5 * 3
-		mDt = cal.CDayStr(cal.lDay)
+		mDt = mCal.lDayName(mCal.lDay)
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(2) + mH(3) + (mH(0) - mH(2) - mH(3) * 2 - Canvas.TextHeight(mDt)) / 2, mDt, mClr(7)
 		
 		'星期
@@ -371,7 +313,7 @@ Private Sub DayCalendar.DrawDayCalendar(ByRef Canvas As My.Sys.Drawing.Canvas, B
 		Canvas.Font.Size = mFontSize / 4.5
 		
 		'农历节日
-		mDt = cal.lSolarTerm & cal.lHoliday
+		mDt = mCal.lSolarTerm & mCal.lHoliday
 		If mDt = "" Then mDt = "第 " & DatePart("ww", DateTime) & " 周"
 		Canvas.TextOut(xOffset - Canvas.TextWidth(mDt)) / 2, mH(0) - mH(3) + (mH(3) - Canvas.TextHeight(mDt)) / 2, mDt, mClr(9)
 	End Select
@@ -474,7 +416,7 @@ Private Sub MonthCalendar.DrawMonthCalendar(ByRef Canvas As My.Sys.Drawing.Canva
 	'绘制日历星期抬头
 	For i = 0 To 6
 		If i = 0 Or i = 6 Then cr = mClr(6) Else cr = mClr(5)
-		dt = cal.WeekNameS(i + 1)
+		dt = mCal.WeekName(i + 1)
 		Canvas.TextOut(mWeeksWidth + i * mCellWidth + (mCellWidth - Canvas.TextWidth(dt)) / 2, (mCellHeight - Canvas.TextHeight(dt)) / 2, dt, cr)
 	Next
 	
@@ -490,7 +432,7 @@ Private Sub MonthCalendar.DrawMonthCalendar(ByRef Canvas As My.Sys.Drawing.Canva
 		yy = Year(md)
 		mm = Month(md)
 		dd = Day(md)
-		cal.sInitDate(yy, mm, dd)
+		mCal.Init(yy, mm, dd)
 		
 		x = (i - 1) Mod 7
 		y = (i - 1) \ 7 + 2
@@ -514,11 +456,11 @@ Private Sub MonthCalendar.DrawMonthCalendar(ByRef Canvas As My.Sys.Drawing.Canva
 		Canvas.Font.Bold = True
 		Canvas.TextOut(mWeeksWidth + x * mCellWidth + (mCellWidth - Canvas.TextWidth(dt)) / 2, y * mCellHeight - mCellHeight / 2 - Canvas.TextHeight(dt) + o, dt, cr)
 		
-		dt = cal.lHoliday & cal.lSolarTerm
-		If cal.CDayStr(cal.lDay) = "初一" Then
-			dt = IIf(cal.IsLeap, "闰", "") & cal.MonName(cal.lMonth) & "月" & IIf(dt = "", "", "("  & dt & ")")
+		dt = mCal.lHoliday & mCal.lSolarTerm
+		If mCal.lDayName(mCal.lDay) = "初一" Then
+			dt = IIf(mCal.IsLeap, "闰", "") & mCal.lMonthName(mCal.lMonth) & IIf(dt = "", "", "("  & dt & ")")
 		End If
-		If dt = "" Then dt = cal.CDayStr(cal.lDay)
+		If dt = "" Then dt = mCal.lDayName(mCal.lDay)
 		If n = md Then
 			cr = mClr(10)
 		Else
