@@ -217,7 +217,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
 	Case "ReloadHistoryCode":                   ReloadHistoryCode 
-	Case "ProblemsCopy":                        Clipboard.SetAsText lvProblems.SelectedItem->Text(0)
+	Case "ProblemsCopy":                        If lvProblems.ListItems.Count < 1 Then Return Else Clipboard.SetAsText lvProblems.SelectedItem->Text(0)
 	Case "ProblemsCopyAll":
 		Dim As WString Ptr tmpStrPtr
 		If lvProblems.ListItems.Count < 1 Then Return
