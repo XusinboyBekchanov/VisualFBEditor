@@ -1694,13 +1694,15 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 						iIndex = cboClass.Items.IndexOf(Trim(*FLine3))
 						If iIndex <> -1 Then
 							PropertyCtrl = Cast(Any Ptr, cboClass.Items.Item(iIndex)->Object)
-							If Des <> 0 AndAlso st->WritePropertyFunc <> 0 Then
+							If Des <> 0 AndAlso PropertyCtrl <> 0 AndAlso st->WritePropertyFunc <> 0 Then
 								Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 								If te <> 0 Then
 									Dim As String PropertyType = GetOriginalType(te->TypeName)
 									Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
 									If IsBase(PropertyCtrlType, PropertyType) Then
 										Result = st->WritePropertyFunc(Obj, PropertyName, PropertyCtrl)
+									ElseIf Cpnt = 0 Then
+										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 									Else
 										MsgBox "Unable set property " & PropertyName & " with type " & PropertyType & " of " & QWString(st->ReadPropertyFunc(Cpnt, "Name")) & " to " & QWString(st->ReadPropertyFunc(PropertyCtrl, "Name")) & " with type " & PropertyCtrlType
 									End If
