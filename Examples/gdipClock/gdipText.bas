@@ -1,5 +1,5 @@
 ﻿' gdipText gdip文本
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "gdipText.bi"
@@ -43,7 +43,7 @@ Private Sub gdipText.Release()
 	mBrush = NULL
 End Sub
 
-Private Sub gdipText.TextPath(pLeft As Single, pTop As Single, pText As WString, pPathInit As Boolean = False)
+Private Sub gdipText.TextPath(pLeft As Single, pTop As Single, ByRef pText As WString, pPathReset As Boolean = False)
 	MeasureString(pText)
 	
 	Dim mTextDRectF As GpRectF
@@ -54,60 +54,62 @@ Private Sub gdipText.TextPath(pLeft As Single, pTop As Single, pText As WString,
 		.Height = mTextHeight
 	End With
 	
-	If pPathInit Then
-		If mPath Then GdipDeletePath(mPath)
-		GdipCreatePath(mFillMode, @mPath)
+	If pPathReset Then
+		If mPath Then 
+			GdipResetPath(mPath)
+		Else
+			GdipCreatePath(mFillMode, @mPath)
+		End If
 	End If
+	If mPath = NULL Then GdipCreatePath(mFillMode, @mPath)
 	GdipAddPathString(mPath, @pText, Len(pText), mFontFamily, mFontStyle, mFontSize, @mTextDRectF, mStringFormat)
 End Sub
 
-Private Sub gdipText.TextOut(pGraphics As GpGraphics Ptr, pText As WString, ByVal pLeft As Long = 0, ByVal pTop As Long = 0, ByVal pForeColor As ARGB = &HFF000000)
+Private Sub gdipText.TextOut(pGraphics As GpGraphics Ptr, ByRef pText As WString, ByVal pLeft As Long = 0, ByVal pTop As Long = 0, ByVal pForeColor As ARGB = &HFF000000)
 	MeasureString(pText)
 	
-	Dim mTextDRectF As GpRectF
-	
-	With mTextDRectF
+	Dim sTextDRectF As GpRectF
+	With sTextDRectF
 		.X = pLeft
 		.Y = pTop
 		.Width = mTextWidth
 		.Height = mTextHeight
 	End With
 	
-	If mPath Then GdipDeletePath(mPath)
-	GdipCreatePath(mFillMode, @mPath)
-	GdipAddPathString(mPath, @pText, -1, mFontFamily, mFontStyle, mFontSize, @mTextDRectF, mStringFormat)
-	
-	If mBrush Then GdipDeleteBrush(mBrush)
-	GdipCreateSolidFill(pForeColor, @mBrush)
-	GdipFillPath(pGraphics, mBrush, mPath)
-	
-	If mPath Then GdipDeletePath(mPath)
-	If mBrush Then GdipDeleteBrush(mBrush)
+	Dim sBrush As Any Ptr
+	Dim sPath As GpPath Ptr
+	GdipCreatePath(mFillMode, @sPath)
+	GdipAddPathString(sPath, @pText, -1, mFontFamily, mFontStyle, mFontSize, @sTextDRectF, mStringFormat)
+	GdipCreateSolidFill(pForeColor, @sBrush)
+	GdipFillPath(pGraphics, sBrush, sPath)
+	GdipDeletePath(sPath)
+	GdipDeleteBrush(sBrush)
 End Sub
 
-Private Function gdipText.TextHeight(pText As WString) As Single
+Private Function gdipText.TextHeight(ByRef pText As WString) As Single
 	MeasureString(pText)
 	Return mTextHeight
 End Function
-Private Function gdipText.TextWidth(pText As WString) As Single
+Private Function gdipText.TextWidth(ByRef pText As WString) As Single
 	MeasureString(pText)
 	Return mTextWidth
 End Function
 
-Private Sub gdipText.MeasureString(pText As WString)
+Private Sub gdipText.MeasureString(ByRef pText As WString)
 	Dim tmpBitmap As gdipBitmap
 	tmpBitmap.Initial(mWidth, mHeight)
+	
 	If mStringFormat = NULL Then FontCreate()
-	Dim BoundingBox As RectF
-	With BoundingBox
+	Dim sBoundingBox As RectF
+	With sBoundingBox
 		.X = 0
 		.Y = 0
 		.Width = 0
 		.Height = 0
 	End With
 	
-	Dim mTextDRectF As GpRectF
-	With mTextDRectF
+	Dim sTextDRectF As GpRectF
+	With sTextDRectF
 		.X = 0
 		.Y = 0
 		.Width = mWidth
@@ -115,12 +117,9 @@ Private Sub gdipText.MeasureString(pText As WString)
 	End With
 	Dim As INT_ sWidth, sHeight
 	'GetTextExtentPoint32
-	GdipMeasureString(tmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @mTextDRectF, mStringFormat, @BoundingBox, @sWidth, @sHeight)
-	mTextWidth = BoundingBox.Width - BoundingBox.X
-	mTextHeight = BoundingBox.Height - BoundingBox.Y
-	'Print pText, mTextWidth, sWidth
-	'mTextWidth = sWidth
-	'mTextHeight = sHeight
+	GdipMeasureString(tmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @sTextDRectF, mStringFormat, @sBoundingBox, @sWidth, @sHeight)
+	mTextWidth = sBoundingBox.Width - sBoundingBox.X
+	mTextHeight = sBoundingBox.Height - sBoundingBox.Y
 End Sub
 
 Private Sub gdipText.SetFont(pFontName As WString, pFontSize As REAL, pFontStyle As FontStyle)

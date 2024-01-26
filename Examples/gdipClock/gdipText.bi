@@ -1,5 +1,5 @@
 ﻿' gdipText gdip文本
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "win\GdiPlus.bi"
@@ -36,11 +36,11 @@ Type gdipText
 	Declare Sub FontRelease()
 	Declare Sub FontCreate()
 	
-	Declare Sub MeasureString(pText As WString)
-	Declare Function TextHeight(pText As WString) As Single
-	Declare Function TextWidth(pText As WString) As Single
-	Declare Sub TextOut(pGraphics As GpGraphics Ptr, pText As WString, ByVal pLeft As Long = 0, ByVal pTop As Long = 0, ByVal pForeColor As ARGB = &HFF000000)
-	Declare Sub TextPath(pLeft As Single, pTop As Single, pText As WString, pPathInit As Boolean = False)
+	Declare Sub MeasureString(ByRef pText As WString)
+	Declare Function TextHeight(ByRef pText As WString) As Single
+	Declare Function TextWidth(ByRef pText As WString) As Single
+	Declare Sub TextOut(pGraphics As GpGraphics Ptr, ByRef pText As WString, ByVal pLeft As Long = 0, ByVal pTop As Long = 0, ByVal pForeColor As ARGB = &HFF000000)
+	Declare Sub TextPath(pLeft As Single, pTop As Single, ByRef pText As WString, pPathReset As Boolean = False)
 	
 	Declare Constructor
 	Declare Destructor

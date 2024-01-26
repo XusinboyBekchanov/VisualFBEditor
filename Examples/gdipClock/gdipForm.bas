@@ -1,5 +1,5 @@
 ﻿' Trans Form 透明窗口
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "gdipForm.bi"
@@ -72,26 +72,28 @@ Private Sub gdipForm.Create(Handle As HWND, Img As GpImage Ptr)
 End Sub
 
 Private Sub gdipForm.DrawImage(sImg As GpImage Ptr, sX As Single = 0, sY As Single = 0)
+	If sImg = NULL Then Exit Sub
 	Dim As Single sWidth, sHeight
 	GdipGetImageDimension(sImg, @sWidth, @sHeight)
 	GdipDrawImageRect(mGraphics, sImg, sX, sY, sWidth, sHeight)
 End Sub
 
 Private Property gdipForm.Enabled() As Boolean
+	'返回窗口是否具有透明效果的窗口
 	If mHandle = NULL Then Return False
-	mEnabled = GetWindowLong(mHandle, GWL_EXSTYLE) And WS_EX_LAYERED
+	mEnabled = IIf((GetWindowLong(mHandle, GWL_EXSTYLE) And WS_EX_LAYERED) = WS_EX_LAYERED, True, False)
 	Return mEnabled
 End Property
 
 Private Property gdipForm.Enabled(val As Boolean)
 	mEnabled = val
 	If mHandle = NULL Then Return
-	If val Then
+	If mEnabled Then
 		'更新具有透明效果的窗口
-		SetWindowLong mHandle, GWL_EXSTYLE, GetWindowLong(mHandle, GWL_EXSTYLE) Or WS_EX_LAYERED
+		SetWindowLong(mHandle, GWL_EXSTYLE, GetWindowLong(mHandle, GWL_EXSTYLE) Or WS_EX_LAYERED)
 	Else
 		'更新不具有透明效果的窗口
-		SetWindowLong mHandle, GWL_EXSTYLE, GetWindowLong(mHandle, GWL_EXSTYLE) And Not WS_EX_LAYERED
+		SetWindowLong(mHandle, GWL_EXSTYLE, GetWindowLong(mHandle, GWL_EXSTYLE) And Not WS_EX_LAYERED)
 	End If
 End Property
 
@@ -125,7 +127,7 @@ Private Sub gdipForm.Transform(ByVal Alpha As Integer = 255)
 	End With
 	
 	'设置窗口WS_EX_LAYERED
-	If mEnabled = False Then Enabled = True
+	Enabled = True
 	
 	'更新具有透明效果的窗口
 	UpdateLayeredWindow(mHandle, hScrDC, @ULWpptDst, @ULWpsize, hMemDC, @ULWpptSrc, ULWcrKey, @ULWpblend, ULW_ALPHA)

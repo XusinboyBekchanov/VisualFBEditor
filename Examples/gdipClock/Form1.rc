@@ -1,21 +1,20 @@
 ﻿1 24 "Manifest.xml"
-1 ICON ".\clock.ico"
 
-#define APP_TITLE_STR               "gdipClock\0"
-#define VER_FILEDESCRIPTION_STR     "gdipClock\0"
+#define APP_TITLE_STR               "Form1\0"
+#define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,2129
-#define VER_FILEVERSION_STR         "0.0.0.2129\0"
+#define VER_FILEVERSION             0,0,0,19
+#define VER_FILEVERSION_STR         "0.0.0.19\0"
 
-#define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
+#define VER_LEGALCOPYRIGHT_STR      "\0"
 
-#define VER_INTERNALNAME_STR        "gdipClock\0"
-#define VER_ORIGINALFILENAME_STR    "gdipClock\0"
-#define VER_PRODUCTNAME_STR         "gdipClock\0"
+#define VER_INTERNALNAME_STR        "\0"
+#define VER_ORIGINALFILENAME_STR    "\0"
+#define VER_PRODUCTNAME_STR         "\0"
 
 #define VER_PRODUCTVERSION          0,0,0,0
 #define VER_PRODUCTVERSION_STR      "0.0.0\0"
-#define VER_COMPANYNAME_STR         "Visual FB Editor\0"
+#define VER_COMPANYNAME_STR         "\0"
 
 VS_VERSION_INFO VERSIONINFO
 FILEVERSION     VER_FILEVERSION

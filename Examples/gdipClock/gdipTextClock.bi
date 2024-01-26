@@ -1,5 +1,5 @@
 ﻿' Text Clock文字时钟
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "gdip.bi"
@@ -7,19 +7,27 @@
 #include once "vbcompat.bi"
 
 Type TextClock
-	mBackBitmap As gdipBitmap
+	mByHeight As Boolean
+	
 	mUpdateBitmap As gdipBitmap
-	mTrayBitmap As gdipBitmap
-	
 	mUpdate As Boolean
+	mBlur As Integer = 0
 	
-	mBackground As Boolean = False
-	mTray As Boolean = True
-	mBGScale As Single = 1
-	mImgBack As gdipImage
-	mFile As WString Ptr
+	mBackBitmap As gdipBitmap
+	mBackEnabled As Boolean = False
+	mBackScale As Single = 1
+	mBackImage As gdipImage
+	mBackFile As WString Ptr
+	mBackAlpha As Single = &H80
+	mBackBlur As Integer = 0
+	
+	mTrayBitmap As gdipBitmap
+	mTrayEnabled As Boolean = False
+	mTrayAlpha As ARGB = &H40
+	mTrayColor As ARGB = &HFFFFFF
 	
 	mTxt As gdipText
+	mTxtScale As Single = 1
 	
 	mWidth As Single
 	mHeight As Single
@@ -41,24 +49,37 @@ Type TextClock
 	
 	mShowSecond As Boolean = True
 	mBlinkColon As Boolean = True
-	mShowBorder As Boolean = True
-	mShowShadow As Boolean = True
-	mShadowSize As Single = 0.03
 	
-	mTextColor As ARGB = &HFFFF00FF
-	mTextColor1 As ARGB = &HFF00FFFF
-	mBorderColor As ARGB = &HFFFFFFFF
-	mBorderSize As Single = 0.03
+	mShadowEnabled As Boolean = True
+	mShadowSize As Single = 0.03
+	mShadowAlpha As ARGB = &HFF
+	
+	mGradientMode As LinearGradientMode = LinearGradientModeVertical
+	mTextColor1 As ARGB = &HFF00FF
+	mTextColor2 As ARGB = &H00FFFF
+	mTextAlpha1 As ARGB = &HFF
+	mTextAlpha2 As ARGB = &HFF
+	mTextBlur As Integer = 0
+	
+	mBorderEnabled As Boolean = True
+	mBorderAlpha As ARGB = &HFF
+	mBorderColor As ARGB = &HFFFFFF
+	mBorderSize As Single = 1
+	
 	mUnitPixel As Unit = UnitPixel
+	
+	mOutlineSize As Single = 1
+	mOutlineColor As ARGB = &HBF3F7F
 	
 	Declare Property FileName(ByRef fFileName As WString)
 	Declare Property FileName() ByRef As WString
 	Declare Sub TextFont(pName As WString, pStyle As FontStyle)
-	Declare Sub TextColor(ByVal pTextColor As ARGB = &HFF000000, ByVal pTextColor1 As ARGB = &HFF000000)
-	Declare Sub ImageInit(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300, ByVal pAlpha As UByte = 255)
+	Declare Sub TextAlpha(ByVal pTextAlpha1 As ARGB = &HFF, ByVal pTextAlpha2 As ARGB = &HFF)
+	Declare Sub TextColor(ByVal pTextColor1 As ARGB = &H000000, ByVal pTextColor2 As ARGB = &H000000)
+	Declare Sub Background(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
 	Declare Sub CalculateSize()
-	Declare Function DrawClock(ByVal pColon As Boolean = True, ByVal pAlpha As UByte = 255) As GpImage Ptr
-	Declare Function ImageUpdate(ByVal pAlpha As UByte = 255) As GpImage Ptr
+	Declare Function DrawClock(ByVal pColon As Boolean = True) As GpImage Ptr
+	Declare Function ImageUpdate() As GpImage Ptr
 	Declare Constructor
 	Declare Destructor
 	Declare Sub Release()
