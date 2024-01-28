@@ -2784,10 +2784,10 @@ Private Property frmClockType.IndexOfLocateH(v As Integer)
 		Left = 0
 	Case 1
 		'mnuLocateHorizontalMiddle.Checked = True
-		Left = (mScreenWidth - Width) / 2
+		Left = (mScreenWidth / xdpi - Width) / 2
 	Case 2
 		'mnuLocateRight.Checked = True
-		Left = mScreenWidth - Width
+		Left = mScreenWidth / xdpi - Width
 	Case Else
 		'mnuLocateHorizontalAny.Checked = True
 		Left = mRectMain.Left
@@ -2811,10 +2811,10 @@ Private Property frmClockType.IndexOfLocateV(v As Integer)
 		Top = 0
 	Case 1
 		'mnuLocateVerticalMiddle.Checked = True
-		Top = (mScreenHeight - Height) / 2
+		Top = (mScreenHeight / ydpi - Height) / 2
 	Case 2
 		'mnuLocateBottom.Checked = True
-		Top = mScreenHeight - Height
+		Top = mScreenHeight / ydpi - Height
 	Case Else
 		'mnuLocateVerticalAny.Checked = True
 		Top = mRectMain.Top
@@ -3738,6 +3738,9 @@ Private Sub frmClockType.Form_Show(ByRef Sender As Form)
 	If mnuTransparent.Checked <> mTransparent Then mnuMenu_Click(mnuTransparent)
 	
 	TimerComponent1.Enabled = True
+	
+	Debug.Print mScreenWidth & ", " & mScreenHeight
+	Debug.Print xdpi & ", " & ydpi
 End Sub
 
 Private Sub frmClockType.Transparent(v As Boolean)
@@ -3748,16 +3751,15 @@ End Sub
 Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	If mnuTransparent.Checked Then
 		If mnuTextEnabled.Checked Then
-			mTextClock.Background(Width, Height)
+			mTextClock.Background(Width*xdpi, Height*ydpi)
 		Else
-			mAnalogClock.Background(Width, Height)
+			mAnalogClock.Background(Width*xdpi, Height*ydpi)
 		End If
 	Else
-		Dim h As Single = Height - ClientHeight
 		If mnuTextEnabled.Checked Then
-			mTextClock.Background(ClientWidth, ClientHeight)
+			mTextClock.Background(ClientWidth*xdpi, ClientHeight*ydpi)
 		Else
-			mAnalogClock.Background(ClientWidth, ClientHeight)
+			mAnalogClock.Background(ClientWidth*xdpi, ClientHeight*ydpi)
 		End If
 	End If
 	PaintClock()
@@ -3772,11 +3774,11 @@ Private Sub frmClockType.PaintClock()
 		frmTrans.Transform(mOpacity)
 	Else
 		frmDC.Initial(Handle)
-		memDC.Initial(0, ClientWidth, ClientHeight)
+		memDC.Initial(0, ClientWidth*xdpi, ClientHeight*ydpi)
 		frmGraphic.Initial(memDC.DC, True)
 		If mnuAnalogEnabled.Checked Then frmGraphic.DrawImage(mAnalogClock.ImageUpdate())
 		If mnuTextEnabled.Checked Then frmGraphic.DrawImage(mTextClock.ImageUpdate())
-		BitBlt(frmDC.DC, 0, 0, ClientWidth, ClientHeight, memDC.DC, 0, 0, SRCCOPY)
+		BitBlt(frmDC.DC, 0, 0, ClientWidth*xdpi, ClientHeight*ydpi, memDC.DC, 0, 0, SRCCOPY)
 	End If
 End Sub
 
