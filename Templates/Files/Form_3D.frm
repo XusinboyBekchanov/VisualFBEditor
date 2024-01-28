@@ -11,7 +11,7 @@
 	#include once "mff/Panel.bi"
 	Using My.Sys.Forms
 	
-	'This is where you define module-level Shared variables and Add include file. 
+	'This is where you define module-level Shared variables and Add include file.
 	'The "RenderProj" sub is the main rendering code subroutine.
 	'在这儿定义模块级别共享变量和添加引用。“RenderProj”过程是主要的渲染代码主过程。
 	Declare Sub RenderProj(Param As Any Ptr)
@@ -27,7 +27,9 @@
 	'
 	'初始化相机
 	Dim Shared As RayLib.Camera3D Camera
-	Dim Shared As HWND HandleRender
+	#ifdef __USE_WINAPI__
+		Dim Shared As HWND HandleRender
+	#endif
 	
 	'the main rendering code.  渲染代码主过程。
 	Sub RenderProj(Param As Any Ptr)
@@ -56,7 +58,7 @@
 				
 				'ThreadsLeave
 			Wend
-			RayLib.CloseWindow
+			RayLib.CloseWindowRL
 		#endif
 	End Sub
 	
@@ -81,7 +83,7 @@
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.SetBounds 0, 0, 350, 300
 		End With
-	
+		
 		' PanelRender
 		With PanelRender
 			.Name = "PanelRender"
@@ -117,11 +119,11 @@ Private Sub Form1Type.Form_Destroy(ByRef Sender As Control)
 End Sub
 
 Private Sub Form1Type.Form_Create(ByRef Sender As Control)
-	'Initialize the drawing engine in sub Form_Create or Form_Show. The official freeBasic drawing engine is fbgfx, 
+	'Initialize the drawing engine in sub Form_Create or Form_Show. The official freeBasic drawing engine is fbgfx,
 	'and third-party drawing engines like RayLib are employed. It cannot be mixed simultaneously.
 	'在Form_Create或者Form_Show初始化绘图引擎。freeBasic官方绘图引擎是fbgfx，第三方绘图引擎如RayLib。不能同时混用。
 	#ifdef __fbgfx_bi__
-		
+		'ScreenControl(GET_WINDOW_HANDLE, Cast(Integer, HandleRender))
 	#elseif defined(RAYLIB_H)
 		RayLib.SetConfigFlags(FLAG_MSAA_4X_HINT) '启用反锯齿
 		RayLib.InitWindow(ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), "RaylibWindows")
@@ -131,7 +133,7 @@ Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 			Return
 		End If
 		RayLib.SetTargetFPS(60) '设置动画帧率(fps)
-		
+		SetExitKey(0)
 		With Camera
 			.position   = Type(40, 20, 0)
 			.target     = Type(0, 0, 0)
@@ -155,5 +157,4 @@ Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, 
 		MoveWindow(HandleRender, 0, 0, ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), True)
 	#endif
 End Sub
-
 
