@@ -197,12 +197,12 @@ Private Sub frmMonthType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	End If
 	
-	mMonth.mMouseX = x
-	mMonth.mMouseY = y
+	mMonth.mMouseX = x * xdpi
+	mMonth.mMouseY = y * ydpi
 	PaintMonth()
 	Select Case mMonth.mMouseLocate
 	Case 0 'day
-		Hint = Format(mMonth.XY2Date(x, y), "yyyy/mm/dd")
+		Hint = Format(mMonth.XY2Date(x*xdpi, y*ydpi), "yyyy/mm/dd")
 	Case 4 'today
 		Hint = "Show today"
 	Case 5 'year dec
