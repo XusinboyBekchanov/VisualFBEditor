@@ -924,14 +924,14 @@ End Sub
 
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	If Len(*gSearchSave) > 0 Then Clipboard.SetAsText *gSearchSave
+	mFormFind = IIf(Height > 80, True, False)
 	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
-	btnReplaceShow.Caption = IIf(mFormFind, ">", "˅")
+	btnReplaceShow.Caption = IIf(mFormFind, ">", "^")
 	btnReplaceShow.Hint = IIf(mFormFind, ML("Expand to Replace Mode"), ML("Narrowdown to Find mode"))
 	btnReplace.Enabled = IIf(mFormFind, False, True)
 	btnReplaceAll.Enabled = IIf(mFormFind, False, True)
 	Height = IIf(mFormFind, 52, 82)
 	btnFind.SetFocus
-	mFormFind = Not mFormFind
 End Sub
 
 Private Sub frmFind.btnCancel_Click(ByRef Sender As Control)
