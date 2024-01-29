@@ -124,8 +124,8 @@ Private Sub frmDayType.Form_MouseMove(ByRef Sender As Control, MouseButton As In
 		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	End If
 	
-	mDay.mMouseX = x
-	mDay.mMouseY = y
+	mDay.mMouseX = x * xdpi
+	mDay.mMouseY = y * ydpi
 	
 	PaintDay()
 	Select Case mDay.mMouseLocate

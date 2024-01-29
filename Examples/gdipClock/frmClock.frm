@@ -3738,9 +3738,6 @@ Private Sub frmClockType.Form_Show(ByRef Sender As Form)
 	If mnuTransparent.Checked <> mTransparent Then mnuMenu_Click(mnuTransparent)
 	
 	TimerComponent1.Enabled = True
-	
-	Debug.Print mScreenWidth & ", " & mScreenHeight
-	Debug.Print xdpi & ", " & ydpi
 End Sub
 
 Private Sub frmClockType.Transparent(v As Boolean)
