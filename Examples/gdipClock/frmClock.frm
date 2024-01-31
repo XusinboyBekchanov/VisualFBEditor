@@ -3176,7 +3176,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			mAnalogClock.mTrayShadowColor = Color2Gdip(ColorDialog1.Color)
 			Form_Resize(This, Width, Height)
 		End If
-	Case "mnuAnalogTrayFA2"
+	Case "mnuAnalogTrayFA1"
 		Dim As String s = InputBox("GDIP Clock", "Analog Tray Face Alpha 1", "" & mAnalogClock.mTrayFaceAlpha1, , , Handle)
 		mAnalogClock.mTrayFaceAlpha1 = CSng(s)
 		Form_Resize(This, Width, Height)
