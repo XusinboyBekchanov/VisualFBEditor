@@ -39,6 +39,7 @@ Enum CompileToVariants
 	ToGAS
 	ToLLVM
 	ToGCC
+	ToCLANG
 End Enum
 
 Type ProjectElement Extends ExplorerElement

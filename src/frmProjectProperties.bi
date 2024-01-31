@@ -76,6 +76,7 @@ Using My.Sys.Forms
 		Declare Sub cmdAddLibrary_Click(ByRef Sender As Control)
 		Declare Static Sub _cmdRemoveLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Declare Sub cmdRemoveLibrary_Click(ByRef Sender As Control)
+		Declare Sub optCompileToClang_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		
 		Dim As TabControl tabProperties
@@ -88,7 +89,7 @@ Using My.Sys.Forms
 		Dim As GroupBox grbVersionNumber, grbApplication, grbVersionInformation, grbCompilationArguments, grbCompileToGCC, grbIncludePaths, grbLibraryPaths
 		Dim As CheckBox chkAutoIncrementVersion, chkCreateDebugInfo, chkPassAllModuleFilesToCompiler, chkManifest, chkRunAsAdministrator, chkOpenProjectAsFolder
 		Dim As ListControl lstType, lstComponents, lstOtherIncludes, lstLibraryPaths
-		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM
+		Dim As RadioButton optCompileToGas, optCompileToGcc, optOptimizationFastCode, optOptimizationLevel, optOptimizationSmallCode, optNoOptimization, optCompileByDefault, optCompileToLLVM, optCompileToClang
 		Dim As Dictionary Types, MainFiles, ResourceFiles, IconResourceFiles, BatchCompilationFilesWindows, BatchCompilationFilesLinux
 		Dim As TreeNode Ptr ProjectTreeNode
 		Dim As ImageBox imgIcon

@@ -11670,6 +11670,10 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			Result += " -gen gcc" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
 			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
 			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
+		ElseIf Project->CompileTo = ToCLANG Then
+			Result += " -gen clang" & IIf(Project->OptimizationLevel > 0, " -Wc -O" & WStr(Project->OptimizationLevel), IIf(Project->OptimizationFastCode, " -Wc -Ofast", IIf(Project->OptimizationSmallCode, " -Wc -Os", ""))) & _
+			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
+			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
 		End If
 	End If
 	If UseDefine <> "" Then Result += " -d " & UseDefine
