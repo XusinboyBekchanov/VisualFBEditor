@@ -124,8 +124,8 @@ Private Sub frmDayType.Form_MouseMove(ByRef Sender As Control, MouseButton As In
 		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	End If
 	
-	mDay.mMouseX = x
-	mDay.mMouseY = y
+	mDay.mMouseX = x * xdpi
+	mDay.mMouseY = y * ydpi
 	
 	PaintDay()
 	Select Case mDay.mMouseLocate
@@ -151,9 +151,9 @@ End Sub
 Private Sub frmDayType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	mDay.mForceUpdate = True
 	If frmClock.mnuTransparent.Checked Then
-		mDay.Background(Width, Height, mDate)
+		mDay.Background(Width*xdpi, Height*ydpi, mDate)
 	Else
-		mDay.Background(ClientWidth, ClientHeight, mDate)
+		mDay.Background(ClientWidth*xdpi, ClientHeight*ydpi, mDate)
 	End If
 	PaintDay()
 	frmClock.Profile2Interface()
@@ -174,10 +174,10 @@ Private Sub frmDayType.PaintDay()
 		frmTrans.Transform(frmClock.mOpacity)
 	Else
 		frmDC.Initial(Handle)
-		memDC.Initial(0, ClientWidth, ClientHeight)
+		memDC.Initial(0, ClientWidth*xdpi, ClientHeight*ydpi)
 		frmGraphic.Initial(memDC.DC, True)
 		frmGraphic.DrawImage(mDay.ImageUpdate(mDate))
-		BitBlt(frmDC.DC, 0, 0, ClientWidth, ClientHeight, memDC.DC, 0, 0, SRCCOPY)
+		BitBlt(frmDC.DC, 0, 0, ClientWidth*xdpi, ClientHeight*ydpi, memDC.DC, 0, 0, SRCCOPY)
 	End If
 End Sub
 

@@ -152,9 +152,9 @@ End Sub
 Private Sub frmMonthType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	mMonth.mForceUpdate= True
 	If frmClock.mnuTransparent.Checked Then
-		mMonth.Background(Width, Height, mDate)
+		mMonth.Background(Width*xdpi, Height*ydpi, mDate)
 	Else
-		mMonth.Background(ClientWidth, ClientHeight, mDate)
+		mMonth.Background(ClientWidth*xdpi, ClientHeight*ydpi, mDate)
 	End If
 	PaintMonth()
 	frmClock.Profile2Interface()
@@ -178,10 +178,10 @@ Private Sub frmMonthType.PaintMonth()
 		frmTrans.Transform(frmClock.mOpacity)
 	Else
 		frmDC.Initial(Handle)
-		memDC.Initial(0, ClientWidth, ClientHeight)
+		memDC.Initial(0, ClientWidth*xdpi, ClientHeight*ydpi)
 		frmGraphic.Initial(memDC.DC, True)
 		frmGraphic.DrawImage(mMonth.ImageUpdate(mDate))
-		BitBlt(frmDC.DC, 0, 0, ClientWidth, ClientHeight, memDC.DC, 0, 0, SRCCOPY)
+		BitBlt(frmDC.DC, 0, 0, ClientWidth*xdpi, ClientHeight*ydpi, memDC.DC, 0, 0, SRCCOPY)
 	End If
 End Sub
 
@@ -197,12 +197,12 @@ Private Sub frmMonthType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	End If
 	
-	mMonth.mMouseX = x
-	mMonth.mMouseY = y
+	mMonth.mMouseX = x * xdpi
+	mMonth.mMouseY = y * ydpi
 	PaintMonth()
 	Select Case mMonth.mMouseLocate
 	Case 0 'day
-		Hint = Format(mMonth.XY2Date(x, y), "yyyy/mm/dd")
+		Hint = Format(mMonth.XY2Date(x*xdpi, y*ydpi), "yyyy/mm/dd")
 	Case 4 'today
 		Hint = "Show today"
 	Case 5 'year dec
