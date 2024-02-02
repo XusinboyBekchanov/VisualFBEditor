@@ -118,21 +118,17 @@ End Property
 
 '农历日期名
 Private Function Lunar.lDayName(d As Integer) As String
-	Dim s As String
 	Select Case d
 	Case 0
-		s = ""
 	Case 10
-		s = "初十"
+		Return "初十"
 	Case 20
-		s = "二十"
+		Return "二十"
 	Case 30
-		s = "三十"
+		Return "三十"
 	Case Else
-		s = nStr2(d \ 10)  '整数除法
-		s = s & nStr1(d Mod 10)
+		Return nStr2(d \ 10) & nStr1(d Mod 10)
 	End Select
-	Return s
 End Function
 
 '初始化
