@@ -41,11 +41,12 @@
 		
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub Form_MouseLeave(ByRef Sender As Control)
+		Declare Sub Form_Click(ByRef Sender As Control)
+		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Constructor
 		
 		Dim As PopupMenu PopupMenu1
@@ -56,18 +57,19 @@
 		With This
 			.Name = "frmDay"
 			.Text = "frmDay"
-			.Designer = @This
-			.Caption = Format(Now(), "yyyy/mm/dd")
+			.Caption = "Day"
+			.ContextMenu = @PopupMenu1
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
-			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
-			.Size = Type<My.Sys.Drawing.Size>(136, 300)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnMouseLeave = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_MouseLeave)
-			.ContextMenu = @PopupMenu1
 			.ShowCaption = False
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
+			.AllowDrop = True
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
 			.SetBounds 0, 0, 240, 200
 		End With
 		' PopupMenu1
@@ -90,26 +92,62 @@
 '#End Region
 
 Private Sub frmDayType.Form_Create(ByRef Sender As Control)
-	'CoInitialize(NULL)
-	PopupMenu1.Add @frmClock.mnuDaySetting
-	If frmClock.mnuLocateSticky.Checked Then 
+	'frmClock.Day2Profile(frmClock.mKeyValue())
+	'设置菜单
+	PopupMenu1.Add(@frmClock.mnuDaySetting)
+	'初始化位置
+	If frmClock.mnuLocateSticky.Checked Then
 		frmClock.Form_Move(frmClock)
 	Else
 		frmDay.Move(frmClock.mRectDay.Left, frmClock.mRectDay.Top, frmClock.mRectDay.Right, frmClock.mRectDay.Bottom)
-	End If 
+	End If
 End Sub
 
 Private Sub frmDayType.Form_Show(ByRef Sender As Form)
-	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) And Not WS_CAPTION)
-	SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
-	
+	'设置窗口透明样式
 	Transparent(frmClock.mnuTransparent.Checked)
 End Sub
 
-Private Sub frmDayType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	'CoUninitialize()
-	frmClock.ProfileFrmDay()
-	frmClock.mnuDayEnabled.Checked = False
+Private Sub frmDayType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	mDay.mForceUpdate = True
+	If frmClock.mnuTransparent.Checked Then
+		mDay.Background(Width*xdpi, Height*ydpi, mDate)
+	Else
+		mDay.Background(ClientWidth*xdpi, ClientHeight*ydpi, mDate)
+	End If
+	PaintDay()
+End Sub
+
+Private Sub frmDayType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	PaintDay()
+End Sub
+
+Private Sub frmDayType.Transparent(v As Boolean)
+	Form_Resize(This, Width, Height)
+	frmTrans.Enabled = v
+	PaintDay()
+End Sub
+
+Private Sub frmDayType.PaintDay()
+	If frmClock.mnuTransparent.Checked Then
+		frmTrans.Create(Handle, mDay.ImageUpdate(mDate))
+		frmTrans.Transform(frmClock.mOpacity)
+	Else
+		frmDC.Initial(Handle)
+		memDC.Initial(0, ClientWidth*xdpi, ClientHeight*ydpi)
+		frmGraphic.Initial(memDC.DC, True)
+		frmGraphic.DrawImage(mDay.ImageUpdate(mDate))
+		BitBlt(frmDC.DC, 0, 0, ClientWidth*xdpi, ClientHeight*ydpi, memDC.DC, 0, 0, SRCCOPY)
+	End If
+End Sub
+
+Private Sub frmDayType.DateChange(sDate As Double)
+	mDate = sDate
+	Form_Resize(This, Width, Height)
+End Sub
+
+Private Sub frmDayType.Form_MouseLeave(ByRef Sender As Control)
+	Form_MouseMove(This, -1, -1, -1, 0)
 End Sub
 
 Private Sub frmDayType.Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -118,11 +156,6 @@ Private Sub frmDayType.Form_MouseMove(ByRef Sender As Control, MouseButton As In
 	If CBool(sX = x) And CBool(sY = y) Then Exit Sub
 	sX = x
 	sY = y
-	
-	If MouseButton = 0 Then
-		ReleaseCapture()
-		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
-	End If
 	
 	mDay.mMouseX = x * xdpi
 	mDay.mMouseY = y * ydpi
@@ -146,48 +179,25 @@ Private Sub frmDayType.Form_MouseMove(ByRef Sender As Control, MouseButton As In
 	Case 7
 		Hint = "Weeks/Holiday/Solar terms"
 	End Select
-End Sub
-
-Private Sub frmDayType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	mDay.mForceUpdate = True
-	If frmClock.mnuTransparent.Checked Then
-		mDay.Background(Width*xdpi, Height*ydpi, mDate)
-	Else
-		mDay.Background(ClientWidth*xdpi, ClientHeight*ydpi, mDate)
-	End If
-	PaintDay()
-	frmClock.Profile2Interface()
-End Sub
-
-Private Sub frmDayType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
-	PaintDay()
-End Sub
-
-Private Sub frmDayType.Transparent(v As Boolean)
-	frmTrans.Enabled = v
-	Form_Resize(This, Width, Height)
-End Sub
-
-Private Sub frmDayType.PaintDay()
-	If frmClock.mnuTransparent.Checked Then
-		frmTrans.Create(Handle, mDay.ImageUpdate(mDate))
-		frmTrans.Transform(frmClock.mOpacity)
-	Else
-		frmDC.Initial(Handle)
-		memDC.Initial(0, ClientWidth*xdpi, ClientHeight*ydpi)
-		frmGraphic.Initial(memDC.DC, True)
-		frmGraphic.DrawImage(mDay.ImageUpdate(mDate))
-		BitBlt(frmDC.DC, 0, 0, ClientWidth*xdpi, ClientHeight*ydpi, memDC.DC, 0, 0, SRCCOPY)
+	
+	If MouseButton = 0 Then
+		ReleaseCapture()
+		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
 	End If
 End Sub
 
-Private Sub frmDayType.DateChange(sDate As Double)
-	mDate = sDate
-	Caption = Format(mDate, "yyyy/mm/dd")
+Private Sub frmDayType.Form_Click(ByRef Sender As Control)
+	If mDay.mShowStyle < 2 Then 
+		mDay.mShowStyle += 1
+	Else
+		mDay.mShowStyle= 0
+	End If
 	Form_Resize(This, Width, Height)
 End Sub
 
-
-Private Sub frmDayType.Form_MouseLeave(ByRef Sender As Control)
-	Form_MouseMove(This, -1, -1, -1, 0)
+Private Sub frmDayType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	mDay.mBackImage.ImageFile = Filename
+	mDay.mBackEnabled = True 
+	Form_Resize(This, Width, Height)
+	frmClock.Form_Resize(frmClock, frmClock.Width, frmClock.Height)
 End Sub

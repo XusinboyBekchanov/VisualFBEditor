@@ -124,12 +124,11 @@ Private Sub gdipGraphics.DrawImage(pImage As GpImage Ptr, pX As Single = 0, pY A
 End Sub
 
 Private Constructor gdipImage
-	'WLet(mFileName, "")
+	WLet(mFileName, "")
 End Constructor
 
 Private Destructor gdipImage
 	Release()
-	If mFileName Then Deallocate(mFileName)
 End Destructor
 
 Private Sub gdipImage.Release
@@ -146,16 +145,21 @@ Private Sub gdipImage.Release
 	
 	mWidth = 0
 	mHeight = 0
+
+	If mFileName Then 
+		Deallocate(mFileName)
+		mFileName = NULL
+	End If
 End Sub
 
 Private Property gdipImage.ImageFile(ByRef pFileName As WString)
 	'从文件加载图像到mImage
-	WLet(mFileName, pFileName)
 	Dim pImage As GpImage Ptr = NULL
 	If Dir(pFileName) <> "" Then
-		GdipLoadImageFromFile(mFileName, @pImage)
+		GdipLoadImageFromFile(@pFileName, @pImage)
 	End If
 	Image = pImage
+	WLet(mFileName, pFileName)
 End Property
 
 Private Property gdipImage.ImageFile() ByRef As WString

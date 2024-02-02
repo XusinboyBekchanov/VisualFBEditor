@@ -38,36 +38,37 @@
 		Declare Sub PaintMonth()
 		
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub Form_MouseMove(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Form_Click(ByRef Sender As Control)
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub Form_MouseLeave(ByRef Sender As Control)
+		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Constructor
 		
 		Dim As PopupMenu PopupMenu1
 	End Type
 	
 	Constructor frmMonthType
+		mDate = DateSerial(Year(Now()), Month(Now()), Day(Now()))
 		' frmMonth
 		With This
 			.Name = "frmMonth"
 			.Text = "frmMonth"
-			.Designer = @This
-			.Caption = "frmMonth"
+			.Caption = "Month"
+			.ContextMenu = @PopupMenu1
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
-			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Form_MouseMove)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
-			.Hint = "Month"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnMouseLeave = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_MouseLeave)
-			.ContextMenu = @PopupMenu1
-			.ShowCaption = false
+			.ShowCaption = False
+			.Designer = @This
+			.AllowDrop = True
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
 			.SetBounds 0, 0, 240, 200
 		End With
 		' PopupMenu1
@@ -107,25 +108,27 @@ Private Sub frmMonthType.Form_Click(ByRef Sender As Control)
 		mMonth.mShowWeeks = Not mMonth.mShowWeeks
 		mMonth.mShowControls = Not mMonth.mShowControls
 		mMonth.mForceUpdate= True
+		frmClock.Form_Resize(This, Width, Height)
 		PaintMonth()
 	Case 2 'hide weeks
 		mMonth.mShowWeeks = False
 		mMonth.mForceUpdate= True
+		frmClock.Form_Resize(This, Width, Height)
 		PaintMonth()
 	Case 3 'hide control
 		mMonth.mShowControls = False
 		mMonth.mForceUpdate= True
+		frmClock.Form_Resize(This, Width, Height)
 		PaintMonth()
 	End Select
 End Sub
 
 Private Sub frmMonthType.Form_Create(ByRef Sender As Control)
-	'CoInitialize(NULL)
-	
-	mDate = DateSerial(Year(Now()), Month(Now()), Day(Now()))
-	Caption = Format(mDate, "yyyy/mm/dd")
+	'frmClock.Month2Profile(frmClock.mKeyValDef())
+	'设置菜单
 	PopupMenu1.Add @frmClock.mnuMonthSetting
-	If frmClock.mnuLocateSticky.Checked Then 
+	'初始化位置
+	If frmClock.mnuLocateSticky.Checked Then
 		frmClock.Form_Move(frmClock)
 	Else
 		frmMonth.Move(frmClock.mRectMonth.Left, frmClock.mRectMonth.Top, frmClock.mRectMonth.Right, frmClock.mRectMonth.Bottom)
@@ -133,16 +136,8 @@ Private Sub frmMonthType.Form_Create(ByRef Sender As Control)
 End Sub
 
 Private Sub frmMonthType.Form_Show(ByRef Sender As Form)
-	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) And Not WS_CAPTION)
-	SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
-	
+	'设置窗口透明样式
 	Transparent(frmClock.mnuTransparent.Checked)
-End Sub
-
-Private Sub frmMonthType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	'CoUninitialize()
-	frmClock.ProfileFrmMonth()
-	frmClock.mnuMonthEnabled.Checked = False
 End Sub
 
 Private Sub frmMonthType.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
@@ -157,19 +152,18 @@ Private Sub frmMonthType.Form_Resize(ByRef Sender As Control, NewWidth As Intege
 		mMonth.Background(ClientWidth*xdpi, ClientHeight*ydpi, mDate)
 	End If
 	PaintMonth()
-	frmClock.Profile2Interface()
 End Sub
 
 Private Sub frmMonthType.DateChange(sDate As Double)
 	mDate = DateSerial(Year(sDate), Month(sDate), Day(sDate))
-	Caption = Format(mDate, "yyyy/mm/dd")
 	Form_Resize(This, Width, Height)
 	frmDay.DateChange(sDate)
 End Sub
 
 Private Sub frmMonthType.Transparent(v As Boolean)
-	frmTrans.Enabled = v
 	Form_Resize(This, Width, Height)
+	frmTrans.Enabled = v
+	PaintMonth()
 End Sub
 
 Private Sub frmMonthType.PaintMonth()
@@ -192,17 +186,12 @@ Private Sub frmMonthType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 	sX = x
 	sY = y
 	
-	If MouseButton = 0 Then
-		ReleaseCapture()
-		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
-	End If
-	
 	mMonth.mMouseX = x * xdpi
 	mMonth.mMouseY = y * ydpi
 	PaintMonth()
 	Select Case mMonth.mMouseLocate
 	Case 0 'day
-		Hint = Format(mMonth.XY2Date(x*xdpi, y*ydpi), "yyyy/mm/dd")
+		Hint = Format(mMonth.XY2Date(mMonth.mMouseX, mMonth.mMouseY), "yyyy/mm/dd")
 	Case 4 'today
 		Hint = "Show today"
 	Case 5 'year dec
@@ -220,8 +209,20 @@ Private Sub frmMonthType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 	Case 3 'hide control
 		Hint = "Hide controls"
 	End Select
+
+	If MouseButton = 0 Then
+		ReleaseCapture()
+		SendMessage(Sender.Handle, WM_NCLBUTTONDOWN, HTCAPTION, 0)
+	End If
 End Sub
 
 Private Sub frmMonthType.Form_MouseLeave(ByRef Sender As Control)
 	Form_MouseMove(This, -1, -1, -1, 0)
+End Sub
+
+Private Sub frmMonthType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	mMonth.mBackImage.ImageFile = Filename
+	mMonth.mBackEnabled = True 
+	Form_Resize(This, Width, Height)
+	frmClock.Form_Resize(frmClock, frmClock.Width, frmClock.Height)
 End Sub

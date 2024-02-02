@@ -96,8 +96,8 @@ Private Function gdipText.TextWidth(ByRef pText As WString) As Single
 End Function
 
 Private Sub gdipText.MeasureString(ByRef pText As WString)
-	Dim tmpBitmap As gdipBitmap
-	tmpBitmap.Initial(mWidth, mHeight)
+	Dim sTmpBitmap As gdipBitmap
+	sTmpBitmap.Initial(mWidth, mHeight)
 	
 	If mStringFormat = NULL Then FontCreate()
 	Dim sBoundingBox As RectF
@@ -117,7 +117,7 @@ Private Sub gdipText.MeasureString(ByRef pText As WString)
 	End With
 	Dim As INT_ sWidth, sHeight
 	'GetTextExtentPoint32
-	GdipMeasureString(tmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @sTextDRectF, mStringFormat, @sBoundingBox, @sWidth, @sHeight)
+	GdipMeasureString(sTmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @sTextDRectF, mStringFormat, @sBoundingBox, @sWidth, @sHeight)
 	mTextWidth = sBoundingBox.Width - sBoundingBox.X
 	mTextHeight = sBoundingBox.Height - sBoundingBox.Y
 End Sub

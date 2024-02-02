@@ -25,11 +25,11 @@ Private Sub AnalogClock.Release()
 End Sub
 
 Private Property AnalogClock.FileName(ByRef fFileName As WString)
-	If Dir(fFileName) = "" Then
+	WLet(mBackFile, fFileName)
+	mBackImage.ImageFile = *mBackFile
+	If Dir(*mBackFile) = "" Then
 		mBackScale = 1
 	Else
-		WLet(mBackFile, fFileName)
-		mBackImage.ImageFile = *mBackFile
 		mBackScale = mBackImage.Height / mBackImage.Width
 	End If
 End Property
@@ -43,8 +43,8 @@ End Property
 
 Private Function AnalogClock.DrawText() As GpImage Ptr
 	Dim tmpWStr As WString Ptr
-	Static tmpBitmap As gdipBitmap
-	tmpBitmap.Initial(mWidth, mHeight)
+	Static sTmpBitmap As gdipBitmap
+	sTmpBitmap.Initial(mWidth, mHeight)
 	
 	Dim tmpTxt As gdipText
 	tmpTxt.Initial(mWidth, mHeight)
@@ -55,14 +55,14 @@ Private Function AnalogClock.DrawText() As GpImage Ptr
 	Dim sx As Single = (mWidth - tmpTxt.TextWidth(*tmpWStr)) / 2 * mTextOffsetX
 	Dim sy As Single = (mHeight - tmpTxt.TextHeight(*tmpWStr)) / 2 * mTextOffsetY
 	
-	tmpTxt.TextOut(tmpBitmap.Graphics, *tmpWStr, sx, sy, (mTextAlpha Shl 24) Or mTextColor)
+	tmpTxt.TextOut(sTmpBitmap.Graphics, *tmpWStr, sx, sy, (mTextAlpha Shl 24) Or mTextColor)
 	
 	Deallocate tmpWStr
-	Return tmpBitmap.Image
+	Return sTmpBitmap.Image
 End Function
 
 Private Function AnalogClock.DrawTray() As GpImage Ptr
-	Static tmpBitmap As gdipBitmap
+	Static sTmpBitmap As gdipBitmap
 	
 	Dim As Any Ptr hBrushL, hBrushLB, hPen, hPenL, hMatrix
 	Dim As Single fBorderSize = mWidth * 0.03333
@@ -79,7 +79,7 @@ Private Function AnalogClock.DrawTray() As GpImage Ptr
 	Dim As Single fShadowAngle
 	
 	'准备画布和位图
-	tmpBitmap.Initial(mWidth, mWidth)
+	sTmpBitmap.Initial(mWidth, mWidth)
 	
 	tPoint1.X = fBorderSize
 	tPoint1.Y = fBorderSize
@@ -97,16 +97,16 @@ Private Function AnalogClock.DrawTray() As GpImage Ptr
 	GdipDeleteMatrix(hMatrix)
 	
 	'填充表盘底色
-	GdipFillEllipse(tmpBitmap.Graphics, hBrushLB, fBorderSize, fBorderSize, fSize, fSize)
+	GdipFillEllipse(sTmpBitmap.Graphics, hBrushLB, fBorderSize, fBorderSize, fSize, fSize)
 	
 	'绘制表盘阴影
 	fShadowAngle = Atn(fShadow_vy / fShadow_vx) * fDeg
 	If fShadow_vx < 0 And fShadow_vy >= 0 Then fShadowAngle += 180
 	If fShadow_vx < 0 And fShadow_vy < 0 Then fShadowAngle -= 180
 	GdipCreatePen1(mTrayShadowAlpha Shl 24 Or mTrayShadowColor, fBorderSize, UnitPixel, @hPen)
-	GdipDrawEllipse(tmpBitmap.Graphics, hPen, fBorderSize + fShadow_vx, fBorderSize + fShadow_vy, fSize, fSize)
+	GdipDrawEllipse(sTmpBitmap.Graphics, hPen, fBorderSize + fShadow_vx, fBorderSize + fShadow_vy, fSize, fSize)
 	'阴影模糊处理
-	FastBoxBlurHV(tmpBitmap.Image, mWidth * 0.02)
+	FastBoxBlurHV(sTmpBitmap.Image, mWidth * 0.02)
 	
 	'绘制表盘边缘
 	tPoint1.X = 0
@@ -117,60 +117,57 @@ Private Function AnalogClock.DrawTray() As GpImage Ptr
 	GdipSetLineSigmaBlend(hBrushL, 0.6, 1.0)
 	GdipSetLineGammaCorrection(hBrushL, True)
 	GdipCreatePen2(hBrushL, fBorderSize, UnitPixel, @hPenL)
-	GdipDrawEllipse(tmpBitmap.Graphics, hPenL, fBorderSize, fBorderSize, fSize, fSize)
-
+	GdipDrawEllipse(sTmpBitmap.Graphics, hPenL, fBorderSize, fBorderSize, fSize, fSize)
+	
 	GdipDeleteBrush(hBrushL)
 	GdipDeleteBrush(hBrushLB)
 	GdipDeletePen(hPen)
 	GdipDeletePen(hPenL)
 	
-	Return tmpBitmap.Image
+	Return sTmpBitmap.Image
 End Function
 Private Function AnalogClock.DrawScale() As GpImage Ptr
-	Static tmpBitmap As gdipBitmap
-	Dim As Any Ptr hBrush
 	Dim As Single fRadius = mWidth / 2
-	
-	'准备画布和位图
-	tmpBitmap.Initial(mWidth, mWidth)
-	
-	'绘制表盘刻度
-	GdipCreateSolidFill((mScaleAlpha Shl 24) Or mScaleColor, @hBrush)
-	
 	'刻度距离边缘
-	Dim As Single fPosY = mWidth / 11
+	Dim As Single fDistance = mWidth / 11
 	'粗刻度
 	Dim As Single iWidth1 = mWidth / 48, iHeight1 = mWidth / 15, iWidth12 = iWidth1 / 2
 	'细刻度
 	Dim As Single iWidth2 = mWidth / 100, iHeight2 = mWidth / 25, iWidth22 = iWidth2 / 2
+	'准备画布和位图
+	Static sTmpBitmap As gdipBitmap
+	sTmpBitmap.Initial(mWidth, mWidth)
+	'绘制表盘刻度
+	Dim As Any Ptr hBrush
+	GdipCreateSolidFill((mScaleAlpha Shl 24) Or mScaleColor, @hBrush)
 	
-	GdipTranslateWorldTransform(tmpBitmap.Graphics, fRadius, fRadius, 0)
-	GdipRotateWorldTransform(tmpBitmap.Graphics, -6.0, MatrixOrderPrepend)
-	GdipTranslateWorldTransform(tmpBitmap.Graphics, -fRadius, -fRadius, 0)
+	GdipTranslateWorldTransform(sTmpBitmap.Graphics, fRadius, fRadius, 0)
+	GdipRotateWorldTransform(sTmpBitmap.Graphics, -6.0, MatrixOrderPrepend)
+	GdipTranslateWorldTransform(sTmpBitmap.Graphics, -fRadius, -fRadius, 0)
 	For i As UByte = 0 To 59
-		GdipTranslateWorldTransform(tmpBitmap.Graphics, fRadius, fRadius, 0)
-		GdipRotateWorldTransform(tmpBitmap.Graphics, 6.0, MatrixOrderPrepend)
-		GdipTranslateWorldTransform(tmpBitmap.Graphics, -fRadius, -fRadius, 0)
+		GdipTranslateWorldTransform(sTmpBitmap.Graphics, fRadius, fRadius, 0)
+		GdipRotateWorldTransform(sTmpBitmap.Graphics, 6.0, MatrixOrderPrepend)
+		GdipTranslateWorldTransform(sTmpBitmap.Graphics, -fRadius, -fRadius, 0)
 		If (i Mod 5) = 0 Then
 			'绘制粗刻度
-			GdipFillRectangle(tmpBitmap.Graphics, hBrush, fRadius - iWidth12, fPosY, iWidth1, iHeight1)
+			GdipFillRectangle(sTmpBitmap.Graphics, hBrush, fRadius - iWidth12, fDistance, iWidth1, iHeight1)
 		Else
 			'绘制细刻度
-			GdipFillRectangle(tmpBitmap.Graphics, hBrush, fRadius - iWidth22, fPosY, iWidth2, iHeight2)
+			GdipFillRectangle(sTmpBitmap.Graphics, hBrush, fRadius - iWidth22, fDistance, iWidth2, iHeight2)
 		End If
 	Next
-	GdipResetWorldTransform(tmpBitmap.Graphics)
+	GdipResetWorldTransform(sTmpBitmap.Graphics)
 	GdipDeleteBrush(hBrush)
 	
-	Return tmpBitmap.Image
+	Return sTmpBitmap.Image
 End Function
 
 Private Function AnalogClock.DrawHand() As GpImage Ptr
-	Static TmpBitmap As gdipBitmap
+	Static sTmpBitmap As gdipBitmap
 	Static SecBitmap As gdipBitmap
 	
 	'准备画布和位图
-	TmpBitmap.Initial(mWidth, mHeight)
+	sTmpBitmap.Initial(mWidth, mHeight)
 	SecBitmap.Initial(mWidth, mHeight)
 	
 	Dim sTime As Double= VBTimer()
@@ -189,11 +186,11 @@ Private Function AnalogClock.DrawHand() As GpImage Ptr
 	
 	If mHandHourEnabled Then
 		'时针
-		GdipDrawLine(TmpBitmap.Graphics, mPenHour, mCenterX - mCenterX * mHandHourTail * Cos(sHourAngle), mCenterY + mCenterY * mHandHourTail * Sin(sHourAngle), mCenterX + (mCenterX * mHandHourFront) * Cos(sHourAngle), mCenterY - (mCenterY * mHandHourFront) * Sin(sHourAngle))
+		GdipDrawLine(sTmpBitmap.Graphics, mPenHour, mCenterX - mCenterX * mHandHourTail * Cos(sHourAngle), mCenterY + mCenterY * mHandHourTail * Sin(sHourAngle), mCenterX + (mCenterX * mHandHourFront) * Cos(sHourAngle), mCenterY - (mCenterY * mHandHourFront) * Sin(sHourAngle))
 	End If
 	If mHandMinuteEnabled Then
 		'分针
-		GdipDrawLine(TmpBitmap.Graphics, mPenMinute, mCenterX - mCenterX * mHandMinuteTail * Cos(sMinuteAngle), mCenterY + mCenterY * mHandMinuteTail * Sin(sMinuteAngle), mCenterX + (mCenterX * mHandMinuteFront) * Cos(sMinuteAngle), mCenterY - (mCenterY * mHandMinuteFront) * Sin(sMinuteAngle))
+		GdipDrawLine(sTmpBitmap.Graphics, mPenMinute, mCenterX - mCenterX * mHandMinuteTail * Cos(sMinuteAngle), mCenterY + mCenterY * mHandMinuteTail * Sin(sMinuteAngle), mCenterX + (mCenterX * mHandMinuteFront) * Cos(sMinuteAngle), mCenterY - (mCenterY * mHandMinuteFront) * Sin(sMinuteAngle))
 	End If
 	If mHandSecondEnabled Then
 		'秒针
@@ -211,17 +208,15 @@ Private Function AnalogClock.DrawHand() As GpImage Ptr
 	
 	GdipDrawEllipse(SecBitmap.Graphics, mPenSecond, mCenterX - mCenterX * mHandHourSize / 2, mCenterY - mCenterY * mHandHourSize / 2, mCenterX * mHandHourSize, mCenterY * mHandHourSize)
 	
-	TmpBitmap.DrawImage(SecBitmap.Image, 0, 0)
+	sTmpBitmap.DrawImage(SecBitmap.Image, 0, 0)
 	
-	Return TmpBitmap.Image
+	Return sTmpBitmap.Image
 End Function
 
 Private Sub AnalogClock.Background(ByVal pWidth As Single = 300, ByVal pHeight As Single = 400)
 	mWidth = pWidth
 	mHeight = pHeight
-	Dim sImg As gdipImage
-	Dim tmpBitmap As gdipBitmap
-	Dim tmpBitmap2 As gdipBitmap
+	Dim sTmpBitmap As gdipBitmap
 	
 	'时钟中心
 	mCenterX = mWidth / 2 + mHandOffsetX
@@ -255,29 +250,39 @@ Private Sub AnalogClock.Background(ByVal pWidth As Single = 300, ByVal pHeight A
 	mBackBitmap.Initial(mWidth, mHeight)
 	
 	If mTrayEnabled Then
-		tmpBitmap.Initial(mWidth, mHeight)
-		tmpBitmap2.Initial(mWidth, mHeight)
-		tmpBitmap.DrawScaleImage(DrawTray())
-		If mTrayBlur Then FastBoxBlurHV(tmpBitmap.Image, mTrayBlur)
-		tmpBitmap2.DrawAlphaImage(tmpBitmap.Image, mTrayAlpha)
-		mBackBitmap.DrawImage(tmpBitmap2.Image, 0, 0)
+		sTmpBitmap.Initial(mWidth, mHeight)
+		sTmpBitmap.DrawScaleImage(DrawTray())
+		If mTrayBlur Then FastBoxBlurHV(sTmpBitmap.Image, mTrayBlur)
+		mBackBitmap.DrawAlphaImage(sTmpBitmap.Image, mTrayAlpha)
+	End If
+	
+	If mPanelEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		GdipGraphicsClear(sTmpBitmap.Graphics, mPanelAlpha Shl 24 Or mPanelColor)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
 	
 	If mBackEnabled Then
-		tmpBitmap.Initial(mWidth, mHeight)
-		tmpBitmap2.Initial(mWidth, mHeight)
-		tmpBitmap.DrawScaleImage(mBackImage.Image)
-		If mBackBlur Then FastBoxBlurHV(tmpBitmap.Image, mBackBlur)
-		tmpBitmap2.DrawAlphaImage(tmpBitmap.Image, mBackAlpha)
-		mBackBitmap.DrawImage(tmpBitmap2.Image, 0, 0)
+		sTmpBitmap.Initial(mWidth, mHeight)
+		sTmpBitmap.DrawScaleImage(mBackImage.Image)
+		If mBackBlur Then FastBoxBlurHV(sTmpBitmap.Image, mBackBlur)
+		mBackBitmap.DrawAlphaImage(sTmpBitmap.Image, mBackAlpha)
 	End If
 	
 	If mScaleEnabled Then
-		tmpBitmap2.Initial(mWidth, mHeight)
-		sImg.Image = DrawScale()
-		If mScaleBlur Then FastBoxBlurHV(sImg.Image, mScaleBlur)
-		tmpBitmap2.DrawScaleImage(sImg.Image)
-		mBackBitmap.DrawImage(tmpBitmap2.Image, 0, 0)
+		sTmpBitmap.Initial(mWidth, mHeight)
+		sTmpBitmap.DrawImage(DrawScale(), 0, 0)
+		If mScaleBlur Then FastBoxBlurHV(sTmpBitmap.Image, mScaleBlur)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
+	End If
+	
+	If mOutlineEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		Dim sPen As GpPen Ptr
+		GdipCreatePen1((mOutlineAlpha Shl 24) Or mOutlineColor, mOutlineSize, UnitPixel, @sPen)
+		GdipDrawRectangle(sTmpBitmap.Graphics, sPen, 0, 0, mWidth, mHeight)
+		GdipDeletePen(sPen)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
 End Sub
 

@@ -27,11 +27,11 @@ Private Sub TextClock.Release()
 End Sub
 
 Private Property TextClock.FileName(ByRef fFileName As WString)
-	If Dir(fFileName) = "" Then
+	WLet(mBackFile, fFileName)
+	mBackImage.ImageFile = *mBackFile
+	If Dir(*mBackFile) = "" Then
 		mBackScale = mTxtScale
 	Else
-		WLet(mBackFile, fFileName)
-		mBackImage.ImageFile = *mBackFile
 		mBackScale = mBackImage.Height / mBackImage.Width
 	End If
 End Property
@@ -49,32 +49,34 @@ Private Sub TextClock.TextFont(pName As WString, pStyle As FontStyle)
 End Sub
 
 Private Sub TextClock.Background(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
-	'If mHeight <> pHeight Then mByHeight = True
-	'If mWidth <> pWidth Then mByHeight = False
-	
 	mWidth = pWidth
 	mHeight = pHeight
-
-	CalculateSize()
-
-	Dim tmpBitmap As gdipBitmap
 	
+	CalculateSize()
 	mBackBitmap.Initial(mWidth, mHeight)
-	If mBackEnabled Then
-		tmpBitmap.Initial(mWidth, mHeight)
-		tmpBitmap.DrawScaleImage(mBackImage.Image)
-		If mBackBlur Then FastBoxBlurHV(tmpBitmap.Image, mBackBlur)
-		mBackBitmap.DrawAlphaImage(tmpBitmap.Image, mBackAlpha)
+	
+	Dim sTmpBitmap As gdipBitmap
+	
+	If mPanelEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		GdipGraphicsClear(sTmpBitmap.Graphics, mPanelAlpha Shl 24 Or mPanelColor)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
-	If mTrayEnabled Then
-		mTrayBitmap.Initial(mWidth, mHeight)
-		GdipGraphicsClear(mTrayBitmap.Graphics, mTrayAlpha Shl 24 Or mTrayColor)
-
-		'外框线
-		'Dim sPen As GpPen Ptr
-		'GdipCreatePen1((mTrayAlpha Shl 24) Or mOutlineColor, mOutlineSize, UnitPixel, @sPen)
-		'GdipDrawRectangle(mTrayBitmap.Graphics, sPen, 0, 0, mWidth, mHeight)
-		'GdipDeletePen(sPen)
+	
+	If mBackEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		sTmpBitmap.DrawScaleImage(mBackImage.Image)
+		If mBackBlur Then FastBoxBlurHV(sTmpBitmap.Image, mBackBlur)
+		mBackBitmap.DrawAlphaImage(sTmpBitmap.Image, mBackAlpha)
+	End If
+	
+	If mOutlineEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		Dim sPen As GpPen Ptr
+		GdipCreatePen1((mOutlineAlpha Shl 24) Or mOutlineColor, mOutlineSize, UnitPixel, @sPen)
+		GdipDrawRectangle(sTmpBitmap.Graphics, sPen, 0, 0, mWidth, mHeight)
+		GdipDeletePen(sPen)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
 	
 	mUpdate = True
@@ -91,25 +93,25 @@ Private Function TextClock.ImageUpdate() As GpImage Ptr
 		mUpdate = False
 		sTimer = dTimer
 		sBlink = IIf(mBlinkColon, True , False)
-		mUpdateBitmap.Initial(mWidth, mHeight)
-		If mTrayEnabled Then mUpdateBitmap.DrawImage(mTrayBitmap.Image, 0, 0)
-		If mBackEnabled Then mUpdateBitmap.DrawScaleImage(mBackBitmap.Image)
 		
 		'绘制有冒号的文字时钟
 		sImg.DrawImage(DrawClock(True), mClockLeft, mClockTop)
 		If mTextBlur Then FastBoxBlurHV(sImg.Image, mTextBlur)
+		
+		mUpdateBitmap.Initial(mWidth, mHeight)
+		mUpdateBitmap.DrawImage(mBackBitmap.Image, 0, 0)
 		mUpdateBitmap.DrawImage(sImg.Image, 0, 0)
 		If mBlur Then FastBoxBlurHV(mUpdateBitmap.Image, mBlur)
 	Else
 		If (mBlinkColon = True) And (sBlink = True) And (VBTimerMS() > 0.5) Then
 			sBlink = False
-			mUpdateBitmap.Initial(mWidth, mHeight)
-			If mTrayEnabled Then mUpdateBitmap.DrawImage(mTrayBitmap.Image, 0, 0)
-			If mBackEnabled Then mUpdateBitmap.DrawScaleImage(mBackBitmap.Image)
 			
 			'绘制没有冒号的文字时钟
 			sImg.DrawImage(DrawClock(False), mClockLeft, mClockTop)
 			If mTextBlur Then FastBoxBlurHV(sImg.Image, mTextBlur)
+			
+			mUpdateBitmap.Initial(mWidth, mHeight)
+			mUpdateBitmap.DrawImage(mBackBitmap.Image, 0, 0)
 			mUpdateBitmap.DrawImage(sImg.Image, 0, 0)
 			If mBlur Then FastBoxBlurHV(mUpdateBitmap.Image, mBlur)
 		End If
@@ -150,7 +152,7 @@ Private Sub TextClock.CalculateSize()
 	mClockLeft = (mWidth - mClockWidth) / 2     'x偏移
 	mClockTop = (mHeight - mClockHeight) / 2    'y偏移
 	mTxtScale = mClockHeight / mClockWidth
-	If mBackScale = 0 Then mBackScale = mTxtScale 
+	If mBackScale = 0 Then mBackScale = mTxtScale
 End Sub
 
 Private Function TextClock.DrawClock(ByVal pColon As Boolean = True) As GpImage Ptr

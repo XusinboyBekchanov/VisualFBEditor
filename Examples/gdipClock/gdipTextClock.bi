@@ -7,82 +7,69 @@
 #include once "vbcompat.bi"
 
 Type TextClock
-	mByHeight As Boolean
-	
-	mUpdateBitmap As gdipBitmap
-	mUpdate As Boolean
-	mBlur As Integer = 0
-	
-	mBackBitmap As gdipBitmap
-	mBackEnabled As Boolean = False
-	mBackScale As Single = 1
-	mBackImage As gdipImage
-	mBackFile As WString Ptr
 	mBackAlpha As Single = &H80
+	mBackBitmap As gdipBitmap
 	mBackBlur As Integer = 0
-	
-	mTrayBitmap As gdipBitmap
-	mTrayEnabled As Boolean = False
-	mTrayAlpha As ARGB = &H40
-	mTrayColor As ARGB = &HFFFFFF
-	
-	mTxt As gdipText
-	mTxtScale As Single = 1
-	
-	mWidth As Single
-	mHeight As Single
-	
-	mColon As WString Ptr
-	mDt As WString Ptr
-	mW(4) As Single
-	mH(1) As Single
-	
-	mFontName As WString Ptr
-	mFontStyle As FontStyle = FontStyleBold
-	mFontSize As Single
-	mFontSize2 As Single
-	
+	mBackEnabled As Boolean = True
+	mBackFile As WString Ptr
+	mBackImage As gdipImage
+	mBackScale As Single = 0
+	mBlinkColon As Boolean = True
+	mBlur As Integer = 0
+	mBorderAlpha As ARGB = &HFF
+	mBorderColor As ARGB = &HFFFFFF
+	mBorderEnabled As Boolean = True
+	mBorderSize As Single = 1
+	mByHeight As Boolean
+	mClockHeight As Single
 	mClockLeft As Single
 	mClockTop As Single
 	mClockWidth As Single
-	mClockHeight As Single
-	
-	mShowSecond As Boolean = True
-	mBlinkColon As Boolean = True
-	
+	mColon As WString Ptr
+	mDt As WString Ptr
+	mFontName As WString Ptr
+	mFontSize As Single
+	mFontSize2 As Single
+	mFontStyle As FontStyle = FontStyleBold
+	mGradientMode As LinearGradientMode = LinearGradientModeVertical
+	mH(1) As Single
+	mHeight As Single
+	mOutlineAlpha As ARGB = &HFF
+	mOutlineColor As ARGB = &HBF3F7F
+	mOutlineEnabled As Boolean = True
+	mOutlineSize As Single = 1
+	mPanelAlpha As ARGB = &H80
+	mPanelColor As ARGB = &HFFFFFF
+	mPanelEnabled As Boolean = True
+	mShadowAlpha As ARGB = &HFF
 	mShadowEnabled As Boolean = True
 	mShadowSize As Single = 0.03
-	mShadowAlpha As ARGB = &HFF
-	
-	mGradientMode As LinearGradientMode = LinearGradientModeVertical
-	mTextColor1 As ARGB = &HFF00FF
-	mTextColor2 As ARGB = &H00FFFF
+	mShowSecond As Boolean = True
 	mTextAlpha1 As ARGB = &HFF
 	mTextAlpha2 As ARGB = &HFF
 	mTextBlur As Integer = 0
-	
-	mBorderEnabled As Boolean = True
-	mBorderAlpha As ARGB = &HFF
-	mBorderColor As ARGB = &HFFFFFF
-	mBorderSize As Single = 1
-	
+	mTextColor1 As ARGB = &HFF00FF
+	mTextColor2 As ARGB = &H00FFFF
+	mTxt As gdipText
+	mTxtScale As Single = 1
 	mUnitPixel As Unit = UnitPixel
+	mUpdate As Boolean
+	mUpdateBitmap As gdipBitmap
+	mW(4) As Single
+	mWidth As Single
 	
-	mOutlineSize As Single = 1
-	mOutlineColor As ARGB = &HBF3F7F
-	
-	Declare Property FileName(ByRef fFileName As WString)
-	Declare Property FileName() ByRef As WString
-	Declare Sub TextFont(pName As WString, pStyle As FontStyle)
-	Declare Sub TextAlpha(ByVal pTextAlpha1 As ARGB = &HFF, ByVal pTextAlpha2 As ARGB = &HFF)
-	Declare Sub TextColor(ByVal pTextColor1 As ARGB = &H000000, ByVal pTextColor2 As ARGB = &H000000)
-	Declare Sub Background(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
-	Declare Sub CalculateSize()
-	Declare Function DrawClock(ByVal pColon As Boolean = True) As GpImage Ptr
-	Declare Function ImageUpdate() As GpImage Ptr
 	Declare Constructor
 	Declare Destructor
+	Declare Function DrawClock(ByVal pColon As Boolean = True) As GpImage Ptr
+	Declare Function ImageUpdate() As GpImage Ptr
+	Declare Property FileName() ByRef As WString
+	Declare Property FileName(ByRef fFileName As WString)
+	Declare Sub Background(ByVal pWidth As Single = 400, ByVal pHeight As Single = 300)
+	Declare Sub CalculateSize()
 	Declare Sub Release()
+	Declare Sub TextAlpha(ByVal pTextAlpha1 As ARGB = &HFF, ByVal pTextAlpha2 As ARGB = &HFF)
+	Declare Sub TextColor(ByVal pTextColor1 As ARGB = &H000000, ByVal pTextColor2 As ARGB = &H000000)
+	Declare Sub TextFont(pName As WString, pStyle As FontStyle)
 End Type
 
 #ifndef __USE_MAKE__

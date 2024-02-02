@@ -13,9 +13,9 @@
 	
 	#include once "gdip.bi"
 	#include once "gdipAnalogClock.bi"
-	#include once "gdipTextClock.bi"
-	#include once "gdipMonth.bi"
 	#include once "gdipDay.bi"
+	#include once "gdipMonth.bi"
+	#include once "gdipTextClock.bi"
 	
 	#include once "../SapiTTS/Speech.bi"
 	#include once "../MDINotepad/Text.bi"
@@ -42,100 +42,92 @@
 		'draw text coloc
 		mTextClock As TextClock
 		
-		mOpacity As UINT = &HFF
-		mTextColor1 As ARGB = &HFF00FF
-		mTextColor2 As ARGB = &H00FFFF
-		mTextAlpha1 As ARGB = &HFF
-		mTextAlpha2 As ARGB = &HFF
-		
-		mScreenWidth As Integer
-		mScreenHeight As Integer
-		
-		mLocateVertical As Integer
-		mLocateHorizontal As Integer
-		
-		Declare Sub PaintClock()
-		
+		'Stress test for clock
 		TestSetting(Any) As Boolean
 		TestMenu(Any) As MenuItem Ptr
-		TestCount As Integer = 12
+		TestCount As Integer = 39
 		Declare Sub TestBackup()
 		Declare Sub TestRestore()
 		Declare Sub TestStress()
 		
-		pSpVoice As Afx_ISpVoice Ptr
-		mVoiceCount As Integer = -1
+		'Speech
+		Declare Sub SpeechInit()
+		Declare Sub SpeechNow(sDt As Double, ByVal sLan As Integer = 0)
 		mAudioCount As Integer = -1
 		mLanguage As Integer = 0
-		mnuVoiceSub(Any) As MenuItem Ptr
 		mnuAudioSub(Any) As MenuItem Ptr
-		Declare Sub SpeechNow(sDt As Double, ByVal sLan As Integer = 0)
-		Declare Sub SpeechInit()
+		mnuVoiceSub(Any) As MenuItem Ptr
+		mVoiceCount As Integer = -1
+		pSpVoice As Afx_ISpVoice Ptr
 		
-		mProfile As WString Ptr
-		mKeyName(Any) As WString Ptr
-		mKeyValue(Any) As WString Ptr
-		mKeyNameLen(Any) As Integer
-		mKeyCount As Integer = 134
-		mnuProfileList(Any) As MenuItem Ptr
-		mnuProfileCount As Integer = -1
-		mAppPath As WString Ptr
-		Declare Function ProfileIdx(ByVal fIncNum As Integer = -1) As Integer
-		Declare Sub ProfileDefSave()                        '存入默认Profile
-		Declare Function ProfileDefLoad() ByRef As WString  '获得默认Profile
-		Declare Sub ProfileInitial()        '初始化Profile
-		Declare Sub Profile2Menu()          '将Profile产生在Menu中
-		Declare Sub ProfileFrmMain()        '从主界面中获得参数
-		Declare Sub ProfileFrmAnalog()      '从模拟时钟中获得参数
-		Declare Sub ProfileFrmText()        '从文字时钟中获得参数
-		Declare Sub ProfileFrmDay()         '从日历中获得参数
-		Declare Sub ProfileFrmMonth()       '从月历中获得参数
-		Declare Sub ProfileFrmSpeech()      '从语音中获得参数
-		Declare Sub Profile2Main()          '将参数应用于主界面
-		Declare Sub Profile2Analog()        '将参数应用于模拟时钟
-		Declare Sub Profile2Text()          '将参数应用于文字时钟
-		Declare Sub Profile2Day()           '将参数应用于日历
-		Declare Sub Profile2Month()         '将参数应用于月历
-		Declare Sub Profile2Speech()        '将参数应用于语音
-		Declare Sub Profile2Interface()     '将参数应显示在界面上
-		Declare Sub ProfileRelease()        '释放Profile资源
-		Declare Function ProfileLoad(sFileName As WString) As Boolean   '加载Profile
-		Declare Sub ProfileSave(sFileName As WString)                   '存储Profile
-		Declare Function ProfileSimple(sFileName As WString) ByRef As WString   '简路径
-		Declare Function ProfileFull(sFileName As WString) ByRef As WString     '全路径
+		'Profile
+		mRectAnalog As Rect
+		mRectDay As Rect
+		mRectMain As Rect
+		mRectMonth As Rect
+		mRectText As Rect
 		
-		mSetMainStart As Integer
 		mSetAnalogStart As Integer
-		mSetTextStart As Integer
 		mSetDayStart As Integer
+		mSetMainStart As Integer
 		mSetMonthStart As Integer
 		mSetSpeechStart As Integer
-		mRectMain As Rect
-		mRectAnalog As Rect
-		mRectText As Rect
-		mRectDay As Rect
-		mRectMonth As Rect
+		mSetTextStart As Integer
 		
-		Declare Property IndexOfLocateH() As Integer
-		Declare Property IndexOfLocateV() As Integer
-		Declare Property IndexOfGradientMode() As Integer
-		Declare Property IndexOfTextColor() As Integer
-		Declare Property IndexOfAnnouce() As Integer
-		Declare Property IndexOfVoice() ByRef As WString
-		Declare Property IndexOfAudio() ByRef As WString
-		Declare Property IndexOfLocateH(v As Integer)
-		Declare Property IndexOfLocateV(v As Integer)
-		Declare Property IndexOfGradientMode(v As Integer)
-		Declare Property IndexOfTextColor(v As Integer)
-		Declare Property IndexOfAnnouce(v As Integer)
-		Declare Property IndexOfVoice(ByRef v As WString)
-		Declare Property IndexOfAudio(ByRef v As WString)
+		mAppPath As WString Ptr
+		mKeyCount As Integer = 165
+		mKeyName(Any) As WString Ptr
+		mKeyNameLen(Any) As Integer
+		mKeyValDef(Any) As WString Ptr
+		mKeyValue(Any) As WString Ptr
+		mnuProfileCount As Integer = -1
+		mnuProfileList(Any) As MenuItem Ptr
+		mProfileName As WString Ptr
+		mProfileExt As WString Ptr = @WStr(".prf")
+		Declare Function FileNameFull(sFileName As WString) ByRef As WString    '全路径文件名
+		Declare Function FileNameOnly(sFileName As WString) ByRef As WString    '无路径文件名
+		Declare Function ProfileDefLoad() ByRef As WString  '获得默认Profile
+		Declare Function ProfileIdx(ByVal fDefNum As Integer = -1) As Integer   '索引+1
+		Declare Function ProfileLoad(sFileName As WString, sKeyValue() As WString Ptr) As Boolean   '加载Profile
+		Declare Sub Clock2Interface()   '将时钟参数显示在界面上
+		Declare Sub FileName2Menu(sExt As WString)  '将file名显示在Menu中
+		Declare Sub Profile2Clock(sKeyValue() As WString Ptr)   '将Profile应用于时钟
+		Declare Sub ProfileDefSave()    '存入默认Profile
+		Declare Sub ProfileFrmClock(sKeyValue() As WString Ptr)     '从时钟中获得参数
+		Declare Sub ProfileInitial()    '初始化Profile
+		Declare Sub ProfileRelease()    '释放Profile资源
+		Declare Sub ProfileSave(sFileName As WString, sKeyValue() As WString Ptr)   '存储Profile
 		
+		'Clock
+		mLocateHorizontal As Integer
+		mLocateVertical As Integer
+		mOpacity As UINT = &HFF
+		
+		mScreenHeight As Integer
+		mScreenWidth As Integer
 		mShowDay As Boolean
 		mShowMonth As Boolean
+		mTextAlpha1 As ARGB = &HFF
+		mTextAlpha2 As ARGB = &HFF
+		mTextColor1 As ARGB = &HFF00FF
+		mTextColor2 As ARGB = &H00FFFF
 		mTransparent As Boolean
-		
 		Declare Sub Transparent(v As Boolean)
+		Declare Sub PaintClock()
+		Declare Property IndexOfAnnouce() As Integer
+		Declare Property IndexOfAnnouce(v As Integer)
+		Declare Property IndexOfAudio() ByRef As WString
+		Declare Property IndexOfAudio(ByRef v As WString)
+		Declare Property IndexOfGradientMode() As Integer
+		Declare Property IndexOfGradientMode(v As Integer)
+		Declare Property IndexOfLocateH() As Integer
+		Declare Property IndexOfLocateH(v As Integer)
+		Declare Property IndexOfLocateV() As Integer
+		Declare Property IndexOfLocateV(v As Integer)
+		Declare Property IndexOfTextColor() As Integer
+		Declare Property IndexOfTextColor(v As Integer)
+		Declare Property IndexOfVoice() ByRef As WString
+		Declare Property IndexOfVoice(ByRef v As WString)
 		
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub mnuMenu_Click(ByRef Sender As MenuItem)
@@ -148,6 +140,8 @@
 		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 		Declare Sub Form_Move(ByRef Sender As Control)
 		Declare Sub Form_Show(ByRef Sender As Form)
+		Declare Sub Form_Click(ByRef Sender As Control)
+		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Constructor
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As OpenFileDialog OpenFileDialog1
@@ -155,9 +149,10 @@
 		Dim As FontDialog FontDialog1
 		Dim As ColorDialog ColorDialog1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuAnalogEnabled, mnuAnalogSetting, mnuAnalogBackFile, mnuAnalogTrayEnabled, mnuAnalogScaleEnabled, mnuBar2, mnuTextEnabled, mnuTextSetting, mnuTextShadow, mnuTextBlack, mnuTextRed, mnuTextGreen, mnuTextGradient, mnuTextShowSecond, mnuTextBlinkColon, MenuItem10, mnuAnalogTextEnabled, mnuAnalogHandEnabled, mnuTextWhite, mnuTextBlue, MenuItem2, mnuTextBackEnabled, MenuItem3, mnuBar3, mnuExit, mnuBar6, mnuTransparent, mnuAnalogSquare, mnuTextBorderEnabled, MenuItem9, mnuAbout, mnuBar5, mnuTextTrayEnabled, mnuBar4, mnuSpeechNow, mnuAnnounce, mnuBar1, mnuAutoStart, mnuClickThrough, mnuAlwaysOnTop, mnuVoice, mnuAudio, MenuItem13, mnuAnnounce1, mnuAnnounce3, mnuAnnounce2, mnuAnnounce0, mnuHide, mnuAnalogBackEnabled, mnuTextBackFile, mnuAnalogTextFont, MenuItem11, mnuTextFont, MenuItem12, mnuTextBorderColor, mnuTextColor1, MenuItem16, mnuTextColor2, mnuTextDirection, mnuTextTrayColor, MenuItem20, mnuTextGradientMode1, mnuTextGradientMode2, mnuTextGradientMode3, mnuTextGradientMode4, mnuTextTrayAlpha, mnuTextBorderSize, mnuTextBorderAlpha, MenuItem1, mnuAnalogBackBlur, mnuAnalogBackAlpha, mnuAnalogTextAlpha, mnuAnalogTextBlur
-		Dim As MenuItem MenuItem4, MenuItem5, mnuAnalogTrayBlur, mnuAnalogTrayAlpha, mnuAnalogScaleBlur, mnuAnalogScaleAlpha, mnuAnalogHandBlur, mnuAnalogHandAlpha, mnuAnalogTextFormat, mnuOpacityValue, mnuAnalogScaleColor, mnuAnalogHandMinute, mnuAnalogHandSecond, mnuAnalogHandHour, mnuProfileMain, MenuItem7, mnuProfileSave, mnuTextBackAlpha, mnuTextBackBlur, mnuTextAlpha1, mnuTextBlur, mnuTest, mnuMonthEnabled, mnuDayEnabled, mnuTextAlpha2, mnuLocate, MenuItem6, mnuLocateReset, mnuLocateRight, mnuLocateLeft, mnuLocateHorizontalMiddle, MenuItem8, MenuItem15, mnuLocateTop, mnuLocateVerticalMiddle, mnuLocateBottom, mnuLocateHorizontalAny, mnuLocateVerticalAny, mnuAspectRatio, MenuItem14, MenuItem17, mnuDaySetting, mnuMonthSetting, mnuDayTextFont, mnuDayTextAlpha, MenuItem21, mnuDaySplit, MenuItem23, mnuDayStyle0, mnuDayStyle1, mnuDayStyle2, MenuItem27, mnuDayBackEnabled, mnuDayBackFile, mnuDayBackAlpha, mnuDayBackBlur, MenuItem32, mnuDayTrayEnabled, mnuDayTrayAlpha, mnuMonthControls
-		Dim As MenuItem mnuMonthWeeks, MenuItem22, mnuMonthTrayEnabled, mnuMonthTrayAlpha, MenuItem26, mnuMonthTextFont, mnuMonthTextAlpha, MenuItem30, mnuMonthBackEnabled, mnuMonthBackFile, mnuMonthBackAlpha, mnuMonthBackBlur, mnuAnalogHandSecondEnabled, mnuAnalogHandMinuteEnabled, mnuAnalogHandHourEnabled, mnuAnalogTrayFC1, mnuAnalogTrayFC2, mnuAnalogTrayFA1, mnuAnalogTrayFA2, mnuAnalogTrayEC1, mnuAnalogTrayEC2, mnuAnalogTrayEA2, mnuAnalogTrayEA1, mnuAnalogTraySC, mnuAnalogTraySA, mnuAnalogTextColor, mnuAnalogTextX, mnuAnalogTextY, mnuAnalogTraySetting, mnuAnalogHandSetting, mnuAnalogTextSetting, mnuAnalogTextSize, mnuDayFCWeek, mnuDayFCFocus, mnuDayFCYear, mnuDayFCMonth, mnuDayFCDay, mnuDayBCWeek, mnuDayBCFocus, mnuDayBCYear, mnuDayBCMonth, mnuDayBCDay, mnuMonthFCFocus, mnuMonthFCControl, mnuMonthFCWeek, mnuMonthFCDay, mnuMonthFCSelect, mnuMonthFCHoliday, mnuMonthBCFocus, mnuMonthBCControl, mnuMonthBCWeek, mnuMonthBCDay, mnuMonthFCToday, mnuLocateSticky
+		Dim As MenuItem mnuAnalogEnabled, mnuAnalogSetting, mnuAnalogBackFile, mnuAnalogTrayEnabled, mnuAnalogScaleEnabled, mnuBar2, mnuTextEnabled, mnuTextSetting, mnuTextShadow, mnuTextBlack, mnuTextRed, mnuTextGreen, mnuTextGradient, mnuTextShowSecond, mnuTextBlinkColon, MenuItem10, mnuAnalogTextEnabled, mnuAnalogHandEnabled, mnuTextWhite, mnuTextBlue, MenuItem2, mnuTextBackEnabled, MenuItem3, mnuBar3, mnuExit, mnuBar6, mnuTransparent, mnuAnalogSquare, mnuTextBorderEnabled, MenuItem9, mnuAbout, mnuBar5, mnuTextPanelEnabled, mnuBar4, mnuSpeechNow, mnuAnnounce, mnuBar1, mnuAutoStart, mnuClickThrough, mnuAlwaysOnTop, mnuVoice, mnuAudio, MenuItem13, mnuAnnounce1, mnuAnnounce3, mnuAnnounce2, mnuAnnounce0, mnuHide, mnuAnalogBackEnabled, mnuTextBackFile, mnuAnalogTextFont, MenuItem11, mnuTextFont, MenuItem12, mnuTextBorderColor, mnuTextColor1, MenuItem16, mnuTextColor2, mnuTextDirection, mnuTextPanelColor, MenuItem20, mnuTextGradientMode1, mnuTextGradientMode2, mnuTextGradientMode3, mnuTextGradientMode4, mnuTextPanelAlpha, mnuTextBorderSize, mnuTextBorderAlpha, MenuItem1, mnuAnalogBackBlur, mnuAnalogBackAlpha, mnuAnalogTextAlpha, mnuAnalogTextBlur
+		Dim As MenuItem MenuItem4, MenuItem5, mnuAnalogTrayBlur, mnuAnalogTrayAlpha, mnuAnalogScaleBlur, mnuAnalogScaleAlpha, mnuAnalogHandBlur, mnuAnalogHandAlpha, mnuAnalogTextFormat, mnuOpacityValue, mnuAnalogScaleColor, mnuAnalogHandMinute, mnuAnalogHandSecond, mnuAnalogHandHour, mnuProfileMain, MenuItem7, mnuProfileSaveAs, mnuTextBackAlpha, mnuTextBackBlur, mnuTextAlpha1, mnuTextBlur, mnuTest, mnuMonthEnabled, mnuDayEnabled, mnuTextAlpha2, mnuLocate, MenuItem6, mnuLocateReset, mnuLocateRight, mnuLocateLeft, mnuLocateHorizontalMiddle, MenuItem8, MenuItem15, mnuLocateTop, mnuLocateVerticalMiddle, mnuLocateBottom, mnuAspectRatio, MenuItem14, MenuItem17, mnuDaySetting, mnuMonthSetting, mnuDayTextFont, MenuItem21, mnuDaySplit, MenuItem23, mnuDayStyle0, mnuDayStyle1, mnuDayStyle2, MenuItem27, mnuDayBackEnabled, mnuDayBackFile, mnuDayBackAlpha, mnuDayBackBlur, MenuItem32, mnuDayTrayEnabled, mnuMonthControl
+		Dim As MenuItem mnuMonthWeek, MenuItem22, mnuMonthTrayEnabled, MenuItem26, mnuMonthTextFont, MenuItem30, mnuMonthBackEnabled, mnuMonthBackFile, mnuMonthBackAlpha, mnuMonthBackBlur, mnuAnalogHandSecondEnabled, mnuAnalogHandMinuteEnabled, mnuAnalogHandHourEnabled, mnuAnalogTrayFC1, mnuAnalogTrayFC2, mnuAnalogTrayFA1, mnuAnalogTrayFA2, mnuAnalogTrayEC1, mnuAnalogTrayEC2, mnuAnalogTrayEA2, mnuAnalogTrayEA1, mnuAnalogTraySC, mnuAnalogTraySA, mnuAnalogTextColor, mnuAnalogTextX, mnuAnalogTextY, mnuAnalogTraySetting, mnuAnalogHandSetting, mnuAnalogTextSetting, mnuAnalogTextSize, mnuDayFCWeek, mnuDayFCFocus, mnuDayFCYear, mnuDayFCMonth, mnuDayFCDay, mnuDayBCWeek, mnuDayBCFocus, mnuDayBCYear, mnuDayBCMonth, mnuDayBCDay, mnuMonthFCFocus, mnuMonthFCControl, mnuMonthFCWeek, mnuMonthFCDay, mnuMonthFCSelect, mnuMonthFCHoliday, mnuMonthBCFocus, mnuMonthBCControl, mnuMonthBCWeek, mnuMonthBCDay, mnuMonthFCToday, mnuLocateSticky, mnuTextOutlineSize, mnuTextOutlineColor, mnuTextOutlineAlpha
+		Dim As MenuItem mnuAnalogOutlineAlpha, mnuAnalogOutlineSize, mnuAnalogOutlineColor, mnuAnalogPanelColor, mnuAnalogPanelAlpha, mnuTextOutlineEnabled, MenuItem24, MenuItem19, mnuAnalogPanelEnabled, MenuItem28, mnuAnalogOutlineEnabled, MenuItem18, mnuDayPanelEnabled, mnuDayPanelColor, mnuDayPanelAlpha, MenuItem33, mnuDayOutlineEnabled, mnuDayOutlineSize, mnuDayOutlineColor, mnuDayOutlineAlpha, MenuItem38, mnuMonthPanelEnabled, mnuMonthPanelColor, mnuMonthPanelAlpha, MenuItem42, mnuMonthOutlineEnabled, mnuMonthOutlineSize, mnuMonthOutlineColor, mnuMonthOutlineAlpha, mnuProfileSave, mnuProfileSaveOnExit, mnuDayForeColor, mnuDayTrayColor, mnuMonthForeColor, mnuMonthTrayColor, mnuMonthTrayAlpha, mnuDayTrayAlpha, mnuMonthBCSelect, mnuMonthBAFocus, mnuMonthBAControl, mnuMonthBAWeek, mnuMonthBADay, mnuMonthBASelect, mnuDayBADay, mnuDayBAYear, mnuDayBAWeek, mnuDayBAMonth, mnuDayBAFocus, MenuItem25, mnuProfileResetDefault
 	End Type
 	
 	Constructor frmClockType
@@ -178,6 +173,9 @@
 			.OnMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Move)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.ShowCaption = False
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
+			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
+			.AllowDrop = True
 			.SetBounds 0, 0, 240, 200
 		End With
 		' TimerComponent1
@@ -216,7 +214,6 @@
 		' SaveFileDialog1
 		With SaveFileDialog1
 			.Name = "SaveFileDialog1"
-			.Filter = "gdipClock Profile|*.prf"
 			.SetBounds 80, 10, 16, 16
 			.Designer = @This
 			.Parent = @This
@@ -323,7 +320,7 @@
 		With mnuAnalogBackFile
 			.Name = "mnuAnalogBackFile"
 			.Designer = @This
-			.Caption = "File..."
+			.Caption = "File"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
@@ -331,7 +328,7 @@
 		With mnuAnalogBackAlpha
 			.Name = "mnuAnalogBackAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
@@ -339,13 +336,83 @@
 		With mnuAnalogBackBlur
 			.Name = "mnuAnalogBackBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
 		' MenuItem3
 		With MenuItem3
 			.Name = "MenuItem3"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogPanelEnabled
+		With mnuAnalogPanelEnabled
+			.Name = "mnuAnalogPanelEnabled"
+			.Designer = @This
+			.Caption = "Panel"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogPanelColor
+		With mnuAnalogPanelColor
+			.Name = "mnuAnalogPanelColor"
+			.Designer = @This
+			.Caption = "Back color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogPanelAlpha
+		With mnuAnalogPanelAlpha
+			.Name = "mnuAnalogPanelAlpha"
+			.Designer = @This
+			.Caption = "Back alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' MenuItem28
+		With MenuItem28
+			.Name = "MenuItem28"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogOutlineEnabled
+		With mnuAnalogOutlineEnabled
+			.Name = "mnuAnalogOutlineEnabled"
+			.Designer = @This
+			.Caption = "Outline"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogOutlineSize
+		With mnuAnalogOutlineSize
+			.Name = "mnuAnalogOutlineSize"
+			.Designer = @This
+			.Caption = "Size"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogOutlineColor
+		With mnuAnalogOutlineColor
+			.Name = "mnuAnalogOutlineColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' mnuAnalogOutlineAlpha
+		With mnuAnalogOutlineAlpha
+			.Name = "mnuAnalogOutlineAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuAnalogSetting
+		End With
+		' MenuItem19
+		With MenuItem19
+			.Name = "MenuItem19"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuAnalogSetting
@@ -446,11 +513,18 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTraySetting
 		End With
+		' MenuItem25
+		With MenuItem25
+			.Name = "MenuItem25"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuAnalogTraySetting
+		End With
 		' mnuAnalogTrayAlpha
 		With mnuAnalogTrayAlpha
 			.Name = "mnuAnalogTrayAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTraySetting
 		End With
@@ -458,7 +532,7 @@
 		With mnuAnalogTrayBlur
 			.Name = "mnuAnalogTrayBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTraySetting
 		End With
@@ -482,7 +556,7 @@
 		With mnuAnalogScaleColor
 			.Name = "mnuAnalogScaleColor"
 			.Designer = @This
-			.Caption = "Color..."
+			.Caption = "Color"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
@@ -490,7 +564,7 @@
 		With mnuAnalogScaleAlpha
 			.Name = "mnuAnalogScaleAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
@@ -498,7 +572,7 @@
 		With mnuAnalogScaleBlur
 			.Name = "mnuAnalogScaleBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogSetting
 		End With
@@ -537,7 +611,7 @@
 		With mnuAnalogHandSecond
 			.Name = "mnuAnalogHandSecond"
 			.Designer = @This
-			.Caption = "Second..."
+			.Caption = "Second"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogHandSetting
 		End With
@@ -554,7 +628,7 @@
 		With mnuAnalogHandMinute
 			.Name = "mnuAnalogHandMinute"
 			.Designer = @This
-			.Caption = "Minute..."
+			.Caption = "Minute"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogHandSetting
 		End With
@@ -571,7 +645,7 @@
 		With mnuAnalogHandHour
 			.Name = "mnuAnalogHandHour"
 			.Designer = @This
-			.Caption = "Hour..."
+			.Caption = "Hour"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogHandSetting
 		End With
@@ -579,7 +653,7 @@
 		With mnuAnalogHandAlpha
 			.Name = "mnuAnalogHandAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogHandSetting
 		End With
@@ -587,7 +661,7 @@
 		With mnuAnalogHandBlur
 			.Name = "mnuAnalogHandBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogHandSetting
 		End With
@@ -618,7 +692,7 @@
 		With mnuAnalogTextSize
 			.Name = "mnuAnalogTextSize"
 			.Designer = @This
-			.Caption = "Size..."
+			.Caption = "Size"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -626,7 +700,7 @@
 		With mnuAnalogTextFont
 			.Name = "mnuAnalogTextFont"
 			.Designer = @This
-			.Caption = "Text..."
+			.Caption = "Text"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -634,7 +708,7 @@
 		With mnuAnalogTextColor
 			.Name = "mnuAnalogTextColor"
 			.Designer = @This
-			.Caption = "Color..."
+			.Caption = "Color"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -642,7 +716,7 @@
 		With mnuAnalogTextFormat
 			.Name = "mnuAnalogTextFormat"
 			.Designer = @This
-			.Caption = "Format..."
+			.Caption = "Format"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -650,7 +724,7 @@
 		With mnuAnalogTextX
 			.Name = "mnuAnalogTextX"
 			.Designer = @This
-			.Caption = "X..."
+			.Caption = "X"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -658,7 +732,7 @@
 		With mnuAnalogTextY
 			.Name = "mnuAnalogTextY"
 			.Designer = @This
-			.Caption = "Y..."
+			.Caption = "Y"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -666,7 +740,7 @@
 		With mnuAnalogTextAlpha
 			.Name = "mnuAnalogTextAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -674,7 +748,7 @@
 		With mnuAnalogTextBlur
 			.Name = "mnuAnalogTextBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnalogTextSetting
 		End With
@@ -691,6 +765,7 @@
 			.Designer = @This
 			.Caption = "Text"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Checked = true
 			.Parent = @PopupMenu1
 		End With
 		' mnuTextSetting
@@ -728,9 +803,9 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
-		' MenuItem20
-		With MenuItem20
-			.Name = "MenuItem20"
+		' MenuItem24
+		With MenuItem24
+			.Name = "MenuItem24"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuTextSetting
@@ -747,7 +822,7 @@
 		With mnuTextBackFile
 			.Name = "mnuTextBackFile"
 			.Designer = @This
-			.Caption = "File..."
+			.Caption = "File"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -755,7 +830,7 @@
 		With mnuTextBackAlpha
 			.Name = "mnuTextBackAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -763,7 +838,7 @@
 		With mnuTextBackBlur
 			.Name = "mnuTextBackBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -774,28 +849,67 @@
 			.Caption = "-"
 			.Parent = @mnuTextSetting
 		End With
-		' mnuTextTrayEnabled
-		With mnuTextTrayEnabled
-			.Name = "mnuTextTrayEnabled"
+		' mnuTextPanelEnabled
+		With mnuTextPanelEnabled
+			.Name = "mnuTextPanelEnabled"
 			.Designer = @This
-			.Caption = "Tray"
+			.Caption = "Panel"
 			.Checked = True
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
-		' mnuTextTrayAlpha
-		With mnuTextTrayAlpha
-			.Name = "mnuTextTrayAlpha"
+		' mnuTextPanelColor
+		With mnuTextPanelColor
+			.Name = "mnuTextPanelColor"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Color"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
-		' mnuTextTrayColor
-		With mnuTextTrayColor
-			.Name = "mnuTextTrayColor"
+		' mnuTextPanelAlpha
+		With mnuTextPanelAlpha
+			.Name = "mnuTextPanelAlpha"
 			.Designer = @This
-			.Caption = "Color..."
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuTextSetting
+		End With
+		' MenuItem20
+		With MenuItem20
+			.Name = "MenuItem20"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuTextSetting
+		End With
+		' mnuTextOutlineEnabled
+		With mnuTextOutlineEnabled
+			.Name = "mnuTextOutlineEnabled"
+			.Designer = @This
+			.Caption = "Outline"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuTextSetting
+		End With
+		' mnuTextOutlineSize
+		With mnuTextOutlineSize
+			.Name = "mnuTextOutlineSize"
+			.Designer = @This
+			.Caption = "Size"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuTextSetting
+		End With
+		' mnuTextOutlineColor
+		With mnuTextOutlineColor
+			.Name = "mnuTextOutlineColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuTextSetting
+		End With
+		' mnuTextOutlineAlpha
+		With mnuTextOutlineAlpha
+			.Name = "mnuTextOutlineAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -819,7 +933,7 @@
 		With mnuTextBorderSize
 			.Name = "mnuTextBorderSize"
 			.Designer = @This
-			.Caption = "Size..."
+			.Caption = "Size"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -827,7 +941,7 @@
 		With mnuTextBorderAlpha
 			.Name = "mnuTextBorderAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -835,7 +949,7 @@
 		With mnuTextBorderColor
 			.Name = "mnuTextBorderColor"
 			.Designer = @This
-			.Caption = "Color..."
+			.Caption = "Color"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -849,7 +963,7 @@
 		With mnuTextFont
 			.Name = "mnuTextFont"
 			.Designer = @This
-			.Caption = "Text..."
+			.Caption = "Text"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -857,7 +971,7 @@
 		With mnuTextBlur
 			.Name = "mnuTextBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -865,7 +979,7 @@
 		With mnuTextAlpha1
 			.Name = "mnuTextAlpha1"
 			.Designer = @This
-			.Caption = "Alpha 1..."
+			.Caption = "Alpha 1"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -873,7 +987,7 @@
 		With mnuTextAlpha2
 			.Name = "mnuTextAlpha2"
 			.Designer = @This
-			.Caption = "Alpha 2..."
+			.Caption = "Alpha 2"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -897,7 +1011,7 @@
 		With mnuTextColor1
 			.Name = "mnuTextColor1"
 			.Designer = @This
-			.Caption = "Color 1..."
+			.Caption = "Color 1"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -905,7 +1019,7 @@
 		With mnuTextColor2
 			.Name = "mnuTextColor2"
 			.Designer = @This
-			.Caption = "Color 2..."
+			.Caption = "Color 2"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuTextSetting
 		End With
@@ -1010,6 +1124,7 @@
 			.Designer = @This
 			.Caption = "Sticky"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Checked = True
 			.Parent = @mnuLocate
 		End With
 		' MenuItem8
@@ -1043,14 +1158,6 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuLocate
 		End With
-		' mnuLocateHorizontalAny
-		With mnuLocateHorizontalAny
-			.Name = "mnuLocateHorizontalAny"
-			.Designer = @This
-			.Caption = "Any"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuLocate
-		End With
 		' MenuItem15
 		With MenuItem15
 			.Name = "MenuItem15"
@@ -1079,14 +1186,6 @@
 			.Name = "mnuLocateBottom"
 			.Designer = @This
 			.Caption = "Bottom"
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuLocate
-		End With
-		' mnuLocateVerticalAny
-		With mnuLocateVerticalAny
-			.Name = "mnuLocateVerticalAny"
-			.Designer = @This
-			.Caption = "Any"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuLocate
 		End With
@@ -1163,7 +1262,7 @@
 		With mnuOpacityValue
 			.Name = "mnuOpacityValue"
 			.Designer = @This
-			.Caption = "Opacity..."
+			.Caption = "Opacity"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -1265,11 +1364,36 @@
 			.Enabled = True
 			.Parent = @PopupMenu1
 		End With
+		' mnuProfileSaveOnExit
+		With mnuProfileSaveOnExit
+			.Name = "mnuProfileSaveOnExit"
+			.Designer = @This
+			.Caption = "Save on exit"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Checked = true
+			.Parent = @PopupMenu1
+		End With
+		' mnuProfileResetDefault
+		With mnuProfileResetDefault
+			.Name = "mnuProfileResetDefault"
+			.Designer = @This
+			.Caption = "Reset default"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @PopupMenu1
+		End With
 		' mnuProfileSave
 		With mnuProfileSave
 			.Name = "mnuProfileSave"
 			.Designer = @This
-			.Caption = "Save as..."
+			.Caption = "Save"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuProfileMain
+		End With
+		' mnuProfileSaveAs
+		With mnuProfileSaveAs
+			.Name = "mnuProfileSaveAs"
+			.Designer = @This
+			.Caption = "Save as"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuProfileMain
 		End With
@@ -1315,7 +1439,7 @@
 		With mnuDaySplit
 			.Name = "mnuDaySplit"
 			.Designer = @This
-			.Caption = "Split..."
+			.Caption = "Split"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
@@ -1361,16 +1485,15 @@
 		With mnuDayTextFont
 			.Name = "mnuDayTextFont"
 			.Designer = @This
-			.Caption = "Font..."
+			.Caption = "Font"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
-		' mnuDayTextAlpha
-		With mnuDayTextAlpha
-			.Name = "mnuDayTextAlpha"
+		' mnuDayForeColor
+		With mnuDayForeColor
+			.Name = "mnuDayForeColor"
 			.Designer = @This
-			.Caption = "Alpha..."
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Caption = "Color"
 			.Parent = @mnuDaySetting
 		End With
 		' mnuDayFCFocus
@@ -1379,7 +1502,7 @@
 			.Designer = @This
 			.Caption = "Focus"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayForeColor
 		End With
 		' mnuDayFCYear
 		With mnuDayFCYear
@@ -1387,7 +1510,7 @@
 			.Designer = @This
 			.Caption = "Year"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayForeColor
 		End With
 		' mnuDayFCMonth
 		With mnuDayFCMonth
@@ -1395,7 +1518,7 @@
 			.Designer = @This
 			.Caption = "Month"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayForeColor
 		End With
 		' mnuDayFCDay
 		With mnuDayFCDay
@@ -1403,7 +1526,7 @@
 			.Designer = @This
 			.Caption = "Day"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayForeColor
 		End With
 		' mnuDayFCWeek
 		With mnuDayFCWeek
@@ -1411,7 +1534,7 @@
 			.Designer = @This
 			.Caption = "Week"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayForeColor
 		End With
 		' MenuItem32
 		With MenuItem32
@@ -1428,12 +1551,11 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
-		' mnuDayTrayAlpha
-		With mnuDayTrayAlpha
-			.Name = "mnuDayTrayAlpha"
+		' mnuDayTrayColor
+		With mnuDayTrayColor
+			.Name = "mnuDayTrayColor"
 			.Designer = @This
-			.Caption = "Alpha..."
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Caption = "Color"
 			.Parent = @mnuDaySetting
 		End With
 		' mnuDayBCFocus
@@ -1442,7 +1564,7 @@
 			.Designer = @This
 			.Caption = "Focus"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayTrayColor
 		End With
 		' mnuDayBCYear
 		With mnuDayBCYear
@@ -1450,7 +1572,7 @@
 			.Designer = @This
 			.Caption = "Year"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayTrayColor
 		End With
 		' mnuDayBCMonth
 		With mnuDayBCMonth
@@ -1458,7 +1580,7 @@
 			.Designer = @This
 			.Caption = "Month"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayTrayColor
 		End With
 		' mnuDayBCDay
 		With mnuDayBCDay
@@ -1466,7 +1588,7 @@
 			.Designer = @This
 			.Caption = "Day"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuDaySetting
+			.Parent = @mnuDayTrayColor
 		End With
 		' mnuDayBCWeek
 		With mnuDayBCWeek
@@ -1474,6 +1596,13 @@
 			.Designer = @This
 			.Caption = "Week"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayColor
+		End With
+		' mnuDayTrayAlpha
+		With mnuDayTrayAlpha
+			.Name = "mnuDayTrayAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
 			.Parent = @mnuDaySetting
 		End With
 		' MenuItem27
@@ -1495,7 +1624,7 @@
 		With mnuDayBackFile
 			.Name = "mnuDayBackFile"
 			.Designer = @This
-			.Caption = "File..."
+			.Caption = "File"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
@@ -1503,7 +1632,7 @@
 		With mnuDayBackAlpha
 			.Name = "mnuDayBackAlpha"
 			.Designer = @This
-			.Caption = "Aplha..."
+			.Caption = "Aplha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
@@ -1511,21 +1640,21 @@
 		With mnuDayBackBlur
 			.Name = "mnuDayBackBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuDaySetting
 		End With
-		' mnuMonthControls
-		With mnuMonthControls
-			.Name = "mnuMonthControls"
+		' mnuMonthControl
+		With mnuMonthControl
+			.Name = "mnuMonthControl"
 			.Designer = @This
 			.Caption = "Show controls"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
 		End With
-		' mnuMonthWeeks
-		With mnuMonthWeeks
-			.Name = "mnuMonthWeeks"
+		' mnuMonthWeek
+		With mnuMonthWeek
+			.Name = "mnuMonthWeek"
 			.Designer = @This
 			.Caption = "Show weeks"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
@@ -1542,16 +1671,15 @@
 		With mnuMonthTextFont
 			.Name = "mnuMonthTextFont"
 			.Designer = @This
-			.Caption = "Font..."
+			.Caption = "Font"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
 		End With
-		' mnuMonthTextAlpha
-		With mnuMonthTextAlpha
-			.Name = "mnuMonthTextAlpha"
+		' mnuMonthForeColor
+		With mnuMonthForeColor
+			.Name = "mnuMonthForeColor"
 			.Designer = @This
-			.Caption = "Alpha..."
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Caption = "Color"
 			.Parent = @mnuMonthSetting
 		End With
 		' mnuMonthFCFocus
@@ -1560,7 +1688,7 @@
 			.Designer = @This
 			.Caption = "Focus"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCControl
 		With mnuMonthFCControl
@@ -1568,7 +1696,7 @@
 			.Designer = @This
 			.Caption = "Control"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCWeek
 		With mnuMonthFCWeek
@@ -1576,7 +1704,7 @@
 			.Designer = @This
 			.Caption = "Week"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCDay
 		With mnuMonthFCDay
@@ -1584,7 +1712,7 @@
 			.Designer = @This
 			.Caption = "Day"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCSelect
 		With mnuMonthFCSelect
@@ -1592,7 +1720,7 @@
 			.Designer = @This
 			.Caption = "Select"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCToday
 		With mnuMonthFCToday
@@ -1600,7 +1728,7 @@
 			.Designer = @This
 			.Caption = "Today"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' mnuMonthFCHoliday
 		With mnuMonthFCHoliday
@@ -1608,7 +1736,7 @@
 			.Designer = @This
 			.Caption = "Holiday"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthForeColor
 		End With
 		' MenuItem26
 		With MenuItem26
@@ -1625,12 +1753,11 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
 		End With
-		' mnuMonthTrayAlpha
-		With mnuMonthTrayAlpha
-			.Name = "mnuMonthTrayAlpha"
+		' mnuMonthTrayColor
+		With mnuMonthTrayColor
+			.Name = "mnuMonthTrayColor"
 			.Designer = @This
-			.Caption = "Alpha..."
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Caption = "Color"
 			.Parent = @mnuMonthSetting
 		End With
 		' mnuMonthBCFocus
@@ -1639,7 +1766,7 @@
 			.Designer = @This
 			.Caption = "Focus"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthTrayColor
 		End With
 		' mnuMonthBCControl
 		With mnuMonthBCControl
@@ -1647,7 +1774,7 @@
 			.Designer = @This
 			.Caption = "Control"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthTrayColor
 		End With
 		' mnuMonthBCWeek
 		With mnuMonthBCWeek
@@ -1655,7 +1782,7 @@
 			.Designer = @This
 			.Caption = "Week"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Parent = @mnuMonthSetting
+			.Parent = @mnuMonthTrayColor
 		End With
 		' mnuMonthBCDay
 		With mnuMonthBCDay
@@ -1663,6 +1790,21 @@
 			.Designer = @This
 			.Caption = "Day"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayColor
+		End With
+		' mnuMonthBCSelect
+		With mnuMonthBCSelect
+			.Name = "mnuMonthBCSelect"
+			.Designer = @This
+			.Caption = "Select"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayColor
+		End With
+		' mnuMonthTrayAlpha
+		With mnuMonthTrayAlpha
+			.Name = "mnuMonthTrayAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
 			.Parent = @mnuMonthSetting
 		End With
 		' MenuItem30
@@ -1684,7 +1826,7 @@
 		With mnuMonthBackFile
 			.Name = "mnuMonthBackFile"
 			.Designer = @This
-			.Caption = "File..."
+			.Caption = "File"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
 		End With
@@ -1692,7 +1834,7 @@
 		With mnuMonthBackAlpha
 			.Name = "mnuMonthBackAlpha"
 			.Designer = @This
-			.Caption = "Alpha..."
+			.Caption = "Alpha"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
 		End With
@@ -1700,9 +1842,229 @@
 		With mnuMonthBackBlur
 			.Name = "mnuMonthBackBlur"
 			.Designer = @This
-			.Caption = "Blur..."
+			.Caption = "Blur"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuMonthSetting
+		End With
+		' MenuItem18
+		With MenuItem18
+			.Name = "MenuItem18"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayPanelEnabled
+		With mnuDayPanelEnabled
+			.Name = "mnuDayPanelEnabled"
+			.Designer = @This
+			.Caption = "Panel"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayPanelColor
+		With mnuDayPanelColor
+			.Name = "mnuDayPanelColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayPanelAlpha
+		With mnuDayPanelAlpha
+			.Name = "mnuDayPanelAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' MenuItem33
+		With MenuItem33
+			.Name = "MenuItem33"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayOutlineEnabled
+		With mnuDayOutlineEnabled
+			.Name = "mnuDayOutlineEnabled"
+			.Designer = @This
+			.Caption = "Outline"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayOutlineSize
+		With mnuDayOutlineSize
+			.Name = "mnuDayOutlineSize"
+			.Designer = @This
+			.Caption = "Size"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayOutlineColor
+		With mnuDayOutlineColor
+			.Name = "mnuDayOutlineColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' mnuDayOutlineAlpha
+		With mnuDayOutlineAlpha
+			.Name = "mnuDayOutlineAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDaySetting
+		End With
+		' MenuItem38
+		With MenuItem38
+			.Name = "MenuItem38"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthPanelEnabled
+		With mnuMonthPanelEnabled
+			.Name = "mnuMonthPanelEnabled"
+			.Designer = @This
+			.Caption = "Panel"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthPanelColor
+		With mnuMonthPanelColor
+			.Name = "mnuMonthPanelColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthPanelAlpha
+		With mnuMonthPanelAlpha
+			.Name = "mnuMonthPanelAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' MenuItem42
+		With MenuItem42
+			.Name = "MenuItem42"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthOutlineEnabled
+		With mnuMonthOutlineEnabled
+			.Name = "mnuMonthOutlineEnabled"
+			.Designer = @This
+			.Caption = "Outline"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthOutlineSize
+		With mnuMonthOutlineSize
+			.Name = "mnuMonthOutlineSize"
+			.Designer = @This
+			.Caption = "Size"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthOutlineColor
+		With mnuMonthOutlineColor
+			.Name = "mnuMonthOutlineColor"
+			.Designer = @This
+			.Caption = "Color"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthOutlineAlpha
+		With mnuMonthOutlineAlpha
+			.Name = "mnuMonthOutlineAlpha"
+			.Designer = @This
+			.Caption = "Alpha"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthSetting
+		End With
+		' mnuMonthBAFocus
+		With mnuMonthBAFocus
+			.Name = "mnuMonthBAFocus"
+			.Designer = @This
+			.Caption = "Focus"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayAlpha
+		End With
+		' mnuMonthBAControl
+		With mnuMonthBAControl
+			.Name = "mnuMonthBAControl"
+			.Designer = @This
+			.Caption = "Control"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayAlpha
+		End With
+		' mnuMonthBAWeek
+		With mnuMonthBAWeek
+			.Name = "mnuMonthBAWeek"
+			.Designer = @This
+			.Caption = "Week"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayAlpha
+		End With
+		' mnuMonthBADay
+		With mnuMonthBADay
+			.Name = "mnuMonthBADay"
+			.Designer = @This
+			.Caption = "Day"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayAlpha
+		End With
+		' mnuMonthBASelect
+		With mnuMonthBASelect
+			.Name = "mnuMonthBASelect"
+			.Designer = @This
+			.Caption = "Select"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuMonthTrayAlpha
+		End With
+		' mnuDayBAFocus
+		With mnuDayBAFocus
+			.Name = "mnuDayBAFocus"
+			.Designer = @This
+			.Caption = "Focus"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayAlpha
+		End With
+		' mnuDayBAYear
+		With mnuDayBAYear
+			.Name = "mnuDayBAYear"
+			.Designer = @This
+			.Caption = "Year"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayAlpha
+		End With
+		' mnuDayBAMonth
+		With mnuDayBAMonth
+			.Name = "mnuDayBAMonth"
+			.Designer = @This
+			.Caption = "Month"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayAlpha
+		End With
+		' mnuDayBADay
+		With mnuDayBADay
+			.Name = "mnuDayBADay"
+			.Designer = @This
+			.Caption = "Day"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayAlpha
+		End With
+		' mnuDayBAWeek
+		With mnuDayBAWeek
+			.Name = "mnuDayBAWeek"
+			.Designer = @This
+			.Caption = "Week"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
+			.Parent = @mnuDayTrayAlpha
 		End With
 	End Constructor
 	
@@ -1783,32 +2145,49 @@ Private Sub AutoStartReg(flag As Boolean = True)
 	#endif
 End Sub
 
-Private Function frmClockType.ProfileIdx(ByVal fIncNum As Integer = -1) As Integer
-	Static sIdx As Integer
-	If fIncNum < 0 Then
-		sIdx = sIdx + 1
-	Else
-		sIdx = fIncNum
-	End If
-	Return sIdx
-End Function
-
 Private Sub frmClockType.TestBackup()
 	ReDim TestMenu(TestCount)
 	ReDim TestSetting(TestCount)
 	TestMenu(0) = @mnuAnalogEnabled
-	TestMenu(1) = @mnuAnalogBackEnabled
-	TestMenu(2) = @mnuAnalogTrayEnabled
-	TestMenu(3) = @mnuAnalogScaleEnabled
-	TestMenu(4) = @mnuAnalogTextEnabled
-	TestMenu(5) = @mnuAnalogHandEnabled
-	TestMenu(6) = @mnuTextEnabled
-	TestMenu(7) = @mnuTextBackEnabled
-	TestMenu(8) = @mnuTextTrayEnabled
-	TestMenu(9) = @mnuTextShowSecond
-	TestMenu(10) = @mnuTextBlinkColon
-	TestMenu(11) = @mnuTextBorderEnabled
-	TestMenu(12) = @mnuTransparent
+	TestMenu(1) = @mnuAnalogOutlineEnabled
+	TestMenu(2) = @mnuAnalogPanelEnabled
+	TestMenu(3) = @mnuAnalogBackEnabled
+	TestMenu(4) = @mnuAnalogTrayEnabled
+	TestMenu(5) = @mnuAnalogScaleEnabled
+	TestMenu(6) = @mnuAnalogTextEnabled
+	TestMenu(7) = @mnuAnalogHandEnabled
+	TestMenu(8) = @mnuAnalogHandSecondEnabled
+	TestMenu(9) = @mnuAnalogHandMinuteEnabled
+	TestMenu(10) = @mnuAnalogHandHourEnabled
+	TestMenu(11) = @mnuTextEnabled
+	TestMenu(12) = @mnuTextOutlineEnabled
+	TestMenu(13) = @mnuTextPanelEnabled
+	TestMenu(14) = @mnuTextBackEnabled
+	TestMenu(15) = @mnuTextPanelEnabled
+	TestMenu(16) = @mnuTextShowSecond
+	TestMenu(17) = @mnuTextBlinkColon
+	TestMenu(18) = @mnuTextBorderEnabled
+	TestMenu(19) = @mnuTextGradient
+	TestMenu(20) = @mnuTextWhite
+	TestMenu(21) = @mnuTextBlack
+	TestMenu(22) = @mnuTextRed
+	TestMenu(23) = @mnuTextGreen
+	TestMenu(24) = @mnuTextBlue
+	TestMenu(25) = @mnuDayEnabled
+	TestMenu(26) = @mnuDayStyle0
+	TestMenu(27) = @mnuDayStyle1
+	TestMenu(28) = @mnuDayStyle2
+	TestMenu(29) = @mnuDayTrayEnabled
+	TestMenu(30) = @mnuDayPanelEnabled
+	TestMenu(31) = @mnuDayBackEnabled
+	TestMenu(32) = @mnuDayOutlineEnabled
+	TestMenu(33) = @mnuMonthEnabled
+	TestMenu(34) = @mnuMonthWeek
+	TestMenu(35) = @mnuMonthControl
+	TestMenu(36) = @mnuMonthTrayEnabled
+	TestMenu(37) = @mnuMonthPanelEnabled
+	TestMenu(38) = @mnuMonthBackEnabled
+	TestMenu(39) = @mnuTransparent
 	Dim i As Integer
 	For i = 0 To TestCount
 		TestSetting(i) = TestMenu(i)->Checked
@@ -1825,12 +2204,26 @@ Private Sub frmClockType.TestRestore()
 End Sub
 
 Private Sub frmClockType.TestStress()
-	Static i As Integer = 0
-	i += 1
-	If i > TestCount Then i = 0
+	Dim i As Integer
+	Do
+		i = Rnd(Timer) * TestCount * 2
+	Loop While i < 0 Or i > TestCount
 	mnuMenu_Click(*TestMenu(i))
 End Sub
-Private Sub frmClockType.Profile2Menu()
+
+Private Function frmClockType.ProfileIdx(ByVal fDefNum As Integer = -1) As Integer
+	Static sIdx As Integer
+	If fDefNum < 0 Then
+		'默认参数返回+1索引值
+		sIdx = sIdx + 1
+	Else
+		'传入非负数参数设置索引值
+		sIdx = fDefNum
+	End If
+	Return sIdx
+End Function
+
+Private Sub frmClockType.FileName2Menu(sExt As WString)
 	Dim i As Integer
 	For i = mnuProfileCount To 0 Step -1
 		mnuProfileMain.Remove(mnuProfileList(i))
@@ -1841,9 +2234,9 @@ Private Sub frmClockType.Profile2Menu()
 	
 	Dim f As String
 	Dim t As String
-	f = Dir(*mAppPath & "*.prf")
+	f = Dir(*mAppPath & "*" & sExt)
 	Do
-		i = Len(f) - Len(".prf")
+		i = Len(f) - Len(sExt)
 		If i > 0 Then
 			mnuProfileCount += 1
 			ReDim Preserve mnuProfileList(mnuProfileCount)
@@ -1862,7 +2255,7 @@ Private Sub frmClockType.Profile2Menu()
 			End If
 			
 			t = Mid(f, 1, i)
-			If InStr(*mProfile, f) Then mnuProfileList(mnuProfileCount)->Checked = True
+			If InStr(*mProfileName, f) Then mnuProfileList(mnuProfileCount)->Checked = True
 			mnuProfileList(mnuProfileCount)->Name = "mnuProfileList"
 			mnuProfileList(mnuProfileCount)->Caption = t
 			mnuProfileList(mnuProfileCount)->Designer = @This
@@ -1873,332 +2266,385 @@ Private Sub frmClockType.Profile2Menu()
 		f = Dir()
 	Loop While f <> ""
 End Sub
-Private Sub frmClockType.Profile2Interface()
-	mnuOpacityValue.Caption = "Opacity " & mOpacity & "..."
+Private Sub frmClockType.Clock2Interface()
+	mnuOpacityValue.Caption = !"Opacity\t&&H" & Hex(mOpacity)
 	
-	mnuAnalogSetting.Enabled = mnuAnalogEnabled.Checked
-	'If mnuAnalogSetting.Enabled Then
+	mnuAnalogBackAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mBackAlpha)
+	mnuAnalogBackBlur.Caption = !"Blur\t" & mAnalogClock.mBackBlur
 	mnuAnalogBackEnabled.Checked = mAnalogClock.mBackEnabled
-	mnuAnalogTrayEnabled.Checked = mAnalogClock.mTrayEnabled
-	mnuAnalogScaleEnabled.Checked = mAnalogClock.mScaleEnabled
+	mnuAnalogBackFile.Caption = !"File\t" & FullName2File(mAnalogClock.FileName)
+	mnuAnalogHandAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mHandAlpha)
+	mnuAnalogHandBlur.Caption = !"Blur\t" & mAnalogClock.mHandBlur
 	mnuAnalogHandEnabled.Checked = mAnalogClock.mHandEnabled
-	mnuAnalogHandSecondEnabled.Checked = mAnalogClock.mHandSecondEnabled
-	mnuAnalogHandMinuteEnabled.Checked = mAnalogClock.mHandMinuteEnabled
+	mnuAnalogHandHour.Caption = !"Hour Color\t&&H" & mAnalogClock.mHandHourColor
 	mnuAnalogHandHourEnabled.Checked = mAnalogClock.mHandHourEnabled
+	mnuAnalogHandMinute.Caption = !"Minute Color\t&&H" & Hex(mAnalogClock.mHandMinuteColor)
+	mnuAnalogHandMinuteEnabled.Checked = mAnalogClock.mHandMinuteEnabled
+	mnuAnalogHandSecond.Caption = !"Second Color\t&&H" & Hex(mAnalogClock.mHandSecondColor)
+	mnuAnalogHandSecondEnabled.Checked = mAnalogClock.mHandSecondEnabled
+	mnuAnalogOutlineAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mOutlineAlpha)
+	mnuAnalogOutlineColor.Caption = !"Color\t&&H" & Hex(mAnalogClock.mOutlineColor)
+	mnuAnalogOutlineEnabled.Checked = mAnalogClock.mOutlineEnabled
+	mnuAnalogOutlineSize.Caption = !"Size\t" & mAnalogClock.mOutlineSize
+	mnuAnalogPanelAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mPanelAlpha)
+	mnuAnalogPanelColor.Caption = !"Color\t&&H" & Hex(mAnalogClock.mPanelColor)
+	mnuAnalogPanelEnabled.Checked = mAnalogClock.mPanelEnabled
+	mnuAnalogScaleAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mScaleAlpha)
+	mnuAnalogScaleBlur.Caption = !"Blur\t" & mAnalogClock.mScaleBlur
+	mnuAnalogScaleColor.Caption = !"Color\t&&H" & Hex(mAnalogClock.mScaleColor)
+	mnuAnalogScaleEnabled.Checked = mAnalogClock.mScaleEnabled
+	mnuAnalogSetting.Enabled = mnuAnalogEnabled.Checked
+	mnuAnalogTextAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mTextAlpha)
+	mnuAnalogTextBlur.Caption = !"Blur\t" & mAnalogClock.mTextBlur
+	mnuAnalogTextColor.Caption = !"Color\t&&H" & Hex(mAnalogClock.mTextColor)
 	mnuAnalogTextEnabled.Checked = mAnalogClock.mTextEnabled
-	mnuAnalogBackFile.Caption = "File [" & FullName2File(mAnalogClock.FileName) & "]..."
-	mnuAnalogBackAlpha.Caption = "Alpha " & mAnalogClock.mBackAlpha & "..."
-	mnuAnalogBackBlur.Caption = "Blur " & mAnalogClock.mBackBlur & "..."
-	mnuAnalogTrayAlpha.Caption = "Alpha " & mAnalogClock.mTrayAlpha & "..."
-	mnuAnalogTrayBlur.Caption = "Blur " & mAnalogClock.mTrayBlur & "..."
-	mnuAnalogScaleColor.Caption = "Color &&H" & Hex(mAnalogClock.mScaleColor) & "..."
-	mnuAnalogScaleAlpha.Caption = "Alpha " & mAnalogClock.mScaleAlpha & "..."
-	mnuAnalogScaleBlur.Caption = "Blur " & mAnalogClock.mScaleBlur & "..."
-	mnuAnalogHandSecond.Caption = "Second Color &&H" & Hex(mAnalogClock.mHandSecondColor) & "..."
-	mnuAnalogHandMinute.Caption = "Minute Color &&H" & Hex(mAnalogClock.mHandMinuteColor) & "..."
-	mnuAnalogHandHour.Caption = "Hour Color &&H" & mAnalogClock.mHandHourColor & "..."
-	mnuAnalogHandAlpha.Caption = "Alpha " & mAnalogClock.mHandAlpha & "..."
-	mnuAnalogTrayFC1.Caption = "Face Color 1 &&H" & Hex(mAnalogClock.mTrayFaceColor1) & "..."
-	mnuAnalogTrayFC2.Caption = "Face Color 2 &&H" & Hex(mAnalogClock.mTrayFaceColor2) & "..."
-	mnuAnalogTrayEC1.Caption = "Edge Color 1 &&H" & Hex(mAnalogClock.mTrayEdgeColor1) & "..."
-	mnuAnalogTrayEC2.Caption = "Edge Color 2 &&H" & Hex(mAnalogClock.mTrayEdgeColor2) & "..."
-	mnuAnalogTraySC.Caption = "Shadow Color &&H" & Hex(mAnalogClock.mTrayShadowColor) & "..."
-	mnuAnalogTrayFA1.Caption = "Face Alpha 1 " & mAnalogClock.mTrayFaceAlpha1 & "..."
-	mnuAnalogTrayFA2.Caption = "Face Alpha 2 " & mAnalogClock.mTrayFaceAlpha2 & "..."
-	mnuAnalogTrayEA1.Caption = "Edge Alpha 1 " & mAnalogClock.mTrayEdgeAlpha1 & "..."
-	mnuAnalogTrayEA2.Caption = "Edge Alpha 2 " & mAnalogClock.mTrayEdgeAlpha2 & "..."
-	mnuAnalogTraySA.Caption = "Shadow Alpha " & mAnalogClock.mTrayShadowAlpha & "..."
-	mnuAnalogHandBlur.Caption = "Blur " & mAnalogClock.mHandBlur & "..."
-	mnuAnalogTextSize.Caption = "Size " & mAnalogClock.mTextSize & "..."
-	mnuAnalogTextFont.Caption = *mAnalogClock.mTextFont & ", " & mAnalogClock.mTextBold & "..."
-	mnuAnalogTextColor.Caption = "Color &&H" & Hex(mAnalogClock.mTextColor) & "..."
-	mnuAnalogTextX.Caption = "X " & mAnalogClock.mTextOffsetX & "..."
-	mnuAnalogTextY.Caption = "Y " & mAnalogClock.mTextOffsetY & "..."
-	mnuAnalogTextFormat.Caption = "Format [" & *mAnalogClock.mTextFormat & "]..."
-	mnuAnalogTextAlpha.Caption = "Alpha " & mAnalogClock.mTextAlpha & "..."
-	mnuAnalogTextBlur.Caption = "Blur " & mAnalogClock.mTextBlur & "..."
-	'End If
+	mnuAnalogTextFont.Caption = !"Font\t" & *mAnalogClock.mTextFont & ", " & mAnalogClock.mTextBold
+	mnuAnalogTextFormat.Caption = !"Format\t" & *mAnalogClock.mTextFormat
+	mnuAnalogTextSize.Caption = !"Size\t" & mAnalogClock.mTextSize
+	mnuAnalogTextX.Caption = !"X\t" & mAnalogClock.mTextOffsetX
+	mnuAnalogTextY.Caption = !"Y\t" & mAnalogClock.mTextOffsetY
+	mnuAnalogTrayAlpha.Caption = !"Alpha\t&&H" & Hex(mAnalogClock.mTrayAlpha)
+	mnuAnalogTrayBlur.Caption = !"Blur\t" & mAnalogClock.mTrayBlur
+	mnuAnalogTrayEA1.Caption = !"Edge Alpha 1\t&&H" & Hex( mAnalogClock.mTrayEdgeAlpha1)
+	mnuAnalogTrayEA2.Caption = !"Edge Alpha 2\t&&H" & Hex(mAnalogClock.mTrayEdgeAlpha2)
+	mnuAnalogTrayEC1.Caption = !"Edge Color 1\t&&H" & Hex(mAnalogClock.mTrayEdgeColor1)
+	mnuAnalogTrayEC2.Caption = !"Edge Color 2\t&&H" & Hex(mAnalogClock.mTrayEdgeColor2)
+	mnuAnalogTrayEnabled.Checked = mAnalogClock.mTrayEnabled
+	mnuAnalogTrayFA1.Caption = !"Face Alpha 1\t&&H" & Hex(mAnalogClock.mTrayFaceAlpha1)
+	mnuAnalogTrayFA2.Caption = !"Face Alpha 2\t&&H" & Hex(mAnalogClock.mTrayFaceAlpha2)
+	mnuAnalogTrayFC1.Caption = !"Face Color 1\t&&H" & Hex(mAnalogClock.mTrayFaceColor1)
+	mnuAnalogTrayFC2.Caption = !"Face Color 2\t&&H" & Hex(mAnalogClock.mTrayFaceColor2)
+	mnuAnalogTraySA.Caption = !"Shadow Alpha\t&&H" & Hex(mAnalogClock.mTrayShadowAlpha)
+	mnuAnalogTraySC.Caption = !"Shadow Color\t&&H" & Hex(mAnalogClock.mTrayShadowColor)
 	
-	mnuTextSetting.Enabled = mnuTextEnabled.Checked
-	'If mnuTextSetting.Enabled Then
-	mnuTextShowSecond.Checked = mTextClock.mShowSecond
-	mnuTextBlinkColon.Checked = mTextClock.mBlinkColon
-	mnuTextShadow.Checked = mTextClock.mShadowEnabled
+	mnuTextAlpha1.Caption = !"Alpha1\t&&H" & Hex(mTextAlpha1)
+	mnuTextAlpha2.Caption = !"Alpha2\t&&H" & Hex(mTextAlpha2)
+	mnuTextBackAlpha.Caption = !"Alpha\t&&H" & Hex(mTextClock.mBackAlpha)
+	mnuTextBackBlur.Caption = !"Blur\t" & mTextClock.mBackBlur
 	mnuTextBackEnabled.Checked = mTextClock.mBackEnabled
-	mnuTextTrayEnabled.Checked = mTextClock.mTrayEnabled
+	mnuTextBackFile.Caption = !"File\t" & FullName2File(mTextClock.FileName)
+	mnuTextBlinkColon.Checked = mTextClock.mBlinkColon
+	mnuTextBlur.Caption = !"Blur\t" & mTextClock.mTextBlur
+	mnuTextBorderAlpha.Caption = !"Alpha\t&&H" & Hex(mTextClock.mBorderAlpha)
+	mnuTextBorderColor.Caption = !"Color\t&&H" & Hex(mTextClock.mBorderColor)
 	mnuTextBorderEnabled.Checked = mTextClock.mBorderEnabled
-	mnuTextBackFile.Caption = "File [" & FullName2File(mTextClock.FileName) & "]..."
-	mnuTextBackAlpha.Caption = "Alpha " & mTextClock.mBackAlpha & "..."
-	mnuTextBackBlur.Caption = "Blur " & mTextClock.mBackBlur & "..."
-	mnuTextFont.Caption = *mTextClock.mFontName & ", " & mTextClock.mFontStyle & "..."
-	mnuTextAlpha1.Caption = "Alpha1 " & mTextAlpha1 & "..."
-	mnuTextAlpha2.Caption = "Alpha2 " & mTextAlpha2 & "..."
-	mnuTextBlur.Caption = "Blur " & mTextClock.mTextBlur & "..."
-	mnuTextColor1.Caption = "Color 1 &&H" & Hex(mTextColor1) & "..."
-	mnuTextColor2.Caption = "Color 2 &&H" & Hex(mTextColor2) & "..."
-	mnuTextTrayAlpha.Caption = "Alpha " & mTextClock.mTrayAlpha & "..."
-	mnuTextTrayColor.Caption = "Color &&H" & Hex(mTextClock.mTrayColor) & "..."
-	mnuTextBorderSize.Caption = "Size " & mTextClock.mBorderSize & "..."
-	mnuTextBorderAlpha.Caption = "Alpha " & mTextClock.mBorderAlpha & "..."
-	mnuTextBorderColor.Caption = "Color &&H" & Hex(mTextClock.mBorderColor) & "..."
-	'End If
+	mnuTextBorderSize.Caption = !"Size\t" & mTextClock.mBorderSize
+	mnuTextColor1.Caption = !"Color 1\t&&H" & Hex(mTextColor1)
+	mnuTextColor2.Caption = !"Color 2\t&&H" & Hex(mTextColor2)
+	mnuTextFont.Caption = !"Font\t" & *mTextClock.mFontName & ", " & mTextClock.mFontStyle
+	mnuTextOutlineAlpha.Caption = !"Alpha\t&&H" & Hex(mTextClock.mOutlineAlpha)
+	mnuTextOutlineColor.Caption = !"Color\t&&H" & Hex(mTextClock.mOutlineColor)
+	mnuTextOutlineEnabled.Checked = mTextClock.mOutlineEnabled
+	mnuTextOutlineSize.Caption = !"Size\t" & mTextClock.mOutlineSize
+	mnuTextPanelAlpha.Caption = !"Alpha\t&&H" & Hex(mTextClock.mPanelAlpha)
+	mnuTextPanelColor.Caption = !"Color\t&&H" & Hex(mTextClock.mPanelColor)
+	mnuTextPanelEnabled.Checked = mTextClock.mPanelEnabled
+	mnuTextSetting.Enabled = mnuTextEnabled.Checked
+	mnuTextShadow.Checked = mTextClock.mShadowEnabled
+	mnuTextShowSecond.Checked = mTextClock.mShowSecond
 	
-	mnuDaySetting.Enabled = mnuDayEnabled.Checked
-	'If mnuDaySetting.Enabled Then
-	mnuDayBackAlpha.Caption = "Alpha " & frmDay.mDay.mBackAlpha & "..."
-	mnuDayBackBlur.Caption = "Blur " & frmDay.mDay.mBackBlur & "..."
+	mnuDayBackAlpha.Caption = !"Alpha\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayImageFile) Shr 24)
+	mnuDayBackBlur.Caption = !"Blur\t" & frmDay.mDay.mBackBlur
 	mnuDayBackEnabled.Checked = frmDay.mDay.mBackEnabled
-	mnuDayBackFile.Caption = "File [" & FullName2File(frmDay.mDay.mBackImage.ImageFile) & "]..."
-	mnuDaySplit.Caption = "Split " & frmDay.mDay.mSplitXScale & "..."
+	mnuDayBackFile.Caption = !"File\t" & FullName2File(frmDay.mDay.mBackImage.ImageFile)
+	mnuDayBADay.Caption = !"Day\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayDay) Shr 24)
+	mnuDayBAFocus.Caption = !"Focus\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayFocus) Shr 24)
+	mnuDayBAMonth.Caption = !"Month\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayMonth) Shr 24)
+	mnuDayBAWeek.Caption = !"Week\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayWeek) Shr 24)
+	mnuDayBAYear.Caption = !"Year\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayYear) Shr 24)
+	mnuDayBCDay.Caption = !"Day\t&&H" & Hex(frmDay.mDay.mBackColor(DayDay))
+	mnuDayBCFocus.Caption = !"Focus\t&&H" & Hex(frmDay.mDay.mBackColor(DayFocus))
+	mnuDayBCMonth.Caption = !"Month\t&&H" & Hex(frmDay.mDay.mBackColor(DayMonth))
+	mnuDayBCWeek.Caption = !"Week\t&&H" & Hex(frmDay.mDay.mBackColor(DayWeek))
+	mnuDayBCYear.Caption = !"Year\t&&H" & Hex(frmDay.mDay.mBackColor(DayYear))
+	mnuDayFCDay.Caption = !"Day\t&&H" & Hex(frmDay.mDay.mForeColor(DayDay))
+	mnuDayFCFocus.Caption = !"Focus\t&&H" & Hex(frmDay.mDay.mForeColor(DayFocus))
+	mnuDayFCMonth.Caption = !"Month\t&&H" & Hex(frmDay.mDay.mForeColor(DayMonth))
+	mnuDayFCWeek.Caption = !"Week\t&&H" & Hex(frmDay.mDay.mForeColor(DayWeek))
+	mnuDayFCYear.Caption = !"Year\t&&H" & Hex(frmDay.mDay.mForeColor(DayYear))
+	mnuDayOutlineAlpha.Caption = !"Alpha\t&&H" & Hex(frmDay.mDay.mForeAlpha(DayPanel) Shr 24)
+	mnuDayOutlineColor.Caption = !"Color\t&&H" & Hex(frmDay.mDay.mForeColor(DayPanel))
+	mnuDayOutlineEnabled.Checked = frmDay.mDay.mOutlineEnabled
+	mnuDayOutlineSize.Caption = !"Size\t" & frmDay.mDay.mOutlineSize
+	mnuDayPanelAlpha.Caption = !"Alpha\t&&H" & Hex(frmDay.mDay.mBackAlpha(DayPanel) Shr 24)
+	mnuDayPanelColor.Caption = !"Color\t&&H" & Hex(frmDay.mDay.mBackColor(DayPanel))
+	mnuDayPanelEnabled.Checked = frmDay.mDay.mPanelEnabled
+	mnuDaySetting.Enabled = mnuDayEnabled.Checked
+	mnuDaySplit.Caption = !"Split\t" & frmDay.mDay.mSplitXScale
 	mnuDayStyle0.Checked = CBool(frmDay.mDay.mShowStyle = 0)
 	mnuDayStyle1.Checked = CBool(frmDay.mDay.mShowStyle = 1)
 	mnuDayStyle2.Checked = CBool(frmDay.mDay.mShowStyle = 2)
-	mnuDayTextAlpha.Caption = "Alpha " & frmDay.mDay.mForeOpacity & "..."
-	mnuDayFCFocus.Caption = "Focus &&H" & Hex(frmDay.mDay.mClr(1)) & "..."
-	mnuDayFCYear.Caption = "Year &&H" & Hex(frmDay.mDay.mClr(3)) & "..."
-	mnuDayFCMonth.Caption = "Month &&H" & Hex(frmDay.mDay.mClr(5)) & "..."
-	mnuDayFCDay.Caption = "Day &&H" & Hex(frmDay.mDay.mClr(7)) & "..."
-	mnuDayFCWeek.Caption = "Week &&H" & Hex(frmDay.mDay.mClr(9)) & "..."
-	mnuDayTextFont.Caption = "Font " & *frmDay.mDay.mFontName & "..."
-	mnuDayTrayAlpha.Caption = "Alpha " & frmDay.mDay.mTrayAlpha & "..."
-	mnuDayBCFocus.Caption = "Focus &&H" & Hex(frmDay.mDay.mClr(0)) & "..."
-	mnuDayBCYear.Caption = "Year &&H" & Hex(frmDay.mDay.mClr(2)) & "..."
-	mnuDayBCMonth.Caption = "Month &&H" & Hex(frmDay.mDay.mClr(4)) & "..."
-	mnuDayBCDay.Caption = "Day &&H" & Hex(frmDay.mDay.mClr(6)) & "..."
-	mnuDayBCWeek.Caption = "Week &&H" & Hex(frmDay.mDay.mClr(8)) & "..."
+	mnuDayTextFont.Caption = !"Font\t" & *frmDay.mDay.mFontName
 	mnuDayTrayEnabled.Checked = frmDay.mDay.mTrayEnabled
-	'End If
+	mnuDayTrayEnabled.Checked = frmDay.mDay.mTrayEnabled
 	
-	mnuMonthSetting.Enabled = mnuMonthEnabled.Checked
-	'If mnuMonthSetting.Enabled Then
-	mnuMonthBackAlpha.Caption = "Alpha " & frmMonth.mMonth.mBackAlpha & "..."
-	mnuMonthBackBlur.Caption = "Blur " & frmMonth.mMonth.mBackBlur & "..."
+	mnuMonthBackAlpha.Caption = !"Alpha\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthImageFile) Shr 24)
+	mnuMonthBackBlur.Caption = !"Blur\t" & frmMonth.mMonth.mBackBlur
 	mnuMonthBackEnabled.Checked = frmMonth.mMonth.mBackEnabled
-	mnuMonthBackFile.Caption = "File [" & FullName2File(frmMonth.mMonth.mBackImage.ImageFile) & "]..."
-	mnuMonthControls.Checked = frmMonth.mMonth.mShowControls
-	mnuMonthTextAlpha.Caption = "Alpha " & frmMonth.mMonth.mForeOpacity & "..."
-	mnuMonthFCFocus.Caption = "Focus &&H" & Hex(frmMonth.mMonth.mClr(1)) & "..."
-	mnuMonthFCControl.Caption = "Control &&H" & Hex(frmMonth.mMonth.mClr(3)) & "..."
-	mnuMonthFCWeek.Caption = "Week &&H" & Hex(frmMonth.mMonth.mClr(5)) & "..."
-	mnuMonthFCDay.Caption = "Day &&H" & Hex(frmMonth.mMonth.mClr(7)) & "..."
-	mnuMonthFCSelect.Caption = "Select &&H" & Hex(frmMonth.mMonth.mClr(8)) & "..."
-	mnuMonthFCToday.Caption = "Today &&H" & Hex(frmMonth.mMonth.mClr(9)) & "..."
-	mnuMonthFCHoliday.Caption = "Holiday &&H" & Hex(frmMonth.mMonth.mClr(10)) & "..."
-	mnuMonthTextFont.Caption = "Font " & *frmMonth.mMonth.mFontName & "..."
-	mnuMonthTrayAlpha.Caption = "Alpha " & frmMonth.mMonth.mTrayAlpha & "..."
-	mnuMonthBCFocus.Caption = "Focus &&H" & Hex(frmMonth.mMonth.mClr(0)) & "..."
-	mnuMonthBCControl.Caption = "Control &&H" & Hex(frmMonth.mMonth.mClr(2)) & "..."
-	mnuMonthBCWeek.Caption = "Week &&H" & Hex(frmMonth.mMonth.mClr(4)) & "..."
-	mnuMonthBCDay.Caption = "Day &&H" & Hex(frmMonth.mMonth.mClr(6)) & "..."
+	mnuMonthBackFile.Caption = !"File\t" & FullName2File(frmMonth.mMonth.mBackImage.ImageFile)
+	mnuMonthBAControl.Caption = !"Control\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthControl) Shr 24)
+	mnuMonthBADay.Caption = !"Day\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthDay) Shr 24)
+	mnuMonthBAFocus.Caption = !"Focus\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthFocus) Shr 24)
+	mnuMonthBASelect.Caption = !"Select\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthSelect) Shr 24)
+	mnuMonthBAWeek.Caption = !"Week\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthWeek) Shr 24)
+	mnuMonthBCControl.Caption = !"Control\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthControl))
+	mnuMonthBCDay.Caption = !"Day\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthDay))
+	mnuMonthBCFocus.Caption = !"Focus\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthFocus))
+	mnuMonthBCSelect.Caption = !"Select\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthSelect))
+	mnuMonthBCWeek.Caption = !"Week\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthWeek))
+	mnuMonthControl.Checked = frmMonth.mMonth.mShowControls
+	mnuMonthFCControl.Caption = !"Control\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthControl))
+	mnuMonthFCDay.Caption = !"Day\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthDay))
+	mnuMonthFCFocus.Caption = !"Focus\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthFocus))
+	mnuMonthFCHoliday.Caption = !"Holiday\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthHoliday))
+	mnuMonthFCSelect.Caption = !"Select\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthSelect))
+	mnuMonthFCToday.Caption = !"Today\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthToday))
+	mnuMonthFCWeek.Caption = !"Week\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthWeek))
+	mnuMonthOutlineAlpha.Caption = !"Alpha\t&&H" & Hex(frmMonth.mMonth.mForeAlpha(MonthPanel) Shr 24)
+	mnuMonthOutlineColor.Caption = !"Color\t&&H" & Hex(frmMonth.mMonth.mForeColor(MonthPanel))
+	mnuMonthOutlineEnabled.Checked = frmMonth.mMonth.mOutlineEnabled
+	mnuMonthOutlineSize.Caption = !"Size\t" & frmMonth.mMonth.mOutlineSize
+	mnuMonthPanelAlpha.Caption = !"Alpha\t&&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthPanel) Shr 24)
+	mnuMonthPanelColor.Caption = !"Color\t&&H" & Hex(frmMonth.mMonth.mBackColor(MonthPanel))
+	mnuMonthPanelEnabled.Checked = frmMonth.mMonth.mPanelEnabled
+	mnuMonthSetting.Enabled = mnuMonthEnabled.Checked
+	mnuMonthTextFont.Caption = !"Font\t" & *frmMonth.mMonth.mFontName
 	mnuMonthTrayEnabled.Checked = frmMonth.mMonth.mTrayEnabled
-	mnuMonthWeeks.Checked = frmMonth.mMonth.mShowWeeks
-	'End If
-	
+	mnuMonthWeek.Checked = frmMonth.mMonth.mShowWeeks
 End Sub
 
 Private Function frmClockType.ProfileDefLoad() ByRef As WString
 	Static sProfile As WString Ptr
-	WLet(sProfile, TextFromFile(ProfileFull("gdipClock.ini")))
+	WLet(sProfile, TextFromFile(FileNameFull("gdipClock.ini")))
 	If *sProfile = "" Then
-		Return ProfileFull("gdipClock.prf")
+		Return FileNameFull("gdipClock.prf")
 	Else
-		Return ProfileFull(*sProfile)
+		Return FileNameFull(*sProfile)
 	End If
 End Function
 
-Private Function frmClockType.ProfileSimple(sFileName As WString) ByRef As WString
+Private Function frmClockType.FileNameOnly(sFileName As WString) ByRef As WString
 	Static sRtn As WString Ptr
 	Dim sSLen As Integer = Len(sFileName)
 	Dim sPLen As Integer = Len(*mAppPath)
 	Dim sPLoc As Integer = InStr(sFileName, *mAppPath)
-	If sPLoc Then
-		WLet(sRtn, Mid(sFileName, sPLoc + sPLen, sSLen - sPLen - sPLoc + 1))
+	If sSLen Then
+		If sPLoc Then
+			WLet(sRtn, Mid(sFileName, sPLoc + sPLen, sSLen - sPLen - sPLoc + 1))
+		Else
+			WLet(sRtn, sFileName)
+		End If
 	Else
-		WLet(sRtn, sFileName)
+		WLet(sRtn, "")
 	End If
 	Return *sRtn
 End Function
 
-Private Function frmClockType.ProfileFull(sFileName As WString) ByRef As WString
+Private Function frmClockType.FileNameFull(sFileName As WString) ByRef As WString
 	Static sRtn As WString Ptr
-	If InStr(sFileName, "\") Then
-		WLet(sRtn, sFileName)
+	If Len(sFileName) Then
+		If InStr(sFileName, "\") Then
+			WLet(sRtn, sFileName)
+		Else
+			WLet(sRtn, *mAppPath & sFileName)
+		End If
 	Else
-		WLet(sRtn, *mAppPath & sFileName)
+		WLet(sRtn, "")
 	End If
 	Return *sRtn
 End Function
 
 Private Sub frmClockType.ProfileDefSave()
-	TextToFile(ProfileFull("gdipClock.ini"), ProfileSimple(*mProfile))
+	TextToFile(FileNameFull("gdipClock.ini"), FileNameOnly(*mProfileName))
 End Sub
 Private Sub frmClockType.ProfileInitial()
 	WLet(mAppPath, FullName2Path(App.FileName) & "\")
 	ReDim mKeyName(mKeyCount)
+	ReDim mKeyValDef(mKeyCount)
 	ReDim mKeyValue(mKeyCount)
 	ReDim mKeyNameLen(mKeyCount)
 	
 	mSetMainStart = ProfileIdx(0)
 	WLet(mKeyName(ProfileIdx(0)), WStr("[Main]"))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Left = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Top = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Width = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Height = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Always on top = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Click through = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Analog enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Text enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Day enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Month enabled = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Transparent = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Opacity value = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Locate arrange = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Clock Hide = "))
+	WLet(mKeyName(ProfileIdx()), "Clock left = ")
+	WLet(mKeyName(ProfileIdx()), "Clock top = ")
+	WLet(mKeyName(ProfileIdx()), "Clock width = ")
+	WLet(mKeyName(ProfileIdx()), "Clock height = ")
+	WLet(mKeyName(ProfileIdx()), "Clock always on top = ")
+	WLet(mKeyName(ProfileIdx()), "Clock click through = ")
+	WLet(mKeyName(ProfileIdx()), "Clock analog enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Clock text enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Clock day enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Clock month enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Clock transparent = ")
+	WLet(mKeyName(ProfileIdx()), "Clock opacity value = ")
+	WLet(mKeyName(ProfileIdx()), "Clock locate sticky = ")
+	WLet(mKeyName(ProfileIdx()), "Clock hide = ")
+	WLet(mKeyName(ProfileIdx()), "Clock profile auto save = ")
 	
 	mSetAnalogStart = ProfileIdx()
 	WLet(mKeyName(ProfileIdx(mSetAnalogStart)), WStr("[Analog]"))
 	
-	WLet(mKeyName(ProfileIdx()), WStr("Analog background enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog background file = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog background alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog background blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray face color 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray face alpha 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray face color 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray face alpha 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray edge color 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray edge alpha 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray edge color 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray edge alpha 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray shadow color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray shadow alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog tray blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Analog scale enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog scale color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog scale alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog scale blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand second enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand second color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand minute enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand minute color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand hour enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand hour color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog hand blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text size = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text font = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text bold = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text color = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text x = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text y = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text format = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Analog text blur = "))
+	WLet(mKeyName(ProfileIdx()), "Analog background enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog background file = ")
+	WLet(mKeyName(ProfileIdx()), "Analog background alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog background blur = ")
+	WLet(mKeyName(ProfileIdx()), "Analog panel enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog panel color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog panel alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog outline enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog outline size = ")
+	WLet(mKeyName(ProfileIdx()), "Analog outline color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog outline alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray face color 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray face alpha 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray face color 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray face alpha 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray edge color 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray edge alpha 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray edge color 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray edge alpha 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray shadow color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray shadow alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog tray blur = ")
+	WLet(mKeyName(ProfileIdx()), "Analog scale enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog scale color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog scale alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog scale blur = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand second enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand second color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand minute enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand minute color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand hour enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand hour color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog hand blur = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text size = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text font = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text bold = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text color = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text x = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text y = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text format = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Analog text blur = ")
 	
 	mSetTextStart = ProfileIdx()
 	WLet(mKeyName(ProfileIdx(mSetTextStart)), WStr("[Text]"))
 	
-	WLet(mKeyName(ProfileIdx()), WStr("Text show second = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text blink colon = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text shadow = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Text background enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text background file = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text background alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text background blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Text tray enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text tray alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text tray color = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Text font = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text bold = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text alpha 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text alpha 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text blur = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Text border enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text border size = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text border alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text border color = "))
-	
-	WLet(mKeyName(ProfileIdx()), WStr("Text gradient color 1 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text gradient color 2 = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text color index = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Text gradient mode = "))
+	WLet(mKeyName(ProfileIdx()), "Text show second = ")
+	WLet(mKeyName(ProfileIdx()), "Text blink colon = ")
+	WLet(mKeyName(ProfileIdx()), "Text shadow = ")
+	WLet(mKeyName(ProfileIdx()), "Text background enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Text background file = ")
+	WLet(mKeyName(ProfileIdx()), "Text background alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Text background blur = ")
+	WLet(mKeyName(ProfileIdx()), "Text panel enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Text panel color = ")
+	WLet(mKeyName(ProfileIdx()), "Text panel alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Text outline enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Text outline size = ")
+	WLet(mKeyName(ProfileIdx()), "Text outline alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Text outline color = ")
+	WLet(mKeyName(ProfileIdx()), "Text font = ")
+	WLet(mKeyName(ProfileIdx()), "Text bold = ")
+	WLet(mKeyName(ProfileIdx()), "Text alpha 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Text alpha 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Text blur = ")
+	WLet(mKeyName(ProfileIdx()), "Text border enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Text border size = ")
+	WLet(mKeyName(ProfileIdx()), "Text border alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Text border color = ")
+	WLet(mKeyName(ProfileIdx()), "Text gradient color 1 = ")
+	WLet(mKeyName(ProfileIdx()), "Text gradient color 2 = ")
+	WLet(mKeyName(ProfileIdx()), "Text color index = ")
+	WLet(mKeyName(ProfileIdx()), "Text gradient mode = ")
 	
 	mSetDayStart = ProfileIdx()
 	WLet(mKeyName(ProfileIdx(mSetDayStart)), WStr("[Day]"))
 	
-	WLet(mKeyName(ProfileIdx()), WStr("Day Left = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day Top = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day Width = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day Height = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day text font = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day text alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day fore color focus = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day fore color year = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day fore color month = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day fore color day = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day fore color week = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day split = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day style index = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day tray enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day tray alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day back color focus = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day back color year = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day back color month = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day back color day = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day back color week = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day background enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day background file = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day background alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Day background blur = "))
+	WLet(mKeyName(ProfileIdx()), "Day Left = ")
+	WLet(mKeyName(ProfileIdx()), "Day Top = ")
+	WLet(mKeyName(ProfileIdx()), "Day Width = ")
+	WLet(mKeyName(ProfileIdx()), "Day Height = ")
+	WLet(mKeyName(ProfileIdx()), "Day text font = ")
+	WLet(mKeyName(ProfileIdx()), "Day fore color focus = ")
+	WLet(mKeyName(ProfileIdx()), "Day fore color year = ")
+	WLet(mKeyName(ProfileIdx()), "Day fore color month = ")
+	WLet(mKeyName(ProfileIdx()), "Day fore color day = ")
+	WLet(mKeyName(ProfileIdx()), "Day fore color week = ")
+	WLet(mKeyName(ProfileIdx()), "Day split = ")
+	WLet(mKeyName(ProfileIdx()), "Day style index = ")
+	WLet(mKeyName(ProfileIdx()), "Day tray enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Day back color focus = ")
+	WLet(mKeyName(ProfileIdx()), "Day back color year = ")
+	WLet(mKeyName(ProfileIdx()), "Day back color month = ")
+	WLet(mKeyName(ProfileIdx()), "Day back color day = ")
+	WLet(mKeyName(ProfileIdx()), "Day back color week = ")
+	WLet(mKeyName(ProfileIdx()), "Day back alpha focus = ")
+	WLet(mKeyName(ProfileIdx()), "Day back alpha year = ")
+	WLet(mKeyName(ProfileIdx()), "Day back alpha month = ")
+	WLet(mKeyName(ProfileIdx()), "Day back alpha day = ")
+	WLet(mKeyName(ProfileIdx()), "Day back alpha week = ")
+	WLet(mKeyName(ProfileIdx()), "Day background enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Day background file = ")
+	WLet(mKeyName(ProfileIdx()), "Day background alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Day background blur = ")
+	WLet(mKeyName(ProfileIdx()), "Day panel enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Day panel color = ")
+	WLet(mKeyName(ProfileIdx()), "Day panel alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Day outline enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Day outline size = ")
+	WLet(mKeyName(ProfileIdx()), "Day outline color = ")
+	WLet(mKeyName(ProfileIdx()), "Day outline alpha = ")
 	
 	mSetMonthStart = ProfileIdx()
 	WLet(mKeyName(ProfileIdx(mSetMonthStart)), WStr("[Month]"))
 	
-	WLet(mKeyName(ProfileIdx()), WStr("Month Left = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month Top = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month Width = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month Height = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month controls = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month weeks = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month tray enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month tray alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month back color focus = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month back color control = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month back color week = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month back color day = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month text font = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month text alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color focus = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color control = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color week = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color day = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color select = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color today = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month fore color holiday = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month background enabled = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month background file = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month background alpha = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Month background blur = "))
+	WLet(mKeyName(ProfileIdx()), "Month Left = ")
+	WLet(mKeyName(ProfileIdx()), "Month Top = ")
+	WLet(mKeyName(ProfileIdx()), "Month Width = ")
+	WLet(mKeyName(ProfileIdx()), "Month Height = ")
+	WLet(mKeyName(ProfileIdx()), "Month show controls = ")
+	WLet(mKeyName(ProfileIdx()), "Month show weeks = ")
+	WLet(mKeyName(ProfileIdx()), "Month tray enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Month back color focus = ")
+	WLet(mKeyName(ProfileIdx()), "Month back color control = ")
+	WLet(mKeyName(ProfileIdx()), "Month back color week = ")
+	WLet(mKeyName(ProfileIdx()), "Month back color day = ")
+	WLet(mKeyName(ProfileIdx()), "Month back alpha focus = ")
+	WLet(mKeyName(ProfileIdx()), "Month back alpha control = ")
+	WLet(mKeyName(ProfileIdx()), "Month back alpha week = ")
+	WLet(mKeyName(ProfileIdx()), "Month back alpha day = ")
+	WLet(mKeyName(ProfileIdx()), "Month text font = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color focus = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color control = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color week = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color day = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color select = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color today = ")
+	WLet(mKeyName(ProfileIdx()), "Month fore color holiday = ")
+	WLet(mKeyName(ProfileIdx()), "Month background enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Month background file = ")
+	WLet(mKeyName(ProfileIdx()), "Month background alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Month background blur = ")
+	WLet(mKeyName(ProfileIdx()), "Month panel enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Month panel color = ")
+	WLet(mKeyName(ProfileIdx()), "Month panel alpha = ")
+	WLet(mKeyName(ProfileIdx()), "Month outline enabled = ")
+	WLet(mKeyName(ProfileIdx()), "Month outline size = ")
+	WLet(mKeyName(ProfileIdx()), "Month outline color = ")
+	WLet(mKeyName(ProfileIdx()), "Month outline alpha = ")
 	
 	mSetSpeechStart = ProfileIdx()
 	WLet(mKeyName(ProfileIdx(mSetSpeechStart)), WStr("[Speech]"))
-	WLet(mKeyName(ProfileIdx()), WStr("Announce freequency = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Voice = "))
-	WLet(mKeyName(ProfileIdx()), WStr("Audio = "))
+	WLet(mKeyName(ProfileIdx()), "Announce freequency = ")
+	WLet(mKeyName(ProfileIdx()), "Voice = ")
+	WLet(mKeyName(ProfileIdx()), "Audio = ")
 	
 	Dim i As Integer
 	For i = 0 To mKeyCount
@@ -2209,345 +2655,389 @@ End Sub
 Private Sub frmClockType.ProfileRelease()
 	Erase mKeyNameLen
 	ArrayDeallocate(mKeyName())
+	ArrayDeallocate(mKeyValDef())
 	ArrayDeallocate(mKeyValue())
-	If mProfile Then Deallocate(mProfile)
+	If mProfileName Then Deallocate(mProfileName)
 	If mAppPath Then Deallocate(mAppPath)
 End Sub
 
-Private Sub frmClockType.ProfileFrmMain()
+Private Sub frmClockType.Profile2Clock(sKeyValue() As WString Ptr)
 	ProfileIdx(mSetMainStart)
-	WLet(mKeyValue(ProfileIdx()), "" & Left)
-	WLet(mKeyValue(ProfileIdx()), "" & Top)
-	WLet(mKeyValue(ProfileIdx()), "" & Width)
-	WLet(mKeyValue(ProfileIdx()), "" & Height)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuAlwaysOnTop.Checked)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuClickThrough.Checked)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuAnalogEnabled.Checked)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuTextEnabled.Checked)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuDayEnabled.Checked) 'mShowDay)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuMonthEnabled.Checked) 'mShowMonth)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuTransparent.Checked) 'mTransparent)
-	WLet(mKeyValue(ProfileIdx()), "" & mOpacity)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuLocateSticky.Checked)
-	WLet(mKeyValue(ProfileIdx()), "" & mnuHide.Checked)
-End Sub
-
-Private Sub frmClockType.Profile2Main()
-	ProfileIdx(mSetMainStart)
-	If *mKeyValue(ProfileIdx()) = "" Then Exit Sub
+	If *sKeyValue(ProfileIdx()) = "" Then Exit Sub
 	
 	ProfileIdx(mSetMainStart)
 	With mRectMain
-		.Left = CLng(*mKeyValue(ProfileIdx()))
-		.Top = CLng(*mKeyValue(ProfileIdx()))
-		.Right = CLng(*mKeyValue(ProfileIdx()))
-		.Bottom = CLng(*mKeyValue(ProfileIdx()))
+		.Left = CLng(*sKeyValue(ProfileIdx()))
+		.Top = CLng(*sKeyValue(ProfileIdx()))
+		.Right = CLng(*sKeyValue(ProfileIdx()))
+		.Bottom = CLng(*sKeyValue(ProfileIdx()))
 	End With
-	If mnuAlwaysOnTop.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuAlwaysOnTop)
-	If mnuClickThrough.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuClickThrough)
-	If mnuAnalogEnabled.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuAnalogEnabled)
-	If mnuTextEnabled.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuTextEnabled)
-	mShowDay = CBool(*mKeyValue(ProfileIdx()))
-	mShowMonth = CBool(*mKeyValue(ProfileIdx()))
-	mTransparent = CBool(*mKeyValue(ProfileIdx()))
-	mOpacity = CInt(*mKeyValue(ProfileIdx()))
-	If mnuLocateSticky.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuLocateSticky)
-	If mnuHide.Checked <> CBool(*mKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuTextEnabled)
-End Sub
-
-Private Sub frmClockType.ProfileFrmSpeech()
-	ProfileIdx(mSetSpeechStart)
-	WLet(mKeyValue(ProfileIdx()), "" & IndexOfAnnouce)
-	WLet(mKeyValue(ProfileIdx()), "" & IndexOfVoice)
-	WLet(mKeyValue(ProfileIdx()), "" & IndexOfAudio)
-End Sub
-Private Sub frmClockType.Profile2Speech()
-	ProfileIdx(mSetSpeechStart)
-	IndexOfAnnouce = CInt(*mKeyValue(ProfileIdx()))
-	IndexOfVoice = *mKeyValue(ProfileIdx())
-	IndexOfAudio = *mKeyValue(ProfileIdx())
-End Sub
-Private Sub frmClockType.ProfileFrmAnalog()
-	ProfileIdx(mSetAnalogStart)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mBackEnabled)
-	WLet(mKeyValue(ProfileIdx()), ProfileSimple(mAnalogClock.FileName))
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mBackAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mBackBlur)
+	If mnuAlwaysOnTop.Checked <> CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuAlwaysOnTop)
+	If mnuClickThrough.Checked <> CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuClickThrough)
+	If CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuAnalogEnabled)
+	If CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuTextEnabled)
+	mShowDay = CBool(*sKeyValue(ProfileIdx()))
+	mShowMonth = CBool(*sKeyValue(ProfileIdx()))
+	mTransparent = CBool(*sKeyValue(ProfileIdx()))
+	mOpacity = CInt(*sKeyValue(ProfileIdx()))
+	If mnuLocateSticky.Checked <> CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuLocateSticky)
+	If mnuHide.Checked <> CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuTextEnabled)
+	If mnuProfileSaveOnExit.Checked <> CBool(*sKeyValue(ProfileIdx())) Then mnuMenu_Click(mnuProfileSaveOnExit)
 	
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceColor1)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceAlpha1)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceColor2)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceAlpha2)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeColor1)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeAlpha1)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeColor2)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeAlpha2)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayShadowColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayShadowAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayBlur)
-	
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleBlur)
-	
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandSecondEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandSecondColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandMinuteEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandMinuteColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandHourEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandHourColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mHandBlur)
-	
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextSize)
-	WLet(mKeyValue(ProfileIdx()), *mAnalogClock.mTextFont)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextBold)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextColor)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextOffsetX)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextOffsetY)
-	WLet(mKeyValue(ProfileIdx()), *mAnalogClock.mTextFormat)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & mAnalogClock.mTextBlur)
-End Sub
-
-Private Sub frmClockType.Profile2Analog()
 	'ProfileIdx(mSetAnalogStart)
 	'With mRectAnalog
-	'	.Left = CInt(*mKeyValue(ProfileIdx()))
-	'	.Top = CInt(*mKeyValue(ProfileIdx()))
-	'	.Right = CInt(*mKeyValue(ProfileIdx()))
-	'	.Bottom = CInt(*mKeyValue(ProfileIdx()))
+	'	.Left = CInt(*sKeyValue(ProfileIdx()))
+	'	.Top = CInt(*sKeyValue(ProfileIdx()))
+	'	.Right = CInt(*sKeyValue(ProfileIdx()))
+	'	.Bottom = CInt(*sKeyValue(ProfileIdx()))
 	'End With
 	ProfileIdx(mSetAnalogStart)
-	mAnalogClock.mBackEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.FileName = ProfileFull(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mBackAlpha = CSng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mBackBlur = CInt(*mKeyValue(ProfileIdx()))
+	mAnalogClock.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.FileName = FileNameFull(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mBackAlpha = CSng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mPanelColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mPanelAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mOutlineEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mOutlineSize = CSng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mOutlineColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mOutlineAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayFaceColor1 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayFaceAlpha1 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayFaceColor2 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayFaceAlpha2 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayEdgeColor1 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayEdgeAlpha1 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayEdgeColor2 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayEdgeAlpha2 = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayShadowColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayShadowAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTrayBlur = CInt(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mScaleEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mScaleColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mScaleAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mScaleBlur = CInt(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandSecondEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandSecondColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandMinuteEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandMinuteColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandHourEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandHourColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mHandBlur = CInt(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextSize = CSng(*sKeyValue(ProfileIdx()))
+	WLet(mAnalogClock.mTextFont, *sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextBold = CBool(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextColor = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextOffsetX = CSng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextOffsetY = CSng(*sKeyValue(ProfileIdx()))
+	WLet(mAnalogClock.mTextFormat, *sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mAnalogClock.mTextBlur = CInt(*sKeyValue(ProfileIdx()))
 	
-	mAnalogClock.mTrayEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayFaceColor1 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayFaceAlpha1 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayFaceColor2 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayFaceAlpha2 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayEdgeColor1 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayEdgeAlpha1 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayEdgeColor2 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayEdgeAlpha2 = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayShadowColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayShadowAlpha = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayAlpha = CInt(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTrayBlur = CInt(*mKeyValue(ProfileIdx()))
-	
-	mAnalogClock.mScaleEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mScaleColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mScaleAlpha = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mScaleBlur = CInt(*mKeyValue(ProfileIdx()))
-	
-	mAnalogClock.mHandEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandSecondEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandSecondColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandMinuteEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandMinuteColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandHourEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandHourColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandAlpha = CInt(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mHandBlur = CInt(*mKeyValue(ProfileIdx()))
-	
-	mAnalogClock.mTextEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextSize = CSng(*mKeyValue(ProfileIdx()))
-	WLet(mAnalogClock.mTextFont, *mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextBold = CBool(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextColor = CLng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextOffsetX = CSng(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextOffsetY = CSng(*mKeyValue(ProfileIdx()))
-	WLet(mAnalogClock.mTextFormat, *mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextAlpha = CInt(*mKeyValue(ProfileIdx()))
-	mAnalogClock.mTextBlur = CInt(*mKeyValue(ProfileIdx()))
-End Sub
-
-Private Sub frmClockType.ProfileFrmText()
-	ProfileIdx(mSetTextStart)
-	WLet(mKeyValue(ProfileIdx()), "" & mTextClock.mShowSecond)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBlinkColon)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mShadowEnabled)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBackEnabled)
-	WLet(mKeyValue(ProfileIdx()), ProfileSimple(mTextClock.FileName))
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBackAlpha)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBackBlur)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mTrayEnabled)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mTrayAlpha)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mTrayColor)
-	WLet(mKeyValue(ProfileIdx()), *mTextClock.mFontName)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mFontStyle)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextAlpha1)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextAlpha2)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mTextBlur)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBorderEnabled)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBorderSize)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBorderAlpha)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextClock.mBorderColor)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextColor1)
-	WLet(mKeyValue(ProfileIdx()), ""& mTextColor2)
-	WLet(mKeyValue(ProfileIdx()), ""& IndexOfTextColor)
-	WLet(mKeyValue(ProfileIdx()), "" & IndexOfGradientMode)
-End Sub
-Private Sub frmClockType.Profile2Text()
 	ProfileIdx(mSetTextStart)
 	'With mRectText
-	'	.Left = CInt(*mKeyValue(ProfileIdx()))
-	'	.Top = CInt(*mKeyValue(ProfileIdx()))
-	'	.Right = CInt(*mKeyValue(ProfileIdx()))
-	'	.Bottom = CInt(*mKeyValue(ProfileIdx()))
+	'	.Left = CInt(*sKeyValue(ProfileIdx()))
+	'	.Top = CInt(*sKeyValue(ProfileIdx()))
+	'	.Right = CInt(*sKeyValue(ProfileIdx()))
+	'	.Bottom = CInt(*sKeyValue(ProfileIdx()))
 	'End If
-	mTextClock.mShowSecond = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.mBlinkColon = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.mShadowEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.mBackEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.FileName = ProfileFull(*mKeyValue(ProfileIdx()))
-	mTextClock.mBackAlpha = CSng(*mKeyValue(ProfileIdx()))
-	mTextClock.mBackBlur = CInt(*mKeyValue(ProfileIdx()))
-	mTextClock.mTrayEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.mTrayAlpha = CInt(*mKeyValue(ProfileIdx()))
-	mTextClock.mTrayColor = CLng(*mKeyValue(ProfileIdx()))
-	WLet(mTextClock.mFontName, *mKeyValue(ProfileIdx()))
-	mTextClock.mFontStyle = CLng(*mKeyValue(ProfileIdx()))
-	mTextAlpha1 = CInt(*mKeyValue(ProfileIdx()))
-	mTextAlpha2 = CInt(*mKeyValue(ProfileIdx()))
-	mTextClock.mTextBlur = CInt(*mKeyValue(ProfileIdx()))
-	mTextClock.mBorderEnabled = CBool(*mKeyValue(ProfileIdx()))
-	mTextClock.mBorderSize = CDbl(*mKeyValue(ProfileIdx()))
-	mTextClock.mBorderAlpha = CInt(*mKeyValue(ProfileIdx()))
-	mTextClock.mBorderColor = CLng(*mKeyValue(ProfileIdx()))
-	mTextColor1 = CLng(*mKeyValue(ProfileIdx()))
-	mTextColor2 = CLng(*mKeyValue(ProfileIdx()))
-	IndexOfTextColor = CInt(*mKeyValue(ProfileIdx()))
-	IndexOfGradientMode = CLng(*mKeyValue(ProfileIdx()))
-End Sub
-Private Sub frmClockType.ProfileFrmDay()
+	mTextClock.mShowSecond = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mBlinkColon = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mShadowEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.FileName = FileNameFull(*sKeyValue(ProfileIdx()))
+	mTextClock.mBackAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
+	mTextClock.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mPanelColor = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mPanelAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mOutlineEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mOutlineSize = CSng(*sKeyValue(ProfileIdx()))
+	mTextClock.mOutlineAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mOutlineColor = CULng(*sKeyValue(ProfileIdx()))
+	WLet(mTextClock.mFontName, *sKeyValue(ProfileIdx()))
+	mTextClock.mFontStyle = CLng(*sKeyValue(ProfileIdx()))
+	mTextAlpha1 = CULng(*sKeyValue(ProfileIdx()))
+	mTextAlpha2 = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mTextBlur = CInt(*sKeyValue(ProfileIdx()))
+	mTextClock.mBorderEnabled = CBool(*sKeyValue(ProfileIdx()))
+	mTextClock.mBorderSize = CDbl(*sKeyValue(ProfileIdx()))
+	mTextClock.mBorderAlpha = CULng(*sKeyValue(ProfileIdx()))
+	mTextClock.mBorderColor = CULng(*sKeyValue(ProfileIdx()))
+	mTextColor1 = CULng(*sKeyValue(ProfileIdx()))
+	mTextColor2 = CULng(*sKeyValue(ProfileIdx()))
+	IndexOfTextColor = CInt(*sKeyValue(ProfileIdx()))
+	IndexOfGradientMode = CLng(*sKeyValue(ProfileIdx()))
+	
 	ProfileIdx(mSetDayStart)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.Left)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.Top)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.Width)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.Height)
-	WLet(mKeyValue(ProfileIdx()), *frmDay.mDay.mFontName)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeOpacity)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(1))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(3))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(5))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(7))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(9))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mSplitXScale)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mShowStyle)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mTrayEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mTrayAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(0))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(2))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(4))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(6))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mClr(8))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackEnabled)
-	WLet(mKeyValue(ProfileIdx()), ProfileSimple(frmDay.mDay.mBackImage.ImageFile))
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackBlur)
-End Sub
-Private Sub frmClockType.Profile2Day()
-	ProfileIdx(mSetDayStart)
-	If *mKeyValue(ProfileIdx()) = "" Then Exit Sub
-	ProfileIdx(mSetDayStart)
-	With mRectDay
-		.Left = CLng(*mKeyValue(ProfileIdx()))
-		.Top = CLng(*mKeyValue(ProfileIdx()))
-		.Right = CLng(*mKeyValue(ProfileIdx()))
-		.Bottom = CLng(*mKeyValue(ProfileIdx()))
-	End With
-	WLet(frmDay.mDay.mFontName, *mKeyValue(ProfileIdx()))
-	frmDay.mDay.mForeOpacity = CInt(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(1) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(3) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(5) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(7) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(9) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mSplitXScale = CSng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mShowStyle = CInt(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mTrayEnabled = CBool(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mTrayAlpha = CInt(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(0) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(2) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(4) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(6) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mClr(8) = CLng(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mBackEnabled = CBool(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mBackImage.ImageFile = ProfileFull(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mBackAlpha = CInt(*mKeyValue(ProfileIdx()))
-	frmDay.mDay.mBackBlur = CInt(*mKeyValue(ProfileIdx()))
-End Sub
-Private Sub frmClockType.ProfileFrmMonth()
+	If *sKeyValue(ProfileIdx()) <> "" Then
+		ProfileIdx(mSetDayStart)
+		With mRectDay
+			.Left = CLng(*sKeyValue(ProfileIdx()))
+			.Top = CLng(*sKeyValue(ProfileIdx()))
+			.Right = CLng(*sKeyValue(ProfileIdx()))
+			.Bottom = CLng(*sKeyValue(ProfileIdx()))
+		End With
+		WLet(frmDay.mDay.mFontName, *sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayYear) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayMonth) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayDay) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mSplitXScale = CSng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mShowStyle = CInt(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mTrayEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayYear) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayMonth) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayDay) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayYear) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayMonth) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayDay) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackImage.ImageFile = FileNameFull(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayImageFile) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackColor(DayPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackAlpha(DayPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mOutlineEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mOutlineSize = CSng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeColor(DayPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mForeAlpha(DayPanel) = CULng(*sKeyValue(ProfileIdx()))
+	End If
+	
 	ProfileIdx(mSetMonthStart)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.Left)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.Top)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.Width)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.Height)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mShowControls)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mShowWeeks)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mTrayEnabled)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mTrayAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(0))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(2))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(4))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(6))
-	WLet(mKeyValue(ProfileIdx()), *frmMonth.mMonth.mFontName)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeOpacity)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(1))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(3))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(5))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(7))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(8))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(9))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mClr(10))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackEnabled)
-	WLet(mKeyValue(ProfileIdx()), ProfileSimple(frmMonth.mMonth.mBackImage.ImageFile))
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha)
-	WLet(mKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackBlur)
-End Sub
-Private Sub frmClockType.Profile2Month()
-	ProfileIdx(mSetMonthStart)
-	If *mKeyValue(ProfileIdx()) = "" Then Exit Sub
-	ProfileIdx(mSetMonthStart)
-	With mRectMonth
-		.Left = CLng(*mKeyValue(ProfileIdx()))
-		.Top = CLng(*mKeyValue(ProfileIdx()))
-		.Right = CLng(*mKeyValue(ProfileIdx()))
-		.Bottom = CLng(*mKeyValue(ProfileIdx()))
-	End With
-	frmMonth.mMonth.mShowControls = CBool(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mShowWeeks = CBool(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mTrayEnabled = CBool(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mTrayAlpha = CInt(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(0) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(2) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(4) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(6) = CLng(*mKeyValue(ProfileIdx()))
-	WLet(frmMonth.mMonth.mFontName, *mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mForeOpacity = CInt(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(1) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(3) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(5) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(7) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(8) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(9) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mClr(10) = CLng(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mBackEnabled = CBool(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mBackImage.ImageFile = ProfileFull(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mBackAlpha = CInt(*mKeyValue(ProfileIdx()))
-	frmMonth.mMonth.mBackBlur = CInt(*mKeyValue(ProfileIdx()))
+	If *sKeyValue(ProfileIdx()) <> "" Then
+		ProfileIdx(mSetMonthStart)
+		With mRectMonth
+			.Left = CLng(*sKeyValue(ProfileIdx()))
+			.Top = CLng(*sKeyValue(ProfileIdx()))
+			.Right = CLng(*sKeyValue(ProfileIdx()))
+			.Bottom = CLng(*sKeyValue(ProfileIdx()))
+		End With
+		frmMonth.mMonth.mShowControls = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mShowWeeks = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mTrayEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthControl) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthDay) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthControl) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthDay) = CULng(*sKeyValue(ProfileIdx()))
+		WLet(frmMonth.mMonth.mFontName, *sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthFocus) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthControl) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthWeek) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthDay) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthSelect) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthToday) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthHoliday) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackImage.ImageFile = FileNameFull(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthImageFile) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackColor(MonthPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackAlpha(MonthPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mOutlineEnabled = CBool(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mOutlineSize = CSng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeColor(MonthPanel) = CULng(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mForeAlpha(MonthPanel) = CULng(*sKeyValue(ProfileIdx()))
+	End If
+	
+	ProfileIdx(mSetSpeechStart)
+	IndexOfAnnouce = CInt(*sKeyValue(ProfileIdx()))
+	IndexOfVoice = *sKeyValue(ProfileIdx())
+	IndexOfAudio = *sKeyValue(ProfileIdx())
 End Sub
 
-Private Function frmClockType.ProfileLoad(sFileName As WString) As Boolean
+Private Sub frmClockType.ProfileFrmClock(sKeyValue() As WString Ptr)
+	ProfileIdx(mSetMainStart)
+	WLet(sKeyValue(ProfileIdx()), "" & Left)
+	WLet(sKeyValue(ProfileIdx()), "" & Top)
+	WLet(sKeyValue(ProfileIdx()), "" & Width)
+	WLet(sKeyValue(ProfileIdx()), "" & Height)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuAlwaysOnTop.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuClickThrough.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuAnalogEnabled.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuTextEnabled.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuDayEnabled.Checked) 'mShowDay)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuMonthEnabled.Checked) 'mShowMonth)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuTransparent.Checked) 'mTransparent)
+	WLet(sKeyValue(ProfileIdx()), "" & mOpacity)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuLocateSticky.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuHide.Checked)
+	WLet(sKeyValue(ProfileIdx()), "" & mnuProfileSaveOnExit.Checked)
+	
+	ProfileIdx(mSetAnalogStart)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackEnabled)
+	WLet(sKeyValue(ProfileIdx()), FileNameOnly(mAnalogClock.FileName))
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mPanelEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mPanelColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mPanelAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mOutlineEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mOutlineSize)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mOutlineColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mOutlineAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceColor1)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceAlpha1)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceColor2)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayFaceAlpha2)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeColor1)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeAlpha1)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeColor2)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayEdgeAlpha2)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayShadowColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayShadowAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTrayBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mScaleBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandSecondEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandSecondColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandMinuteEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandMinuteColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandHourEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandHourColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mHandBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextSize)
+	WLet(sKeyValue(ProfileIdx()), *mAnalogClock.mTextFont)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextBold)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextOffsetX)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextOffsetY)
+	WLet(sKeyValue(ProfileIdx()), *mAnalogClock.mTextFormat)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mTextBlur)
+	
+	ProfileIdx(mSetTextStart)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mShowSecond)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBlinkColon)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mShadowEnabled)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackEnabled)
+	WLet(sKeyValue(ProfileIdx()), FileNameOnly(mTextClock.FileName))
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackAlpha)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mPanelEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mPanelColor)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mPanelAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mOutlineEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mOutlineSize)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mOutlineAlpha)
+	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mOutlineColor)
+	WLet(sKeyValue(ProfileIdx()), *mTextClock.mFontName)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mFontStyle)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextAlpha1)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextAlpha2)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mTextBlur)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBorderEnabled)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBorderSize)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBorderAlpha)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBorderColor)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextColor1)
+	WLet(sKeyValue(ProfileIdx()), ""& mTextColor2)
+	WLet(sKeyValue(ProfileIdx()), ""& IndexOfTextColor)
+	WLet(sKeyValue(ProfileIdx()), "" & IndexOfGradientMode)
+	
+	ProfileIdx(mSetDayStart)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.Left)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.Top)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.Width)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.Height)
+	WLet(sKeyValue(ProfileIdx()), *frmDay.mDay.mFontName)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayYear))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayMonth))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayDay))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mSplitXScale)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mShowStyle)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mTrayEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayYear))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayMonth))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayDay))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayYear))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayMonth))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayDay))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackEnabled)
+	WLet(sKeyValue(ProfileIdx()), FileNameOnly(frmDay.mDay.mBackImage.ImageFile))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayImageFile))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mPanelEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackColor(DayPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mOutlineEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mOutlineSize)
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeColor(DayPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mForeAlpha(DayPanel))
+	
+	ProfileIdx(mSetMonthStart)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.Left)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.Top)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.Width)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.Height)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mShowControls)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mShowWeeks)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mTrayEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthControl))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthDay))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthControl))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthDay))
+	WLet(sKeyValue(ProfileIdx()), *frmMonth.mMonth.mFontName)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthFocus))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthControl))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthDay))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthSelect))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthToday))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthHoliday))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackEnabled)
+	WLet(sKeyValue(ProfileIdx()), FileNameOnly(frmMonth.mMonth.mBackImage.ImageFile))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthImageFile))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackBlur)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mPanelEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackColor(MonthPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mOutlineEnabled)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mOutlineSize)
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthPanel))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeAlpha(MonthPanel))
+	
+	ProfileIdx(mSetSpeechStart)
+	WLet(sKeyValue(ProfileIdx()), "" & IndexOfAnnouce)
+	WLet(sKeyValue(ProfileIdx()), "" & IndexOfVoice)
+	WLet(sKeyValue(ProfileIdx()), "" & IndexOfAudio)
+End Sub
+
+Private Function frmClockType.ProfileLoad(sFileName As WString, sKeyValue() As WString Ptr) As Boolean
 	If Dir(sFileName) = "" Then Return False
 	Dim s As WString Ptr
 	
@@ -2572,7 +3062,7 @@ Private Function frmClockType.ProfileLoad(sFileName As WString) As Boolean
 		For k = 0 To mKeyCount
 			m = InStr(*ss(i), *mKeyName(k))
 			If m = 6 Then
-				WLet(mKeyValue(k), Mid(*ss(i), m + mKeyNameLen(k), l - mKeyNameLen(k)))
+				WLet(sKeyValue(k), Mid(*ss(i), m + mKeyNameLen(k), l - mKeyNameLen(k)))
 				Exit For
 			End If
 		Next
@@ -2583,20 +3073,15 @@ Private Function frmClockType.ProfileLoad(sFileName As WString) As Boolean
 	Return True
 End Function
 
-Private Sub frmClockType.ProfileSave(sFileName As WString)
+Private Sub frmClockType.ProfileSave(sFileName As WString, sKeyValue() As WString Ptr)
 	Dim ss() As WString Ptr
 	Dim i As Integer
 	ReDim ss(mKeyCount)
 	
-	ProfileFrmMain()
-	ProfileFrmAnalog()
-	ProfileFrmText()
-	If frmDay.Handle Then ProfileFrmDay()
-	If frmMonth.Handle Then ProfileFrmMonth()
-	ProfileFrmSpeech
+	ProfileFrmClock(sKeyValue())
 	
 	For i = 0 To mKeyCount
-		WLet(ss(i), Format(i, "000") & ". " & *mKeyName(i) & *mKeyValue(i))
+		WLet(ss(i), Format(i, "000") & ". " & *mKeyName(i) & *sKeyValue(i))
 	Next
 	
 	Dim s As WString Ptr
@@ -2774,60 +3259,37 @@ Private Property frmClockType.IndexOfTextColor() As Integer
 End Property
 
 Private Property frmClockType.IndexOfLocateH(v As Integer)
-	'mnuLocateLeft.Checked = False
-	'mnuLocateHorizontalMiddle.Checked = False
-	'mnuLocateRight.Checked = False
-	'mnuLocateHorizontalAny.Checked = False
 	Select Case v
 	Case 0
-		'mnuLocateLeft.Checked = True
 		Left = 0
 	Case 1
-		'mnuLocateHorizontalMiddle.Checked = True
 		Left = (mScreenWidth / xdpi - Width) / 2
 	Case 2
-		'mnuLocateRight.Checked = True
 		Left = mScreenWidth / xdpi - Width
-	Case Else
-		'mnuLocateHorizontalAny.Checked = True
-		Left = mRectMain.Left
 	End Select
 End Property
 Private Property frmClockType.IndexOfLocateH() As Integer
 	If mnuLocateLeft.Checked Then Return 0
 	If mnuLocateHorizontalMiddle.Checked Then Return 1
 	If mnuLocateRight.Checked Then Return 2
-	If mnuLocateHorizontalAny.Checked Then Return 3
 	Return 0
 End Property
 Private Property frmClockType.IndexOfLocateV(v As Integer)
-	'mnuLocateTop.Checked = False
-	'mnuLocateVerticalMiddle.Checked = False
-	'mnuLocateBottom.Checked = False
-	'mnuLocateVerticalAny.Checked = False
 	Select Case v
 	Case 0
-		'mnuLocateTop.Checked = True
 		Top = 0
 	Case 1
-		'mnuLocateVerticalMiddle.Checked = True
 		Top = (mScreenHeight / ydpi - Height) / 2
 	Case 2
-		'mnuLocateBottom.Checked = True
 		Top = mScreenHeight / ydpi - Height
-	Case Else
-		'mnuLocateVerticalAny.Checked = True
-		Top = mRectMain.Top
 	End Select
 End Property
 Private Property frmClockType.IndexOfLocateV() As Integer
 	If mnuLocateTop.Checked Then Return 0
 	If mnuLocateVerticalMiddle.Checked Then Return 1
 	If mnuLocateBottom.Checked Then Return 2
-	If mnuLocateVerticalAny.Checked = False = True Then Return 3
 	Return 0
 End Property
-
 
 Private Property frmClockType.IndexOfGradientMode(v As Integer)
 	mnuTextGradientMode1.Checked = False
@@ -2912,16 +3374,13 @@ Private Property frmClockType.IndexOfAudio() ByRef As WString
 End Property
 
 Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
-	Dim i As Integer
-	
 	Select Case Sender.Name
 	Case "mnuAlwaysOnTop"
 		Sender.Checked = Not Sender.Checked
 		FormStyle = IIf(Sender.Checked, FormStyles.fsStayOnTop, FormStyles.fsNormal)
 	Case "mnuClickThrough"
 		Sender.Checked = Not Sender.Checked
-		i = GetWindowLong(Handle, GWL_EXSTYLE)
-		SetWindowLong(Handle, GWL_EXSTYLE, IIf(Sender.Checked, i Or WS_EX_TRANSPARENT, i Xor WS_EX_TRANSPARENT))
+		SetWindowLong(Handle, GWL_EXSTYLE, IIf(Sender.Checked, GetWindowLong(Handle, GWL_EXSTYLE) Or WS_EX_TRANSPARENT, GetWindowLong(Handle, GWL_EXSTYLE) And Not WS_EX_TRANSPARENT))
 	Case "mnuAutoStart"
 		Sender.Checked = Not Sender.Checked
 		AutoStartReg Sender.Checked
@@ -2929,47 +3388,44 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		
 	Case "mnuAnalogEnabled"
 		Sender.Checked = True
+		mnuAnalogSetting.Enabled = True
 		mnuTextEnabled.Checked = False
-		Form_Resize(This, Width, Height)
+		mnuTextSetting.Enabled = False
 		mnuMenu_Click(mnuAspectRatio)
+		Form_Resize(This, Width, Height)
 	Case "mnuTextEnabled"
 		Sender.Checked = True
+		mnuTextSetting.Enabled = True
 		mnuAnalogEnabled.Checked = False
-		Form_Resize(This, Width, Height)
+		mnuAnalogSetting.Enabled = False
 		mnuMenu_Click(mnuAspectRatio)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayEnabled"
 		Sender.Checked = Not Sender.Checked
 		If Sender.Checked Then
 			If mnuLocateSticky.Checked Then
-				frmClock.Form_Move(frmClock)
-				frmDay.Show(frmClock)
+				frmDay.Show(This)
 			Else
-				frmDay.Move(frmClock.mRectDay.Left, frmClock.mRectDay.Top, frmClock.mRectDay.Right, frmClock.mRectDay.Bottom)
 				frmDay.Show()
 			End If
-			App.DoEvents
-			frmDay.mDay.mForceUpdate = True
-			Form_Resize(This, Width, Height)
 		Else
 			frmDay.CloseForm()
 		End If
 		mnuDaySetting.Enabled = Sender.Checked
+		Form_Resize(This, Width, Height)
 	Case "mnuMonthEnabled"
 		Sender.Checked = Not Sender.Checked
 		If Sender.Checked Then
 			If mnuLocateSticky.Checked Then
-				frmClock.Form_Move(frmClock)
-				frmMonth.Show(frmClock)
+				frmMonth.Show(This)
 			Else
-				frmMonth.Move(frmClock.mRectMonth.Left, frmClock.mRectMonth.Top, frmClock.mRectMonth.Right, frmClock.mRectMonth.Bottom)
 				frmMonth.Show()
 			End If
-			frmMonth.mMonth.mForceUpdate = True
-			Form_Resize(This, Width, Height)
 		Else
 			frmMonth.CloseForm()
 		End If
 		mnuMonthSetting.Enabled = Sender.Checked
+		Form_Resize(This, Width, Height)
 	Case "mnuAspectRatio"
 		Dim w As Single
 		Dim h As Single
@@ -2997,15 +3453,14 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		Move(Left, Top, Width, h + (Width - w)*s)
 	Case "mnuTransparent"
 		Sender.Checked = Not Sender.Checked
+		mnuTransparent.Checked = Sender.Checked
 		Transparent(Sender.Checked)
 		If frmDay.Handle Then frmDay.Transparent(Sender.Checked)
 		If frmMonth.Handle Then frmMonth.Transparent(Sender.Checked)
 	Case "mnuOpacityValue"
-		Dim As String s = InputBox("GDIP Clock", "Opacity", "" & mOpacity, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Opacity", "&H" & Hex(mOpacity), , , Handle)
 		mOpacity = CInt(s)
-		mnuOpacityValue.Caption = "Opacity " & mOpacity & "..."
-		If frmDay.Handle Then frmDay.Transparent(Sender.Checked)
-		If frmMonth.Handle Then frmMonth.Transparent(Sender.Checked)
+		Form_Resize(This, Width, Height)
 	Case "mnuHide"
 		Sender.Checked = Not Sender.Checked
 		This.Visible = Sender.Checked = False
@@ -3033,57 +3488,58 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		IndexOfLocateH = 1
 	Case "mnuLocateRight"
 		IndexOfLocateH = 2
-	Case "mnuLocateHorizontalAny"
-		IndexOfLocateH = 3
-		
 	Case "mnuLocateTop"
 		IndexOfLocateV = 0
 	Case "mnuLocateVerticalMiddle"
 		IndexOfLocateV = 1
 	Case "mnuLocateBottom"
 		IndexOfLocateV = 2
-	Case "mnuLocateVerticalAny"
-		IndexOfLocateV = 3
 		
 	Case "mnuLocateSticky"
 		Sender.Checked = Not Sender.Checked
 		Form_Resize(This, Width, Height)
-	Case "mnuLocateLock"
+		
+	Case "mnuProfileSaveOnExit"
 		Sender.Checked = Not Sender.Checked
+	Case "mnuProfileResetDefault"
+		TimerComponent1.Enabled = False
+		Hide()
+		If frmDay.Handle Then frmDay.CloseForm
+		If frmMonth.Handle Then frmMonth.CloseForm
+		Profile2Clock(mKeyValDef())
+		mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
+		If mRectMain.Right And mRectMain.Bottom Then Move(mRectMain.Left, mRectMain.Top, mRectMain.Right, mRectMain.Bottom)
+		mnuMenu_Click(mnuAspectRatio)
+		Show()
 	Case "mnuProfileSave"
-		SaveFileDialog1.FileName = *mProfile
+		ProfileSave(*mProfileName, mKeyValue())
+		Form_Resize(This, Width, Height)
+		FileName2Menu(*mProfileExt)
+	Case "mnuProfileSaveAs"
+		SaveFileDialog1.FileName = *mProfileName
+		SaveFileDialog1.Filter = "gdipClock Profile|*" & *mProfileExt
+		SaveFileDialog1.FilterIndex = 1
 		If SaveFileDialog1.Execute Then
-			WLet(mProfile, SaveFileDialog1.FileName)
-			If Dir(*mProfile)<>"" Then
-				If MsgBox(*mProfile & !"\r\nAre you sure you want to overwrite it?", "The profile already exists.", , ButtonsTypes.btYesNo) <> MessageResult.mrYes Then Exit Sub
+			WLet(mProfileName, SaveFileDialog1.FileName)
+			If Dir(*mProfileName) <> "" Then
+				If MsgBox(*mProfileName & !"\r\nAre you sure you want to overwrite it?", "The profile already exists.", , ButtonsTypes.btYesNo) <> MessageResult.mrYes Then Exit Sub
 			End If
-			ProfileSave(*mProfile)
+			ProfileSave(*mProfileName, mKeyValue())
 			Form_Resize(This, Width, Height)
-			Profile2Menu()
+			FileName2Menu(*mProfileExt)
 		End If
 	Case "mnuProfileList"
 		TimerComponent1.Enabled = False
 		Hide()
 		If frmDay.Handle Then frmDay.CloseForm
 		If frmMonth.Handle Then frmMonth.CloseForm
-		App.DoEvents
-		WLet(mProfile, *mAppPath & Sender.Caption & ".prf")
-		If ProfileLoad(*mProfile) Then
-			Profile2Main()
-			Profile2Analog()
-			Profile2Text()
-			Profile2Day()
-			Profile2Month()
-			Profile2Speech()
-			
-			mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
-			If mRectMain.Right And mRectMain.Bottom Then Move(mRectMain.Left, mRectMain.Top, mRectMain.Right, mRectMain.Bottom)
+		WLet(mProfileName, *mAppPath & Sender.Caption & *mProfileExt)
+		If ProfileLoad(*mProfileName, mKeyValue()) Then
+			Profile2Clock(mKeyValue())
 		End If
-		mnuDayEnabled.Checked = Not mShowDay
-		mnuMonthEnabled.Checked = Not mShowMonth
+		mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
+		If mRectMain.Right And mRectMain.Bottom Then Move(mRectMain.Left, mRectMain.Top, mRectMain.Right, mRectMain.Bottom)
 		Show()
-		Profile2Menu()
-		Profile2Interface()
 	Case "mnuAnalogBackEnabled"
 		mAnalogClock.mBackEnabled = Not mAnalogClock.mBackEnabled
 		Form_Resize(This, Width, Height)
@@ -3135,8 +3591,38 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			mAnalogClock.mHandHourColor = Color2Gdip(ColorDialog1.Color)
 			Form_Resize(This, Width, Height)
 		End If
+	Case "mnuAnalogPanelEnabled"
+		mAnalogClock.mPanelEnabled = Not mAnalogClock.mPanelEnabled
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogPanelColor"
+		ColorDialog1.Color = Color2Gdip(mAnalogClock.mPanelColor)
+		If ColorDialog1.Execute() Then
+			mAnalogClock.mPanelColor = Color2Gdip(ColorDialog1.Color)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuAnalogPanelAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Analog Back Alpha", "&H" & Hex(mAnalogClock.mPanelAlpha), , , Handle)
+		mAnalogClock.mPanelAlpha = CInt(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogOutlineEnabled"
+		mAnalogClock.mOutlineEnabled = Not mAnalogClock.mOutlineEnabled
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogOutlineSize"
+		Dim As String s = InputBox("GDIP Clock", "Analog Outline Size", "" & mAnalogClock.mOutlineSize, , , Handle)
+		mAnalogClock.mOutlineSize = CSng(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogOutlineColor"
+		ColorDialog1.Color = Color2Gdip(mAnalogClock.mOutlineColor)
+		If ColorDialog1.Execute() Then
+			mAnalogClock.mOutlineColor = Color2Gdip(ColorDialog1.Color)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuAnalogOutlineAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Analog Outline Alpha", "&H" & Hex(mAnalogClock.mOutlineAlpha), , , Handle)
+		mAnalogClock.mOutlineAlpha = CInt(s)
+		Form_Resize(This, Width, Height)
 	Case "mnuAnalogHandAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Analog Hand Alpha", "" & mAnalogClock.mHandAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Hand Alpha", "&H" & Hex(mAnalogClock.mHandAlpha), , , Handle)
 		mAnalogClock.mHandAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogHandBlur"
@@ -3170,30 +3656,30 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			mAnalogClock.mTrayEdgeColor2 = Color2Gdip(ColorDialog1.Color)
 			Form_Resize(This, Width, Height)
 		End If
+	Case "mnuAnalogTrayFA1"
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Face Alpha 1", "&H" & Hex(mAnalogClock.mTrayFaceAlpha1), , , Handle)
+		mAnalogClock.mTrayFaceAlpha1 = CSng(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogTrayFA2"
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Face Alpha 2", "&H" & Hex(mAnalogClock.mTrayFaceAlpha2), , , Handle)
+		mAnalogClock.mTrayFaceAlpha2 = CSng(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogTrayEA1"
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Edge Alpha 1", "&H" & Hex(mAnalogClock.mTrayEdgeAlpha1), , , Handle)
+		mAnalogClock.mTrayEdgeAlpha1 = CSng(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuAnalogTrayEA2"
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Edge Alpha 2", "&H" & Hex(mAnalogClock.mTrayEdgeAlpha2), , , Handle)
+		mAnalogClock.mTrayEdgeAlpha2 = CSng(s)
+		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTraySC"
 		ColorDialog1.Color = Color2Gdip(mAnalogClock.mTrayShadowColor)
 		If ColorDialog1.Execute() Then
 			mAnalogClock.mTrayShadowColor = Color2Gdip(ColorDialog1.Color)
 			Form_Resize(This, Width, Height)
 		End If
-	Case "mnuAnalogTrayFA1"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Face Alpha 1", "" & mAnalogClock.mTrayFaceAlpha1, , , Handle)
-		mAnalogClock.mTrayFaceAlpha1 = CSng(s)
-		Form_Resize(This, Width, Height)
-	Case "mnuAnalogTrayFA2"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Face Alpha 2", "" & mAnalogClock.mTrayFaceAlpha2, , , Handle)
-		mAnalogClock.mTrayFaceAlpha2 = CSng(s)
-		Form_Resize(This, Width, Height)
-	Case "mnuAnalogTrayEA1"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Edge Alpha 1", "" & mAnalogClock.mTrayEdgeAlpha1, , , Handle)
-		mAnalogClock.mTrayEdgeAlpha1 = CSng(s)
-		Form_Resize(This, Width, Height)
-	Case "mnuAnalogTrayEA2"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Edge Alpha 2", "" & mAnalogClock.mTrayEdgeAlpha2, , , Handle)
-		mAnalogClock.mTrayEdgeAlpha2 = CSng(s)
-		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTraySA"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Shadow Alpha", "" & mAnalogClock.mTrayShadowAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Shadow Alpha", "&H" & Hex(mAnalogClock.mTrayShadowAlpha), , , Handle)
 		mAnalogClock.mTrayShadowAlpha = CSng(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogScaleEnabled"
@@ -3208,11 +3694,9 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTextFont"
 		FontDialog1.Font.Name = *mAnalogClock.mTextFont
-		'		FontDialog1.Font.Color = Color2Gdip(mAnalogClock.mTextColor)
 		FontDialog1.Font.Bold =  mAnalogClock.mTextBold
 		If FontDialog1.Execute Then
 			WLet(mAnalogClock.mTextFont, FontDialog1.Font.Name)
-			'			mAnalogClock.mTextColor = Color2Gdip(FontDialog1.Font.Color)
 			mAnalogClock.mTextBold = FontDialog1.Font.Bold
 			Form_Resize(This, Width, Height)
 		End If
@@ -3232,7 +3716,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		mAnalogClock.mTextOffsetY = CSng(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogBackAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Analog Back Alpha", "" & mAnalogClock.mBackAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Back Alpha", "&H" & Hex(mAnalogClock.mBackAlpha), , , Handle)
 		mAnalogClock.mBackAlpha = CSng(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogBackBlur"
@@ -3240,7 +3724,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		mAnalogClock.mBackBlur = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTrayAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Analog Tray Alpha", "" & mAnalogClock.mTrayAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Tray Alpha", "&H" & Hex(mAnalogClock.mTrayAlpha), , , Handle)
 		mAnalogClock.mTrayAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTrayBlur"
@@ -3255,7 +3739,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		End If
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogScaleAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Analog Scale Alpha", "" & mAnalogClock.mScaleAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Scale Alpha", "&H" & Hex(mAnalogClock.mScaleAlpha), , , Handle)
 		mAnalogClock.mScaleAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogScaleBlur"
@@ -3267,7 +3751,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		WLet(mAnalogClock.mTextFormat, s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTextAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Analog Text Alpha", "" & mAnalogClock.mTextAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Analog Text Alpha", "&H" & Hex(mAnalogClock.mTextAlpha), , , Handle)
 		mAnalogClock.mTextAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuAnalogTextBlur"
@@ -3276,8 +3760,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		Form_Resize(This, Width, Height)
 		
 	Case "mnuTextBackEnabled"
-		Sender.Checked = Not Sender.Checked
-		mTextClock.mBackEnabled = Sender.Checked
+		mTextClock.mBackEnabled = Not mTextClock.mBackEnabled
 		Form_Resize(This, Width, Height)
 		mnuMenu_Click(mnuAspectRatio)
 	Case "mnuTextBackFile"
@@ -3288,7 +3771,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			mnuMenu_Click(mnuAspectRatio)
 		End If
 	Case "mnuTextBackAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Text Back Alpha", "" & mTextClock.mBackAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Text Back Alpha", "&H" & Hex(mTextClock.mBackAlpha), , , Handle)
 		mTextClock.mBackAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuTextBackBlur"
@@ -3300,7 +3783,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		FontDialog1.Font.Bold = IIf(mTextClock.mFontStyle = FontStyleBold, True, False)
 		If FontDialog1.Execute Then
 			mTextClock.TextFont(FontDialog1.Font.Name, IIf(FontDialog1.Font.Bold, FontStyleBold, FontStyleRegular))
-			mnuTextFont.Caption = *mTextClock.mFontName & ", " & mTextClock.mFontStyle & "..."
+			mnuTextFont.Caption = *mTextClock.mFontName & ",\t" & mTextClock.mFontStyle
 			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuTextBlur"
@@ -3358,21 +3841,38 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		mTextAlpha2 = CInt(s)
 		mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
 		Form_Resize(This, Width, Height)
-	Case "mnuTextTrayEnabled"
-		mTextClock.mTrayEnabled = Not mTextClock.mTrayEnabled
+	Case "mnuTextPanelEnabled"
+		mTextClock.mPanelEnabled = Not mTextClock.mPanelEnabled
 		Form_Resize(This, Width, Height)
-	Case "mnuTextTrayAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Tray Alpha", "" & mTextClock.mTrayAlpha, , , Handle)
-		mTextClock.mTrayAlpha = CInt(s)
+	Case "mnuTextPanelAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Tray Alpha", "&H" & Hex(mTextClock.mPanelAlpha), , , Handle)
+		mTextClock.mPanelAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
-	Case "mnuTextTrayColor"
-		ColorDialog1.Color = Color2Gdip(mTextClock.mTrayColor)
+	Case "mnuTextPanelColor"
+		ColorDialog1.Color = Color2Gdip(mTextClock.mPanelColor)
 		If ColorDialog1.Execute() Then
-			mTextClock.mTrayColor = Color2Gdip(ColorDialog1.Color)
+			mTextClock.mPanelColor = Color2Gdip(ColorDialog1.Color)
 			Form_Resize(This, Width, Height)
 		End If
+	Case "mnuTextOutlineEnabled"
+		mTextClock.mOutlineEnabled = Not mTextClock.mOutlineEnabled
+		Form_Resize(This, Width, Height)
+	Case "mnuTextOutlineSize"
+		Dim As String s = InputBox("GDIP Clock", "Outline size", "" & mTextClock.mOutlineSize, , , Handle)
+		mTextClock.mOutlineSize = CSng(s)
+		Form_Resize(This, Width, Height)
+	Case "mnuTextOutlineColor"
+		ColorDialog1.Color = Color2Gdip(mTextClock.mOutlineColor)
+		If ColorDialog1.Execute() Then
+			mTextClock.mOutlineColor = Color2Gdip(ColorDialog1.Color)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuTextOutlineAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Outline Alpha", "&H" & Hex(mTextClock.mOutlineAlpha), , , Handle)
+		mTextClock.mOutlineAlpha = CInt(s)
+		Form_Resize(This, Width, Height)
 	Case "mnuTextBorderAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Border Alpha", "" & mTextClock.mBorderAlpha, , , Handle)
+		Dim As String s = InputBox("GDIP Clock", "Border Alpha", "&H" & Hex(mTextClock.mBorderAlpha), , , Handle)
 		mTextClock.mBorderAlpha = CInt(s)
 		Form_Resize(This, Width, Height)
 	Case "mnuTextBorderSize"
@@ -3398,225 +3898,385 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		Dim As String s = InputBox("GDIP Clock", "Day Split", "" & frmDay.mDay.mSplitXScale, , , Handle)
 		frmDay.mDay.mSplitXScale = CSng(s)
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayStyle0"
 		mnuDayStyle0.Checked = True
 		mnuDayStyle1.Checked = False
 		mnuDayStyle2.Checked = False
 		frmDay.mDay.mShowStyle = 0
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayStyle1"
 		mnuDayStyle0.Checked = False
 		mnuDayStyle1.Checked = True
 		mnuDayStyle2.Checked = False
 		frmDay.mDay.mShowStyle = 1
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayStyle2"
 		mnuDayStyle0.Checked = False
 		mnuDayStyle1.Checked = False
 		mnuDayStyle2.Checked = True
 		frmDay.mDay.mShowStyle = 2
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayTextFont"
 		FontDialog1.Font.Name = *frmDay.mDay.mFontName
 		If FontDialog1.Execute Then
 			WLet(frmDay.mDay.mFontName, FontDialog1.Font.Name)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
-	Case "mnuDayTextAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Day Text Alpha", "" & frmDay.mDay.mForeOpacity, , , Handle)
-		frmDay.mDay.mForeOpacity = CInt(s)
-		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
 	Case "mnuDayFCFocus"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(1))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayFocus))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(1) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mForeColor(DayFocus) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayFCYear"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(3))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayYear))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(3) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mForeColor(DayYear) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayFCMonth"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(5))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayMonth))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(5) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mForeColor(DayMonth) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayFCDay"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(7))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayDay))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(7) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mForeColor(DayDay) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayFCWeek"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(9))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayWeek))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(9) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mForeColor(DayWeek) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayTrayEnabled"
 		frmDay.mDay.mTrayEnabled = Not frmDay.mDay.mTrayEnabled
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
-	Case "mnuDayTrayAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Day Tray Alpha", "" & frmDay.mDay.mTrayAlpha, , , Handle)
-		frmDay.mDay.mTrayAlpha = CInt(s)
-		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayBCFocus"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(0))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayFocus))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(0) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mBackColor(DayFocus) = Color2Gdip(ColorDialog1.Color)
+			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
 			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayBCYear"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(2))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayYear))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(2) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mBackColor(DayYear) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayBCMonth"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(4))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayMonth))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(4) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mBackColor(DayMonth) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayBCDay"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(6))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayDay))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(6) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mBackColor(DayDay) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayBCWeek"
-		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mClr(8))
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayWeek))
 		If ColorDialog1.Execute() Then
-			frmDay.mDay.mClr(8) = Color2Gdip(ColorDialog1.Color)
+			frmDay.mDay.mBackColor(DayWeek) = Color2Gdip(ColorDialog1.Color)
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
+		
+	Case "mnuDayBAFocus"
+		Dim As String s = InputBox("GDIP Clock", "Day Tray Focus Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayFocus) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayFocus) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayBAYear"
+		Dim As String s = InputBox("GDIP Clock", "Day Tray Year Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayYear) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayYear) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayBAMonth"
+		Dim As String s = InputBox("GDIP Clock", "Day Tray Month Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayMonth) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayMonth) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayBADay"
+		Dim As String s = InputBox("GDIP Clock", "Day Tray Day Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayDay) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayDay) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayBAWeek"
+		Dim As String s = InputBox("GDIP Clock", "Day Tray Week Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayWeek) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayWeek) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+		
 	Case "mnuDayBackEnabled"
 		frmDay.mDay.mBackEnabled = Not frmDay.mDay.mBackEnabled
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayBackFile"
-		'OpenFileDialog1.FileName = frmDay.mDay.mBackImage.ImageFile
+		OpenFileDialog1.FileName = frmDay.mDay.mBackImage.ImageFile
 		If OpenFileDialog1.Execute Then
 			frmDay.mDay.mBackImage.ImageFile = OpenFileDialog1.FileName
 			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuDayBackAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Day Back Alpha", "" & frmDay.mDay.mBackAlpha, , , Handle)
-		frmDay.mDay.mBackAlpha = CInt(s)
+		Dim As String s = InputBox("GDIP Clock", "Day Back Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayImageFile) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayImageFile) = CULng(s) Shl 24
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuDayBackBlur"
 		Dim As String s = InputBox("GDIP Clock", "Day Back Blur", "" & frmDay.mDay.mBackBlur, , , Handle)
 		frmDay.mDay.mBackBlur = CInt(s)
 		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
 		
-	Case "mnuMonthControls"
+	Case "mnuDayPanelEnabled"
+		frmDay.mDay.mPanelEnabled = Not frmDay.mDay.mPanelEnabled
+		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayPanelAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Tray Alpha", "&H" & Hex(frmDay.mDay.mBackAlpha(DayPanel) Shr 24), , , Handle)
+		frmDay.mDay.mBackAlpha(DayPanel) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayPanelColor"
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mBackColor(DayPanel))
+		If ColorDialog1.Execute() Then
+			frmDay.mDay.mBackColor(DayPanel) = Color2Gdip(ColorDialog1.Color)
+			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuDayOutlineEnabled"
+		frmDay.mDay.mOutlineEnabled = Not frmDay.mDay.mOutlineEnabled
+		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayOutlineSize"
+		Dim As String s = InputBox("GDIP Clock", "Outline size", "" & frmDay.mDay.mOutlineSize, , , Handle)
+		frmDay.mDay.mOutlineSize = CSng(s)
+		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuDayOutlineColor"
+		ColorDialog1.Color = Color2Gdip(frmDay.mDay.mForeColor(DayPanel))
+		If ColorDialog1.Execute() Then
+			frmDay.mDay.mForeColor(DayPanel) = Color2Gdip(ColorDialog1.Color)
+			frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuDayOutlineAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Outline Alpha", "&H" & Hex(frmDay.mDay.mForeAlpha(DayPanel) Shr 24), , , Handle)
+		frmDay.mDay.mForeAlpha(DayPanel) = CULng(s) Shl 24
+		frmDay.Form_Resize(frmDay, frmDay.Width, frmDay.Height)
+		Form_Resize(This, Width, Height)
+		
+	Case "mnuMonthControl"
 		frmMonth.mMonth.mShowControls = Not frmMonth.mMonth.mShowControls
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
-	Case "mnuMonthWeeks"
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthWeek"
 		frmMonth.mMonth.mShowWeeks = Not frmMonth.mMonth.mShowWeeks
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuMonthTextFont"
 		FontDialog1.Font.Name = *frmMonth.mMonth.mFontName
 		If FontDialog1.Execute Then
 			WLet(frmMonth.mMonth.mFontName, FontDialog1.Font.Name)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
-	Case "mnuMonthTextAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Month Text Alpha", "" & frmMonth.mMonth.mForeOpacity, , , Handle)
-		frmMonth.mMonth.mForeOpacity = CInt(s)
-		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
 	Case "mnuMonthFCFocus"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(1))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthFocus))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(1) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthFocus) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCControl"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(3))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthControl))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(3) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthControl) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCWeek"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(5))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthWeek))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(5) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mBackColor(MonthWeek) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCDay"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(7))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthDay))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(7) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthDay) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCSelect"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(8))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthSelect))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(8) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthSelect) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCToday"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(9))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthToday))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(9) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthToday) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthFCHoliday"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(10))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthHoliday))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(10) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mForeColor(MonthHoliday) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthTrayEnabled"
 		frmMonth.mMonth.mTrayEnabled = Not frmMonth.mMonth.mTrayEnabled
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
-	Case "mnuMonthTrayAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Month Tray Alpha", "" & frmMonth.mMonth.mTrayAlpha, , , Handle)
-		frmMonth.mMonth.mTrayAlpha = CInt(s)
-		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuMonthBCFocus"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(0))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthFocus))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(0) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mBackColor(MonthFocus) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthBCControl"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(2))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthControl))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(2) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mBackColor(MonthControl) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthBCWeek"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(4))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthWeek))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(4) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mBackColor(MonthWeek) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthBCDay"
-		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mClr(6))
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthDay))
 		If ColorDialog1.Execute() Then
-			frmMonth.mMonth.mClr(6) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.mMonth.mBackColor(MonthDay) = Color2Gdip(ColorDialog1.Color)
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
+	Case "mnuMonthBCSelect"
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthSelect))
+		If ColorDialog1.Execute() Then
+			frmMonth.mMonth.mBackColor(MonthSelect) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
+		End If
+		
+	Case "mnuMonthBAFocus"
+		Dim As String s = InputBox("GDIP Clock", "Month Tray Focus Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthFocus) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthFocus) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthBAControl"
+		Dim As String s = InputBox("GDIP Clock", "Month Tray Control Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthControl) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthControl) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthBAWeek"
+		Dim As String s = InputBox("GDIP Clock", "Month Tray Week Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthWeek) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthWeek) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthBADay"
+		Dim As String s = InputBox("GDIP Clock", "Month Tray Day Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthDay) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthDay) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthBASelect"
+		Dim As String s = InputBox("GDIP Clock", "Month Tray Select Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthSelect) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthSelect) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+		
 	Case "mnuMonthBackEnabled"
 		frmMonth.mMonth.mBackEnabled = Not frmMonth.mMonth.mBackEnabled
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuMonthBackFile"
-		'OpenFileDialog1.FileName = frmMonth.mMonth.mBackImage.ImageFile
+		OpenFileDialog1.FileName = frmMonth.mMonth.mBackImage.ImageFile
 		If OpenFileDialog1.Execute Then
 			frmMonth.mMonth.mBackImage.ImageFile = OpenFileDialog1.FileName
 			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
 		End If
 	Case "mnuMonthBackAlpha"
-		Dim As String s = InputBox("GDIP Clock", "Month Back Alpha", "" & frmMonth.mMonth.mBackAlpha, , , Handle)
-		frmMonth.mMonth.mBackAlpha = CInt(s)
+		Dim As String s = InputBox("GDIP Clock", "Month Back Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthImageFile) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthImageFile) = CULng(s) Shl 24
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
 	Case "mnuMonthBackBlur"
 		Dim As String s = InputBox("GDIP Clock", "Month Back Blur", "" & frmMonth.mMonth.mBackBlur, , , Handle)
 		frmMonth.mMonth.mBackBlur = CInt(s)
 		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+		
+	Case "mnuMonthPanelEnabled"
+		frmMonth.mMonth.mPanelEnabled = Not frmMonth.mMonth.mPanelEnabled
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthPanelAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Panel Alpha", "&H" & Hex(frmMonth.mMonth.mBackAlpha(MonthPanel) Shr 24), , , Handle)
+		frmMonth.mMonth.mBackAlpha(MonthPanel) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthPanelColor"
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mBackColor(MonthPanel))
+		If ColorDialog1.Execute() Then
+			frmMonth.mMonth.mBackColor(MonthPanel) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuMonthOutlineEnabled"
+		frmMonth.mMonth.mOutlineEnabled = Not frmMonth.mMonth.mOutlineEnabled
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthOutlineSize"
+		Dim As String s = InputBox("GDIP Clock", "Outline size", "" & frmMonth.mMonth.mOutlineSize, , , Handle)
+		frmMonth.mMonth.mOutlineSize = CSng(s)
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
+	Case "mnuMonthOutlineColor"
+		ColorDialog1.Color = Color2Gdip(frmMonth.mMonth.mForeColor(MonthPanel))
+		If ColorDialog1.Execute() Then
+			frmMonth.mMonth.mForeColor(MonthPanel) = Color2Gdip(ColorDialog1.Color)
+			frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+			Form_Resize(This, Width, Height)
+		End If
+	Case "mnuMonthOutlineAlpha"
+		Dim As String s = InputBox("GDIP Clock", "Outline Alpha", "&H" & Hex(frmMonth.mMonth.mForeAlpha(MonthPanel) Shr 24), , , Handle)
+		frmMonth.mMonth.mForeAlpha(MonthPanel) = CULng(s) Shl 24
+		frmMonth.Form_Resize(frmMonth, frmMonth.Width, frmMonth.Height)
+		Form_Resize(This, Width, Height)
 		
 	Case "mnuAnnounce0"
 		IndexOfAnnouce = 0
@@ -3661,17 +4321,12 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 End Sub
 
 Private Sub frmClockType.Form_Create(ByRef Sender As Control)
-	'CoInitialize(NULL)
-	
-	SetWindowLong(Handle, GWL_STYLE, GetWindowLong(Handle, GWL_STYLE) And Not WS_CAPTION)
-	SetWindowPos(Handle, NULL, 0, 0, 0, 0, SWP_NOSIZE Or SWP_NOMOVE Or SWP_NOZORDER Or SWP_FRAMECHANGED)
-	
 	ProfileInitial()
 	SpeechInit()
 	
-	ScreenInfo(mScreenWidth, mScreenHeight)
+	ProfileFrmClock(mKeyValDef())
 	
-	'If mVoiceCount > -1 And mAudioCount > -1 Then mnuSpeechNow.Enabled = True
+	ScreenInfo(mScreenWidth, mScreenHeight)
 	
 	If CheckAutoStart() Then mnuAutoStart.Checked = True
 	
@@ -3716,33 +4371,35 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	End With
 	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
 	
-	WLet(mProfile,ProfileDefLoad())
-	If ProfileLoad(*mProfile) Then
-		Profile2Main()
-		Profile2Analog()
-		Profile2Text()
-		Profile2Day()
-		Profile2Month()
-		Profile2Speech()
+	WLet(mProfileName, ProfileDefLoad())
+	If ProfileLoad(*mProfileName, mKeyValue()) Then
+		Profile2Clock(mKeyValue())
 	End If
-	Profile2Menu()
-	Profile2Interface()
 	
 	mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
 	If mRectMain.Right And mRectMain.Bottom Then Move(mRectMain.Left, mRectMain.Top, mRectMain.Right, mRectMain.Bottom)
 End Sub
 
 Private Sub frmClockType.Form_Show(ByRef Sender As Form)
-	If mnuDayEnabled.Checked <> mShowDay Then mnuMenu_Click(mnuDayEnabled)
-	If mnuMonthEnabled.Checked <> mShowMonth Then mnuMenu_Click(mnuMonthEnabled)
-	If mnuTransparent.Checked <> mTransparent Then mnuMenu_Click(mnuTransparent)
+	FileName2Menu(*mProfileExt)
+	Clock2Interface()
+	
+	mnuDayEnabled.Checked = Not mShowDay
+	mnuMenu_Click(mnuDayEnabled)
+	
+	mnuMonthEnabled.Checked = Not mShowMonth
+	mnuMenu_Click(mnuMonthEnabled)
+	
+	mnuTransparent.Checked = Not mTransparent
+	mnuMenu_Click(mnuTransparent)
 	
 	TimerComponent1.Enabled = True
 End Sub
 
 Private Sub frmClockType.Transparent(v As Boolean)
-	frmTrans.Enabled = v
 	Form_Resize(This, Width, Height)
+	frmTrans.Enabled = v
+	PaintClock()
 End Sub
 
 Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
@@ -3760,8 +4417,8 @@ Private Sub frmClockType.Form_Resize(ByRef Sender As Control, NewWidth As Intege
 		End If
 	End If
 	PaintClock()
-	Profile2Interface()
 	If mnuLocateSticky.Checked Then Form_Move(This)
+	Clock2Interface()
 End Sub
 
 Private Sub frmClockType.PaintClock()
@@ -3805,7 +4462,7 @@ Private Sub frmClockType.Form_Close(ByRef Sender As Form, ByRef Action As Intege
 	End If
 	
 	ProfileDefSave()
-	ProfileSave(*mProfile)
+	If mnuProfileSaveOnExit.Checked Then ProfileSave(*mProfileName, mKeyValue())
 	ProfileRelease()
 	
 	Shell_NotifyIcon(NIM_DELETE, @SystrayIcon)
@@ -3813,6 +4470,8 @@ End Sub
 
 Private Sub frmClockType.Form_Move(ByRef Sender As Control)
 	If mnuLocateSticky.Checked = False Then Exit Sub
+	
+	'窗口粘连
 	Dim sDayHight As Single
 	Dim sMonthHight As Single
 	
@@ -3832,8 +4491,9 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	
 	Static sNow As Double
 	Dim dNow As Double = Now()
-	
 	If sNow = dNow Then Exit Sub
+	
+	'1/4,1/2, 整点报时
 	sNow = dNow
 	If mnuAnnounce0.Checked Then Exit Sub
 	If Second(dNow) <> 0 Then Exit Sub
@@ -3867,3 +4527,18 @@ Private Sub frmClockType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 	End If
 End Sub
 
+Private Sub frmClockType.Form_Click(ByRef Sender As Control)
+	
+End Sub
+
+Private Sub frmClockType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	If mnuTextEnabled.Checked Then
+		mTextClock.FileName = Filename
+		mTextClock.mBackEnabled = True
+	Else
+		mAnalogClock.FileName = Filename
+		mAnalogClock.mBackEnabled = True
+	End If
+	mnuMenu_Click(mnuAspectRatio)
+	Form_Resize(This, Width, Height)
+End Sub

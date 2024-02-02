@@ -5,7 +5,7 @@
 #include once "win\GdiPlus.bi"
 #include once "vbcompat.bi"
 
-#define vbRGB(r, g, b) CULng((CUByte(b) Shl 16) Or (CUByte(g) Shl 8) Or CUByte(r))
+'#define vbRGB(r, g, b) CULng((CUByte(b) Shl 16) Or (CUByte(g) Shl 8) Or CUByte(r))
 
 Type gdipToken
 Private:
@@ -52,7 +52,7 @@ Private:
 	mImage As GpImage Ptr
 	mResizedImage As Any Ptr
 Public:
-	mFileName As WString Ptr
+	mFileName As WString Ptr = NULL
 	Declare Sub Release()
 	Declare Property ImageFile(ByRef pFileName As WString)
 	Declare Property ImageFile() ByRef As WString

@@ -5,66 +5,62 @@
 #include once "gdip.bi"
 #include once "..\ChineseCalendar\Lunar.bi"
 
+Enum DayColorIdx
+	DayFocus = 0
+	DayYear
+	DayMonth
+	DayDay
+	DayWeek
+	DayImageFile
+	DayTray
+	DayPanel
+	DayGlobal
+End Enum
+
 Type gdipDay
-Public:
-	mShowStyle As Integer = 0
-	
-	mMouseOpacity As Integer = &H40
-	mMouseX As Integer = -1
-	mMouseY As Integer = -1
-	mMouseLocate As Integer = 0
-	
-	mBackOpacity As Integer = &HE0
-	mForeOpacity As Integer = &HFF
+	mForeColor(DayGlobal) As ARGB = {&HBF3F7F,   &HFFFFFF,   &H000000,   &H000000,   &H000000,   &H000000,   &H000000,   &HBF3F7F,   &H000000}
+	mForeAlpha(DayGlobal) As ARGB = {&H80000000, &HFF000000, &HFF000000, &HFF000000, &HFF000000, &HFF000000, &HFF000000, &HFF000000, &HFF000000}
+	mBackColor(DayGlobal) As ARGB = {&HFFFFFF,   &HBF3F7F,   &HFFBFDF,   &HFFFFFF,   &HFFBFDF,   &HFFBFDF,   &H000000,   &HFFFFFF,   &H000000}
+	mBackAlpha(DayGlobal) As ARGB = {&H40000000, &HFF000000, &H80000000, &H40000000, &H40000000, &H80000000, &HFF000000, &H40000000, &HFF000000}
 	
 	mBackBitmap As gdipBitmap
-	mBackEnabled As Boolean = True
-	mBackScale As Single = 1
-	mBackImage As gdipImage
-
-	mBackAlpha As Single = &H80
 	mBackBlur As Integer = 0
-
-	mTrayEnabled As Boolean = True
-	mTrayBlur As Integer = 0
-	mTrayAlpha As Single = &HFF
-	
-	mTrayBitmap As gdipBitmap
-	mDayBitmap As gdipBitmap
-	mUpdateBitmap As gdipBitmap
-	mTxt As gdipText
-	
-	'强制更新
-	mForceUpdate As Boolean = True
-	
+	mBackEnabled As Boolean = True
+	mBackImage As gdipImage
+	mBackScale As Single = 1
 	mBorderSize As Single = 1
-	mWidth As Single
-	mHeight As Single
-	mSelectDate As Double
 	mByHeight As Boolean
-	
-	mW(0) As Single
-	mH(3) As Single
-	mOH(3) As Single
-	mSplitXScale As Single = 0.4
-	mOffsetX As Single
-	
-	'index            0     1     2     3     4     5     6     7     8
-	mC(8) As UByte = {&h00, &h1f, &h3f, &h5f, &h7f, &h9f, &hbf, &hdf, &hff}
-	
-	mClr(10) As ARGB
-	mFontSize As Single
-	mFontName As WString Ptr
 	mCalendar As Lunar
+	mFontName As WString Ptr
+	mFontSize As Single
+	mForceUpdate As Boolean = True
+	mH(3) As Single
+	mHeight As Single
+	mMouseLocate As Integer = 0
+	mMouseX As Integer = -1
+	mMouseY As Integer = -1
+	mOffsetX As Single
+	mOH(3) As Single
+	mOutlineEnabled As Boolean = True
+	mOutlineSize As Single = 1
+	mPanelEnabled As Boolean = True
+	mSelectDate As Double
+	mShowStyle As Integer = 0
+	mSplitXScale As Single = 0.45
+	mTrayEnabled As Boolean = True
+	mTxt As gdipText
+	mUpdateBitmap As gdipBitmap
+	mW(0) As Single
+	mWidth As Single
 	
 	Declare Constructor
 	Declare Destructor
-	Declare Property FileName(ByRef fFileName As WString)
-	Declare Property FileName() ByRef As WString
-	Declare Sub Background(pWidth As Single, pHeight As Single, pSelectDate As Double)
-	Declare Sub DayCalendar()
 	Declare Function DataExpire(pWidth As Single, pHeight As Single, pSelectDate As Double) As Boolean
+	Declare Function DayCalendar() As GpImage Ptr
 	Declare Function ImageUpdate(pSelectDate As Double) As GpImage Ptr
+	Declare Property FileName() ByRef As WString
+	Declare Property FileName(ByRef fFileName As WString)
+	Declare Sub Background(pWidth As Single, pHeight As Single, pSelectDate As Double)
 End Type
 
 #ifndef __USE_MAKE__
