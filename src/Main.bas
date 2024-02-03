@@ -86,7 +86,7 @@ Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctions
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, mlKeys, mlCompiler, mlTemplates, mpKeys, mcKeys
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors,  mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
@@ -226,21 +226,10 @@ Namespace VisualFBEditor
 	End Function
 End Namespace
 
-Function ML(ByRef V As WString) ByRef As WString
-	If LCase(CurLanguage) = "english" Then Return V
-	Dim As Integer tIndex = mlKeys.IndexOfKey(V) ' For improve the speed
-	If tIndex >= 0 Then
-		Return mlKeys.Item(tIndex)->Text
-	Else
-		tIndex = mlKeys.IndexOfKey(Replace(V, "&", "")) '
-		If tIndex >= 0 Then Return mlKeys.Item(tIndex)->Text Else Return V
-	End If
-End Function
-
 Function MS cdecl(ByRef V As WString, ...) As UString
 	Dim As UString Result
 	Dim As Boolean bFind
-	If LCase(CurLanguage) <> "english" Then
+	If LCase(App.CurLanguage) <> "english" Then
 		Dim As Integer tIndex = mlKeys.IndexOfKey(V)
 		If tIndex >= 0 Then
 			Result = mlKeys.Item(tIndex)->Text
@@ -258,7 +247,7 @@ Function MS cdecl(ByRef V As WString, ...) As UString
 End Function
 
 Function MLCompilerFun(ByRef V As WString) ByRef As WString
-	If LCase(CurLanguage) = "english" Then Return V
+	If LCase(App.CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = mlCompiler.IndexOfKey(V) ' For improve the speed
 	If tIndex >= 0 Then Return mlCompiler.Item(tIndex)->Text Else Return V
 End Function
@@ -275,7 +264,7 @@ Function MC(ByRef V As WString) ByRef As WString
 End Function
 
 Function MP(ByRef V As WString) ByRef As WString
-	If (Not gLocalProperties) OrElse LCase(CurLanguage) = "english" Then Return V
+	If (Not gLocalProperties) OrElse LCase(App.CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = -1, tIndex2 = -1
 	If InStr(V,".") Then
 		Static As WString*50 TempWstr =""
@@ -4812,11 +4801,11 @@ Sub LoadHelp
 	Dim As WStringOrStringList Ptr pFunctions = @Globals.Functions
 	Dim As Boolean InEnglish
 	Dim As Integer Fn = FreeFile_, tEncode
-	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt") = "" Then
+	If LCase(App.CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/KeywordsHelp." & App.CurLanguage & ".txt") = "" Then
 		InEnglish = True
 		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp.txt")
 	Else
-		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp." & CurLanguage & ".txt")
+		WLet(KeywordsHelpPath, ExePath & "/Settings/Others/KeywordsHelp." & App.CurLanguage & ".txt")
 	End If
 	Dim As Integer Result = -1
 	Result = Open(*KeywordsHelpPath For Input Encoding "utf-8" As #Fn)
@@ -4990,11 +4979,11 @@ Sub LoadHelp
 	pFunctions = @GlobalAsmFunctionsHelp
 	InEnglish = False
 	Fn = FreeFile_
-	If LCase(CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/AsmKeywordsHelp." & CurLanguage & ".txt") = "" Then
+	If LCase(App.CurLanguage) = "english" OrElse Dir(ExePath & "/Settings/Others/AsmKeywordsHelp." & App.CurLanguage & ".txt") = "" Then
 		InEnglish = True
 		WLet(AsmKeywordsHelpPath, ExePath & "/Settings/Others/AsmKeywordsHelp.txt")
 	Else
-		WLet(AsmKeywordsHelpPath, ExePath & "/Settings/Others/AsmKeywordsHelp." & CurLanguage & ".txt")
+		WLet(AsmKeywordsHelpPath, ExePath & "/Settings/Others/AsmKeywordsHelp." & App.CurLanguage & ".txt")
 	End If
 	Result = -1
 	Result = Open(*AsmKeywordsHelpPath For Input Encoding "utf-8" As #Fn)
@@ -6269,18 +6258,22 @@ End Sub
 
 Sub LoadLanguageTexts
 	iniSettings.Load SettingsPath
-	CurLanguage = iniSettings.ReadString("Options", "Language", "english")
+	App.CurLanguage = iniSettings.ReadString("Options", "Language", "english")
 	Dim As Boolean StartGeneral = True, StartKeyWords, StartProperty, StartCompiler, StartTemplates
-	If CurLanguage = "" Then
+	If App.CurLanguage = "" Then
 		mpKeys.Add "#Til", "English"
 		mlKeys.Add "#Til", "English"
 		mlCompiler.Add "#Til", "English"
-		CurLanguage = "English"
+		App.CurLanguage = "English"
 	Else
+		mlKeys.Clear
+		mcKeys.Clear
+		mpKeys.Clear
+		mlCompiler.Clear
 		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile_, Result
 		Dim As WString * 2048 Buff, tKey
-		Dim As UString FileName = ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
+		Dim As UString FileName = ExePath & "/Settings/Languages/" & App.CurLanguage & ".lng"
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -6357,19 +6350,18 @@ Sub LoadLanguageTexts
 			CloseFile_(Fn)
 			Exit Sub
 		Else
-			MsgBox ML("Open file failure!") &  " " & Chr(13, 10) & ML("in function") & " Main.LoadLanguageTexts" & Chr(13, 10) & "  " & ExePath & "/Settings/Languages/" & CurLanguage & ".lng"
+			MsgBox ML("Open file failure!") &  " " & Chr(13, 10) & ML("in function") & " Main.LoadLanguageTexts" & Chr(13, 10) & "  " & ExePath & "/Settings/Languages/" & App.CurLanguage & ".lng"
 		End If
 		CloseFile_(Fn)
 	End If
 	mlKeys.Clear
 	mcKeys.Clear
 	mpKeys.Clear
-	
 	mlCompiler.Clear
 	mpKeys.Add "#Til", "English"
 	mlKeys.Add "#Til", "English"
 	mlCompiler.Add "#Til", "English"
-	CurLanguage = "English"
+	App.CurLanguage = "english"
 End Sub
 
 Sub LoadHotKeys

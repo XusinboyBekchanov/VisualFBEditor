@@ -72,6 +72,8 @@
 	End Type
 	
 	Constructor Form1Type
+        App.CurLanguagePath = ExePath & "/Languages/"
+		App.CurLanguage= "english"
 		' Form1
 		With This
 			.Name = "Form1"
