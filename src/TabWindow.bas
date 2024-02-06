@@ -3588,7 +3588,7 @@ End Sub
 				End If
 				For j As Integer = 0 To te->Elements.Count - 1
 					teParam = te->Elements.Object(j)
-					teParamNew = New TypeElement
+					teParamNew = _New(TypeElement)
 					teParamNew->Name = teParam->Name
 					teParamNew->DisplayName = teParam->DisplayName
 					teParamNew->StartChar = teParam->StartChar + n

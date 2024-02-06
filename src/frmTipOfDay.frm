@@ -194,7 +194,7 @@ End Sub
 Private Sub frmTipOfDayType.Form_Create(ByRef Sender As Control)
 	Dim As Integer Fn = FreeFile_, Result = -1, i = 0
 	Dim Buff As WString * 1024
-	Dim As WString * MAX_PATH FileName = ExePath & "/Help/Tip of the Day/" & CurLanguage & ".tip"
+	Dim As WString * MAX_PATH FileName = ExePath & "/Help/Tip of the Day/" & App.CurLanguage & ".tip"
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
@@ -211,7 +211,7 @@ Private Sub frmTipOfDayType.Form_Create(ByRef Sender As Control)
 		Dim As WString * MAX_PATH imageFileName = ExePath & "/Help/Tip of the Day/images/" & Right("0000" & ShowTipoftheDayIndex, 4) & IIf(g_darkModeEnabled, "D", "") & ".png"
 		If Dir(imageFileName) <> "" Then lblImage.Graphic.LoadFromFile(imageFileName, lblImage.Width, lblImage.Height)
 	Else
-		MsgBox ML("File") & " """ & GetOSPath(ExePath & "/Help/Tip of the Day/") & CurLanguage & ".tip"" " & ML("not found!")
+		MsgBox ML("File") & " """ & GetOSPath(ExePath & "/Help/Tip of the Day/") & App.CurLanguage & ".tip"" " & ML("not found!")
 	End If
 	CloseFile_(Fn)
 	chkDoNotShow.Checked = Not ShowTipoftheDay 

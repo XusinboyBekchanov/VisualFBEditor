@@ -6258,6 +6258,7 @@ End Sub
 
 Sub LoadLanguageTexts
 	iniSettings.Load SettingsPath
+	App.CurLanguagePath = ExePath & "/Settings/Languages/"
 	App.CurLanguage = iniSettings.ReadString("Options", "Language", "english")
 	Dim As Boolean StartGeneral = True, StartKeyWords, StartProperty, StartCompiler, StartTemplates
 	If App.CurLanguage = "" Then

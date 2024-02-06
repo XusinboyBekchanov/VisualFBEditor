@@ -2808,7 +2808,7 @@ Sub frmOptions.LoadSettings()
 		HotKeysChanged = False
 		'On Error Goto 0
 		'WDeAllocate(s) '
-		newIndex = Languages.IndexOf(CurLanguage)
+		newIndex = Languages.IndexOf(App.CurLanguage)
 		.cboLanguage.ItemIndex = newIndex
 		oldIndex = newIndex
 		.cboTheme.Clear

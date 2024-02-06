@@ -225,7 +225,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			WAdd(tmpStrPtr, Chr(13, 10) & lvProblems.ListItems.Item(j)->Text(0))
 		Next
 		Clipboard.SetAsText *tmpStrPtr
-		Deallocate tmpStrPtr
+		_Deallocate(tmpStrPtr)
 	Case "DarkMode":
 		DarkMode = Not DarkMode
 		App.DarkMode = DarkMode

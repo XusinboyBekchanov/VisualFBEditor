@@ -166,7 +166,8 @@ Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
 Common Shared As Integer LoadFunctionsCount
-Common Shared As String  CurLanguage, UseDefine
+Common Shared As String  UseDefine
+'CurLanguage
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables

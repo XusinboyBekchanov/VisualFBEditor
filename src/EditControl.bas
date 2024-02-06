@@ -6827,9 +6827,16 @@ Namespace My.Sys.Forms
 			ElseIf InCollapseRect(FSelEndLine, X, y) Then
 			Else
 				FSelEndChar = CharIndexFromPoint(X, y)
+				FECLine = Content.Lines.Items[FSelEndLine]
 				If CInt(Not bShifted) And CInt(FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar) Then
-					FSelStartLine = FSelEndLine
-					FSelStartChar = FSelEndChar
+					If (FSelEndLine = FSelStartLine) AndAlso FSelStartChar <> 0 AndAlso FSelEndChar <> Len(* (FECLine->Text)) Then
+						FSelStartLine = FSelEndLine
+						FSelStartChar = 0
+						FSelEndChar = Len(* (FECLine->Text))
+					Else
+						FSelStartLine = FSelEndLine
+						FSelStartChar = FSelEndChar
+					End If
 				Else
 					If Not bShifted Then
 						WordLeft
