@@ -12127,7 +12127,7 @@ Sub RunPr(Debugger As String = "")
 			Dim As WString Ptr Workdir, CmdL
 			Dim As ULong ExitCode 
 			If EndsWith(*ExeFileName, ".html") Then
-				WLet(*CmdL, "explorer http://localhost:8000/" & GetFileName(*ExeFileName))
+				WLet(CmdL, "explorer http://localhost:8000/" & GetFileName(*ExeFileName))
 			Else
 				WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
 				If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True

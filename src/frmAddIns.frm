@@ -198,7 +198,9 @@ Private Sub frmAddIns.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender 
 							If VerQueryValue(_vinfo, $"\VarFileInfo\Translation", @ulTranslation, @iret) Then
 								TranslationString = Hex(ulTranslation[0], 4) & Hex(ulTranslation[1], 4)
 								Dim As String FullInfoName = $"\StringFileInfo\" & TranslationString & "\FileDescription"
-								If VerQueryValue(_vinfo, FullInfoName, @Add_In->Description, @iret) Then
+								Dim As WString Ptr pDescription
+								If VerQueryValue(_vinfo, FullInfoName, @pDescription, @iret) Then
+									WLet(Add_In->Description, *pDescription)
 									''~ value = cast( zstring ptr, vqinfo )
 								End If
 							End If
