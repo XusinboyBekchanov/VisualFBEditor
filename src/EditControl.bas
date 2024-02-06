@@ -6828,15 +6828,9 @@ Namespace My.Sys.Forms
 			Else
 				FSelEndChar = CharIndexFromPoint(X, y)
 				FECLine = Content.Lines.Items[FSelEndLine]
-				If CInt(Not bShifted) And CInt(FSelEndLine <> FSelStartLine Or FSelEndChar <> FSelStartChar) Then
-					If (FSelEndLine = FSelStartLine) AndAlso FSelStartChar <> 0 AndAlso FSelEndChar <> Len(* (FECLine->Text)) Then
-						FSelStartLine = FSelEndLine
-						FSelStartChar = 0
-						FSelEndChar = Len(* (FECLine->Text))
-					Else
-						FSelStartLine = FSelEndLine
-						FSelStartChar = FSelEndChar
-					End If
+				If CInt(Not bShifted) AndAlso CInt(FSelEndLine <> FSelStartLine OrElse FSelEndChar <> FSelStartChar) Then
+					FSelStartLine = FSelEndLine
+					FSelStartChar = FSelEndChar
 				Else
 					If Not bShifted Then
 						WordLeft
@@ -6892,10 +6886,17 @@ Namespace My.Sys.Forms
 					OldnCaretPosX = nCaretPosX
 					OldCharIndex = GetOldCharIndex
 				Else
+					Dim As Integer OldSelEndChar = FSelEndChar
 					FSelEndChar = CharIndexFromPoint(X, y)
 					If Not bShifted Then
-						FSelStartLine = FSelEndLine
-						FSelStartChar = FSelEndChar
+						If FSelStartLine = FSelEndLine AndAlso FSelEndChar > FSelStartChar AndAlso FSelEndChar < OldSelEndChar Then
+							FSelStartChar = 0
+							FSelEndLine = FSelStartLine + 1
+							FSelEndChar = 0
+						Else
+							FSelStartLine = FSelEndLine
+							FSelStartChar = FSelEndChar
+						End If
 					End If
 					If X < LeftMargin Then
 						FSelEndChar = Len(*Cast(EditControlLine Ptr, Content.Lines.Item(FSelEndLine))->Text)
