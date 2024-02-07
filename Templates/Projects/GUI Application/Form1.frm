@@ -16,6 +16,12 @@
 	End Type
 	
 	Constructor Form1Type
+	#if _MAIN_FILE_ = __FILE__
+        With App
+			.CurLanguagePath = ExePath & "/Languages/"
+			.CurLanguage = "english"
+		End With
+    #endif
 		' Form1
 		With This
 			.Name = "Form1"
