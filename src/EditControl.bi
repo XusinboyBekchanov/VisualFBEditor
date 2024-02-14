@@ -573,6 +573,7 @@ Namespace My.Sys.Forms
 		DropDownChar As Integer
 		DropDownToolTipShowed As Boolean
 		DropDownToolTipItemIndex As Integer
+		HoverToolTipShowed As Boolean
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
 		Declare Sub SetScrollsInfo()

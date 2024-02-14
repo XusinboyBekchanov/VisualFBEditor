@@ -437,6 +437,8 @@ Declare Sub PreprocessorNumberingOn(ByRef txtCode As EditControl, ByRef FileName
 
 Declare Sub PreprocessorNumberingOff(ByRef txtCode As EditControl, WithoutUpdate As Boolean = False)
 
+Declare Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
+
 #ifndef __USE_MAKE__
 	#include once "TabWindow.bas"
 #endif

@@ -622,17 +622,22 @@ Sub OnMouseMoveEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Mo
 	'	#endif
 End Sub
 
+Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
+
 Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	#ifndef __USE_GTK__
-		If Not InDebug AndAlso Timer - MouseHoverTimerVal <= 4 Then Exit Sub
+		'If Timer - MouseHoverTimerVal <= 4 Then Exit Sub 'Not InDebug AndAlso 
 		Static As Integer OldY, OldX
-		MouseHoverTimerVal = Timer
+		'MouseHoverTimerVal = Timer
 		Var tb = Cast(TabWindow Ptr, Sender.Tag)
 		If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 		If tb->txtCode.DropDownShowed Then Exit Sub
-		If tb->txtCode.ToolTipShowed And CBool((Abs(OldY - y) > 20 OrElse Abs(OldX - x) > 50)) Then
-			tb->txtCode.CloseToolTip
-			Exit Sub
+		If tb->txtCode.HoverToolTipShowed Then
+			If CBool((Abs(OldY - y) > 0 OrElse Abs(OldX - x) > 0)) Then
+				'tb->txtCode.CloseToolTip
+			Else
+				Exit Sub
+			End If
 		End If
 		OldY = y: OldX = x
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), True)
@@ -645,8 +650,17 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 			'				OnKeyPressEdit(tb->txtCode, 5)
 			'				Exit Sub
 			'			End If
-			Dim As WString * 250 Value
-			If InDebug Then Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y)) Else Exit Sub
+			Dim As UString Value
+			If InDebug Then
+				Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
+			Else
+				Dim As TypeElement Ptr te, teOld, teTypeOld
+				Dim As String TypeName, OldTypeName
+				Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
+				Dim As Integer iSelEndCharFunc
+				TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
+				Value = GetParameters(sWord, te, teOld)
+			End If
 			If Value <> "" Then
 				Dim ByRef As HWND hwndTT = tb->ToolTipHandle
 				Dim As TOOLINFO    ti
@@ -656,14 +670,17 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 				'ti.uId    = Cast(UINT, FHandle)
 				If hwndTT = 0 Then
 					hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
+					If g_darkModeEnabled Then
+						SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
+					End If
 					ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
 					ti.hinst  = GetModuleHandle(NULL)
-					ti.lpszText  = @Value
+					ti.lpszText  = Value.vptr
 					'SendMessage(hwndTT, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
 					SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
 				Else
 					SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
-					ti.lpszText = @Value
+					ti.lpszText = Value.vptr
 					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 				End If
 				Dim As Point Pt
@@ -674,6 +691,7 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
 				SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
 				tb->ToolTipHandle = hwndTT
+					tb->txtCode.HoverToolTipShowed = True
 				Exit Sub
 			End If
 		End If
@@ -4321,8 +4339,6 @@ Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String
 		End If
 	Next i
 End Sub
-
-Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
 
 Sub SetParametersFromDropDown()
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
