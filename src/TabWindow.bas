@@ -640,7 +640,9 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 			End If
 		End If
 		OldY = y: OldX = x
+		Dim As Integer EndChar
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), True)
+		Dim As String sWord2 = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), False, , , EndChar)
 		If sWord <> "" Then
 			'			If Not InDebug Then
 			'				Dim As Integer iSelEndLine, iSelEndChar
@@ -657,9 +659,9 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 				Dim As TypeElement Ptr te, teOld, teTypeOld
 				Dim As String TypeName, OldTypeName
 				Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
-				Dim As Integer iSelEndCharFunc
+				Dim As Integer iSelEndCharFunc = EndChar + 1
 				TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
-				Value = GetParameters(sWord, te, teOld)
+				Value = GetParameters(sWord2, te, teOld)
 			End If
 			If Value <> "" Then
 				Dim ByRef As HWND hwndTT = tb->ToolTipHandle

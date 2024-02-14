@@ -593,9 +593,9 @@ Namespace My.Sys.Forms
 		Declare Function GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
 		Declare Sub PaintControl(bFull As Boolean = False)
 		Declare Sub PaintControlPriv(bFull As Boolean = False)
-		Declare Function GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0) As String
-		Declare Function GetWordAtCursor(WithDot As Boolean = False) As String
-		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
+		Declare Function GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
+		Declare Function GetWordAtCursor(WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
+		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
 		Declare Function GetCaretPosY(LineIndex As Integer) As Integer
 		Declare Function CharIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer
 		Declare Function LineIndexFromPoint(X As Integer, Y As Integer, CodePane As Integer = -1) As Integer

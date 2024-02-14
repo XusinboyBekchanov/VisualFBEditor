@@ -2252,7 +2252,7 @@ Namespace My.Sys.Forms
 		Return i - 1
 	End Function
 	
-	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0) As String
+	Function EditControl.GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
 		If LineIndex < 0 OrElse Content.Lines.Item(LineIndex) = 0 Then Return ""
 		Dim As Integer i
 		Dim As String s, sWord
@@ -2267,14 +2267,15 @@ Namespace My.Sys.Forms
 			s = Mid(*sLine, i, 1)
 			If CInt(CInt(IsArg(Asc(s))) OrElse CInt(CInt(s = "#" OrElse s = "$"))) OrElse IIf(WithDot, s = ".", 0) OrElse IIf(WithQuestion, s = "?", 0) Then sWord = sWord & s Else Exit For
 		Next
+		EndChar = StartChar + Len(sWord)
 		Return sWord
 	End Function
 	
-	Function EditControl.GetWordAtCursor(WithDot As Boolean = False) As String
-		Return GetWordAt(FSelEndLine, FSelEndChar, WithDot)
+	Function EditControl.GetWordAtCursor(WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
+		Return GetWordAt(FSelEndLine, FSelEndChar, WithDot, WithQuestion, StartChar, EndChar)
 	End Function
 	
-	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False) As String
+	Function EditControl.GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
 		If X <= LeftMargin OrElse Content.Lines.Count < 1 Then Return ""
 		Dim As Integer LineIndex
 		If Y <= iDividedY AndAlso bDividedY Then
@@ -2301,7 +2302,7 @@ Namespace My.Sys.Forms
 			If w - 2 > nCaretPosX Then Exit For
 			Idx = i
 		Next i
-		Return GetWordAt(k, Idx, WithDot)
+		Return GetWordAt(k, Idx, WithDot, WithQuestion, StartChar, EndChar)
 	End Function
 	
 	Function EditControl.GetTabbedLength(ByRef SourceText As WString) As Integer
