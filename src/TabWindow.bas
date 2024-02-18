@@ -641,8 +641,8 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 		End If
 		OldY = y: OldX = x
 		Dim As Integer EndChar
-		Dim As String sWord = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), True)
-		Dim As String sWord2 = tb->txtCode.GetWordAtPoint(UnScaleX(x), UnScaleY(y), False, , , EndChar)
+		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, True)
+		Dim As String sWord2 = tb->txtCode.GetWordAtPoint(x, y, False, , , EndChar)
 		If sWord <> "" Then
 			'			If Not InDebug Then
 			'				Dim As Integer iSelEndLine, iSelEndChar
@@ -686,8 +686,8 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
 				End If
 				Dim As Point Pt
-				Pt.X = x
-				Pt.Y = y
+				Pt.X = ScaleX(x)
+				Pt.Y = ScaleY(y)
 				ClientToScreen tb->txtCode.Handle, @Pt
 				SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(Pt.X, Pt.Y + 10))
 				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
