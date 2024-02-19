@@ -7702,9 +7702,32 @@ pnlLeftPin.Parent = @pnlLeft
 	#endif
 #endif
 
+Sub SetVisibleToTreeNode(Node As TreeNode Ptr, ByRef SearchText As WString)
+	Dim As Boolean bVisible
+	If Node->Nodes.Count > 0 Then
+		For i As Integer = 0 To Node->Nodes.Count - 1
+			SetVisibleToTreeNode(Node->Nodes.Item(i), SearchText)
+		Next
+	Else
+		bVisible =  SearchText = "" OrElse InStr(LCase(Node->Text), SearchText) > 0
+		Node->Visible = bVisible
+		If SearchText <> "" Then
+			If Node->ParentNode <> 0 Then Node->ParentNode->Expand
+		End If
+	End If
+End Sub
+
+Sub txtExplorer_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	Dim As UString SearchText = Trim(LCase(txtExplorer.Text))
+	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
+		SetVisibleToTreeNode(tvExplorer.Nodes.Item(i), SearchText)
+	Next
+End Sub
+
 txtExplorer.ExtraMargins.Right = pnlLeftPin.Width + 2
 txtExplorer.ExtraMargins.Bottom = 5
 txtExplorer.Align = DockStyle.alClient
+txtExplorer.OnChange = @txtExplorer_Change
 
 hbxExplorer.Align = DockStyle.alTop
 hbxExplorer.Height = 10
@@ -7727,9 +7750,10 @@ pnlToolBox.OnResize = @pnlToolBox_Resize
 
 Sub txtForm_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	Dim As Boolean bVisible
+	Dim As UString SearchText = Trim(LCase(txtForm.Text))
 	For i As Integer = 0 To tbToolBox.Groups.Count - 1
 		For j As Integer = 0 To tbToolBox.Groups.Item(i)->Buttons.Count - 1
-			bVisible =  Trim(txtForm.Text) = "" OrElse InStr(tbToolBox.Groups.Item(i)->Buttons.Item(j)->Caption, Trim(txtForm.Text)) > 0
+			bVisible =  SearchText = "" OrElse InStr(LCase(tbToolBox.Groups.Item(i)->Buttons.Item(j)->Caption), SearchText) > 0
 			tbToolBox.Groups.Item(i)->Buttons.Item(j)->Visible = bVisible
 		Next
 	Next
