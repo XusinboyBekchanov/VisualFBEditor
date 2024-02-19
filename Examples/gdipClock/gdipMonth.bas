@@ -127,7 +127,7 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 	End If
 	
 	If mShowWeeks Then
-		'绘制周次
+		'绘制周次文字
 		sClr = mForeAlpha(MonthWeek) + mForeColor(MonthWeek)
 		sTxt = "周次"
 		sGdipTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mCellWidth - sGdipTxt.TextWidth(sTxt)) / 2, mControlHeight + (mCellHeight - sGdipTxt.TextHeight(sTxt)) / 2, sClr)
@@ -137,7 +137,7 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 		Next
 	End If
 	
-	'绘制日历星期抬头
+	'绘制日历星期抬头文字
 	sClr = mForeAlpha(MonthWeek) + mForeColor(MonthWeek)
 	For i = 0 To 6
 		sTxt = mCalendar.WeekName(i + 1)
@@ -189,7 +189,6 @@ Private Function gdipMonth.MonthCalendar() As GpImage Ptr
 	Dim i As Integer
 	
 	Static sTmpBitmap As gdipBitmap
-	
 	sTmpBitmap.Initial(mWidth, mHeight)
 	Dim sGdipTxt As gdipText
 	sGdipTxt.Initial(mWidth, mHeight)
