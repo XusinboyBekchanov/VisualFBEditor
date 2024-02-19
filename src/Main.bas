@@ -7787,13 +7787,18 @@ Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My
 End Sub
 
 tbProperties.ImagesList = @imgList
-tbProperties.Align = DockStyle.alTop
+tbProperties.Align = DockStyle.alLeft
 tbProperties.List = True
 tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , tstEnabled Or tstChecked
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbProperties.Flat = True
+
+hbxProperties.Align = DockStyle.alTop
+hbxProperties.Height = 10
+hbxProperties.Add @tbProperties
+hbxProperties.Add @txtProperties
 
 tbEvents.ImagesList = @imgList
 tbEvents.Align = DockStyle.alTop
@@ -8569,7 +8574,7 @@ tabRight.Detachable = True
 tabRight.Reorderable = True
 'tabRight.TabPosition = tpRight
 tpProperties = tabRight.AddTab(ML("Properties"))
-tpProperties->Add @tbProperties
+tpProperties->Add @hbxProperties
 tpProperties->Add @txtLabelProperty
 tpProperties->Add @splProperties
 tpProperties->Add @lvProperties
@@ -8626,6 +8631,46 @@ pnlRightPin.Parent = @pnlRight
 'pnlRight.Width = 153
 'pnlRight.Align = 2
 'pnlRight.AddRange 1, @tabRight
+
+Function SetVisibleToTreeListViewItem(Node As TreeListViewItem Ptr, ByRef SearchText As WString) As Boolean
+	Dim As Boolean bVisible
+	If Node->Nodes.Count > 0 Then Node->Expand
+	For i As Integer = 0 To Node->Nodes.Count - 1
+		If SetVisibleToTreeListViewItem(Node->Nodes.Item(i), SearchText) Then
+			bVisible = True
+		End If
+	Next
+	If Not bVisible Then
+		bVisible = SearchText = "" OrElse InStr(LCase(Node->Text(0)), SearchText) > 0
+	End If
+	Node->Visible = bVisible
+	?Node->Text(0), bVisible
+	Return bVisible
+End Function
+
+Sub txtProperties_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	Dim As UString SearchText = Trim(LCase(txtProperties.Text))
+	For i As Integer = 0 To lvProperties.Nodes.Count - 1
+		SetVisibleToTreeListViewItem(lvProperties.Nodes.Item(i), SearchText)
+	Next
+End Sub
+
+Sub txtEvents_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	Dim As UString SearchText = Trim(LCase(txtEvents.Text))
+	For i As Integer = 0 To lvEvents.Nodes.Count - 1
+		SetVisibleToTreeListViewItem(lvEvents.Nodes.Item(i), SearchText)
+	Next
+End Sub
+
+txtProperties.ExtraMargins.Right = pnlRightPin.Width + 2
+txtProperties.ExtraMargins.Bottom = 5
+txtProperties.Align = DockStyle.alClient
+txtProperties.OnChange = @txtProperties_Change
+
+txtEvents.ExtraMargins.Right = pnlRightPin.Width + 2
+txtEvents.ExtraMargins.Bottom = 5
+txtEvents.Align = DockStyle.alClient
+txtEvents.OnChange = @txtEvents_Change
 
 'ptabCode->Images.AddIcon bmp
 

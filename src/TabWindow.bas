@@ -10751,9 +10751,9 @@ Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As 
 			If te = 0 Then Continue For
 			With *te
 				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
-					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf(pComps->Contains(.TypeName), 1, 0))
+					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf((Not .TypeIsPointer) AndAlso pComps->Contains(.TypeName), 1, 0))
 					lvItem->Text(1) = ItemText 'tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
-					If pComps->Contains(.TypeName) Then
+					If (Not .TypeIsPointer) AndAlso pComps->Contains(.TypeName) Then
 						lvItem->Nodes.Add
 					End If
 				End If
