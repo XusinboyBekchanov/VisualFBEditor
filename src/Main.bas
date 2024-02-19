@@ -14,6 +14,7 @@
 #include once "mff/TabControl.bi"
 #include once "mff/StatusBar.bi"
 #include once "mff/Splitter.bi"
+#include once "mff/HorizontalBox.bi"
 #include once "mff/ToolBar.bi"
 #include once "mff/ListControl.bi"
 #include once "mff/CheckBox.bi"
