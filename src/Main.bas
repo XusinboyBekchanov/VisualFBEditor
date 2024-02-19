@@ -53,6 +53,7 @@ pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As IniFile iniSettings, iniTheme
+Dim Shared As TextBox txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
@@ -62,6 +63,7 @@ Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
+Dim Shared As HorizontalBox hbxExplorer, hbxForm, hbxProperties, hbxEvents
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
@@ -7174,7 +7176,8 @@ tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
 'tbExplorer.DisabledImagesList = @imgList
 tbExplorer.Flat = True
-tbExplorer.Align = DockStyle.alTop
+tbExplorer.Align = DockStyle.alLeft
+tbExplorer.AutoSize = True
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbtRemoveFileFromProject = tbExplorer.Buttons.Add(, "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True, 0)
 tbExplorer.Buttons.Add tbsSeparator
@@ -7202,7 +7205,7 @@ End Sub
 tbForm.ImagesList = @imgList
 tbForm.HotImagesList = @imgList
 'tbForm.DisabledImagesList = @imgListD
-tbForm.Align = DockStyle.alTop
+tbForm.Align = DockStyle.alLeft
 tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
@@ -7698,10 +7701,19 @@ pnlLeftPin.Parent = @pnlLeft
 	#endif
 #endif
 
+txtExplorer.ExtraMargins.Right = pnlLeftPin.Width + 2
+txtExplorer.ExtraMargins.Bottom = 5
+txtExplorer.Align = DockStyle.alClient
+
+hbxExplorer.Align = DockStyle.alTop
+hbxExplorer.Height = 10
+hbxExplorer.Add @tbExplorer
+hbxExplorer.Add @txtExplorer
+
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = DockStyle.alBottom
 
-tpProject->Add @tbExplorer
+tpProject->Add @hbxExplorer
 tpProject->Add @lblLeft
 tpProject->Add @tvExplorer
 
@@ -7712,8 +7724,28 @@ pnlToolBox.Add @tbToolBox
 #endif
 pnlToolBox.OnResize = @pnlToolBox_Resize
 
+Sub txtForm_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	Dim As Boolean bVisible
+	For i As Integer = 0 To tbToolBox.Groups.Count - 1
+		For j As Integer = 0 To tbToolBox.Groups.Item(i)->Buttons.Count - 1
+			bVisible =  Trim(txtForm.Text) = "" OrElse InStr(tbToolBox.Groups.Item(i)->Buttons.Item(j)->Caption, Trim(txtForm.Text)) > 0
+			tbToolBox.Groups.Item(i)->Buttons.Item(j)->Visible = bVisible
+		Next
+	Next
+End Sub
+
+txtForm.ExtraMargins.Right = pnlLeftPin.Width + 2
+txtForm.ExtraMargins.Bottom = 5
+txtForm.Align = DockStyle.alClient
+txtForm.OnChange = @txtForm_Change
+
+hbxForm.Align = DockStyle.alTop
+hbxForm.Height = 10
+hbxForm.Add @tbForm
+hbxForm.Add @txtForm
+
 tpToolbox->Add @pnlToolBox 'tbToolBox
-tpToolbox->Add @tbForm
+tpToolbox->Add @hbxForm
 'tpToolbox->Style = tpToolbox->Style Or ES_AUTOVSCROLL or WS_VSCROLL
 
 'pnlLeft.Width = 153
