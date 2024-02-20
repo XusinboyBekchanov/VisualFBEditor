@@ -7801,12 +7801,17 @@ hbxProperties.Add @tbProperties
 hbxProperties.Add @txtProperties
 
 tbEvents.ImagesList = @imgList
-tbEvents.Align = DockStyle.alTop
+tbEvents.Align = DockStyle.alLeft
 tbEvents.List = True
 tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbEvents.Flat = True
+
+hbxEvents.Align = DockStyle.alTop
+hbxEvents.Height = 10
+hbxEvents.Add @tbEvents
+hbxEvents.Add @txtEvents
 
 Sub txtPropertyValue_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	lvProperties.SetFocus
@@ -8579,7 +8584,7 @@ tpProperties->Add @txtLabelProperty
 tpProperties->Add @splProperties
 tpProperties->Add @lvProperties
 tpEvents = tabRight.AddTab(ML("Events"))
-tpEvents->Add @tbEvents
+tpEvents->Add @hbxEvents
 tpEvents->Add @txtLabelEvent
 tpEvents->Add @splEvents
 tpEvents->Add @lvEvents
@@ -8634,7 +8639,13 @@ pnlRightPin.Parent = @pnlRight
 
 Function SetVisibleToTreeListViewItem(Sender As TreeListView, Node As TreeListViewItem Ptr, ByRef SearchText As WString) As Boolean
 	Dim As Boolean bVisible
-	If Node->Nodes.Count > 0 Then Node->Expand
+	If Node->Nodes.Count > 0 Then
+		If SearchText = "" Then
+			Node->Collapse
+		Else
+			Node->Expand
+		End If
+	End If
 	For i As Integer = 0 To Node->Nodes.Count - 1
 		If SetVisibleToTreeListViewItem(Sender, Node->Nodes.Item(i), SearchText) Then
 			bVisible = True
@@ -8644,22 +8655,25 @@ Function SetVisibleToTreeListViewItem(Sender As TreeListView, Node As TreeListVi
 		bVisible = SearchText = "" OrElse InStr(LCase(Node->Text(0)), SearchText) > 0
 	End If
 	Node->Visible = bVisible
-	'?Node->Text(0), bVisible
 	Return bVisible
 End Function
 
 Sub txtProperties_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	tabRight.UpdateLock
 	Dim As UString SearchText = Trim(LCase(txtProperties.Text))
 	For i As Integer = 0 To lvProperties.Nodes.Count - 1
 		SetVisibleToTreeListViewItem(lvProperties, lvProperties.Nodes.Item(i), SearchText)
 	Next
+	tabRight.UpdateUnLock
 End Sub
 
 Sub txtEvents_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
+	tabRight.UpdateLock
 	Dim As UString SearchText = Trim(LCase(txtEvents.Text))
 	For i As Integer = 0 To lvEvents.Nodes.Count - 1
 		SetVisibleToTreeListViewItem(lvEvents, lvEvents.Nodes.Item(i), SearchText)
 	Next
+	tabRight.UpdateUnLock
 End Sub
 
 txtProperties.ExtraMargins.Right = pnlRightPin.Width + 2
