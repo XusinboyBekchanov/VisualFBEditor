@@ -8632,11 +8632,11 @@ pnlRightPin.Parent = @pnlRight
 'pnlRight.Align = 2
 'pnlRight.AddRange 1, @tabRight
 
-Function SetVisibleToTreeListViewItem(Node As TreeListViewItem Ptr, ByRef SearchText As WString) As Boolean
+Function SetVisibleToTreeListViewItem(Sender As TreeListView, Node As TreeListViewItem Ptr, ByRef SearchText As WString) As Boolean
 	Dim As Boolean bVisible
 	If Node->Nodes.Count > 0 Then Node->Expand
 	For i As Integer = 0 To Node->Nodes.Count - 1
-		If SetVisibleToTreeListViewItem(Node->Nodes.Item(i), SearchText) Then
+		If SetVisibleToTreeListViewItem(Sender, Node->Nodes.Item(i), SearchText) Then
 			bVisible = True
 		End If
 	Next
@@ -8644,21 +8644,21 @@ Function SetVisibleToTreeListViewItem(Node As TreeListViewItem Ptr, ByRef Search
 		bVisible = SearchText = "" OrElse InStr(LCase(Node->Text(0)), SearchText) > 0
 	End If
 	Node->Visible = bVisible
-	?Node->Text(0), bVisible
+	'?Node->Text(0), bVisible
 	Return bVisible
 End Function
 
 Sub txtProperties_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	Dim As UString SearchText = Trim(LCase(txtProperties.Text))
 	For i As Integer = 0 To lvProperties.Nodes.Count - 1
-		SetVisibleToTreeListViewItem(lvProperties.Nodes.Item(i), SearchText)
+		SetVisibleToTreeListViewItem(lvProperties, lvProperties.Nodes.Item(i), SearchText)
 	Next
 End Sub
 
 Sub txtEvents_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	Dim As UString SearchText = Trim(LCase(txtEvents.Text))
 	For i As Integer = 0 To lvEvents.Nodes.Count - 1
-		SetVisibleToTreeListViewItem(lvEvents.Nodes.Item(i), SearchText)
+		SetVisibleToTreeListViewItem(lvEvents, lvEvents.Nodes.Item(i), SearchText)
 	Next
 End Sub
 

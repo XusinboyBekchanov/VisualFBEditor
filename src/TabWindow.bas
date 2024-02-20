@@ -10720,7 +10720,7 @@ End Destructor
 'End Sub
 
 Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
+	If CBool(Item <> 0) AndAlso CBool(Item->Nodes.Count > 0) AndAlso Item->Nodes.Item(0)->Visible AndAlso CBool(Item->Nodes.Item(0)->Text(0) = "") Then
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabRight->Tag)
 		If tb = 0 Then Exit Sub
 		If tb->Des = 0 Then Exit Sub
