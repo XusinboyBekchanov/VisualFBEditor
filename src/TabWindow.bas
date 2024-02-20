@@ -1900,6 +1900,15 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		Next
 		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlNames
 		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlNames
+		#ifdef __USE_WINAPI__
+			Dim As ..Size sz
+			SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+			tbProperties.Width = sz.cx
+			hbxProperties.RequestAlign
+			SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+			tbEvents.Width = sz.cx
+			hbxEvents.RequestAlign
+		#endif
 	End If
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
