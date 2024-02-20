@@ -2287,7 +2287,7 @@ Namespace My.Sys.Forms
 		For i As Integer = 0 To Content.Lines.Count - 1
 			If Cast(EditControlLine Ptr, Content.Lines.Items[i])->Visible Then
 				j = j + 1
-				If j = LineIndex Then k = j: Exit For
+				If j = LineIndex Then k = i: Exit For
 			End If
 		Next
 		If k = -1 OrElse Content.Lines.Item(k) = 0 Then Return ""
