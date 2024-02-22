@@ -1,14 +1,18 @@
 MediaPlayer
 
-It's a Directshow Media Player
+It's a Directshow Media Player, translate from dx8 directshow\players\playwnd
 
-translate from dx8 directshow\players\playwnd
+Funtion added 2024/02/22:
+1. Screenshot
+2. Fast Forward/Slow Forward
+3. Play to desktop monitr 1 or more
+4. Scale 1/4, 1/2, 1/1 and fullscreen
 
 Network radio
 
-![image](https://user-images.githubusercontent.com/35757455/218031156-bbd2af9b-9285-40da-9f5d-d7ed38d7f54a.png)
+![image](https://github.com/chunmingwang/MediaPlayer/assets/35757455/3e016b72-448d-43cc-a92e-8d75bde13795)
 
 Local movie
 
-![image](https://user-images.githubusercontent.com/35757455/218031055-61623d77-daba-4a0b-8007-01616b684960.png)
+![image](https://github.com/chunmingwang/MediaPlayer/assets/35757455/960e9e83-7ddc-4794-8494-e2189343b24d)
 
