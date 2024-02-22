@@ -1903,10 +1903,10 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		#ifdef __USE_WINAPI__
 			Dim As ..Size sz
 			SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbProperties.Width = sz.cx
+			tbProperties.Width = UnScaleX(sz.cx)
 			hbxProperties.RequestAlign
 			SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbEvents.Width = sz.cx
+			tbEvents.Width = UnScaleX(sz.cx)
 			hbxEvents.RequestAlign
 		#endif
 	End If
