@@ -14,6 +14,7 @@
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/Menus.bi"
 	
+	#include once "../MDINotepad/Text.bi"
 	#include once "../gdipClock/gdip.bi"
 	#include once "../gdipClock/gdipAnimate.bi"
 	
@@ -240,7 +241,11 @@ Private Sub frmGoldFishType.MenuItem_Click(ByRef Sender As MenuItem)
 End Sub
 
 Private Sub frmGoldFishType.Form_Create(ByRef Sender As Control)
-	mGoldFish.Initial("F:\OfficePC_Update\!FB\Examples\gdipGoldFish\GoldFish.png", 84, 84)
+	mGoldFish.Initial(FullName2Path(App.FileName) & "\GoldFish.png", 84, 84)
+	'mGoldFish.Initial(FullName2Path(App.FileName) & "\Run.png", 300, 372)
+	'mGoldFish.Initial(FullName2Path(App.FileName) & "\Fight.png", 199, 302)
+	'mGoldFish.Initial(FullName2Path(App.FileName) & "\Jump.png", 147, 224)
+	'mGoldFish.Initial(FullName2Path(App.FileName) & "\Walk.png", 218, 325)
 	MenuItem_Click(mnuTransparent)
 End Sub
 
