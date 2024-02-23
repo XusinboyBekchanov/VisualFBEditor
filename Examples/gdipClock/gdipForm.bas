@@ -36,6 +36,7 @@ Private Sub gdipForm.Create(Handle As HWND, Img As GpImage Ptr)
 	Release()
 	
 	mHandle = Handle
+	
 	GdipGetImageDimension(Img, @sWidth, @sHeight)
 	
 	With bmHeader.bmiHeader

@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿' frmClock时钟
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -3455,6 +3459,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		Sender.Checked = Not Sender.Checked
 		mnuTransparent.Checked = Sender.Checked
 		Transparent(Sender.Checked)
+		mnuMenu_Click(mnuAspectRatio)
 		If frmDay.Handle Then frmDay.Transparent(Sender.Checked)
 		If frmMonth.Handle Then frmMonth.Transparent(Sender.Checked)
 	Case "mnuOpacityValue"
