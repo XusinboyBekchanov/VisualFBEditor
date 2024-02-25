@@ -2124,16 +2124,38 @@ Function SaveSession() As Boolean
 	Dim As Integer p
 	Dim As String Zv
 	Dim As Integer Fn = FreeFile_
+	Dim As TabWindow Ptr tb
 	If Open(SaveD.FileName For Output Encoding "utf-8" As #Fn) = 0 Then
 		For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 			tn1 = tvExplorer.Nodes.Item(i)
 			ee = tn1->Tag
-			If ee = 0 Then Continue For
-			Zv = IIf(tn1 = MainNode, "*", "")
-			If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.FileName)) Then
-				Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
+			If ee = 0 Then 
+				For j As Integer = 0 To TabPanels.Count - 1
+					Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+					For i As Integer = 0 To ptabCode->TabCount - 1
+						tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+						If tb AndAlso tb->tn = tn1 Then
+							If tb->Modified Then
+								If Not tb->Save AndAlso (tb->FileName = "" OrElse tb->FileName = ML("Untitled")) Then
+									Continue For
+								End If
+							End If
+							Zv = IIf(tn1 = MainNode, "*", "")
+							If StartsWith(tb->FileName & Slash, GetFolderName(SaveD.FileName)) Then
+								Print #Fn, Zv & "File=" & Replace(Mid(tb->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
+							Else
+								Print #Fn, Zv & "File=" & tb->FileName
+							End If
+						End If
+					Next i
+				Next j
 			Else
-				Print #Fn, Zv & "File=" & *ee->FileName
+				Zv = IIf(tn1 = MainNode, "*", "")
+				If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.FileName)) Then
+					Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
+				Else
+					Print #Fn, Zv & "File=" & *ee->FileName
+				End If
 			End If
 		Next
 	End If
