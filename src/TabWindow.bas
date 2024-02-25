@@ -11660,6 +11660,9 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		End If
 	End If
 	If UseDefine <> "" Then Result += " -d " & UseDefine
+	If cboBuildConfiguration.ItemIndex > 0 Then
+		Result += " " & BuildConfigurations.Get(cboBuildConfiguration.Text)
+	End If
 	Dim As Integer LinesCount, d, Fn
 	Dim As Boolean bFromTab
 	Dim As TabWindow Ptr tb

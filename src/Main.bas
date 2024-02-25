@@ -53,6 +53,7 @@ pfSplash->Show
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
+Dim Shared As ComboBoxEdit cboBuildConfiguration
 Dim Shared As IniFile iniSettings, iniTheme
 Dim Shared As TextBox txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
@@ -89,7 +90,7 @@ Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctions
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors,  mlCompiler, mlTemplates, mpKeys, mcKeys
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
@@ -126,6 +127,7 @@ pHelps = @Helps
 plvSearch = @lvSearch
 plvToDo = @lvToDo '
 ptbStandard = @tbStandard
+pcboBuildConfiguration = @cboBuildConfiguration
 plvProperties = @lvProperties
 plvEvents = @lvEvents
 pprProgress = @prProgress
@@ -2596,7 +2598,7 @@ Sub RunHelp(Param As Any Ptr)
 		Dim As WString * MAX_PATH wszKeyword, wszKeywordUpper
 		Dim As Boolean bFind
 		Dim As Any Ptr gpHelpLib
-		Dim HtmlHelpW As Function (ByVal hwndCaller As HWnd, _
+		Dim HtmlHelpW As Function (ByVal hwndCaller As HWND, _
 		ByVal pswzFile As WString Ptr, _
 		ByVal uCommand As UINT, _
 		ByVal dwData As DWORD_PTR _
@@ -6104,6 +6106,7 @@ Sub LoadSettings
 	Dim As UString Temp
 	Dim As ToolType Ptr Tool
 	Dim i As Integer = 0
+	cboBuildConfiguration.AddItem ML("No options")
 	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
@@ -6151,6 +6154,8 @@ Sub LoadSettings
 		End If
 		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
+		Temp = iniSettings.ReadString("BuildConfigurations", "Name_" & WStr(i), "")
+		If Temp <> "" Then BuildConfigurations.Add Temp, iniSettings.ReadString("BuildConfigurations", "Switches_" & WStr(i), ""): cboBuildConfiguration.AddItem Temp
 		Temp = iniSettings.ReadString("IncludePaths", "Path_" & WStr(i), "")
 		If Temp <> "" Then IncludePaths.Add Temp
 		Temp = iniSettings.ReadString("LibraryPaths", "Path_" & WStr(i), "")
@@ -6184,6 +6189,8 @@ Sub LoadSettings
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
 	WLet(DefaultHelp, iniSettings.ReadString("Helps", "DefaultHelp", ""))
 	WLet(HelpPath, Helps.Get(*DefaultHelp, ""))
+	WLet(DefaultBuildConfiguration, iniSettings.ReadString("BuildConfigurations", "DefaultBuildConfiguration", ""))
+	cboBuildConfiguration.ItemIndex = Max(0, cboBuildConfiguration.IndexOf(*DefaultBuildConfiguration))
 	UseMakeOnStartWithCompile = iniSettings.ReadBool("Options", "UseMakeOnStartWithCompile", False)
 	CreateNonStaticEventHandlers = iniSettings.ReadBool("Options", "CreateNonStaticEventHandlers", True)
 	PlaceStaticEventHandlersAfterTheConstructor = iniSettings.ReadBool("Options", "PlaceStaticEventHandlersAfterTheConstructor", True)
@@ -7190,6 +7197,10 @@ Sub CreateMenusAndToolBars
 	Var mnuWASM = tbButton->DropDownMenu.Add("WASM", "", "WASM:__USE_WASM__ -target js-asmjs -r", @mClickUseDefine)
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
+	tbProject.Buttons.Add tbsSeparator
+	tbButton = tbProject.Buttons.Add(tbsCustom)
+	tbButton->Width = cboBuildConfiguration.Width
+	tbButton->Child = @cboBuildConfiguration
 End Sub
 
 CreateMenusAndToolBars
@@ -10149,6 +10160,7 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(RecentSession)
 	WDeAllocate(DefaultHelp)
 	WDeAllocate(HelpPath)
+	WDeAllocate(DefaultBuildConfiguration)
 	WDeAllocate(KeywordsHelpPath)
 	WDeAllocate(AsmKeywordsHelpPath)
 	WDeAllocate(CurrentTheme)

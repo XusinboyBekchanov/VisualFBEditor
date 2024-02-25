@@ -6,6 +6,7 @@
 
 #include once "frmPath.bi"
 #include once "frmImageManager.bi"
+#include once "frmCompilerOptions.frm"
 
 '#Region "Form"
 	Constructor frmPath
@@ -159,7 +160,11 @@ Private Sub frmPath.cmdOK_Click_(ByRef Designer As My.Sys.Object, ByRef Sender A
 End Sub
 Private Sub frmPath.cmdOK_Click(ByRef Sender As Control)
 	If Not ChooseFolder AndAlso Trim(txtVersion.Text) = "" Then
-		MsgBox ML("Enter version of program!")
+		If ForConfiguration Then
+			MsgBox ML("Enter name of configuration!")
+		Else
+			MsgBox ML("Enter version of program!")
+		End If
 		This.BringToFront()
 		Exit Sub
 	ElseIf Trim(This.txtPath.Text) = "" Then
@@ -187,7 +192,18 @@ Private Sub frmPath.cmdPath_Click_(ByRef Designer As My.Sys.Object, ByRef Sender
 End Sub
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With This
-		If .WithKey AndAlso .cboType.ItemIndex = 0 Then
+		If ForConfiguration Then
+			If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+				.txtPath.Text = ""
+				For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
+					If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
+						.txtPath.Text = RTrim(.txtPath.Text) & " " & frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Text(0)
+					End If
+				Next
+				frmCompilerOptions.CloseForm
+				Me.BringToFront
+			End If
+		ElseIf .WithKey AndAlso .cboType.ItemIndex = 0 Then
 			If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
 				If pfImageManager->SelectedItem <> 0 Then
 					.txtPath.Text = pfImageManager->SelectedItem->Text(0)
@@ -258,6 +274,7 @@ Private Sub frmPath.Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As
 End Sub
 Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	ChooseFolder = False
+	ForConfiguration = False
 	WithoutVersion = False
 	WithoutCommandLine = False
 	WithExtensions = False
@@ -265,6 +282,7 @@ Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 End Sub
 
 Private Sub frmPath.Form_Create(ByRef Sender As Control)
+	Me.Caption = IIf(ForConfiguration, ML("Build Configuration"), ML("Path"))
 	lblVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	txtVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	lblCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder)
@@ -272,8 +290,8 @@ Private Sub frmPath.Form_Create(ByRef Sender As Control)
 	lblExtensions.Visible = WithExtensions
 	txtExtensions.Visible = WithExtensions
 	cboType.Visible = WithType
-	lblPath.Text = IIf(WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":")
-	lblVersion.Text = IIf(WithType, IIf(WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":")
+	lblPath.Text = IIf(ForConfiguration, ML("Switches") & ":", IIf(WithKey, ML("Resource Name / Path") & ":", ML("Path") & ":"))
+	lblVersion.Text = IIf(ForConfiguration, ML("Name") & ":", IIf(WithType, IIf(WithKey, ML("Key") & ":", ML("Resource Name") & ":"), ML("Version") & ":"))
 	lblCommandLine.Text = IIf(WithType, ML("Type") & ":", ML("Command line") & ":")
 	txtCommandLineText = ""
 	txtExtensionsText = ""

@@ -227,7 +227,7 @@ pfOptions = @fOptions
 		cmdApply.ExtraMargins.Right = 10
 		cmdApply.ExtraMargins.Top = 10
 		cmdApply.TabIndex = 81
-		cmdApply.SetBounds 525, 10, 90, 24
+		cmdApply.SetBounds 525, 30, 90, 24
 		cmdApply.OnClick = @cmdApply_Click
 		cmdApply.Parent = @pnlCommands
 		' cmdCancel
@@ -1370,7 +1370,7 @@ pfOptions = @fOptions
 		chkBold.ExtraMargins.Top = 5
 		chkBold.TabIndex = 58
 		chkBold.Constraints.Height = 21
-		chkBold.AutoSize = true
+		chkBold.AutoSize = True
 		chkBold.SetBounds 0, 204, 75, 21
 		chkBold.OnClick = @chkBold_Click
 		chkBold.Parent = @vbxColors
@@ -1381,7 +1381,7 @@ pfOptions = @fOptions
 		chkItalic.Align = DockStyle.alTop
 		chkItalic.TabIndex = 59
 		chkItalic.Constraints.Height = 21
-		chkItalic.AutoSize = true
+		chkItalic.AutoSize = True
 		chkItalic.SetBounds 0, 225, 78, 21
 		chkItalic.OnClick = @chkItalic_Click
 		chkItalic.Parent = @vbxColors
@@ -1392,7 +1392,7 @@ pfOptions = @fOptions
 		chkUnderline.Align = DockStyle.alTop
 		chkUnderline.TabIndex = 60
 		chkUnderline.Constraints.Height = 21
-		chkUnderline.AutoSize = true
+		chkUnderline.AutoSize = True
 		chkUnderline.SetBounds 0, 246, 100, 21
 		chkUnderline.OnClick = @chkUnderline_Click
 		chkUnderline.Parent = @vbxColors
@@ -1624,7 +1624,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 153
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 102, 235, 21
 			.Parent = @grbThemes
 		End With
@@ -1813,7 +1813,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 10
 			.TabIndex = 160
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 138, 261, 21
 			.Parent = @pnlDebugger
 		End With
@@ -2632,6 +2632,130 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @pnlDesigner
 		End With
+		' pnlBuildConfigurations
+		With pnlBuildConfigurations
+			.Name = "pnlBuildConfigurations"
+			.TabIndex = 234
+			.Align = DockStyle.alClient
+			.ControlIndex = 8
+			.ExtraMargins.Top = 4
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Bottom = 9
+			.Margins.Left = 10
+			.SetBounds 188, 4, 427, 400
+			.Designer = @This
+			.Parent = @This
+		End With
+		' grbDefaultConfiguration
+		With grbDefaultConfiguration
+			.Name = "grbDefaultConfiguration"
+			.Text = ML("Default Configuration")
+			.Align = DockStyle.alTop
+			.Margins.Top = 22
+			.Margins.Left = 15
+			.Margins.Bottom = 18
+			.Margins.Right = 15
+			.AutoSize = True
+			.TabIndex = 155
+			.Caption = ML("Default Configuration")
+			.SetBounds 10, 0, 417, 61
+			.Parent = @pnlBuildConfigurations
+		End With
+		' cboConfiguration
+		With cboConfiguration
+			.Name = "cboConfiguration"
+			.Text = ""
+			.TabIndex = 236
+			.Align = DockStyle.alTop
+			.SetBounds 15, 22, 387, 21
+			.Designer = @This
+			.Parent = @grbDefaultConfiguration
+			.AddItem ML("No options")
+		End With
+		' grbConfigurations
+		With grbConfigurations
+			.Name = "grbConfigurations"
+			.Text = ML("Configurations")
+			.TabIndex = 237
+			.Align = DockStyle.alClient
+			.ExtraMargins.Top = 5
+			.Margins.Top = 22
+			.Margins.Right = 15
+			.Margins.Left = 15
+			.Margins.Bottom = 15
+			.Caption = ML("Configurations")
+			.SetBounds 10, 66, 417, 334
+			.Designer = @This
+			.Parent = @pnlBuildConfigurations
+		End With
+		' lvConfigurations
+		With lvConfigurations
+			.Name = "lvConfigurations"
+			.Text = "lvTerminalPaths1"
+			.TabIndex = 238
+			.ExtraMargins.Bottom = 15
+			.Align = DockStyle.alClient
+			.SetBounds 15, 22, 387, 258
+			.Designer = @This
+			.Parent = @grbConfigurations
+			.Columns.Add ML("Name"), , 190
+			.OnItemActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer), @lvConfigurations_ItemActivate)
+			.Columns.Add ML("Switches"), , 190
+		End With
+		' hbxConfigurations
+		With hbxConfigurations
+			.Name = "hbxConfigurations"
+			.Text = "HorizontalBox1"
+			.TabIndex = 239
+			.Align = DockStyle.alBottom
+			.SetBounds 15, 295, 387, 24
+			.Designer = @This
+			.Parent = @grbConfigurations
+		End With
+		' cmdClearConfigurations
+		With cmdClearConfigurations
+			.Name = "cmdClearConfigurations"
+			.Text = ML("&Clear")
+			.TabIndex = 240
+			.Align = DockStyle.alRight
+			.SetBounds 290, 0, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdClearConfigurations_Click)
+			.Parent = @hbxConfigurations
+		End With
+		' cmdRemoveConfiguration
+		With cmdRemoveConfiguration
+			.Name = "cmdRemoveConfiguration"
+			.Text = ML("&Remove")
+			.TabIndex = 241
+			.Align = DockStyle.alRight
+			.SetBounds 193, 0, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRemoveConfiguration_Click)
+			.Parent = @hbxConfigurations
+		End With
+		' cmdChangeConfiguration
+		With cmdChangeConfiguration
+			.Name = "cmdChangeConfiguration"
+			.Text = ML("Chan&ge")
+			.TabIndex = 242
+			.Align = DockStyle.alRight
+			.SetBounds 96, 0, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdChangeConfiguration_Click)
+			.Parent = @hbxConfigurations
+		End With
+		' cmdAddConfiguration
+		With cmdAddConfiguration
+			.Name = "cmdAddConfiguration"
+			.Text = ML("&Add")
+			.TabIndex = 243
+			.Align = DockStyle.alRight
+			.SetBounds -1, 0, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdAddConfiguration_Click)
+			.Parent = @hbxConfigurations
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
@@ -2890,6 +3014,15 @@ Sub frmOptions.LoadSettings()
 			.cboHelp.AddItem pHelps->Item(i)->Key
 		Next
 		.cboHelp.ItemIndex = Max(0, .cboHelp.IndexOf(*DefaultHelp))
+		.cboConfiguration.Clear
+		.lvConfigurations.ListItems.Clear
+		.cboConfiguration.AddItem ML("No options")
+		For i As Integer = 0 To BuildConfigurations.Count - 1
+			.lvConfigurations.ListItems.Add BuildConfigurations.Item(i)->Key
+			.lvConfigurations.ListItems.Item(i)->Text(1) = BuildConfigurations.Item(i)->Text
+			.cboConfiguration.AddItem BuildConfigurations.Item(i)->Key
+		Next
+		.cboConfiguration.ItemIndex = Max(0, .cboConfiguration.IndexOf(*DefaultBuildConfiguration))
 		.lstIncludePaths.Clear
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			.lstIncludePaths.AddItem pIncludePaths->Item(i)
@@ -3071,6 +3204,7 @@ Private Sub frmOptions.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender
 		tnGeneral->Nodes.Add(ML("Themes"), "Themes")
 		tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
 		tnEditor->Nodes.Add(ML("Other Editors"), "OtherEditors")
+		tnCompiler->Nodes.Add(ML("Build Configurations"), "BuildConfigurations")
 		tnCompiler->Nodes.Add(ML("Includes"), "Includes")
 		tnCompiler->Nodes.Add(ML("Make Tool"), "MakeTool")
 		tnDebugger->Nodes.Add(ML("Terminal"), "Terminal")
@@ -3309,6 +3443,16 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		Next
 		WLet(DefaultHelp, IIf(.cboHelp.ItemIndex = 0, "", .cboHelp.Text))
 		WLet(HelpPath, pHelps->Get(*DefaultHelp))
+		BuildConfigurations.Clear
+		pcboBuildConfiguration->Clear
+		pcboBuildConfiguration->AddItem ML("No options")
+		For i As Integer = 0 To .lvConfigurations.ListItems.Count - 1
+			tempStr = .lvConfigurations.ListItems.Item(i)->Text(0)
+			BuildConfigurations.Add tempStr, .lvConfigurations.ListItems.Item(i)->Text(1)
+			pcboBuildConfiguration->AddItem tempStr
+		Next
+		WLet(DefaultBuildConfiguration, IIf(.cboConfiguration.ItemIndex = 0, "", .cboConfiguration.Text))
+		pcboBuildConfiguration->ItemIndex = Max(0, pcboBuildConfiguration->IndexOf(*DefaultBuildConfiguration))
 		pIncludePaths->Clear
 		For i As Integer = 0 To .lstIncludePaths.ItemCount - 1
 			pIncludePaths->Add .lstIncludePaths.Item(i)
@@ -3486,6 +3630,17 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		Do Until piniSettings->KeyExists("Helps", "Version_" & WStr(i)) = -1
 			piniSettings->KeyRemove "Helps", "Version_" & WStr(i)
 			piniSettings->KeyRemove "Helps", "Path_" & WStr(i)
+			i += 1
+		Loop
+		piniSettings->WriteString "BuildConfigurations", "DefaultBuildConfiguration", *DefaultBuildConfiguration
+		For i As Integer = 0 To BuildConfigurations.Count - 1
+			piniSettings->WriteString "BuildConfigurations", "Name_" & WStr(i), BuildConfigurations.Item(i)->Key
+			piniSettings->WriteString "BuildConfigurations", "Switches_" & WStr(i), BuildConfigurations.Item(i)->Text
+		Next
+		i = BuildConfigurations.Count
+		Do Until piniSettings->KeyExists("BuildConfigurations", "Name_" & WStr(i)) = -1
+			piniSettings->KeyRemove "BuildConfigurations", "Name_" & WStr(i)
+			piniSettings->KeyRemove "BuildConfigurations", "Switches_" & WStr(i)
 			i += 1
 		Loop
 		For i As Integer = 0 To pIncludePaths->Count - 1
@@ -3858,6 +4013,7 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Designer As My.Sys.Object, ByRe
 		.pnlDebugger.Visible = Key = "Debugger"
 		.pnlTerminal.Visible = Key = "Terminal"
 		.pnlDesigner.Visible = Key = "Designer"
+		.pnlBuildConfigurations.Visible = Key = "BuildConfigurations"
 		.pnlIncludes.Visible = Key = "Includes"
 		.pnlLocalization.Visible = Key = "Localization"
 		.pnlOtherEditors.Visible = Key = "OtherEditors"
@@ -5783,4 +5939,65 @@ Private Sub frmOptions.txtColorIndicator_KeyPress(ByRef Sender As Control, Key A
 		chkIndicator.Checked = False
 		Colors(i, 3) = txtColorIndicator.BackColor
 	End If
+End Sub
+
+Private Sub frmOptions.cmdAddConfiguration_Click(ByRef Sender As Control)
+	pfPath->txtVersion.Text = ""
+	pfPath->txtPath.Text = ""
+	pfPath->ForConfiguration = True
+	pfPath->WithoutCommandLine = True
+	If pfPath->ShowModal() = ModalResults.OK Then
+		With fOptions
+			If .cboConfiguration.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				.lvConfigurations.ListItems.Add pfPath->txtVersion.Text
+				.lvConfigurations.ListItems.Item(.lvConfigurations.ListItems.Count - 1)->Text(1) = pfPath->txtPath.Text
+				.cboConfiguration.AddItem pfPath->txtVersion.Text
+			Else
+				MsgBox ML("This name is exists!")
+			End If
+		End With
+	End If
+End Sub
+
+Private Sub frmOptions.cmdChangeConfiguration_Click(ByRef Sender As Control)
+	With fOptions
+		If .lvConfigurations.SelectedItem = 0 Then Exit Sub
+		pfPath->txtVersion.Text = .lvConfigurations.SelectedItem->Text(0)
+		pfPath->txtPath.Text = .lvConfigurations.SelectedItem->Text(1)
+		pfPath->ForConfiguration = True
+		pfPath->WithoutCommandLine = True
+		If pfPath->ShowModal() = ModalResults.OK Then
+			If .lvConfigurations.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboConfiguration.IndexOf(pfPath->txtVersion.Text) = -1 Then
+				Var i = .cboConfiguration.IndexOf(.lvConfigurations.SelectedItem->Text(0))
+				.cboConfiguration.Item(i) = pfPath->txtVersion.Text
+				.lvConfigurations.SelectedItem->Text(0) = pfPath->txtVersion.Text
+				.lvConfigurations.SelectedItem->Text(1) = pfPath->txtPath.Text
+			Else
+				MsgBox ML("This name is exists!")
+			End If
+		End If
+	End With
+End Sub
+
+Private Sub frmOptions.cmdRemoveConfiguration_Click(ByRef Sender As Control)
+	With fOptions
+		If .lvConfigurations.SelectedItem = 0 Then Exit Sub
+		Var iIndex = .cboConfiguration.IndexOf(.lvConfigurations.SelectedItem->Text(0))
+		If iIndex > -1 Then .cboConfiguration.RemoveItem iIndex
+		If .cboConfiguration.ItemIndex = -1 Then .cboConfiguration.ItemIndex = 0
+		.lvConfigurations.ListItems.Remove .lvConfigurations.SelectedItemIndex
+	End With
+End Sub
+
+Private Sub frmOptions.cmdClearConfigurations_Click(ByRef Sender As Control)
+	With fOptions
+		.lvConfigurations.ListItems.Clear
+		.cboConfiguration.Clear
+		.cboConfiguration.AddItem ML("No options")
+		.cboConfiguration.ItemIndex = 0
+	End With
+End Sub
+
+Private Sub frmOptions.lvConfigurations_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	cmdChangeConfiguration_Click cmdChangeConfiguration
 End Sub
