@@ -2136,7 +2136,7 @@ Function SaveSession() As Boolean
 						tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 						If tb AndAlso tb->tn = tn1 Then
 							If tb->Modified Then
-								If Not tb->Save AndAlso (tb->FileName = "" OrElse tb->FileName = ML("Untitled")) Then
+								If (Not tb->Save) AndAlso CBool(tb->FileName = "" OrElse tb->FileName = ML("Untitled")) Then
 									Continue For
 								End If
 							End If
