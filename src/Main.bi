@@ -12,6 +12,7 @@
 #include once "mff/WStringList.bi"
 #include once "mff/Dictionary.bi"
 #include once "mff/Form.bi"
+#include once "mff/ComboBoxEdit.bi"
 #include once "mff/CommandButton.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/TreeView.bi"
