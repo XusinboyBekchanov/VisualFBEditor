@@ -1591,7 +1591,14 @@ Namespace My.Sys.Forms
 	
 	Property EditControl.HintDropDown(ByRef Value As WString)
 		WLet(FHintDropDown, Value)
-		
+	End Property
+	
+	Property EditControl.HintMouseHover ByRef As WString
+		Return WGet(FHintMouseHover)
+	End Property
+	
+	Property EditControl.HintMouseHover(ByRef Value As WString)
+		WLet(FHintMouseHover, Value)
 	End Property
 	
 	Property EditControl.HintWord ByRef As WString
@@ -2363,6 +2370,7 @@ Namespace My.Sys.Forms
 		End If
 		If OldLine <> FSelEndLine Then
 			If ToolTipShowed Then CloseToolTip()
+			If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			If Not bOldCommented Then Changing "Matn kiritildi"
 			If This.OnLineChange Then This.OnLineChange(*Designer, This, FSelEndLine, OldLine)
 		End If
@@ -5460,6 +5468,53 @@ Namespace My.Sys.Forms
 		This.SetFocus
 	End Sub
 	
+	Sub EditControl.ShowMouseHoverToolTipAt(X As Integer, Y As Integer)
+		MouseHoverToolTipShowed = True
+		If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
+		#ifdef __USE_GTK__
+			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
+			gtk_window_move(GTK_WINDOW(winMouseHoverTooltip), ScaleX(X), ScaleY(Y))
+			gtk_window_resize(GTK_WINDOW(winMouseHoverTooltip), ScaleX(100), ScaleY(25))
+			gtk_widget_show_all(winMouseHoverTooltip)
+		#else
+			Dim As TOOLINFO    ti
+			ZeroMemory(@ti, SizeOf(ti))
+			
+			ti.cbSize = SizeOf(ti)
+			ti.hwnd   = FHandle
+			'ti.uId    = Cast(UINT, FHandle)
+			
+			If hwndTTMouseHover = 0 Then
+				TTMouseHover.CreateWnd
+				hwndTTMouseHover = TTMouseHover.Handle 'CreateWindowW(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
+				If g_darkModeEnabled Then
+					SetWindowTheme(hwndTTMouseHover, "DarkMode_Explorer", nullptr)
+				End If
+				ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
+				ti.hinst  = GetModuleHandle(NULL)
+				ti.lpszText  = FHintMouseHover
+				
+				SendMessage(hwndTTMouseHover, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
+			Else
+				SendMessage(hwndTTMouseHover, TTM_GETTOOLINFO, 0, CInt(@ti))
+				
+				ti.lpszText = FHintMouseHover
+				
+				SendMessage(hwndTTMouseHover, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+			End If
+			
+			SendMessage(hwndTTMouseHover, TTM_SETMAXTIPWIDTH, 0, 1000)
+			SendMessage(hwndTTMouseHover, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
+			
+			Var Result = SendMessage(hwndTTMouseHover, TTM_GETBUBBLESIZE, 0, Cast(LPARAM, @ti))
+			
+			Dim As ..Rect rc, rc2
+			GetWindowRect(FHandle, @rc)
+			SendMessage(hwndTTMouseHover, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
+		#endif
+		This.SetFocus
+	End Sub
+	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Var nCaretPosY = GetCaretPosY(iSelEndLine)
 		Var nCaretPosX = TextWidth(GetTabbedText(..Left(Lines(iSelEndLine), iSelEndChar)))
@@ -5534,6 +5589,28 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	Sub EditControl.UpdateMouseHoverToolTip()
+		#ifdef __USE_GTK__
+			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
+		#else
+			If hwndTTMouseHover <> 0 Then
+				Dim As TOOLINFO    ti
+				ZeroMemory(@ti, SizeOf(ti))
+				
+				ti.cbSize = SizeOf(ti)
+				ti.hwnd   = FHandle
+				
+				SendMessage(hwndTTMouseHover, TTM_GETTOOLINFO, 0, CInt(@ti))
+				
+				If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
+				
+				ti.lpszText = FHintMouseHover
+				
+				SendMessage(hwndTTMouseHover, TTM_UPDATETIPTEXT, 0, CInt(@ti))
+			End If
+		#endif
+	End Sub
+	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
@@ -5578,6 +5655,22 @@ Namespace My.Sys.Forms
 			'ti.uId    = Cast(UINT, FHandle)
 			
 			SendMessage(hwndTTDropDown, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
+		#endif
+	End Sub
+	
+	Sub EditControl.CloseMouseHoverToolTip()
+		MouseHoverToolTipShowed = False
+		#ifdef __USE_GTK__
+			gtk_widget_hide(GTK_WIDGET(winMouseHoverTooltip))
+		#else
+			Dim As TOOLINFO    ti
+			ZeroMemory(@ti, SizeOf(ti))
+			
+			ti.cbSize = SizeOf(ti)
+			ti.hwnd   = FHandle
+			'ti.uId    = Cast(UINT, FHandle)
+			
+			SendMessage(hwndTTMouseHover, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
 		#endif
 	End Sub
 	
@@ -5693,6 +5786,8 @@ Namespace My.Sys.Forms
 			#else
 			Case WM_MOUSEWHEEL
 			#endif
+			If ToolTipShowed Then CloseToolTip
+			If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			If DropDownShowed Then
 				#ifdef __USE_WINAPI__
 					Dim As HWND cmbHandle = Cast(HWND, SendMessageW(cboIntellisense.Handle, CBEM_GETCOMBOCONTROL, 0, 0))
@@ -5982,6 +6077,8 @@ Namespace My.Sys.Forms
 						ScrollBarHandle = sbScrollBarhRight
 					End If
 				Else
+					If ToolTipShowed Then CloseToolTip()
+					If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 					scrStyle = SB_VERT
 					If bDividedY OrElse bDividedX Then
 						Dim As Point pt
@@ -7517,6 +7614,8 @@ Namespace My.Sys.Forms
 		WDeAllocate(FLineTemp)
 		WDeAllocate(FLineTab)
 		WDeAllocate(FLineSpace)
+		WDeAllocate(FHintDropDown)
+		WDeAllocate(FHintMouseHover)
 		WDeAllocate(FHintWord)
 		WDeAllocate(CurrentFontName)
 		WDeAllocate(DropDownPath)

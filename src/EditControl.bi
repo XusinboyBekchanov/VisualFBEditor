@@ -317,6 +317,7 @@ Namespace My.Sys.Forms
 		Dim FLineTab As WString Ptr
 		Dim FLineSpace As WString Ptr
 		Dim FHintDropDown As WString Ptr
+		Dim FHintMouseHover As WString Ptr
 		Dim FHintWord As WString Ptr
 		Dim HScrollMaxLeft As Integer
 		Dim HScrollMaxRight As Integer
@@ -379,8 +380,8 @@ Namespace My.Sys.Forms
 			Dim As HDC bufDC
 			Dim As HBITMAP bufBMP
 			Dim As TEXTMETRIC tm
-			Dim As HWND hwndTT, hwndTTDropDown
-			Dim As ToolTips TT, TTDropDown
+			Dim As HWND hwndTT, hwndTTDropDown, hwndTTMouseHover
+			Dim As ToolTips TT, TTDropDown, TTMouseHover
 		#endif
 		Dim As ..Rect rc
 		#ifndef __USE_GTK__
@@ -524,6 +525,7 @@ Namespace My.Sys.Forms
 			Dim As GtkWidget Ptr winIntellisense
 			Dim As GtkWidget Ptr scrollwinIntellisense
 			Dim As GtkWidget Ptr winDropDownTooltip
+			Dim As GtkWidget Ptr winMouseHoverTooltip
 			Dim As GtkWidget Ptr winTooltip
 			Dim As Integer verticalScrollBarWidth
 			Dim As Integer horizontalScrollBarHeight
@@ -563,6 +565,7 @@ Namespace My.Sys.Forms
 			lvIntellisense As ListView
 			lblTooltip As GtkWidget Ptr
 			lblDropDownTooltip As GtkWidget Ptr
+			lblMouseHoverTooltip As GtkWidget Ptr
 		#else
 			cboIntellisense As ComboBoxEx
 			pnlIntellisense As Panel
@@ -573,7 +576,7 @@ Namespace My.Sys.Forms
 		DropDownChar As Integer
 		DropDownToolTipShowed As Boolean
 		DropDownToolTipItemIndex As Integer
-		HoverToolTipShowed As Boolean
+		MouseHoverToolTipShowed As Boolean
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
 		Declare Sub SetScrollsInfo()
@@ -582,11 +585,14 @@ Namespace My.Sys.Forms
 		Declare Sub ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
 		Declare Sub ShowDropDownToolTipAt(X As Integer, Y As Integer)
 		Declare Sub ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
+		Declare Sub ShowMouseHoverToolTipAt(X As Integer, Y As Integer)
 		Declare Sub UpdateToolTip
 		Declare Sub UpdateDropDownToolTip
+		Declare Sub UpdateMouseHoverToolTip
 		Declare Sub CloseDropDownToolTip()
 		Declare Sub CloseDropDown()
 		Declare Sub CloseToolTip()
+		Declare Sub CloseMouseHoverToolTip()
 		Declare Sub FormatCode(WithoutUpdate As Boolean = False)
 		Declare Sub UnformatCode(WithoutUpdate As Boolean = False)
 		Declare Function GetTabbedLength(ByRef SourceText As WString) As Integer
@@ -607,6 +613,8 @@ Namespace My.Sys.Forms
 		Declare Property Text(ByRef Value As WString)
 		Declare Property HintDropDown ByRef As WString
 		Declare Property HintDropDown(ByRef Value As WString)
+		Declare Property HintMouseHover ByRef As WString
+		Declare Property HintMouseHover(ByRef Value As WString)
 		Declare Property HintWord ByRef As WString
 		Declare Property HintWord(ByRef Value As WString)
 		Declare Property SelText ByRef As WString

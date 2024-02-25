@@ -216,7 +216,7 @@ Public:
 		overlay As GtkWidget Ptr
 		layout As GtkWidget Ptr
 	#else
-		ToolTipHandle As HWND
+		'ToolTipHandle As HWND
 		DateFileTime As FILETIME
 	#endif
 	NewLineType As NewLineTypes

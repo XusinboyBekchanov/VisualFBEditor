@@ -625,88 +625,44 @@ End Sub
 Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
 
 Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
-	#ifndef __USE_GTK__
-		'If Timer - MouseHoverTimerVal <= 4 Then Exit Sub 'Not InDebug AndAlso 
-		Static As Integer OldY, OldX
-		'MouseHoverTimerVal = Timer
-		Var tb = Cast(TabWindow Ptr, Sender.Tag)
-		If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
-		If tb->txtCode.DropDownShowed Then Exit Sub
-		If tb->txtCode.HoverToolTipShowed Then
-			If CBool((Abs(OldY - y) > 0 OrElse Abs(OldX - x) > 0)) Then
-				'tb->txtCode.CloseToolTip
-			Else
-				Exit Sub
-			End If
+	'If Timer - MouseHoverTimerVal <= 4 Then Exit Sub 'Not InDebug AndAlso 
+	Static As Integer OldY, OldX
+	'MouseHoverTimerVal = Timer
+	Var tb = Cast(TabWindow Ptr, Sender.Tag)
+	If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
+	'If tb->txtCode.DropDownShowed Then Exit Sub
+	If tb->txtCode.MouseHoverToolTipShowed Then
+		If CBool((Abs(OldY - y) > 0 OrElse Abs(OldX - x) > 0)) Then
+			'tb->txtCode.CloseToolTip
+		Else
+			Exit Sub
 		End If
-		OldY = y: OldX = x
-		Dim As Integer EndChar
+	End If
+	OldY = y: OldX = x
+	Dim As UString Value
+	If InDebug Then
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, True)
-		Dim As String sWord2 = tb->txtCode.GetWordAtPoint(x, y, False, , , EndChar)
 		If sWord <> "" Then
-			'			If Not InDebug Then
-			'				Dim As Integer iSelEndLine, iSelEndChar
-			'				iSelEndLine = tb->txtCode.LineIndexFromPoint(UnScaleX(X), UnScaleY(Y))
-			'				iSelEndChar = tb->txtCode.CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
-			'				tb->txtCode.SetSelection(iSelEndLine, iSelEndLine, iSelEndChar, iSelEndChar)
-			'				OnKeyPressEdit(tb->txtCode, 5)
-			'				Exit Sub
-			'			End If
-			Dim As UString Value
-			If InDebug Then
+			#ifdef __USE_WINAPI__
 				Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
-			Else
-				Dim As TypeElement Ptr te, teOld, teTypeOld
-				Dim As String TypeName, OldTypeName
-				Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
-				Dim As Integer iSelEndCharFunc = EndChar + 1
-				TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
-				Value = GetParameters(sWord2, te, teOld)
-			End If
-			If Value <> "" Then
-				Dim ByRef As HWND hwndTT = tb->ToolTipHandle
-				Dim As TOOLINFO    ti
-				ZeroMemory(@ti, SizeOf(ti))
-				ti.cbSize = SizeOf(ti)
-				ti.hwnd   = tb->txtCode.Handle
-				'ti.uId    = Cast(UINT, FHandle)
-				If hwndTT = 0 Then
-					hwndTT = CreateWindow(TOOLTIPS_CLASS, "", WS_POPUP, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, CW_USEDEFAULT, NULL, Cast(HMENU, NULL), GetModuleHandle(NULL), NULL)
-					If g_darkModeEnabled Then
-						SetWindowTheme(hwndTT, "DarkMode_Explorer", nullptr)
-					End If
-					ti.uFlags = TTF_IDISHWND Or TTF_TRACK Or TTF_ABSOLUTE Or TTF_PARSELINKS Or TTF_TRANSPARENT
-					ti.hinst  = GetModuleHandle(NULL)
-					ti.lpszText  = Value.vptr
-					'SendMessage(hwndTT, TTM_SETDELAYTIME, TTDT_INITIAL, 100)
-					SendMessage(hwndTT, TTM_ADDTOOL, 0, Cast(LPARAM, @ti))
-				Else
-					SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
-					ti.lpszText = Value.vptr
-					SendMessage(hwndTT, TTM_UPDATETIPTEXT, 0, CInt(@ti))
-				End If
-				Dim As Point Pt
-				Pt.X = ScaleX(x)
-				Pt.Y = ScaleY(y)
-				ClientToScreen tb->txtCode.Handle, @Pt
-				SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(Pt.X, Pt.Y + 10))
-				SendMessage(hwndTT, TTM_SETMAXTIPWIDTH, 0, 1000)
-				SendMessage(hwndTT, TTM_TRACKACTIVATE, True, Cast(LPARAM, @ti))
-				tb->ToolTipHandle = hwndTT
-					tb->txtCode.HoverToolTipShowed = True
-				Exit Sub
-			End If
+			#endif
 		End If
-		Dim ByRef As HWND hwndTT = tb->ToolTipHandle
-		If hwndTT <> 0 Then
-			Dim As TOOLINFO    ti
-			ZeroMemory(@ti, SizeOf(ti))
-			ti.cbSize = SizeOf(ti)
-			ti.hwnd   = tb->txtCode.Handle
-			SendMessage(hwndTT, TTM_GETTOOLINFO, 0, CInt(@ti))
-			SendMessage(hwndTT, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
+	Else
+		Dim As Integer EndChar
+		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, False, , , EndChar)
+		If sWord <> "" Then
+			Dim As TypeElement Ptr te, teOld, teTypeOld
+			Dim As String TypeName, OldTypeName
+			Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
+			Dim As Integer iSelEndCharFunc = EndChar + 1
+			TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
+			Value = GetParameters(sWord, te, teOld)
 		End If
-	#endif
+	End If
+	If Value <> "" Then
+		tb->txtCode.HintMouseHover = Value
+		tb->txtCode.ShowMouseHoverToolTipAt x, y + tb->txtCode.dwCharY
+	End If
 End Sub
 
 Function IsLabel(ByRef LeftA As WString) As Boolean
