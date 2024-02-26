@@ -282,7 +282,7 @@ Private Sub frmPath.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 End Sub
 
 Private Sub frmPath.Form_Create(ByRef Sender As Control)
-	Me.Caption = IIf(ForConfiguration, ML("Build Configuration"), ML("Path"))
+	Me.Caption = IIf(ForConfiguration, ML("Build Configurations"), ML("Path"))
 	lblVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	txtVersion.Visible = (Not WithoutVersion) AndAlso Not ChooseFolder
 	lblCommandLine.Visible = Not (WithoutCommandLine OrElse ChooseFolder)
