@@ -27,16 +27,16 @@ Private Sub WStrTitle(ByVal iCount As Integer = 80, ByRef ch As Const WString = 
 	Dim tl As Integer = iCount
 	Dim ll As Integer = Len(LW)
 	Dim rl As Integer = Len(RW)
-	Dim ml As Integer = Len(MW)
+	Dim sml As Integer = Len(MW)
 	
-	If tl < ll + ml + rl Then tl = ll + ml + rl
+	If tl < ll + sml + rl Then tl = ll + sml + rl
 	
 	If RtnPtr Then Deallocate(RtnPtr)
 	RtnPtr = CAllocate(tl * 2 + 2)
 	*RtnPtr = WString(tl, ch)
 	
 	If ll Then Mid(*RtnPtr, 1, ll) = LW
-	If ml Then Mid(*RtnPtr, tl / 2, ml) = MW
+	If sml Then Mid(*RtnPtr, tl / 2, sml) = MW
 	If rl Then Mid(*RtnPtr, tl - rl + 1, rl) = RW
 End Sub
 
