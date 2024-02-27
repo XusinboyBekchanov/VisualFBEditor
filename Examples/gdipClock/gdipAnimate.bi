@@ -3,63 +3,36 @@
 ' Freeware. Use at your own risk.
 
 #include once "gdip.bi"
+#include once "win\combaseapi.bi"
 
 Type gdipAnimate
 Private:
+	mFileBitmap As gdipBitmap
+	
 	mFrameCountX As Integer
 	mFrameCountY As Integer
 	mFrameWidth As Integer
 	mFrameHeight As Integer
-	mFrameX As Integer
-	mFrameY As Integer
 	
-	mFileBitmap As gdipBitmap
+	'Todo: FrameDimensionTime freebasic not decdared at gdip Win32
+	GUID_FrameDimensionTime As GUID
 Public:
+	mAnimate As gdipBitmap
+	
+	mFrameIndex As Integer
+	mFrameCount As ULong
+	mFrameDelays(Any) As Integer
+	mIsGif As Boolean
+	
 	mWidth As Single
 	mHeight As Single
-	mAnimate As gdipBitmap
 	mRotate As RotateFlipType = RotateNoneFlipNone
+	
 	Declare Constructor
 	Declare Destructor
-	Declare Sub Initial(sFileName As WString, sFramWidth As Integer, sFramHeight As Integer)
-	Declare Function Animate(ByVal sInc As Integer = 1) As GpImage Ptr
-	Declare Sub Release()
+	Declare Sub ImageFile(sFileName As WString, ByVal sFrameWidth As Integer = 0, ByVal sFrameHeight As Integer = 0, ByVal sFrameCount As Integer = -1)
+	Declare Function ImageFrame(ByVal sInc As Integer = 1) As GpImage Ptr
 End Type
-
-Private Sub gdipAnimate.Initial(sFileName As WString, sFramWidth As Integer, sFramHeight As Integer)
-	mFileBitmap.DrawFromFile(sFileName)
-	mFrameCountX = mFileBitmap.Width / sFramWidth - 1
-	mFrameCountY = mFileBitmap.Height / sFramHeight - 1
-	mFrameWidth = sFramWidth
-	mFrameHeight = sFramHeight
-End Sub
-
-Private Function gdipAnimate.Animate(ByVal sInc As Integer = 1) As GpImage Ptr
-	mAnimate.Initial(mFrameWidth, mFrameHeight)
-	
-	If mFrameX < mFrameCountX Then
-		mFrameX += sInc
-	Else
-		
-		If mFrameY < mFrameCountY Then
-			mFrameY += sInc
-		Else
-			mFrameY = 0
-		End If
-		mFrameX = 0
-	End If
-	GdipDrawImageRectRectI(mAnimate.Graphics, mFileBitmap.Image, 0, 0, mFrameWidth, mFrameHeight, mFrameWidth*mFrameX, mFrameHeight*mFrameY, mFrameWidth, mFrameHeight, UnitPixel, NULL, NULL, NULL)
-	GdipImageRotateFlip(mAnimate.Image, mRotate)
-	Return mAnimate.Image
-End Function
-
-Private Constructor gdipAnimate
-	
-End Constructor
-
-Private Destructor gdipAnimate
-	
-End Destructor
 
 #ifndef __USE_MAKE__
 	#include once "gdipAnimate.bas"
