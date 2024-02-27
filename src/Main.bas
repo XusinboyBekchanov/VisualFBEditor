@@ -86,7 +86,7 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets
+Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
@@ -3811,6 +3811,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 									Next
 								End If
 							End If
+						Else
+							TypesInFunc.Add t, tbi
 						End If
 					End If
 				ElseIf StartsWith(bTrimLCase & " ", "end type ") OrElse StartsWith(bTrimLCase & " ", "end class ") OrElse StartsWith(bTrimLCase & " ", "__startofclassbody__ ") Then
@@ -4288,6 +4290,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 									Next
 								End If
 							End If
+						Else
+							EnumsInFunc.Add t, tbi
 						End If
 					End If
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
@@ -10242,23 +10246,41 @@ Sub OnProgramQuit() Destructor
 		Next
 		_Delete( Cast(TypeElement Ptr, pGlobalNamespaces->Object(i)))
 	Next
-	For i As Integer = pComps->Count - 1 To 0 Step -1
-		te = pComps->Object(i)
+	For i As Integer = Snippets.Count - 1 To 0 Step -1
+		te = Snippets.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, pComps->Object(i)))
-		'pComps->Remove i
+		_Delete( Cast(TypeElement Ptr, Snippets.Object(i)))
+	Next
+	For i As Integer = pComps->Count - 1 To 0 Step -1
+		DeleteFromTypeElement(pComps->Object(i))
+		'te = pComps->Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, pComps->Object(i)))
+		''pComps->Remove i
 	Next
 	For i As Integer = pGlobalTypes->Count - 1 To 0 Step -1
-		te = pGlobalTypes->Object(i)
+		DeleteFromTypeElement(pGlobalTypes->Object(i))
+		'te = pGlobalTypes->Object(i)
+		'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+		'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		'Next
+		'te->Elements.Clear
+		'_Delete( Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
+		''pGlobalTypes->Remove i
+	Next
+	For i As Integer = TypesInFunc.Count - 1 To 0 Step -1
+		te = TypesInFunc.Object(i)
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
 		Next
 		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, pGlobalTypes->Object(i)))
-		'pGlobalTypes->Remove i
+		_Delete( Cast(TypeElement Ptr, TypesInFunc.Object(i)))
 	Next
 	For i As Integer = pGlobalEnums->Count - 1 To 0 Step -1
 		te = pGlobalEnums->Object(i)
@@ -10268,6 +10290,14 @@ Sub OnProgramQuit() Destructor
 		te->Elements.Clear
 		_Delete( Cast(TypeElement Ptr, pGlobalEnums->Object(i)))
 		'pGlobalEnums->Remove i
+	Next
+	For i As Integer = EnumsInFunc.Count - 1 To 0 Step -1
+		te = EnumsInFunc.Object(i)
+		For j As Integer = te->Elements.Count - 1 To 0 Step -1
+			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+		Next
+		te->Elements.Clear
+		_Delete( Cast(TypeElement Ptr, EnumsInFunc.Object(i)))
 	Next
 	For i As Integer = pGlobalFunctions->Count - 1 To 0 Step -1
 		te = pGlobalFunctions->Object(i)
