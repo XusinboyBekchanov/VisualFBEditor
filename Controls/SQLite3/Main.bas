@@ -15,7 +15,7 @@
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Component Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
-		Case "sqlite3component": Cpnt = New_(SQLite3Component)
+		Case "sqlite3component": Cpnt = _New(SQLite3Component)
 		End Select
 		If Cpnt Then
 			Cpnt->Name = sName

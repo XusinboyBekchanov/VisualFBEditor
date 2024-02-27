@@ -15,7 +15,7 @@
 	Function CreateComponent Alias "CreateComponent" (ByRef ClassName As String, ByRef sName As WString, lLeft As Integer, lTop As Integer, Parent As Component Ptr) As Component Ptr Export
 		Cpnt = 0
 		Select Case LCase(ClassName)
-		Case "mariadbbox": Cpnt = New_(MariaDBBox)
+		Case "mariadbbox": Cpnt = _New(MariaDBBox)
 		End Select
 		If Cpnt Then
 			Cpnt->Name = sName
@@ -48,7 +48,7 @@
 		End Select
 		If bNotRemoveObject = False Then 
 			If Objects.Contains(Ctrl) Then
-				Objects.remove Objects.IndexOf(Ctrl)
+				Objects.Remove Objects.IndexOf(Ctrl)
 			End If
 		End If
 		Return True
