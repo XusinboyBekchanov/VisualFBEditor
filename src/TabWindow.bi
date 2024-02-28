@@ -257,6 +257,7 @@ Public:
 	Declare Sub Indent
 	Declare Sub Outdent
 	Declare Sub Define
+	Declare Sub ClearTypes
 	Declare Sub FormDesign(NotForms As Boolean = False)
 	Declare Constructor(ByRef wFileName As WString = "", bNewForm As Boolean = False, TreeN As TreeNode Ptr = 0)
 	Declare Destructor

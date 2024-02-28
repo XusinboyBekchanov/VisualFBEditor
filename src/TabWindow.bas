@@ -8322,87 +8322,7 @@ Sub Suggestions
 	SetLastThread Project, tb, ThreadCreate(@AnalyzeTab, tbOrProject)
 End Sub
 
-Sub TabWindow.FormDesign(NotForms As Boolean = False)
-	On Error Goto ErrorHandler
-	If bNotDesign OrElse FormClosing Then Exit Sub
-	pfrmMain->UpdateLock
-	bNotDesign = True
-	QuitThread Project, @This
-	Dim CtrlName As String
-	Dim SelControlName As String
-	Dim CurrentMenuName As String
-	Dim CurrentToolBarName As String
-	Dim CurrentStatusBarName As String
-	Dim CurrentImageListName As String
-	Dim ActiveCtrlName As String
-	Dim SelControlNames As WStringList
-	Dim bSelControlFind As Boolean
-	Dim As UString ResourceFile = GetResourceFile(True)
-	txtCode.DropDownTypeElement = 0
-	If CInt(NotForms = False) AndAlso CInt(Des) Then
-		With *Des
-			If Des->SymbolsReadProperty(pfImageListEditor->CurrentImageList) Then CurrentImageListName = WGet(Des->Symbols(pfImageListEditor->CurrentImageList)->ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
-			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then ActiveCtrlName = WGet(Des->Symbols(pfMenuEditor->ActiveCtrl)->ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
-			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then CurrentMenuName = WGet(Des->Symbols(pfMenuEditor->CurrentMenu)->ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
-			If Des->SymbolsReadProperty(pfMenuEditor->CurrentToolBar) Then CurrentToolBarName = WGet(Des->Symbols(pfMenuEditor->CurrentToolBar)->ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
-			If Des->SymbolsReadProperty(pfMenuEditor->CurrentStatusBar) Then CurrentStatusBarName = WGet(Des->Symbols(pfMenuEditor->CurrentStatusBar)->ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
-			If .SelectedControl <> 0 AndAlso Des->SymbolsReadProperty(.SelectedControl) Then SelControlName = WGet(Des->Symbols(.SelectedControl)->ReadPropertyFunc(.SelectedControl, "Name"))
-			For j As Integer = 0 To .SelectedControls.Count - 1
-				If Des->SymbolsReadProperty(.SelectedControls.Items[j]) Then SelControlNames.Add WGet(Des->Symbols(.SelectedControls.Items[j])->ReadPropertyFunc(.SelectedControls.Items[j], "Name"))
-			Next
-			'If .SelectedControl = .DesignControl Then bSelControlFind = True
-			If .DesignControl Then
-				.UnHook
-				Dim As SymbolsType Ptr stDesignControl = Des->SymbolsReadProperty(.DesignControl)
-				If stDesignControl AndAlso iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) > 0 Then
-					For i As Integer = iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) - 1 To 0 Step -1
-						If stDesignControl->RemoveControlSub AndAlso stDesignControl->ControlByIndexFunc Then stDesignControl->RemoveControlSub(.DesignControl, stDesignControl->ControlByIndexFunc(.DesignControl, i))
-					Next i
-				End If
-				If stDesignControl AndAlso stDesignControl->WritePropertyFunc Then stDesignControl->WritePropertyFunc(Des->DesignControl, "Menu", 0)
-				For i As Integer = 2 To cboClass.Items.Count - 1
-					CurCtrl = 0
-					CBItem = cboClass.Items.Item(i)
-					If CBItem <> 0 Then CurCtrl = CBItem->Object
-					If CurCtrl <> 0 Then
-						Dim As SymbolsType Ptr st = Des->Symbols(CurCtrl)
-						'Fixme Hange here with ctrl RichEdit
-						If st AndAlso st->ReadPropertyFunc AndAlso WGet(st->ReadPropertyFunc(CurCtrl, "ClassName")) <> "RichTextBox" Then
-							'If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
-							If st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrl)
-						Else
-							''Delete the last one not current one. But still one more remain exist
-							If CurCtrlRichedit <> 0 Then
-								Dim As SymbolsType Ptr st = Des->Symbols(CurCtrlRichedit)
-								'If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
-								If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrlRichedit)
-							End If
-							CurCtrlRichedit = CurCtrl
-						End If
-					End If
-				Next i
-				.Hook
-			End If
-			.SelectedControls.Clear
-			.Objects.Clear
-			.Controls.Clear
-			Events.Clear
-			If .DesignControl Then
-				.Objects.Add .DesignControl
-				Dim As Any Ptr st = .CtrlSymbols.Object(0)
-				.CtrlSymbols.Clear
-				.CtrlSymbols.Add .DesignControl, st
-			Else
-				.CtrlSymbols.Clear
-			End If
-		End With
-	End If
-	If CInt(NotForms = False) Then
-		cboClass.Items.Clear
-		cboClass.Items.Add "(" & ML("General") & ")" & Chr(0), , "DropDown", "DropDown"
-		cboClass.ItemIndex = 0
-	End If
-	'LoadFunctionsWithContent FileName, Project, txtCode.Content
+Sub TabWindow.ClearTypes
 	Dim As TypeElement Ptr te, te1, func
 	Dim As ConstructionBlock Ptr block, blockprev, ifblock, cb
 	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
@@ -8497,6 +8417,184 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	txtCode.Content.LineLabels.Clear
 	txtCode.Content.Args.Clear
 	AnyTexts.Clear
+End Sub
+
+Sub TabWindow.FormDesign(NotForms As Boolean = False)
+	On Error Goto ErrorHandler
+	If bNotDesign OrElse FormClosing Then Exit Sub
+	pfrmMain->UpdateLock
+	bNotDesign = True
+	QuitThread Project, @This
+	Dim CtrlName As String
+	Dim SelControlName As String
+	Dim CurrentMenuName As String
+	Dim CurrentToolBarName As String
+	Dim CurrentStatusBarName As String
+	Dim CurrentImageListName As String
+	Dim ActiveCtrlName As String
+	Dim SelControlNames As WStringList
+	Dim bSelControlFind As Boolean
+	Dim As UString ResourceFile = GetResourceFile(True)
+	txtCode.DropDownTypeElement = 0
+	If CInt(NotForms = False) AndAlso CInt(Des) Then
+		With *Des
+			If Des->SymbolsReadProperty(pfImageListEditor->CurrentImageList) Then CurrentImageListName = WGet(Des->Symbols(pfImageListEditor->CurrentImageList)->ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then ActiveCtrlName = WGet(Des->Symbols(pfMenuEditor->ActiveCtrl)->ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then CurrentMenuName = WGet(Des->Symbols(pfMenuEditor->CurrentMenu)->ReadPropertyFunc(pfMenuEditor->CurrentMenu, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->CurrentToolBar) Then CurrentToolBarName = WGet(Des->Symbols(pfMenuEditor->CurrentToolBar)->ReadPropertyFunc(pfMenuEditor->CurrentToolBar, "Name"))
+			If Des->SymbolsReadProperty(pfMenuEditor->CurrentStatusBar) Then CurrentStatusBarName = WGet(Des->Symbols(pfMenuEditor->CurrentStatusBar)->ReadPropertyFunc(pfMenuEditor->CurrentStatusBar, "Name"))
+			If .SelectedControl <> 0 AndAlso Des->SymbolsReadProperty(.SelectedControl) Then SelControlName = WGet(Des->Symbols(.SelectedControl)->ReadPropertyFunc(.SelectedControl, "Name"))
+			For j As Integer = 0 To .SelectedControls.Count - 1
+				If Des->SymbolsReadProperty(.SelectedControls.Items[j]) Then SelControlNames.Add WGet(Des->Symbols(.SelectedControls.Items[j])->ReadPropertyFunc(.SelectedControls.Items[j], "Name"))
+			Next
+			'If .SelectedControl = .DesignControl Then bSelControlFind = True
+			If .DesignControl Then
+				.UnHook
+				Dim As SymbolsType Ptr stDesignControl = Des->SymbolsReadProperty(.DesignControl)
+				If stDesignControl AndAlso iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) > 0 Then
+					For i As Integer = iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "ControlCount")) - 1 To 0 Step -1
+						If stDesignControl->RemoveControlSub AndAlso stDesignControl->ControlByIndexFunc Then stDesignControl->RemoveControlSub(.DesignControl, stDesignControl->ControlByIndexFunc(.DesignControl, i))
+					Next i
+				End If
+				If stDesignControl AndAlso stDesignControl->WritePropertyFunc Then stDesignControl->WritePropertyFunc(Des->DesignControl, "Menu", 0)
+				For i As Integer = 2 To cboClass.Items.Count - 1
+					CurCtrl = 0
+					CBItem = cboClass.Items.Item(i)
+					If CBItem <> 0 Then CurCtrl = CBItem->Object
+					If CurCtrl <> 0 Then
+						Dim As SymbolsType Ptr st = Des->Symbols(CurCtrl)
+						'Fixme Hange here with ctrl RichEdit
+						If st AndAlso st->ReadPropertyFunc AndAlso WGet(st->ReadPropertyFunc(CurCtrl, "ClassName")) <> "RichTextBox" Then
+							'If .ReadPropertyFunc(CurCtrl, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrl, "Tag")))
+							If st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrl)
+						Else
+							''Delete the last one not current one. But still one more remain exist
+							If CurCtrlRichedit <> 0 Then
+								Dim As SymbolsType Ptr st = Des->Symbols(CurCtrlRichedit)
+								'If .ReadPropertyFunc(CurCtrlRichedit, "Tag") <> 0 Then Delete_(Cast(Dictionary Ptr, .ReadPropertyFunc(CurCtrlRichedit, "Tag")))
+								If st AndAlso st->DeleteComponentFunc Then st->DeleteComponentFunc(CurCtrlRichedit)
+							End If
+							CurCtrlRichedit = CurCtrl
+						End If
+					End If
+				Next i
+				.Hook
+			End If
+			.SelectedControls.Clear
+			.Objects.Clear
+			.Controls.Clear
+			Events.Clear
+			If .DesignControl Then
+				.Objects.Add .DesignControl
+				Dim As Any Ptr st = .CtrlSymbols.Object(0)
+				.CtrlSymbols.Clear
+				.CtrlSymbols.Add .DesignControl, st
+			Else
+				.CtrlSymbols.Clear
+			End If
+		End With
+	End If
+	If CInt(NotForms = False) Then
+		cboClass.Items.Clear
+		cboClass.Items.Add "(" & ML("General") & ")" & Chr(0), , "DropDown", "DropDown"
+		cboClass.ItemIndex = 0
+	End If
+	'LoadFunctionsWithContent FileName, Project, txtCode.Content
+	Dim As TypeElement Ptr te, te1, func
+	Dim As ConstructionBlock Ptr block, blockprev, ifblock, cb
+	ClearTypes
+	'For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
+	'	DeleteFromTypeElement(txtCode.Content.Types.Object(i))
+	'	'te = txtCode.Content.Types.Object(i)
+	'	'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'	'	te1 = te->Elements.Object(j)
+	'	'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'	'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'	'	Next
+	'	'	te1->Elements.Clear
+	'	'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	'Next
+	'	'te->Elements.Clear
+	'	'_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+	'	txtCode.Content.Enums.Remove i
+	'Next
+	'For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+	'	txtCode.Content.Namespaces.Remove i
+	'Next
+	'For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
+	'	DeleteFromTypeElement(txtCode.Content.TypeProcedures.Object(i))
+	'	txtCode.Content.TypeProcedures.Remove i
+	'	'te = txtCode.Content.TypeProcedures.Object(i)
+	'	'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'	'	te1 = te->Elements.Object(j)
+	'	'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'	'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'	'	Next
+	'	'	te1->Elements.Clear
+	'	'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	'Next
+	'	'te->Elements.Clear
+	'	'_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
+	'	DeleteFromTypeElement(txtCode.Content.Procedures.Object(i))
+	'	txtCode.Content.Procedures.Remove i
+	'	'te = txtCode.Content.Procedures.Object(i)
+	'	'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'	'	te1 = te->Elements.Object(j)
+	'	'	For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'	'		_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'	'	Next
+	'	'	te1->Elements.Clear
+	'	'	_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	'Next
+	'	'te->Elements.Clear
+	'	'_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
+	'	cb = txtCode.Content.ConstructionBlocks.Item(i)
+	'	For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+	'		DeleteFromTypeElement(cb->Elements.Object(j))
+	'		'_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+	'	Next
+	'	cb->Types.Clear
+	'	cb->Enums.Clear
+	'	cb->Elements.Clear
+	'	_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+	'	txtCode.Content.ConstructionBlocks.Remove i
+	'Next
+	'For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+	'	txtCode.Content.LineLabels.Remove i
+	'Next
+	'For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
+	'	DeleteFromTypeElement(txtCode.Content.Args.Object(i))
+	'	txtCode.Content.Args.Remove i
+	'	'te = txtCode.Content.Args.Object(i)
+	'	'For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'	'	_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	'Next
+	'	'_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+	'Next
+	'For i As Integer = AnyTexts.Count - 1 To 0 Step -1
+	'	_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
+	'	AnyTexts.Remove i
+	'Next
+	'txtCode.Content.Types.Clear
+	'txtCode.Content.Defines.Clear
+	'txtCode.Content.Functions.Clear
+	'txtCode.Content.ConstructionBlocks.Clear
+	'txtCode.Content.Namespaces.Clear
+	'txtCode.Content.Enums.Clear
+	'txtCode.Content.TypeProcedures.Clear
+	'txtCode.Content.Procedures.Clear
+	'txtCode.Content.LineLabels.Clear
+	'txtCode.Content.Args.Clear
+	'AnyTexts.Clear
 	''ThreadCreate_(@LoadFromTabWindow, @This)
 	''LoadFunctions FileName, OnlyFilePath, Types, Procedures, Args, @txtCode
 	t = False
@@ -10460,96 +10558,97 @@ Destructor TabWindow
 	End If
 	cboClass.Items.Clear
 	cboFunction.Items.Clear
-	Dim As TypeElement Ptr te, te1
-	Dim As ConstructionBlock Ptr cb
-	For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
-		te = txtCode.Content.Types.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
-	Next
-	For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
-	Next
-	For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
-	Next
-	For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
-		te = txtCode.Content.TypeProcedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
-	Next
-	For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
-		te = txtCode.Content.Procedures.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			te1 = te->Elements.Object(j)
-			For k As Integer = te1->Elements.Count - 1 To 0 Step -1
-				_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
-			Next
-			te1->Elements.Clear
-			_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		te->Elements.Clear
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
-	Next
-	For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
-		cb = txtCode.Content.ConstructionBlocks.Item(i)
-		For j As Integer = cb->Elements.Count - 1 To 0 Step -1
-			_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
-		Next
-		cb->Elements.Clear
-		_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
-	Next
-	For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
-		txtCode.Content.LineLabels.Remove i
-	Next
-	For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
-		te = txtCode.Content.Args.Object(i)
-		For j As Integer = te->Elements.Count - 1 To 0 Step -1
-			_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
-		Next
-		_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
-	Next
-	For i As Integer = AnyTexts.Count - 1 To 0 Step -1
-		_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
-	Next
+	ClearTypes
+	'Dim As TypeElement Ptr te, te1
+	'Dim As ConstructionBlock Ptr cb
+	'For i As Integer = txtCode.Content.Types.Count - 1 To 0 Step -1
+	'	te = txtCode.Content.Types.Object(i)
+	'	For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'		te1 = te->Elements.Object(j)
+	'		For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'			_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'		Next
+	'		te1->Elements.Clear
+	'		_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	Next
+	'	te->Elements.Clear
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Types.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.Enums.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Enums.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.Namespaces.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.TypeProcedures.Count - 1 To 0 Step -1
+	'	te = txtCode.Content.TypeProcedures.Object(i)
+	'	For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'		te1 = te->Elements.Object(j)
+	'		For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'			_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'		Next
+	'		te1->Elements.Clear
+	'		_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	Next
+	'	te->Elements.Clear
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.TypeProcedures.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.Procedures.Count - 1 To 0 Step -1
+	'	te = txtCode.Content.Procedures.Object(i)
+	'	For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'		te1 = te->Elements.Object(j)
+	'		For k As Integer = te1->Elements.Count - 1 To 0 Step -1
+	'			_Delete(Cast(TypeElement Ptr, te1->Elements.Object(k)))
+	'		Next
+	'		te1->Elements.Clear
+	'		_Delete( Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	Next
+	'	te->Elements.Clear
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Procedures.Object(i)))
+	'Next
+	'For i As Integer = txtCode.Content.ConstructionBlocks.Count - 1 To 0 Step -1
+	'	cb = txtCode.Content.ConstructionBlocks.Item(i)
+	'	For j As Integer = cb->Elements.Count - 1 To 0 Step -1
+	'		_Delete( Cast(TypeElement Ptr, cb->Elements.Object(j)))
+	'	Next
+	'	cb->Elements.Clear
+	'	_Delete(Cast(ConstructionBlock Ptr, txtCode.Content.ConstructionBlocks.Item(i)))
+	'Next
+	'For i As Integer = txtCode.Content.LineLabels.Count - 1 To 0 Step -1
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.LineLabels.Object(i)))
+	'	txtCode.Content.LineLabels.Remove i
+	'Next
+	'For i As Integer = txtCode.Content.Args.Count - 1 To 0 Step -1
+	'	te = txtCode.Content.Args.Object(i)
+	'	For j As Integer = te->Elements.Count - 1 To 0 Step -1
+	'		_Delete(Cast(TypeElement Ptr, te->Elements.Object(j)))
+	'	Next
+	'	_Delete( Cast(TypeElement Ptr, txtCode.Content.Args.Object(i)))
+	'Next
+	'For i As Integer = AnyTexts.Count - 1 To 0 Step -1
+	'	_Delete( Cast(WString Ptr, AnyTexts.Object(i)))
+	'Next
 	For i As Integer = txtCode.Content.FileLists.Count - 1 To 0 Step -1
 		_Delete( Cast(WStringList Ptr, txtCode.Content.FileLists.Item(i)))
 	Next
 	For i As Integer = txtCode.Content.FileListsLines.Count - 1 To 0 Step -1
 		_Delete( Cast(IntegerList Ptr, txtCode.Content.FileListsLines.Item(i)))
 	Next
-	txtCode.Content.Functions.Clear
-	txtCode.Content.ConstructionBlocks.Clear
-	txtCode.Content.Namespaces.Clear
-	txtCode.Content.Types.Clear
-	txtCode.Content.TypeProcedures.Clear
-	txtCode.Content.Procedures.Clear
-	txtCode.Content.LineLabels.Clear
-	txtCode.Content.Args.Clear
+	'txtCode.Content.Functions.Clear
+	'txtCode.Content.ConstructionBlocks.Clear
+	'txtCode.Content.Namespaces.Clear
+	'txtCode.Content.Types.Clear
+	'txtCode.Content.TypeProcedures.Clear
+	'txtCode.Content.Procedures.Clear
+	'txtCode.Content.LineLabels.Clear
+	'txtCode.Content.Args.Clear
 	txtCode.Content.FileLists.Clear
 	txtCode.Content.FileListsLines.Clear
 	txtCode.Content.ExternalFiles.Clear
 	txtCode.Content.ExternalFileLines.Clear
 	txtCode.Content.ExternalIncludes.Clear
 	txtCode.Content.CheckedFiles.Clear
-	AnyTexts.Clear
+	'AnyTexts.Clear
 	Events.Clear
 	If ptabRight->Tag = @This Then ptabRight->Tag = 0
 	'If tn <> 0 Then ptvExplorer->RemoveRoot ptvExplorer->IndexOfRoot(tn)

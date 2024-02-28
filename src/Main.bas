@@ -3796,6 +3796,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If inType Then OldTypes.Add t, tbi
 						typ = tbi
 						If Types.Contains(t, , , , Idx) AndAlso Cast(TypeElement Ptr, Types.Object(Idx))->FileName = PathFunction Then
+							If OldTypes.Count > 1 Then
+								TypesInFunc.Add t, tbi
+							End If
 						ElseIf InFunc = False Then
 							If OldTypes.Count > 1 Then
 								Dim As TypeElement Ptr teOld = OldTypes.Object(OldTypes.Count - 2)
