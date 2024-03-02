@@ -1,0 +1,96 @@
+﻿@<file>                          从文件中读取更多命令行参数
+-a <file>                         将文件视为 .o/.a 输入文件
+-arch <type>                 设置目标架构（默认值：686）
+-asm att|intel                  设置 asm 格式（仅限 -gen gcc|llvm、x86 或 x86_64）
+-b <file>                         将文件视为 .bas 输入文件
+-buildprefix <name>    指定工具名称的前缀（as、ar、ld）
+-c                                    只编译，不链接
+-C                                   保留临时 .o 文件
+-d <name>[=<val>]     添加全局 #define
+-dll                                 与 -dylib 相同，创建 DLL(win32) 或共享库 （*nix/*BSD）
+-dylib                             创建 DLL(win32) 或共享库 （*nix/*BSD）
+-e                                   启用运行时错误检查
+-earray                          启用数组边界检查
+-eassert                        启用 assert()和 assertwarn()检查
+-edebug                       启用__FB_DEBUG__
+-edebuginfo                 添加调试信息
+-elocation                     启用错误位置报告
+-enullptr                        启用空指针检查
+-eunwind                       启用调用堆栈展开信息
+-entry <name>            从 main（） 更改程序的入口点
+-ex                                -e选项的升级，加上 RESUME 支持
+-exx                              -ex选项的升级，加上数组边界/空指针检查
+-export                           用于动态链接的导出符号
+-fbgfx                             链接到相应的 libfbgfx 变体（通常为自动）
+-forcelang <name>       覆盖源代码中的 #lang 语句
+-fpmode fast|precise     选择浮点数学精度/速度
+-fpu x87|sse|neon          设置目标 FPUautomatic）
+-g                                   添加调试信息、启用__FB_DEBUG__和启用 assert（）
+-gen gas                        选择 GNU gas 32 位汇编器后端
+-gen gas64                    选择 GNU gas 64 位汇编器后端
+-gen gcc                        选择 GNU gcc C 后端
+-gen llvm                       选择 LLVM 后端
+-gen clang                     选择 clang C 后端
+[-]-help                           显示此帮助输出;使用“-help -v”显示详细帮助
+-i                                     <path> 添加包含文件搜索路径
+-include <file>               为每个输入 .bas 预 #include 一个文件
+-l <name>                      库中的链接
+-lang <name>                选择 FB 方言：fb、deprecated、fblite、qb
+-lib                                  创建静态库
+-m <name>                   指定主模块（默认，如果不是 -c：第一个输入 .bas）
+-map <file>                   将链接地图保存到文件
+-maxerr <n>                  仅显示<n>错误
+-mt                                 使用线程安全的 FB 运行时
+-nodeflibs                       链接时不包括默认库
+-noerrline                      不要在错误消息中显示源上下文
+-nolib <a,b,c>             链接时不要包含指定的库
+-noobjinfo                     不要从/写 .o 和 .a 文件读取/写入编译时信息
+-nostrip                         不从输出文件中剥离符号信息
+-o <file>                        设置上一个/下一个输入文件的 .o（或 -pp .bas）文件名
+-O <value>                   优化级别（默认：0）
+-p <path>                     添加库搜索路径
+-pic                                生成与系统无关的代码（非 x86 Unix 共享库）
+-pp                                仅写出预处理的输入文件 （.pp.bas）
+-prefix <path>              设置编译器前缀路径
+-print host|target          显示主机/目标系统名称
+-print fblibdir                 显示编译器的 lib/ 路径
+-print x                          显示输出二进制文件/库文件名（如果已知）
+-profile                          启用函数分析
+-r                                   仅输出 .asm/.c/.ll （-gen gas/gcc/llvm）
+-rr                                  仅输出最终的 .asm
+-R                                  保留临时 .asm/.c/.ll/.def 文件
+-RR                                保留最终的 .asm 文件
+-s console|gui               选择 win32 子系统
+-showincludes              显示 #included 文件的文件名树
+-static                            链接时优先静态库而不是动态库
+-strip                             省略输出文件中的所有符号信息
+-sysroot <path>          链接器 sysroot路径，一些交叉编译工具链如安卓编译需要
+-print sha-1                  显示编译器的源代码提交 sha-1（如果已知）
+-t <value>                    设置.exe堆栈大小（以 KB 为单位），默认值：1024 （win32/dos）
+-target <name>           设置交叉编译目标
+-title <name>               设置显示标题 （xbox）
+-v                                  显示编译器版本信息
+-vec <n>                      自动矢量化级别（默认值：0）
+  [-]-version                  显示编译器版本
+-w all|pedantic|<n>     设置最小警告级别：全部、或更多值
+-w all                            启用所有警告
+-w none                       禁用所有警告
+-w param                     启用参数警告
+-w escape                    启用字符串转义序列警告
+-w next                        启用 next 语句警告
+-w signedness             启用类型签名警告
+-w constness               启用 const 类型警告
+-w suffix                      启用无效后缀警告
+-w error                       将警告报告为错误
+-w upcast                    在向上投射丢弃初始值设定项时启用警告
+-Wa <a,b,c>                 将选项传递给“as”
+-Wc <a,b,c>                 将选项传递给 'gcc' (-gen gcc) 或 'llc'(-gen llvm)
+-Wl <a,b,c>                  将选项传递给“ld”
+-x <file>                       设置输出可执行文件/库文件名
+-z fbrt                          使用“fbrt”而不是“fb”运行时库进行链接
+-z gosub-setjmp         使用 setjmp/longjmp 实现 GOSUB
+-z no-thiscall               不要使用“__thiscall”调用约定
+-z no-fastcall               不要使用“__fastcall”调用约定
+-z nocmdline               禁用 #cmdline 源指令
+-z retinflts                   允许在浮点寄存器中返回某些类型
+-z valist-as-ptr            使用指针表达式实现 CVA_*（） 宏

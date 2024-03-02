@@ -1,61 +1,96 @@
-﻿ @<file>          Read more command line arguments from a file
-  -a <file>        Treat file as .o/.a input file
-  -arch <type>     Set target architecture (default: 686)
-  -asm att|intel   Set asm format (-gen gcc|llvm, x86 or x86_64 only)
-  -b <file>        Treat file as .bas input file
-  -c               Compile only, do not link
-  -C               Preserve temporary .o files
-  -d <name>[=<val>]  Add a global #define
-  -dll             Same as -dylib
-  -dylib           Create a DLL (win32) or shared library (*nix/*BSD)
-  -e               Enable runtime error checking
-  -ex              -e plus RESUME support
-  -exx             -ex plus array bounds/null-pointer checking
-  -export          Export symbols for dynamic linkage
-  -forcelang <name>  Override #lang statements in source code
-  -g               Add debug info, enable __FB_DEBUG__, and enable assert()
-  -gen gas|gas64|gcc|llvm  Select code generation backend
+ @<file>          Read more command line arguments from a file
+-a <file>        Treat file as .o/.a input file
+-arch <type>     Set target architecture (default: 686)
+-asm att|intel   Set asm format (-gen gcc|llvm, x86 or x86_64 only)
+-b <file>        Treat file as .bas input file
+-buildprefix <name>  specify prefix on tool names (as, ar, ld)
+-c               Compile only, do not link
+-C               Preserve temporary .o files
+-d <name>[=<val>]  Add a global #define
+-dll             Same as -dylib
+-dylib           Create a DLL (win32) or shared library (*nix/*BSD)
+-e               Enable runtime error checking
+-earray          Enable array bounds checking
+-eassert         Enable assert() and assertwarn() checking
+-edebug          Enable __FB_DEBUG__
+-edebuginfo      Add debug info
+-elocation       Enable error location reporting
+-enullptr        Enable null-pointer checking
+-eunwind         Enable call stack unwind information
+-entry <name>    Change the entry point of the program from main()
+-ex             -e plus RESUME support
+-exx            -ex plus array bounds/null-pointer checking
+-export          Export symbols for dynamic linkage
+-fbgfx           Link to the appropriate libfbgfx variant (normally automatic)
+-forcelang <name>   Override #lang statements in source code
+-fpmode fast|precise   Select floating-point math accuracy/speed
+-fpu x87|sse|neon   Set target FPU
+-g               Add debug info, enable __FB_DEBUG__, and enable assert()
+-gen gas         Select GNU gas 32-bit assembler backend
+-gen gas64       Select GNU gas 64-bit assembler backend
+-gen gcc         Select GNU gcc C backend
+-gen llvm        Select LLVM backend
+-gen clang       Select clang C backend
   [-]-help         Show this help output; use '-help -v' to show verbose help
-  -i <path>        Add an include file search path
-  -include <file>  Pre-#include a file for each input .bas
-  -l <name>        Link in a library
-  -lang <name>     Select FB dialect: fb, deprecated, fblite, qb
-  -lib             Create a static library
-  -m <name>        Specify main module (default if not -c: first input .bas)
-  -map <file>      Save linking map to file
-  -maxerr <n>      Only show <n> errors
-  -mt              Use thread-safe FB runtime
-  -nodeflibs       Do not include the default libraries when linking
-  -noerrline       Do not show source context in error messages
-  -nolib <a,b,c>   Do not include the specified libraries when linking
-  -noobjinfo       Do not read/write compile-time info from/to .o and .a files
-  -nostrip         Do not strip symbol information from the output file
-  -o <file>        Set .o (or -pp .bas) file name for prev/next input file
-  -O <value>       Optimization level (default: 0)
-  -p <path>        Add a library search path
-  -pic             Generate position-independent code (non-x86 Unix shared libs)
-  -pp              Write out preprocessed input file (.pp.bas) only
-  -prefix <path>   Set the compiler prefix path
-  -print host|target  Display host/target system name
-  -print fblibdir  Display the compiler's lib/ path
-  -print x         Display output binary/library file name (if known)
-  -profile         Enable function profiling
-  -r               Write out .asm/.c/.ll (-gen gas/gcc/llvm) only
-  -rr              Write out the final .asm only
-  -R               Preserve temporary .asm/.c/.ll/.def files
-  -RR              Preserve the final .asm file
-  -s console|gui   Select win32 subsystem
-  -showincludes    Display a tree of file names of #included files
-  -static          Prefer static libraries over dynamic ones when linking
-  -strip           Omit all symbol information from the output file
-  -t <value>       Set .exe stack size in kbytes, default: 1024 (win32/dos)
-  -target <name>   Set cross-compilation target
-  -title <name>    Set XBE display title (xbox)
-  -v               Be verbose
-  -vec <n>         Automatic vectorization level (default: 0)
+-i <path>        Add an include file search path
+-include <file>  Pre-#include a file for each input .bas
+-l <name>        Link in a library
+-lang <name>     Select FB dialect: fb, deprecated, fblite, qb
+-lib             Create a static library
+-m <name>        Specify main module (default if not -c: first input .bas)
+-map <file>      Save linking map to file
+-maxerr <n>      Only show <n> errors
+-mt              Use thread-safe FB runtime
+-nodeflibs       Do not include the default libraries when linking
+-noerrline       Do not show source context in error messages
+-nolib <a,b,c>   Do not include the specified libraries when linking
+-noobjinfo       Do not read/write compile-time info from/to .o and .a files
+-nostrip         Do not strip symbol information from the output file
+-o <file>        Set .o (or -pp .bas) file name for prev/next input file
+-O <value>       Optimization level (default: 0)
+-p <path>        Add a library search path
+-pic             Generate position-independent code (non-x86 Unix shared libs)
+-pp              Write out preprocessed input file (.pp.bas) only
+-prefix <path>   Set the compiler prefix path
+-print host|target  Display host/target system name
+-print fblibdir  Display the compiler's lib/ path
+-print x         Display output binary/library file name (if known)
+-print sha-1     Display compiler's source code commit sha-1 (if known)
+-profile         Enable function profiling
+-r               Write out .asm/.c/.ll (-gen gas/gcc/llvm) only
+-rr              Write out the final .asm only
+-R               Preserve temporary .asm/.c/.ll/.def files
+-RR              Preserve the final .asm file
+-s console|gui   Select win32 subsystem
+-showincludes    Display a tree of file names of #included files
+-static          Prefer static libraries over dynamic ones when linking
+-strip           Omit all symbol information from the output file
+-sysroot <path>  Linker sysroot, needed by some cross-compiling toolchains
+-t <value>       Set .exe stack size in kbytes, default: 1024 (win32/dos)
+-target <name>   Set cross-compilation target
+-title <name>    Set XBE display title (xbox)
+-v               Be verbose
+-vec <n>         Automatic vectorization level (default: 0)
   [-]-version      Show compiler version
-  -w all|pedantic|<n>  Set min warning level: all, pedantic or a value
-  -Wa <a,b,c>      Pass options to 'as'
-  -Wc <a,b,c>      Pass options to 'gcc' (-gen gcc) or 'llc' (-gen llvm)
-  -Wl <a,b,c>      Pass options to 'ld'
-  -x <file>        Set output executable/library file name
+-w all|pedantic|<n>  Set min warning level: all, pedantic or a value
+-w all           Enable all warnings
+-w none          Disable all warnings
+-w param         Enable parameter warnings
+-w escape        Enable string escape sequence warnings
+-w next          Enable next statement warnings
+-w signedness    Enable type signedness warnings
+-w constness     Enable const type warnings
+-w suffix        Enable invalid suffix warnings
+-w error         Report warnings as errors
+-w upcast        Enable warning when up-casting discards initializers
+-Wa <a,b,c>      Pass options to 'as'
+-Wc <a,b,c>      Pass options to 'gcc' (-gen gcc) or 'llc' (-gen llvm)
+-Wl <a,b,c>      Pass options to 'ld'
+-x <file>        Set output executable/library file name
+-z fbrt          Link with 'fbrt' instead of 'fb' runtime library
+-z gosub-setjmp  Use setjmp/longjmp to implement GOSUB
+-z no-thiscall   Don't use '__thiscall' calling convention
+-z no-fastcall   Don't use '__fastcall' calling convention
+-z nocmdline     Disable #cmdline source directives
+-z retinflts     Enable returning some types in floating point registers
+-z valist-as-ptr Use pointer expressions to implement CVA_*() macros
