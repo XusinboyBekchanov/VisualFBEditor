@@ -7206,7 +7206,7 @@ Sub CreateMenusAndToolBars
 	miUseDefine = mnuDefault
 	tbProject.Buttons.Add tbsSeparator
 	tbButton = tbProject.Buttons.Add(tbsCustom)
-	tbButton->Width = cboBuildConfiguration.Width
+	tbButton->Width = 170
 	tbButton->Child = @cboBuildConfiguration
 End Sub
 
