@@ -1,7 +1,7 @@
-#pragma once
+﻿#pragma once
 ' SciLexer
 ' https://www.scintilla.org/
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 /' Scintilla source code edit Control '/
@@ -29,7 +29,7 @@ Type ILexer5 As Any
 Type LexerFactoryFunction As Function cdecl() As ILexer5 Ptr
 
 Type GetLexerCountFn As Function() As Long
-Type GetLexerNameFn As Sub(ByVal Index As ULong, ByVal name As ZString Ptr, ByVal buflength As Long)
+Type GetLexerNameFn As Sub(ByVal Index As ULong, ByVal Name As ZString Ptr, ByVal buflength As Long)
 Type GetLexerFactoryFn As Function(ByVal Index As ULong) As LexerFactoryFunction
 Type CreateLexerFn As Function (ByVal Name As Const ZString Ptr) As ILexer5 Ptr
 Type LexerNameFromIDFn As Function(ByVal identifier As Long) As Const ZString Ptr

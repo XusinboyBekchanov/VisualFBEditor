@@ -1,8 +1,11 @@
-﻿'#Region "Form"
+﻿' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDIMain.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -18,14 +21,16 @@
 	Type MDIMainType Extends Form
 		Dim lstMdiChild As List
 		Dim actMdiChild As Any Ptr
-		'Dim actMidChildIdx As Integer
-		
 		Dim mnuWindowCount As Integer = -1
 		Dim mnuWindows(Any) As MenuItem Ptr
 		
 		Declare Sub MDIChildNew()
 		Declare Sub MDIChildActivate(Child As Any Ptr)
+		Declare Sub MDIChildCreate(Child As Any Ptr)
+		Declare Sub MDIChildShow(Child As Any Ptr)
+		Declare Sub MDIChildClose(Child As Any Ptr)
 		Declare Sub MDIChildDestroy(Child As Any Ptr)
+		Declare Sub MDIChildMenuCheck()
 		Declare Sub MDIChildMenuUpdate()
 		
 		Declare Sub mnuEdit_Click(ByRef Sender As MenuItem)
@@ -41,7 +46,7 @@
 		Dim As MenuItem mnuEdit, mnuEditUndo, mnuRedo, mnuEditCopy, mnuEditCut, mnuEditPaste, mnuEditBar1, mnuEditDelete, mnuEditBar2, mnuEditSelectAll
 		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewRefresh
 		Dim As MenuItem mnuHelp, mnuHelpAbout
-		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, MenuItem3, mnuViewDarkMode
+		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, mnuWindowBar1, mnuViewDarkMode
 		Dim As ImageList ImageList1
 		Dim As StatusBar StatusBar1
 		Dim As ToolBar ToolBar1
@@ -71,7 +76,7 @@
 			.Name = "ImageList1"
 			.ImageWidth = 16
 			.ImageHeight = 16
-			.SetBounds 116, 70, 16, 16
+			.SetBounds 36, 30, 16, 16
 			.Designer = @This
 			.Add "New", "New"
 			.Add "About", "About"
@@ -87,7 +92,7 @@
 		' MainMenu1
 		With MainMenu1
 			.Name = "MainMenu1"
-			.SetBounds 81, 69, 16, 16
+			.SetBounds 11, 29, 16, 16
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -366,9 +371,9 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
-		' MenuItem3
-		With MenuItem3
-			.Name = "MenuItem3"
+		' mnuWindowBar1
+		With mnuWindowBar1
+			.Name = "mnuWindowBar1"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuWindow
@@ -408,7 +413,7 @@
 		' StatusBar1
 		With StatusBar1
 			.Name = "StatusBar1"
-			.Text = "StatusBar1"
+			.Text = ""
 			.Align = DockStyle.alBottom
 			.SetBounds 0, 239, 334, 22
 			.Designer = @This
@@ -432,6 +437,7 @@
 			.Name = "tbFileNew"
 			.Designer = @This
 			.ImageKey = "New"
+			.Hint = "New"
 			.Parent = @ToolBar1
 		End With
 		' tbFileOpen
@@ -439,6 +445,7 @@
 			.Name = "tbFileOpen"
 			.Designer = @This
 			.ImageKey = "Open"
+			.Hint = "Open"
 			.Parent = @ToolBar1
 		End With
 		' tbFileSave
@@ -446,6 +453,7 @@
 			.Name = "tbFileSave"
 			.Designer = @This
 			.ImageKey = "Save"
+			.Hint = "Save"
 			.Parent = @ToolBar1
 		End With
 		' tbFileSaveAll
@@ -453,6 +461,7 @@
 			.Name = "tbFileSaveAll"
 			.Designer = @This
 			.ImageKey = "SaveAll"
+			.Hint = "Save all"
 			.Parent = @ToolBar1
 		End With
 	End Constructor
@@ -569,12 +578,23 @@ Private Sub MDIMainType.ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Butt
 	Case "tbFileSave"
 		mnuFile_Click(mnuFileSave)
 	Case "tbFileSaveAll"
-		mnuFile_Click(mnuFileSaveAs)
+		mnuFile_Click(mnuFileSaveAll)
 	End Select
 End Sub
 
+Private Sub MDIMainType.MDIChildMenuCheck()
+	Dim i As Integer
+	For i = 0 To mnuWindowCount
+		If mnuWindows(i)->Tag = actMdiChild Then
+			mnuWindows(i)->Checked = True
+		Else
+			mnuWindows(i)->Checked = False
+		End If
+	Next
+End Sub
+
 Private Sub MDIMainType.MDIChildMenuUpdate()
-	Dim mMax As Integer = 5
+	Dim mMax As Integer = 9 'form 0 to mMax
 	Dim i As Integer
 	Dim j As Integer
 	
@@ -585,6 +605,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	Next
 	Erase mnuWindows
 	
+	'disable/enabled window menu
 	mnuWindowCount = lstMdiChild.Count
 	If mnuWindowCount = 0 Then
 		mnuWindowCount = -1
@@ -593,75 +614,89 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 	End If
 	mnuWindow.Enabled = True
 	
-	
+	'count of menu
 	If mnuWindowCount > mMax Then
 		j = mMax
 		mnuWindowCount = mMax + 1
 	Else
 		j = mnuWindowCount
 	End If
-	
 	ReDim mnuWindows(mnuWindowCount)
 	
-	'create a split bar menu
-	i = 0
-	mnuWindows(i) = New MenuItem
-	mnuWindows(i)->Caption = "-"
-	mnuWindow.Add mnuWindows(i)
-	
-	'create child list menu
-	For i = 1 To j
+	'create menu
+	For i = 0 To j
 		mnuWindows(i) = New MenuItem
-		mnuWindows(i)->Name = "mnuWindow" & i - 1
-		mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
-		mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
-		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
+		mnuWindows(i)->Designer = @This
+		mnuWindows(i)->Parent = @mnuWindow
+		If i = 0 Then
+			'create a split bar menu
+			mnuWindows(i)->Caption = "-"
+			mnuWindows(i)->Name = "mnuWindowBar2"
+		Else
+			'create child list menu
+			mnuWindows(i)->Name = "mnuWindow" & i - 1
+			mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
+			mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
+			mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
+		End If
 		mnuWindow.Add mnuWindows(i)
 	Next
 	
 	'create a list... menu
-	If j < mnuWindowCount Then
-		i = mnuWindowCount
-		mnuWindows(i) = New MenuItem
-		mnuWindows(i)->Name = "mnuWindowMore"
-		mnuWindows(i)->Caption = "More Windows..."
-		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
-		mnuWindow.Add mnuWindows(i)
-	End If
+	If j = mnuWindowCount Then Exit Sub
+	i = mnuWindowCount
+	mnuWindows(i) = New MenuItem
+	mnuWindows(i)->Designer = @This
+	mnuWindows(i)->Parent = @mnuWindow
+	mnuWindows(i)->Name = "mnuWindowMore"
+	mnuWindows(i)->Caption = "More Windows..."
+	mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
+	mnuWindow.Add mnuWindows(i)
 End Sub
 
 Private Sub MDIMainType.MDIChildNew()
 	Static ChildIdx As Integer = 0
-	Dim frm As MDIChildType Ptr
 	
 	ChildIdx += 1
-	frm = New MDIChildType
+	Dim frm As MDIChildType Ptr = New MDIChildType
 	frm->Text = "Untitled - " & ChildIdx
 	lstMdiChild.Add frm
 	MDIChildMenuUpdate()
+	
 	frm->Show(MDIMain)
 End Sub
 
 Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
+	Debug.Print "MDIChildActivate " & Hex(Child)
+	
 	actMdiChild = Child
-	Dim i As Integer
-	For i = 0 To mnuWindowCount
-		If mnuWindows(i)->Tag = Child Then
-			mnuWindows(i)->Checked = True
-		Else
-			mnuWindows(i)->Checked = False
-		End If
-	Next
 	StatusBar1.Text = Cast(MDIChildType Ptr, Child)->Text
+	MDIChildMenuCheck()
+End Sub
+
+Private Sub MDIMainType.MDIChildCreate(Child As Any Ptr)
+	Debug.Print "MDIChildCreate   " & Hex(Child)
+	
+End Sub
+
+Private Sub MDIMainType.MDIChildShow(Child As Any Ptr)
+	Debug.Print "MDIChildShow     " & Hex(Child)
+	
+End Sub
+
+Private Sub MDIMainType.MDIChildClose(Child As Any Ptr)
+	Debug.Print "MDIChildClose    " & Hex(Child)
+	
+	lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
+	MDIChildMenuUpdate()
+	If lstMdiChild.Count > 0 Then Exit Sub
+	
+	actMdiChild = NULL
+	StatusBar1.Text = ""
 End Sub
 
 Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
-	lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
-	If lstMdiChild.Count < 1 Then
-		actMdiChild = null
-		StatusBar1.Text = ""
-	End If
-	MDIChildMenuUpdate()
-	Delete Cast(MDIChildType Ptr, Child)
+	Debug.Print "MDIChildDestroy  " & Hex(Child)
+	
 End Sub
 

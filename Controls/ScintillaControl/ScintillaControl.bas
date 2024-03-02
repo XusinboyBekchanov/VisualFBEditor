@@ -1,7 +1,7 @@
 ﻿#pragma once
 ' ScintillaControl
 ' https://www.ScintillaControl.org/
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "ScintillaControl.bi"
@@ -66,8 +66,8 @@ Private Sub ScintillaControl.ProcessMessage(ByRef msg As Message)
 					Case SC_UPDATE_V_SCROLL
 						'line number margin auto width
 						If MarginWidth(0) <> 0 Then MarginWidth(0) = 10
-							'Dim s As String = Format(SendMessage(FHandle, SCI_GETFIRSTVISIBLELINE, 0, 0) + SendMessage(FHandle, SCI_LINESONSCREEN, 0, 0), "#0")
-							'MarginWidth(0) = SendMessage(FHandle, SCI_TEXTWIDTH, STYLE_DEFAULT, Cast(LPARAM, StrPtr(s))) + 5
+						'Dim s As String = Format(SendMessage(FHandle, SCI_GETFIRSTVISIBLELINE, 0, 0) + SendMessage(FHandle, SCI_LINESONSCREEN, 0, 0), "#0")
+						'MarginWidth(0) = SendMessage(FHandle, SCI_TEXTWIDTH, STYLE_DEFAULT, Cast(LPARAM, StrPtr(s))) + 5
 						'End If
 					Case SC_UPDATE_H_SCROLL
 					End Select
@@ -102,24 +102,6 @@ End Property
 
 Namespace My.Sys.Forms
 
-Private Function TextUnicode2Ansi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
-	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-
-	Static ansiStr As String
-	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
-	ansiStr = String(nLength, 0)
-	Dim DataSize As LongInt = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, StrPtr(ansiStr), nLength, NULL, NULL)
-	Return ansiStr
-End Function
-
-Private Function TextAnsi2Unicode(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1) ByRef As WString
-	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-	
-	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
-	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
-	Return ""
-End Function
-
 Private Function TextFromAnsi(ByRef AnsiStr As Const String, ByVal nCodePage As Integer = -1) ByRef As WString
 	Static UnicodeStr As WString Ptr
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
@@ -134,7 +116,7 @@ End Function
 
 Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-
+	
 	Static ansiStr As String
 	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
 	ansiStr = String(nLength+1, 0)
@@ -160,7 +142,7 @@ Private Function TextToUtf8(ByRef nWString As Const WString) ByRef As String
 	Return ansiStr
 End Function
 
-Function TextFromSciData(ByRef TxtData As Const ZString, ByVal CodePage As Integer = 0) ByRef As WString
+Private Function TextFromSciData(ByRef TxtData As Const ZString, ByVal CodePage As Integer = 0) ByRef As WString
 	If CodePage = 65001 Then
 		Return TextFromUtf8(TxtData)
 	Else
@@ -168,7 +150,7 @@ Function TextFromSciData(ByRef TxtData As Const ZString, ByVal CodePage As Integ
 	End If
 End Function
 
-Function TextToSciData(ByRef txtWStr As Const WString, ByVal CodePage As Integer = 0) ByRef As String
+Private Function TextToSciData(ByRef txtWStr As Const WString, ByVal CodePage As Integer = 0) ByRef As String
 	If CodePage = 65001 Then
 		Return TextToUtf8(txtWStr)
 	Else
@@ -190,7 +172,7 @@ End Namespace
 	Private Sub ScintillaControl.WndProc(ByRef message As Message)
 	End Sub
 #endif
-	
+
 Constructor ScintillaControl
 	#ifdef __USE_GTK__
 		'
@@ -422,7 +404,7 @@ Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr
 	Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
 	mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
 	SendMessage(Handle, SCI_SETSEARCHFLAGS, mc, 0)
-
+	
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
 	Dim lenSearch As Integer = Len(*FindData)
@@ -523,30 +505,35 @@ Private Property ScintillaControl.FontSize(ByVal sty As Integer, ByVal val As In
 End Property
 
 Private Property ScintillaControl.FontName(ByVal sty As Integer) ByRef As WString
-	Static a As WString Ptr
+	Static w As WString Ptr
+	If w Then Deallocate(w)
+	
+	Dim iSize As Integer = SendMessage(FHandle, SCI_STYLEGETFONT, sty, 0)
+	w = CAllocate(iSize * 2)
+	Dim a As ZString Ptr
+	a = CAllocate(iSize)
+	SendMessage(FHandle, SCI_STYLEGETFONT, sty, Cast(LPARAM, a))
+	
+	*w = TextFromAnsi(*a)
+	
+	'TextAnsi2Unicode(*a, w)
 	If a Then Deallocate(a)
 	
-	Dim s As Integer = SendMessage(FHandle, SCI_STYLEGETFONT, sty, 0)
-	a = CAllocate(s * 2)
-	Dim b As ZString Ptr
-	b = CAllocate(s)
-	SendMessage(FHandle, SCI_STYLEGETFONT, sty, Cast(LPARAM, b))
-	TextAnsi2Unicode(*b, a)
-	If b Then Deallocate(b)
-	
-	Return *a
+	Return *w
 End Property
 
 Private Property ScintillaControl.FontName(ByVal sty As Integer, ByRef val As Const WString)
-	Dim b As ZString Ptr
-	Dim s As Integer = Len(val)
-	b = CAllocate(s)
-	*b = TextUnicode2Ansi(val)
+	Dim a As ZString Ptr
+	Dim iSize As Integer = Len(val)
+	a = CAllocate(iSize)
 	
-	SendMessage(FHandle, SCI_STYLESETFONT, sty, Cast(LPARAM, b))
+	'*a = TextUnicode2Ansi(val)
+	*a = TextToAnsi(val)
+	
+	SendMessage(FHandle, SCI_STYLESETFONT, sty, Cast(LPARAM, a))
 	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 	
-	If b Then Deallocate(b)
+	If a Then Deallocate(a)
 End Property
 
 Private Property ScintillaControl.Bold(ByVal sty As Integer) As Integer
@@ -731,7 +718,7 @@ Private Property ScintillaControl.DarkMode (ByVal bVal As Boolean)
 		
 		ForeColor(STYLE_DEFAULT) = RGB(&ha0, &ha0, &ha0)
 		BackColor(STYLE_DEFAULT) = RGB(0, 0, 0)
-
+		
 		'ForeColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h40, &h40, &h40)
 		'BackColor(STYLE_FOLDDISPLAYTEXT) = RGB(&h10, &h10, &h10)
 		

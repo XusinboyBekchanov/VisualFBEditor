@@ -1,8 +1,11 @@
-﻿'#Region "Form"
+﻿' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDIMain.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -68,7 +71,7 @@ Private Sub MDIListType.Form_Create(ByRef Sender As Control)
 		Dim i As Integer
 		For i = 0 To .lstMdiChild.Count - 1
 			ListControl1.AddItem (Cast(MDIChildType Ptr, .lstMdiChild.Item(i))->Text)
-			If .ActMdiChild = .lstMdiChild.Item(i) Then ListControl1.ItemIndex = i
+			If .actMdiChild = .lstMdiChild.Item(i) Then ListControl1.ItemIndex = i
 		Next
 	End With
 End Sub

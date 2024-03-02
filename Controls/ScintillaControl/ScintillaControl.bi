@@ -1,7 +1,7 @@
-#pragma once
+﻿#pragma once
 ' ScintillaControl
 ' https://www.ScintillaControl.org/
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "mff/Control.bi"
