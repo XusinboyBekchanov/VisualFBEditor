@@ -2,7 +2,7 @@
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		'#define __MAIN_FILE__
 		'#ifdef __FB_WIN32__
-			'#cmdline "Form1.rc"
+		'#cmdline "Form1.rc"
 		'#endif
 		'Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -33,7 +33,7 @@
 			.Designer = @This
 			.ShowCaption = True
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
-			.Caption = ML("Compiler Options")
+			'.Caption = ML("Compiler Options")
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.SetBounds 0, 0, 350, 420
 		End With
@@ -102,17 +102,22 @@
 
 Private Sub frmCompilerOptionsType.Form_Create(ByRef Sender As Control)
 	Dim As Integer Fn = FreeFile_
-	Open ExePath & "\Settings\Others\Compiler options.txt" For Input Encoding "utf8" As #Fn
-	Dim As WString * 1024 Buff
-	Dim As Integer Pos1
-	lvCompilerOptions.ListItems.Clear
-	Do Until EOF(Fn)
-		Line Input #Fn, Buff
-		Buff = Trim(Buff)
-		Pos1 = InStr(Buff, "  ")
-		lvCompilerOptions.ListItems.Add .Left(Buff, Pos1 - 1)
-		lvCompilerOptions.ListItems.Item(lvCompilerOptions.ListItems.Count - 1)->Text(1) = ML(Trim(Mid(Buff, Pos1)))
-	Loop
+	Dim As WString * 1024 CompilerOptionsFile = ExePath & "\Settings\Others\Compiler options." & App.CurLanguage & ".txt"
+	If Dir(CompilerOptionsFile ) = "" Then CompilerOptionsFile = ExePath & "\Settings\Others\Compiler options.txt"
+	If Open(CompilerOptionsFile For Input Encoding "utf8" As #Fn) = 0 Then
+		Dim As WString * 1024 Buff
+		Dim As Integer Pos1
+		lvCompilerOptions.ListItems.Clear
+		Do Until EOF(Fn)
+			Line Input #Fn, Buff
+			Buff = Trim(Buff)
+			Pos1 = InStr(Buff, "  ")
+			lvCompilerOptions.ListItems.Add .Left(Buff, Pos1 - 1)
+			lvCompilerOptions.ListItems.Item(lvCompilerOptions.ListItems.Count - 1)->Text(1) = ML(Trim(Mid(Buff, Pos1)))
+		Loop
+	Else
+		MsgBox ML("Open file failure!") & Chr(13, 10) & CompilerOptionsFile
+	End If
 	CloseFile_(Fn)
 End Sub
 
