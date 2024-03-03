@@ -7227,7 +7227,6 @@ Var tbFolder = tbExplorer.Buttons.Add(tbsWholeDropdown, "Folder", , @mClick, "Fo
 miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "ShowWithFolders", @mClick, , , True)
 miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
 miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
-tbExplorer.Buttons.Add tbsAutosize, "FindSymbol", , @mClick, "FindItemInProject", "", ML("Find"), , tstEnabled
 
 Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -7700,9 +7699,10 @@ pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
 
 tbLeft.ImagesList = @imgList
+tbLeft.Buttons.Add tbsAutosize, "FindSymbol", , @mClick, "FindItemInProject", "", ML("Find"), , tstEnabled
 tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
 tbLeft.Flat = True
-tbLeft.Width = 23
+tbLeft.Width = 46
 tbLeft.Parent = @pnlLeftPin
 
 tpProject = tabLeft.AddTab(ML("Project"))
