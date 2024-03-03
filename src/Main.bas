@@ -6590,6 +6590,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Fixme", "Fixme"
 	imgList.Add "Suggestions", "Suggestions"
 	imgList.Add "DarkMode", "DarkMode"
+	imgList.Add "FindSymbol", "FindSymbol"
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
@@ -7226,6 +7227,7 @@ Var tbFolder = tbExplorer.Buttons.Add(tbsWholeDropdown, "Folder", , @mClick, "Fo
 miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "ShowWithFolders", @mClick, , , True)
 miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
 miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
+tbExplorer.Buttons.Add tbsAutosize, "FindSymbol", , @mClick, "FindItemInProject", "", ML("Find"), , tstEnabled
 
 Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -7833,6 +7835,7 @@ tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
+tbProperties.Buttons.Add tbsAutosize, "FindSymbol", , @tbProperties_ButtonClick, "FindItemInProperties", "", ML("Find"), , tstEnabled
 tbProperties.Flat = True
 
 hbxProperties.Align = DockStyle.alTop
@@ -7846,6 +7849,7 @@ tbEvents.List = True
 tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
+tbEvents.Buttons.Add tbsAutosize, "FindSymbol", , @tbProperties_ButtonClick, "FindItemInEvents", "", ML("Find"), , tstEnabled
 tbEvents.Flat = True
 
 hbxEvents.Align = DockStyle.alTop
