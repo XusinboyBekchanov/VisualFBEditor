@@ -77,20 +77,20 @@ Enum
 End Enum
 
 Type Construction
-	Name0 As String * 50
-	Name01 As String * 50
-	Name02 As String * 50
-	Name03 As String * 50
-	Name04 As String * 50
-	Name05 As String * 50
-	Name06 As String * 50
-	Name07 As String * 50
-	Name08 As String * 50
-	Name1 As String * 50
-	Name2 As String * 50
-	Name3 As String * 50
-	EndName As String * 50
-	Exception As String * 50
+	Name0 As ZString * 50
+	Name01 As ZString * 50
+	Name02 As ZString * 50
+	Name03 As ZString * 50
+	Name04 As ZString * 50
+	Name05 As ZString * 50
+	Name06 As ZString * 50
+	Name07 As ZString * 50
+	Name08 As ZString * 50
+	Name1 As ZString * 50
+	Name2 As ZString * 50
+	Name3 As ZString * 50
+	EndName As ZString * 50
+	Exception As ZString * 50
 	Collapsible As Boolean
 	Accessible As Boolean
 End Type
@@ -689,7 +689,7 @@ Namespace My.Sys.Forms
 		OnSplitVerticallyChange   As Sub(ByRef Designer As My.Sys.Object, ByRef Sender As EditControl, Splitted As Boolean)
 	End Type
 	
-	Common Constructions() As Construction
+	Dim Shared Constructions() As Construction
 	Common As EditControl Ptr CurEC, ScrEC
 	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
 End Namespace
