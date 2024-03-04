@@ -9766,6 +9766,15 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tviewthd = @tvThd
 		tviewwch = @tvWch
 	#endif
+	#ifdef __USE_WINAPI__
+		Dim As ..Size sz
+		SendMessage(tbExplorer.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+		tbExplorer.Width = UnScaleX(sz.cx)
+		hbxExplorer.RequestAlign
+		SendMessage(tbForm.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+		tbForm.Width = UnScaleX(sz.cx)
+		hbxForm.RequestAlign
+	#endif
 	'	If MainNode <> 0 Then
 	'		' Should have changelog file for every project
 	'		If MainNode->Text<>"" AndAlso InStr(MainNode->Text,".") Then
