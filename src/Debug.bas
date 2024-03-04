@@ -8798,7 +8798,7 @@ End Function
 '============================================================================
 Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As Long = NODLL) As Integer
 	Dim recup As ZString *MAX_STAB_SZ '20/07/2014
-	Dim recupstab As udtstab,secnb As UShort,secnm As String *8,lastline As UShort=0,firstline As Integer=0
+	Dim recupstab As udtstab, secnb As UShort, secnm As ZString * 8, lastline As UShort = 0, firstline As Integer = 0
 	Dim As UInteger basestab=0,basestabs=0,pe,baseimg,sizemax,sizestabs,proc1,proc2
 	Dim sourceix As Integer,sourceixs As Integer
 	Dim As Byte procfg,flag=0,procnodll=True,flagstabd=True 'flags  (flagstabd to skip stabd 68,0,1)
@@ -11735,7 +11735,7 @@ End Sub
 		Dim As Integer FirstChance, FlagSecond, bptyp, cpt
 		Dim As UInteger adr
 		Dim As String Accviolstr(1) = {"TRYING TO READ", "TRYING TO WRITE"}
-		Dim recup As String * 300, libel As String
+		Dim recup As ZString * 300, libel As String
 		Dim ErrNumber As Long
 		'If hAttach Then SetEvent(hAttach): hAttach = 0
 		' Wait for a debugging event to occur. The second parameter indicates
