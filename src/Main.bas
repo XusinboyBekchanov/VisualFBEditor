@@ -4143,7 +4143,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							TypesPubProPri.Item(Idx) = inPubProPri
 						End If
 						Comment = ""
-					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse InStr(bTrimLCase, " as ") Then
+					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse CInt(StartsWith(bTrimLCase, "const ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As UString b2 = bTrim
 						Dim As UString CurType, ElementValue, TypeComment
 						Dim As UString res1(Any)
@@ -4254,7 +4254,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->TypeIsPointer = EndsWith(LCase(te->TypeName), " ptr") OrElse EndsWith(LCase(te->TypeName), " pointer")
 							te->TypeName = WithoutPointers(te->TypeName)
 							te->Value = ElementValue
-							te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Field)
+							te->ElementType = IIf(StartsWith(bTrimLCase, "const "), E_Constant, IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Field))
 							te->Locals = inPubProPri
 							te->StartLine = i
 							te->Parameters = res1(n) & " As " & CurType

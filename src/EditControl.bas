@@ -4126,6 +4126,8 @@ Namespace My.Sys.Forms
 																			sc = @ColorDefines
 																		Case E_Macro
 																			sc = @ColorMacros
+																		Case E_Constant
+																			sc = @ColorConstants
 																		Case Else
 																			sc = @ColorLocalVariables
 																		End Select
@@ -4223,6 +4225,8 @@ Namespace My.Sys.Forms
 																			sc = @ColorGlobalTypes
 																		Case E_Enum
 																			sc = @ColorGlobalEnums
+																		Case E_Constant
+																			sc = @ColorConstants
 																		Case Else
 																			sc = @ColorLocalVariables
 																		End Select
@@ -4261,6 +4265,8 @@ Namespace My.Sys.Forms
 																				sc = @ColorGlobalTypes
 																			Case E_Enum
 																				sc = @ColorGlobalEnums
+																			Case E_Constant
+																				sc = @ColorConstants
 																			Case Else
 																				sc = @ColorLocalVariables
 																			End Select
@@ -4303,6 +4309,8 @@ Namespace My.Sys.Forms
 																					sc = @ColorGlobalTypes
 																				Case E_Enum
 																					sc = @ColorGlobalEnums
+																				Case E_Constant
+																					sc = @ColorConstants
 																				Case Else
 																					sc = @ColorLocalVariables
 																				End Select
