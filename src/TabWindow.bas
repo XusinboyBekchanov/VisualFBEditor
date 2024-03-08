@@ -10099,7 +10099,7 @@ Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar,
 			.pnlForm.Visible = True
 			.splForm.Visible = False
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
-			tpToolbox->SelectTab
+			'tpToolbox->SelectTab
 		Case "CodeAndForm"
 			'If tb->cboClass.Items.Count < 2 Then Exit Sub
 			.pnlForm.Align = DockStyle.alRight
@@ -10108,7 +10108,7 @@ Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar,
 			.splForm.Visible = True
 			.pnlCode.Visible = True
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
-			tpToolbox->SelectTab
+			'tpToolbox->SelectTab
 		End Select
 		.RequestAlign
 	End With
