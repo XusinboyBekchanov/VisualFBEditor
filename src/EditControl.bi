@@ -185,10 +185,11 @@ Namespace My.Sys.Forms
 		Find As Boolean
 		Used As Boolean
 		CtlLibrary As Any Ptr
-		Tag As Any Ptr
 		Types As WStringOrStringList
 		Enums As WStringOrStringList
 		Elements As WStringOrStringList
+		Tag As Any Ptr
+		Tag2 As Any Ptr
 		Declare Destructor
 	End Type
 	

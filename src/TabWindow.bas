@@ -3084,6 +3084,11 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 		If te2->StartLine <= CurrentLine And te2->EndLine >= CurrentLine Then
 			If tb->cboFunction.ItemIndex <> i + 1 Then tb->cboFunction.ItemIndex = i + 1
 			t = True
+			If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
+				If te2->Tag2 <> 0 Then
+					Cast(TreeNode Ptr, te2->Tag2)->SelectItem
+				End If
+			End If
 			bNotFunctionChange = False
 			Exit Sub
 			'For j As Integer = 1 To tb->cboFunction.Items.Count - 1
@@ -8464,6 +8469,7 @@ Sub AddTypeNodes(tn As TreeNode Ptr, te As TypeElement Ptr)
 		tnChild = tnRoot->Nodes.Item(Idx)
 	End If
 	tnChild->Tag = te
+	te->Tag2 = tnChild
 	For i As Integer = 0 To te->Elements.Count - 1
 		AddTypeNodes(tnChild, te->Elements.Object(i))
 	Next
