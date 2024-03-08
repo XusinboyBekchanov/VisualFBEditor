@@ -3084,11 +3084,6 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 		If te2->StartLine <= CurrentLine And te2->EndLine >= CurrentLine Then
 			If tb->cboFunction.ItemIndex <> i + 1 Then tb->cboFunction.ItemIndex = i + 1
 			t = True
-			If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
-				If te2->Tag2 <> 0 Then
-					Cast(TreeNode Ptr, te2->Tag2)->SelectItem
-				End If
-			End If
 			bNotFunctionChange = False
 			Exit Sub
 			'For j As Integer = 1 To tb->cboFunction.Items.Count - 1
@@ -3494,6 +3489,14 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
 				tb->tbrTop.Buttons.Item("Code")->Checked = True
 				tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+				If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
+					If tb->cboFunction.ItemIndex > -1 Then
+						Dim te As TypeElement Ptr = tb->cboFunction.ItemData(tb->cboFunction.ItemIndex)
+						If te->Tag2 <> 0 Then
+							Cast(TreeNode Ptr, te->Tag2)->SelectItem
+						End If
+					End If
+				End If
 				tpProject->SelectTab
 			End If
 			'			tb->pnlCode.Visible = True
