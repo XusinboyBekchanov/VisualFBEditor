@@ -10097,7 +10097,7 @@ frmMain.KeyPreview = True
 #else
 	frmMain.Icon.LoadFromResourceID(1)
 #endif
-frmMain.StartPosition = FormStartPosition.DefaultBounds
+'frmMain.StartPosition = FormStartPosition.DefaultBounds
 frmMain.MainForm = True
 #ifdef __FB_64BIT__
 	frmMain.Text = "Visual FB Editor (x64)"
