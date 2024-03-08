@@ -3494,6 +3494,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
 				tb->tbrTop.Buttons.Item("Code")->Checked = True
 				tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
+				tpProject->SelectTab
 			End If
 			'			tb->pnlCode.Visible = True
 			'			tb->pnlForm.Visible = False
