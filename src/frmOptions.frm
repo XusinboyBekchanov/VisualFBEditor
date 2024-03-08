@@ -768,6 +768,32 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
+		' chkShowSymbolsTooltipsOnMouseHover
+		With chkShowSymbolsTooltipsOnMouseHover
+			.Name = "chkShowSymbolsTooltipsOnMouseHover"
+			.Text = ML("Show Symbols Tooltips On Mouse Hover")
+			.TabIndex = 114
+			.ExtraMargins.Top = 0
+			.Align = DockStyle.alTop
+			.Constraints.Height = 21
+			.AutoSize = True
+			.SetBounds 0, 86, 166, 21
+			'.Caption = ML("Show Symbols Tooltips On Mouse Hover")
+			.Parent = @vbxCodeEditor
+		End With
+		' chkShowSymbolsTooltipsOnMouseHover
+		With chkShowClassesExplorerOnOpenWindow
+			.Name = "ShowClassesExplorerOnOpenWindow"
+			.Text = ML("Show Classes Explorer On Open Window")
+			.TabIndex = 114
+			.ExtraMargins.Top = 0
+			.Align = DockStyle.alTop
+			.Constraints.Height = 21
+			.AutoSize = True
+			.SetBounds 0, 86, 166, 21
+			'.Caption = ML("Show Classes Explorer On Open Window")
+			.Parent = @vbxCodeEditor
+		End With
 		' chkShowHorizontalSeparatorLines
 		With chkShowHorizontalSeparatorLines
 			.Name = "chkShowHorizontalSeparatorLines"
@@ -2874,6 +2900,8 @@ Sub frmOptions.LoadSettings()
 		.chkShowSpaces.Checked = ShowSpaces
 		.chkShowKeywordsTooltip.Checked = ShowKeywordsToolTip
 		.chkShowTooltipsAtTheTop.Checked = ShowTooltipsAtTheTop
+		.chkShowSymbolsTooltipsOnMouseHover.Checked = GlobalSettings.ShowSymbolsTooltipsOnMouseHover
+		.chkShowClassesExplorerOnOpenWindow.Checked = GlobalSettings.ShowClassesExplorerOnOpenWindow
 		.chkShowHorizontalSeparatorLines.Checked = ShowHorizontalSeparatorLines
 		.chkHighlightBrackets.Checked = HighlightBrackets
 		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
@@ -3509,6 +3537,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		ShowSpaces = .chkShowSpaces.Checked
 		ShowKeywordsToolTip = .chkShowKeywordsTooltip.Checked
 		ShowTooltipsAtTheTop = .chkShowTooltipsAtTheTop.Checked
+		GlobalSettings.ShowSymbolsTooltipsOnMouseHover = .chkShowSymbolsTooltipsOnMouseHover.Checked
+		GlobalSettings.ShowClassesExplorerOnOpenWindow = .chkShowClassesExplorerOnOpenWindow.Checked
 		ShowHorizontalSeparatorLines = .chkShowHorizontalSeparatorLines.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
@@ -3688,6 +3718,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "ShowSpaces", ShowSpaces
 		piniSettings->WriteBool "Options", "ShowKeywordsTooltip", ShowKeywordsToolTip
 		piniSettings->WriteBool "Options", "ShowTooltipsAtTheTop", ShowTooltipsAtTheTop
+		piniSettings->WriteBool "Options", "ShowSymbolsTooltipsOnMouseHover", GlobalSettings.ShowSymbolsTooltipsOnMouseHover
+		piniSettings->WriteBool "Options", "ShowClassesExplorerOnOpenWindow", GlobalSettings.ShowClassesExplorerOnOpenWindow
 		piniSettings->WriteBool "Options", "ShowHorizontalSeparatorLines", ShowHorizontalSeparatorLines
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine

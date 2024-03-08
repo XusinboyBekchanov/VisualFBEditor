@@ -11,6 +11,7 @@
 #include once "vbcompat.bi"  ' for could using format function
 #define TabSpace IIf(TabAsSpaces AndAlso ChoosedTabStyle = 0, WSpace(TabWidth), !"\t")
 
+Dim Shared GlobalSettings As GlobalSettings
 Dim Shared FPropertyItems As WStringList
 Dim Shared FListItems As WStringList
 Dim Shared txtCodeBi As EditControl
@@ -18,11 +19,6 @@ Dim Shared mnuCode As PopupMenu
 pmnuCode = @mnuCode
 Dim Shared MouseHoverTimerVal As Double
 txtCodeBi.WithHistory = False
-
-Destructor ExplorerElement
-	If FileName Then _Deallocate( FileName)
-	If TemplateFileName Then _Deallocate( TemplateFileName)
-End Destructor
 
 Constructor ProjectElement
 	WLet(FileDescription, "{ProjectDescription}")
@@ -625,6 +621,7 @@ End Sub
 Declare Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElement Ptr) As UString
 
 Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If (Not InDebug) AndAlso (Not GlobalSettings.ShowSymbolsTooltipsOnMouseHover) Then Exit Sub
 	'If Timer - MouseHoverTimerVal <= 4 Then Exit Sub 'Not InDebug AndAlso 
 	Static As Integer OldY, OldX
 	'MouseHoverTimerVal = Timer
@@ -1161,6 +1158,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 	ptabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
 	_Delete(This.mi)
+	If tn Then tn->Nodes.Clear
 	btnClose.FreeWnd
 	ptabCode->DeleteTab(This.Index)
 	If tn <> 0 AndAlso tn->ImageKey <> "Project" Then ', Will remove all project from tree
@@ -8419,9 +8417,69 @@ Sub TabWindow.ClearTypes
 	AnyTexts.Clear
 End Sub
 
+Sub SetNullTag(tn As TreeNode Ptr)
+	For i As Integer = 0 To tn->Nodes.Count - 1
+		tn->Nodes.Item(i)->Tag = 0
+		SetNullTag(tn->Nodes.Item(i))
+	Next
+End Sub
+
+Sub DeleteNullTag(tn As TreeNode Ptr)
+	For i As Integer = tn->Nodes.Count - 1 To 0 Step -1
+		DeleteNullTag(tn->Nodes.Item(i))
+		If tn->Nodes.Item(i)->Tag = 0 AndAlso tn->Nodes.Item(i)->Nodes.Count = 0 Then
+			tn->Nodes.Remove(i)
+		End If
+	Next
+End Sub
+
+Sub AddTypeNodes(tn As TreeNode Ptr, te As TypeElement Ptr)
+	If te->Tag = 0 Then Exit Sub
+	If te->ElementType = E_ByRefParameter OrElse te->ElementType = E_ByValParameter Then Exit Sub
+	Dim As TreeNode Ptr tnRoot, tnChild
+	Dim As Integer Idx
+	Idx = tn->Nodes.IndexOf(ElementTypeNames(te->ElementType).MLName)
+	If Idx = -1 Then
+		tnRoot = tn->Nodes.Add(ElementTypeNames(te->ElementType).MLName, ElementTypeNames(te->ElementType).Name, , ElementTypeNames(te->ElementType).IconName, ElementTypeNames(te->ElementType).IconName, True)
+	Else
+		tnRoot = tn->Nodes.Item(Idx)
+	End If
+	Idx = tnRoot->Nodes.IndexOf(te->DisplayName)
+	If Idx > -1 Then
+		Dim As Boolean bFinded
+		For i As Integer = Idx To tnRoot->Nodes.Count - 1
+			Idx = -1
+			If tnRoot->Nodes.Item(i)->Text <> te->DisplayName Then 
+				Exit For
+			End If
+			If tnRoot->Nodes.Item(i)->Tag = 0 Then
+				Idx = i
+				Exit For
+			End If
+		Next
+	End If
+	If Idx = -1 Then
+		tnChild = tnRoot->Nodes.Add(te->DisplayName, , , ElementTypeNames(te->ElementType).IconName, ElementTypeNames(te->ElementType).IconName, True)
+	Else
+		tnChild = tnRoot->Nodes.Item(Idx)
+	End If
+	tnChild->Tag = te
+	For i As Integer = 0 To te->Elements.Count - 1
+		AddTypeNodes(tnChild, te->Elements.Object(i))
+	Next
+End Sub
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing Then Exit Sub
+	If Not txtCode.SyntaxEdit Then 
+		If cboClass.Items.Count = 0 Then
+			cboClass.Items.Clear
+			cboClass.Items.Add "(" & ML("General") & ")" & Chr(0), , "DropDown", "DropDown"
+			cboClass.ItemIndex = 0
+		End If
+		Exit Sub
+	End If
 	pfrmMain->UpdateLock
 	bNotDesign = True
 	QuitThread Project, @This
@@ -9305,6 +9363,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->EndChar = u + Len(te->Name)
 							te->Parameters = Trim(res1(n))
 							te->FileName = sFileName
+							te->Tag = tb
 							If func Then func->Elements.Add te->Name, te
 							txtCode.Content.Args.Add te->Name, te
 						Next n
@@ -9968,6 +10027,31 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		Next
 		'cboClass_Change cboClass
 		'OnLineChangeEdit txtCode, iSelEndLine
+	End If
+	If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
+		SetNullTag(tn)
+		For i As Integer = 0 To txtCode.Content.Namespaces.Count - 1
+			AddTypeNodes(tn, txtCode.Content.Namespaces.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.Types.Count - 1
+			AddTypeNodes(tn, txtCode.Content.Types.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.Enums.Count - 1
+			AddTypeNodes(tn, txtCode.Content.Enums.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.Procedures.Count - 1
+			AddTypeNodes(tn, txtCode.Content.Procedures.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.TypeProcedures.Count - 1
+			AddTypeNodes(tn, txtCode.Content.TypeProcedures.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.Args.Count - 1
+			AddTypeNodes(tn, txtCode.Content.Args.Object(i))
+		Next
+		For i As Integer = 0 To txtCode.Content.LineLabels.Count - 1
+			AddTypeNodes(tn, txtCode.Content.LineLabels.Object(i))
+		Next
+		DeleteNullTag(tn)
 	End If
 	WithArgs.Clear
 	ConstructionBlocks.Clear

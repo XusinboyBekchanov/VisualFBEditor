@@ -95,6 +95,13 @@ Type Construction
 	Accessible As Boolean
 End Type
 
+Type ElementType
+	Name As ZString * 50
+	MLName As ZString * 50
+	IconName As ZString * 50
+	Colors As ECColorScheme Ptr
+End Type
+
 Namespace My.Sys.Forms
 	#define QEditControl(__Ptr__) *Cast(EditControl Ptr,__Ptr__)
 	
@@ -143,9 +150,16 @@ Namespace My.Sys.Forms
 		E_Constructor
 		E_Destructor
 		E_Snippet
+		E_Count
 	End Enum
 	
-	Type TypeElement
+	Type ExplorerElement Extends Object
+		FileName As WString Ptr
+		TemplateFileName As WString Ptr
+		Declare Destructor
+	End Type
+	
+	Type TypeElement Extends ExplorerElement
 		Name As String
 		DisplayName As String
 		FullName As String
@@ -690,6 +704,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Dim Shared Constructions() As Construction
+	Dim Shared ElementTypeNames() As ElementType
 	Common As EditControl Ptr CurEC, ScrEC
 	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
 End Namespace

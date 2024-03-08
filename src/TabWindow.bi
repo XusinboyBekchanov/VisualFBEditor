@@ -28,12 +28,6 @@ Using My.Sys.Forms
 
 Declare Sub CompleteWord()
 
-Type ExplorerElement Extends Object
-	FileName As WString Ptr
-	TemplateFileName As WString Ptr
-	Declare Destructor
-End Type
-
 Enum CompileToVariants
 	ByDefault
 	ToGAS
@@ -130,6 +124,11 @@ Type TabPanel Extends Panel
 	Dim As TabControl tabCode
 	Dim As Splitter splGroup
 	Declare Constructor
+End Type
+
+Type GlobalSettings
+	ShowSymbolsTooltipsOnMouseHover As Boolean
+	ShowClassesExplorerOnOpenWindow As Boolean
 End Type
 
 Type TabWindow Extends TabPage

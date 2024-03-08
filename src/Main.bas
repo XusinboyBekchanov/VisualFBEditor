@@ -6228,6 +6228,8 @@ Sub LoadSettings
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
 	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
 	ShowTooltipsAtTheTop = iniSettings.ReadBool("Options", "ShowTooltipsAtTheTop", False)
+	GlobalSettings.ShowSymbolsTooltipsOnMouseHover = iniSettings.ReadBool("Options", "ShowSymbolsTooltipsOnMouseHover", True)
+	GlobalSettings.ShowClassesExplorerOnOpenWindow = iniSettings.ReadBool("Options", "ShowClassesExplorerOnOpenWindow", True)
 	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
@@ -7434,25 +7436,37 @@ Sub tvExplorer_NodeActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 	If Item.ImageKey = "Project" AndAlso Item.ParentNode = 0 Then Exit Sub
 	Dim As ExplorerElement Ptr ee = Item.Tag
 	If ee <> 0 Then
-		Dim As Integer Pos1 = InStrRev(*ee->FileName, ".")
-		If Pos1 > 0 Then
-			Dim As UString Extension = Mid(*ee->FileName, Pos1)
-			For i As Integer = 0 To pOtherEditors->Count - 1
-				Dim As ToolType Ptr Tool = pOtherEditors->Item(i)->Object
-				If InStr(" " & LCase(Tool->Extensions) & ",", " " & LCase(Extension) & ",") > 0 Then
-					If Not FileExists(GetFullPath(Tool->Path)) Then Continue For
-					'Shell """" & Tool->GetCommand(*ee->FileName) & """"
-					PipeCmd "", Tool->GetCommand(*ee->FileName)
-					Exit Sub
+		If *ee Is TypeElement Then
+			Dim As TypeElement Ptr te = Item.Tag
+			If te->Tag <> 0 Then
+				Dim As TabWindow Ptr tb = te->Tag
+				If Not tb->IsSelected Then
+					tb->SelectTab
 				End If
-			Next
-		End If
-		If (EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
-			EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse EndsWith(*ee->FileName, ".gif") OrElse EndsWith(*ee->FileName, ".avi") OrElse _
-			EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
-			'Shell *ee->FileName
-			PipeCmd "", *ee->FileName
+				tb->txtCode.SetSelection te->StartLine, te->StartLine, te->StartChar, te->StartChar
+			End If
 			Exit Sub
+		Else
+			Dim As Integer Pos1 = InStrRev(*ee->FileName, ".")
+			If Pos1 > 0 Then
+				Dim As UString Extension = Mid(*ee->FileName, Pos1)
+				For i As Integer = 0 To pOtherEditors->Count - 1
+					Dim As ToolType Ptr Tool = pOtherEditors->Item(i)->Object
+					If InStr(" " & LCase(Tool->Extensions) & ",", " " & LCase(Extension) & ",") > 0 Then
+						If Not FileExists(GetFullPath(Tool->Path)) Then Continue For
+						'Shell """" & Tool->GetCommand(*ee->FileName) & """"
+						PipeCmd "", Tool->GetCommand(*ee->FileName)
+						Exit Sub
+					End If
+				Next
+			End If
+			If (EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
+				EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse EndsWith(*ee->FileName, ".gif") OrElse EndsWith(*ee->FileName, ".avi") OrElse _
+				EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
+				'Shell *ee->FileName
+				PipeCmd "", *ee->FileName
+				Exit Sub
+			End If
 		End If
 	End If
 	Dim t As Boolean
@@ -7744,26 +7758,35 @@ pnlLeftPin.Parent = @pnlLeft
 	#endif
 #endif
 
-Sub SetVisibleToTreeNode(Node As TreeNode Ptr, ByRef SearchText As WString)
+Function SetVisibleToTreeNode(Node As TreeNode Ptr, ByRef SearchText As WString) As Boolean
 	Dim As Boolean bVisible
 	If Node->Nodes.Count > 0 Then
-		For i As Integer = 0 To Node->Nodes.Count - 1
-			SetVisibleToTreeNode(Node->Nodes.Item(i), SearchText)
-		Next
-	Else
-		bVisible =  SearchText = "" OrElse InStr(LCase(Node->Text), SearchText) > 0
-		Node->Visible = bVisible
-		If SearchText <> "" Then
-			If Node->ParentNode <> 0 Then Node->ParentNode->Expand
+		If SearchText = "" AndAlso (Node->ParentNode <> 0 OrElse Node->ImageKey <> "Project") Then
+			Node->Collapse
+		Else
+			Node->Expand
 		End If
 	End If
-End Sub
+	For i As Integer = 0 To Node->Nodes.Count - 1
+		If SetVisibleToTreeNode(Node->Nodes.Item(i), SearchText) Then
+			bVisible = True
+		End If
+	Next
+	If Not bVisible Then
+		bVisible = SearchText = "" OrElse InStr(LCase(Node->Text), SearchText) > 0
+	End If
+	Node->Visible = bVisible
+	Return bVisible
+End Function
 
 Sub txtExplorer_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	Dim As UString SearchText = Trim(LCase(txtExplorer.Text))
 	For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 		SetVisibleToTreeNode(tvExplorer.Nodes.Item(i), SearchText)
 	Next
+	If SearchText <> "" Then
+		tvExplorer.ExpandAll
+	End If
 End Sub
 
 txtExplorer.ExtraMargins.Right = pnlLeftPin.Width + 2
