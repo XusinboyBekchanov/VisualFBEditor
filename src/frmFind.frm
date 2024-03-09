@@ -906,6 +906,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				End If
 			Wend
 		Next i
+		tb->FormDesign
 		tb->txtCode.Changed "ReplaceAll"
 		tb->txtCode.PaintControl(True)
 		tpFind->SelectTab
