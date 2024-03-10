@@ -6187,13 +6187,25 @@ Sub LoadSettings
 	WLet(MakeToolPath1, MakeTools.Get(*CurrentMakeTool1, "make"))
 	WLet(CurrentMakeTool2, *DefaultMakeTool)
 	WLet(MakeToolPath2, MakeTools.Get(*CurrentMakeTool2, "make"))
-	WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", ""))
+	#ifdef __FB_64BIT__
+		WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated GDB Debugger"))
+	#else
+		WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated IDE Debugger"))
+	#endif
+	DefaultDebuggerType32 = IIf(*DefaultDebugger32 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger32 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
 	WLet(CurrentDebugger32, *DefaultDebugger32)
+	CurrentDebuggerType32 = DefaultDebuggerType32
 	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
 	WLet(GDBDebugger32, iniSettings.ReadString("Debuggers", "GDBDebugger32", ""))
 	WLet(GDBDebugger32Path, Debuggers.Get(*GDBDebugger32, ""))
-	WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", ""))
+	#ifdef __FB_64BIT__
+		WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "Integrated IDE Debugger"))
+	#else
+		WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "Integrated GDB Debugger"))
+	#endif
+	DefaultDebuggerType64 = IIf(*DefaultDebugger64 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger32 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
 	WLet(CurrentDebugger64, *DefaultDebugger64)
+	CurrentDebuggerType64 = DefaultDebuggerType64
 	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
 	WLet(GDBDebugger64, iniSettings.ReadString("Debuggers", "GDBDebugger64", ""))
 	WLet(GDBDebugger64Path, Debuggers.Get(*GDBDebugger64, ""))

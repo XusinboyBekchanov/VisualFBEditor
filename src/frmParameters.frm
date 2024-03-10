@@ -312,10 +312,10 @@ Sub frmParameters.LoadSettings()
 			.cboDebug32.AddItem pDebuggers->Item(i)->Key
 			.cboDebug64.AddItem pDebuggers->Item(i)->Key
 		Next
-		.cboDebug32.ItemIndex = .cboDebug32.IndexOf(*CurrentDebugger32)
-		.cboDebug64.ItemIndex = .cboDebug64.IndexOf(*CurrentDebugger64)
-		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = .cboDebug32.IndexOf(*DefaultDebugger32)
-		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = .cboDebug64.IndexOf(*DefaultDebugger64)
+		.cboDebug32.ItemIndex = IIf(CurrentDebuggerType32 = CustomDebugger, .cboDebug32.IndexOf(*CurrentDebugger32), CurrentDebuggerType32)
+		.cboDebug64.ItemIndex = IIf(CurrentDebuggerType64 = CustomDebugger, .cboDebug64.IndexOf(*CurrentDebugger64), CurrentDebuggerType64)
+		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = IIf(DefaultDebuggerType32 = CustomDebugger, .cboDebug32.IndexOf(ML(*DefaultDebugger32)), DefaultDebuggerType32)
+		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = IIf(DefaultDebuggerType64 = CustomDebugger, .cboDebug64.IndexOf(ML(*DefaultDebugger64)), DefaultDebuggerType64)
 		If .cboDebug32.ItemIndex = -1 Then .cboDebug32.ItemIndex = 0
 		If .cboDebug64.ItemIndex = -1 Then .cboDebug64.ItemIndex = 0
 	End With
@@ -348,8 +348,10 @@ Private Sub frmParameters.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		WLet(MakeToolPath2, pMakeTools->Get(*CurrentMakeTool2, pMakeTools->Get(*DefaultMakeTool)))
 		WLet(CurrentTerminal, .cboRun.Text)
 		WLet(TerminalPath, IIf(.cboRun.ItemIndex = 0, pTerminals->Get(*DefaultTerminal), pTerminals->Get(*CurrentTerminal)))
-		WLet(CurrentDebugger32, .cboDebug32.Text)
-		WLet(CurrentDebugger64, .cboDebug64.Text)
+		WLet(CurrentDebugger32, IIf(.cboDebug32.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebug32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebug32.Text)))
+		WLet(CurrentDebugger64, IIf(.cboDebug64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebug64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebug64.Text)))
+		CurrentDebuggerType32 = IIf(.cboDebug32.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebug32.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+		CurrentDebuggerType64 = IIf(.cboDebug64.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebug64.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
 		WLet(Debugger32Path, IIf(.cboDebug32.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger32), pDebuggers->Get(*CurrentDebugger32)))
 		WLet(Debugger64Path, IIf(.cboDebug64.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger64), pDebuggers->Get(*CurrentDebugger64)))
 		piniSettings->WriteString "Parameters", "Compiler32Arguments", *Compiler32Arguments

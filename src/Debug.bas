@@ -327,6 +327,14 @@ Dim Shared exedate As Double 'serial date
 Dim Shared As String compilerversion ''compiler version retrieved stabs code = 255
 Dim Shared As String cmdlimmediat
 
+Enum DebuggerTypes
+	IntegratedIDEDebugger
+	IntegratedGDBDebugger
+	CustomDebugger
+End Enum
+
+Dim Shared As DebuggerTypes DefaultDebuggerType32, DefaultDebuggerType64, CurrentDebuggerType32, CurrentDebuggerType64
+
 '===================================================
 '' set/unset breakpoint markers
 '===================================================
@@ -8703,7 +8711,7 @@ Private Function elf_extract(filename As String) As Integer
 	Dim As Integer start_section,str_section,sect_num,walk_section,dbg_dat_of,dbg_dat_size,dbg_str_of
 	Dim As String sect_name= Space(40)
 	
-	Open filename For binary As #1
+	Open filename For Binary As #1
 	lgf=LOF(1)
 	'dbg_prt2 "lenght=";lgf
 	
@@ -8752,14 +8760,14 @@ Private Function elf_extract(filename As String) As Integer
 		ofset=walk_section+of_offset_infile
 		Get #1,ofset+1,ulgt
 		'dbg_prt2 "offset in file= ";hex(ulgt);" ";
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			If sect_name=".dbgdat" Then
 		#else
 			If sect_name=".stab" Then
 		#endif
 			'dbg_prt2 "name=";sect_name
 			dbg_dat_of=ulgt
-			#Ifdef __FB_64BIT__
+			#ifdef __FB_64BIT__
 			ElseIf sect_name=".dbgstr" Then
 			#else
 			ElseIf sect_name=".stabstr" Then
@@ -8798,7 +8806,7 @@ End Function
 '============================================================================
 Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As Long = NODLL) As Integer
 	Dim recup As ZString *MAX_STAB_SZ '20/07/2014
-	Dim recupstab As udtstab, secnb As UShort, secnm As ZString * 8, lastline As UShort = 0, firstline As Integer = 0
+	Dim recupstab As udtstab, secnb As UShort, secnm As ZString * 9, lastline As UShort = 0, firstline As Integer = 0
 	Dim As UInteger basestab=0,basestabs=0,pe,baseimg,sizemax,sizestabs,proc1,proc2
 	Dim sourceix As Integer,sourceixs As Integer
 	Dim As Byte procfg,flag=0,procnodll=True,flagstabd=True 'flags  (flagstabd to skip stabd 68,0,1)
@@ -8824,7 +8832,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 	#ifdef __FB_64BIT__ '22/07/2015
 		pe+=42
 	#else
-		pe+=46 'adr compiled baseimage
+		pe+= 46 'adr compiled baseimage
 	#endif
 	ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@baseimg,SizeOf(Integer),0) '22/07/2015
 	#ifdef __FB_64BIT__ '22/07/2015
@@ -8834,15 +8842,15 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 	#endif
 	For i As UShort =1 To secnb
 		Dim As UInteger basedata,sizedata
-		secnm=String(8,0) 'Init var
-		ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@secnm,8,0) 'read 8 bytes max name size
-		#Ifdef __FB_64BIT__
+		secnm = String(9, 0) 'Init var
+		ReadProcessMemory(dbghand, Cast(LPCVOID, pe), @secnm, 8, 0) 'read 8 bytes max name size
+		#ifdef __FB_64BIT__
 			If secnm = ".dbgdat" Then
 		#else
 			If secnm = ".stab" Then
 		#endif
 			ReadProcessMemory(dbghand,Cast(LPCVOID,pe+12),@basestab,4,0)
-			#Ifdef __FB_64BIT__
+			#ifdef __FB_64BIT__
 			ElseIf secnm = ".dbgstr" Then
 			#else
 			ElseIf secnm = ".stabstr" Then
@@ -8868,7 +8876,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 		If flagdwarf = 0 OrElse flagdwarf = -1 Then
 			If flagdll=NODLL Then
 				If flagattach = False Then
-					ThreadsEnter: MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64 and -g. Killing the debuggee"), "VisualFBEditor"): ThreadsLeave ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
+					ThreadsEnter: MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64 and -g. Killing the debuggee"), "VisualFBEditor: " & ML("Integrated IDE Debugger")): ThreadsLeave ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
 				Else
 					hard_closing("Attaching running program" + Chr(10) + "No information for Debugging")
 				End If
@@ -9507,8 +9515,8 @@ Private Function kill_process(text As String) As Integer
 				#ifdef fulldbg_prt
 					dbg_prt ("return code terminate process ="+Str(retcode)+" lasterror="+GetErrorString(lasterr))
 				#endif
-				Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
-				If *CurrentDebugger = ML("Integrated IDE Debugger") Then
+				Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
+				If CurrentDebugger = IntegratedIDEDebugger Then
 					thread_rsm()
 				End If
 				While prun:Sleep 500:Wend
@@ -14851,7 +14859,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	Dim As WString Ptr Workdir, CmdL
 	#ifndef __USE_GTK__
 		Dim SInfo As STARTUPINFO
-		Dim PInfo As PROCESS_INFORMATION
+		Dim pinfo As PROCESS_INFORMATION
 	#endif
 	ThreadsEnter()
 	Dim As ProjectElement Ptr Project
@@ -14869,6 +14877,7 @@ Sub RunWithDebug(Param As Any Ptr)
 	End If
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbt32Bit->Checked
+	Dim As DebuggerTypes CurrentDebuggerType = IIf(Bit32, CurrentDebuggerType32, CurrentDebuggerType64)
 	Dim As WString Ptr CurrentDebugger = IIf(Bit32, CurrentDebugger32, CurrentDebugger64)
 	Dim As WString Ptr DebuggerPath = IIf(Bit32, Debugger32Path, Debugger64Path)
 	Dim As WString Ptr GDBDebuggerPath = IIf(Bit32, GDBDebugger32Path, GDBDebugger64Path)
@@ -14965,7 +14974,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			End If
 			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then CommandLine = *EnvironmentVariables & " " & CommandLine
 			'IIf(WGet(DebuggerPath) = "", "gdb", Trim(WGet(DebuggerPath)) & """ """ & Replace(ExeName, "\", "/") & IIf(*Arguments = "", "", " " & *Arguments)) & """"
-			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+			If CurrentDebuggerType = IntegratedGDBDebugger Then
 				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 					ThreadsEnter()
 					ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
@@ -14995,7 +15004,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
-			ElseIf *CurrentDebugger = "" OrElse *CurrentDebugger = ML("Integrated IDE Debugger") Then
+			ElseIf CurrentDebuggerType = IntegratedIDEDebugger Then
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
 				ThreadsEnter: If kill_process(ML("Trying to launch but debuggee still running")) = False Then ThreadsLeave: Exit Sub Else ThreadsLeave
 				flagrestart = -1
@@ -15047,7 +15056,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			ChangeEnabledDebug True, False, False
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
-			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
+			If CurrentDebuggerType = IntegratedGDBDebugger Then
 				tvVar.Visible = False
 				lvLocals.Visible = True
 				tvThd.Visible = False

@@ -3012,8 +3012,8 @@ Sub frmOptions.LoadSettings()
 			.cboGDBDebugger32.AddItem pDebuggers->Item(i)->Key
 			.cboGDBDebugger64.AddItem pDebuggers->Item(i)->Key
 		Next
-		.cboDebugger32.ItemIndex = Max(0, .cboDebugger32.IndexOf(*DefaultDebugger32))
-		.cboDebugger64.ItemIndex = Max(0, .cboDebugger64.IndexOf(*DefaultDebugger64))
+		.cboDebugger32.ItemIndex = IIf(DefaultDebuggerType32 = DebuggerTypes.CustomDebugger, Max(0, .cboDebugger32.IndexOf(ML(*DefaultDebugger32))), DefaultDebuggerType32)
+		.cboDebugger64.ItemIndex = IIf(DefaultDebuggerType32 = DebuggerTypes.CustomDebugger, Max(0, .cboDebugger64.IndexOf(ML(*DefaultDebugger64))), DefaultDebuggerType64)
 		.cboGDBDebugger32.ItemIndex = Max(0, .cboGDBDebugger32.IndexOf(*GDBDebugger32))
 		.cboGDBDebugger64.ItemIndex = Max(0, .cboGDBDebugger64.IndexOf(*GDBDebugger64))
 		.cboTerminal.Clear
@@ -3418,13 +3418,17 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			Tool->Parameters = .lvDebuggerPaths.ListItems.Item(i)->Text(2)
 			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		If *DefaultDebugger32 <> IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger32) Then
-			WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "", .cboDebugger32.Text))
+		If *DefaultDebugger32 <> IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger32.Text)) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger32) Then
+			WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger32.Text)))
 			WLet(CurrentDebugger32, *DefaultDebugger32)
+			DefaultDebuggerType32 = IIf(.cboDebugger32.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebugger32.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+			CurrentDebuggerType32 = DefaultDebuggerType32
 		End If
-		If *DefaultDebugger64 <> IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger64) Then
-			WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "", .cboDebugger64.Text))
+		If *DefaultDebugger64 <> IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger64.Text)) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger64) Then
+			WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger64.Text)))
 			WLet(CurrentDebugger64, *DefaultDebugger64)
+			DefaultDebuggerType64 = IIf(.cboDebugger64.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebugger64.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+			CurrentDebuggerType64 = DefaultDebuggerType64
 		End If
 		WLet(Debugger32Path, pDebuggers->Get(*CurrentDebugger32))
 		WLet(Debugger64Path, pDebuggers->Get(*CurrentDebugger64))
