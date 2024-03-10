@@ -103,7 +103,8 @@ Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
-Dim Shared As TextBox txtOutput, txtImmediate, txtChangeLog ' Add Change Log
+Dim Shared As TextBox txtOutput, txtImmediate
+Dim Shared As TextBox txtChangeLog ' Add Change Log
 Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
@@ -3184,7 +3185,6 @@ Sub TimerProc()
 		tb = AddTab(LCase(source(fntab)))
 	End If
 	If tb = 0 Then Exit Sub
-	ChangeEnabledDebug True, False, True
 	CurEC = @tb->txtCode
 	tb->txtCode.CurExecutedLine = fcurlig - 1
 	tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
@@ -3198,23 +3198,29 @@ End Sub
 
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Function TimerProcGDB() As Integer
-		If fcurlig < 1 Then Return 1
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
-			tb = AddTab(CurrentFile)
+		If fcurlig < 1 AndAlso fcurlig <> -2 Then Return 1
+		ChangeEnabledDebug True, False, True
+		If fcurlig <> -2 Then
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+			If tb = 0 OrElse Not EqualPaths(tb->FileName, CurrentFile) Then
+				tb = AddTab(CurrentFile)
+			End If
+			If tb Then
+				CurEC = @tb->txtCode
+				tb->txtCode.CurExecutedLine = fcurlig - 1
+				tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
+				tb->txtCode.PaintControl
+			End If
+		Else
+			tpOutput->SelectTab
+			txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
+			txtOutput.ScrollToCaret
 		End If
-		If tb Then
-			ChangeEnabledDebug True, False, True
-			CurEC = @tb->txtCode
-			tb->txtCode.CurExecutedLine = fcurlig - 1
-			tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
-			tb->txtCode.PaintControl
-			'info_all_variables_debug()
-			#ifdef __USE_WINAPI__
-				SetForegroundWindow pApp->MainForm->Handle
-			#endif
-			fcurlig = -1
-		End If
+		'info_all_variables_debug()
+		#ifdef __USE_WINAPI__
+			SetForegroundWindow pApp->MainForm->Handle
+		#endif
+		fcurlig = -1
 		Return 1
 	End Function
 #endif
@@ -8798,7 +8804,7 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 	pnlPropertyValue.Visible = False
 	If tb->cboClass.Items.Count > 1 Then
 		tb->FillAllProperties
-		tpProperties->SelectTab
+		'tpProperties->SelectTab
 		miForm->Enabled = True
 		miCodeAndForm->Enabled = True
 		tb->tbrTop.Buttons.Item("Form")->Enabled = True
@@ -8811,7 +8817,7 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 		tb->tbrTop.Buttons.Item("Form")->Enabled = False 
 		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-		SetRightClosedStyle True, True
+		'SetRightClosedStyle True, True
 	End If
 	If tb->FileName = "" Then
 		frmMain.Caption = tb->Caption & " - " & App.Title
@@ -9222,6 +9228,10 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 		tabBottom_SelChange(*ptabBottom->Designer, *ptabBottom, 0)
 		tpOutput->SelectTab
 	End If
+	Dim As Integer AddingTextLength = Len(msg & WChr(13) & WChr(10))
+	If txtOutput.GetTextLength + AddingTextLength > 64000 Then
+		txtOutput.Text = Mid(txtOutput.Text, txtOutput.GetCharIndexFromLine(txtOutput.GetLineFromCharIndex(AddingTextLength) + 1))
+	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
 	txtOutput.SelText = msg & WChr(13) & WChr(10)
 	tabBottom.Update
@@ -9371,21 +9381,40 @@ pnlBottomPin.Parent = @pnlBottom
 	PrintPreviewD.Document->OnPrintPage = @Document_PrintPage
 #endif
 
+Function ControlInParent Overload(Ctrl As Control Ptr, Parent As Control Ptr) As Boolean
+	If Ctrl = 0 Then
+		Return False
+	ElseIf Ctrl = Parent Then
+		Return True
+	Else
+		Return ControlInParent(Ctrl->Parent, Parent)
+	End If
+End Function
+
+Function ControlInParent Overload(Ctrl As Control Ptr, ByRef ParentName As WString) As Boolean
+	If Ctrl = 0 Then
+		Return False
+	ElseIf Ctrl->Name = ParentName Then
+		Return True
+	Else
+		Return ControlInParent(Ctrl->Parent, ParentName)
+	End If
+End Function
+
 Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
 	If frmMain.ActiveControl = 0 Then Exit Sub
 	If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
-		If frmMain.ActiveControl->Parent <> tabLeft.SelectedTab AndAlso frmMain.ActiveControl <> @tabLeft Then
+		If Not ControlInParent(frmMain.ActiveControl, @tabLeft) Then
 			CloseLeft
 		End If
 	End If
 	If tabRight.TabPosition = tpRight And tabRight.SelectedTabIndex <> -1 Then
-		If frmMain.ActiveControl->Parent <> tabRight.SelectedTab AndAlso frmMain.ActiveControl <> @tabRight AndAlso frmMain.ActiveControl <> @frmMain _
-			AndAlso frmMain.ActiveControl <> @txtPropertyValue AndAlso frmMain.ActiveControl <> @cboPropertyValue Then
+		If (Not ControlInParent(frmMain.ActiveControl, @tabRight)) AndAlso (Not ControlInParent(frmMain.ActiveControl, "Designer")) Then
 			CloseRight()
 		End If
 	End If
 	If ptabBottom->TabPosition = tpBottom And ptabBottom->SelectedTabIndex <> -1 Then
-		If frmMain.ActiveControl->Parent <> ptabBottom->SelectedTab AndAlso frmMain.ActiveControl <> ptabBottom Then
+		If Not ControlInParent(frmMain.ActiveControl, @tabBottom) Then
 			CloseBottom
 		End If
 	End If

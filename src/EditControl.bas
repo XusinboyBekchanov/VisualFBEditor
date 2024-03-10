@@ -5515,6 +5515,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ShowMouseHoverToolTipAt(X As Integer, Y As Integer)
 		MouseHoverToolTipShowed = True
+		Dim As Boolean IsFocused = Focused
 		If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
@@ -5557,7 +5558,7 @@ Namespace My.Sys.Forms
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTTMouseHover, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
 		#endif
-		This.SetFocus
+		If IsFocused Then This.SetFocus
 	End Sub
 	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)

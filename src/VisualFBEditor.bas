@@ -192,6 +192,11 @@ Sub mClickWindow(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	If tb <> 0 Then tb->SelectTab
 End Sub
 
+Sub ClearThreadsWindow
+	lvThreads.Nodes.Clear
+	tpThreads->Caption = ML("Threads")
+End Sub
+
 Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Select Case Sender.ToString
 	Case "NewProject":                          NewProject
@@ -319,6 +324,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "LocateProcedure":                     proc_loc
 	Case "EnableDisable":                       proc_enable
 	Case "StartWithCompile"
+		ClearThreadsWindow
 		If SaveAllBeforeCompile Then
 			ChangeEnabledDebug False, True, True
 			'SaveAll '
@@ -368,6 +374,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 	Case "Start"
+		ClearThreadsWindow
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -447,6 +454,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			'#endif
 		End If
 	Case "Restart"
+		ClearThreadsWindow
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -466,6 +474,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			'#endif
 		End If
 	Case "StepInto":
+		ClearThreadsWindow
 		ptabBottom->TabIndex = 6 'David Changed
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
@@ -507,6 +516,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 	Case "StepOver":
+		ClearThreadsWindow
 		Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 		If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -611,6 +621,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
 		Case "SetNextStatement":
+			ClearThreadsWindow
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -628,6 +639,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				var_tip(1)
 			'#endif
 		Case "StepOut":
+			ClearThreadsWindow
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -652,6 +664,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				#endif
 			End If
 		Case "RunToCursor":
+			ClearThreadsWindow
 			Dim As WString Ptr CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebugger32, CurrentDebugger64)
 			If *CurrentDebugger = ML("Integrated GDB Debugger") Then
 				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))

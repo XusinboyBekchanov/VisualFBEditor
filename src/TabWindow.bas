@@ -557,14 +557,14 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->tbrTop.Buttons.Item("Form")->Enabled = False
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-			SetRightClosedStyle True, True
+			'SetRightClosedStyle True, True
 		Else
-			SetRightClosedStyle False, False
+			'SetRightClosedStyle False, False
 			miForm->Enabled = True
 			miCodeAndForm->Enabled = True
 			tb->tbrTop.Buttons.Item("Form")->Enabled = True
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
-			tpProperties->SelectTab
+			'tpProperties->SelectTab
 		End If
 		TabCtl.MoveCloseButtons ptabCode
 	End If

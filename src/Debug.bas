@@ -8128,7 +8128,7 @@ End Sub
 				'dbg_prt2("Line Adr="+Hex(rline(i).ad)+" "+Str(rline(i).ad))
 				If rline(i).ad>=proc(dwlastprc).db AndAlso rline(i).ad<=proc(dwlastprc).fn Then
 					'dbg_prt2("Cancel breakpoint adr="+Hex(rline(i).ad)+" "+Str(rline(i).ad))
-					writeprocessmemory(dbghand,Cast(LPVOID,rline(i).ad),@rline(i).sv,1,0)
+					WriteProcessMemory(dbghand,Cast(LPVOID,rline(i).ad),@rline(i).sv,1,0)
 					'nota rline(linenb).nu=-1
 				End If
 			Next
@@ -12352,7 +12352,7 @@ End Sub
 #if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	Dim Shared As Long pIn, pOut
 	
-	Declare Function readpipe(WithoutAnswer As Boolean = False) As String
+	Declare Function readpipe(WithoutAnswer As Boolean = False, WithoutShowing As Boolean = False) As String
 	Declare Function CreatePipeD(szCmd As WString Ptr , szCmdParam As WString Ptr = 0 , szCmdParam2 As WString Ptr = 0) As Long
 	
 	#ifdef __FB_WIN32__
@@ -12583,7 +12583,7 @@ End Sub
 		
 	End Function
 	
-	Function readpipe(WithoutAnswer As Boolean = False) As String
+	Function readpipe(WithoutAnswer As Boolean = False, WithoutShowing As Boolean = False) As String
 		
 		Dim As String sRet
 		
@@ -12605,7 +12605,9 @@ End Sub
 				If sBuffer = "--Type <RET> for more, q to quit, c to continue without paging--" Then
 					writepipe !"\n"
 				End If
-				ShowMessages sBuffer, False
+				If Not WithoutShowing Then
+					ShowMessages sBuffer, False
+				End If
 				'?sBuffer
 			Loop While Not (CBool(InStr(sOutput, Chr(10) & "(gdb) ")) OrElse CBool(InStr(sOutput, "~*~(gdb) ")) OrElse IIf(WithoutAnswer, CBool(sOutput = "(gdb) "), StartsWith(sOutput, "(gdb) ") AndAlso CBool(Len(sOutput) > 6 OrElse Count > 1)))
 			'WriteFile(hWritePipe, @s, Len(s), Cast(Any Ptr, @iNumberOfBytesWritten), NULL) =  '
@@ -12697,7 +12699,7 @@ End Sub
 	
 	#ifdef __FB_WIN32__
 		
-		Sub Writepipe(ByRef s As ZString, iTime As Long = 30)
+		Sub writepipe(ByRef s As ZString, iTime As Long = 30)
 			Dim As Integer iNumberOfBytesWritten
 			WriteFile(hWritePipe, @s, Len(s), Cast(Any Ptr, @iNumberOfBytesWritten), NULL)
 			'Sleep (iTime)
@@ -13067,7 +13069,7 @@ End Sub
 	#endif
 	
 	Declare Sub kill_debug()
-	Declare Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
+	Declare Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0, WithoutShowing As Boolean = False)
 	
 	Function timer_data() As Integer
 		
@@ -13289,7 +13291,7 @@ End Sub
 		
 		Dim As String s = !"define _g_\n" & sMacroGLB & !"end\n"
 		
-		Writepipe(s, 100)
+		writepipe(s, 100)
 		
 		'readpipe()
 		
@@ -13297,7 +13299,7 @@ End Sub
 		
 		s = !"define _l_\ninfo args\ninfo locals\nend\n"
 		
-		Writepipe(s, 100)
+		writepipe(s, 100)
 		
 		'readpipe()
 		
@@ -13305,7 +13307,7 @@ End Sub
 		
 		s = !"define _sg_\ns\n_g_\nend\n"
 		
-		Writepipe(s, 100)
+		writepipe(s, 100)
 		
 		'readpipe()
 		
@@ -13524,7 +13526,9 @@ End Sub
 			
 		Next
 		
-		lvThreads.ExpandAll
+		If lvThreads.Nodes.Count > 0 Then
+			lvThreads.Nodes.Item(0)->Expand
+		End If
 		tpThreads->Caption = ML("Threads") & " (" & lvThreads.Nodes.Count & " " & ML("Pos") & ")"
 		
 		Return 1
@@ -14106,7 +14110,7 @@ End Sub
 		
 		'Updateinfoxserver(10)
 		
-		readpipe(True)
+		readpipe(True, True)
 		
 		'Updateinfoxserver(30)
 		
@@ -14114,15 +14118,15 @@ End Sub
 		
 		'Updateinfoxserver(10)
 		
-		readpipe(True)
+		readpipe(True, True)
 		
 		writepipe(!"set width 0\n" , 100)
 		
-		readpipe(True)
+		readpipe(True, True)
 		
 		writepipe(!"set height 0\n" , 100)
 		
-		readpipe(True)
+		readpipe(True, True)
 		
 		'Updateinfoxserver(10)
 		
@@ -14144,7 +14148,7 @@ End Sub
 		
 		'Updateinfoxserver(30)
 		
-		sTemp = readpipe()
+		sTemp = readpipe(, True)
 		
 		If Len(sTemp) Then
 			
@@ -14294,9 +14298,9 @@ End Sub
 	'
 	'End Sub
 	
-	Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0)
+	Sub get_read_data(iFlag As Long , iFlagAutoUpdate As Long = 0, WithoutShowing As Boolean = False)
 		
-		szDataForPipe = readpipe()
+		szDataForPipe = readpipe(, WithoutShowing)
 		
 		If Len(szDataForPipe) Then
 			
@@ -14431,7 +14435,7 @@ End Sub
 			'#endif
 			
 			'run_pipe_write(!"r\n" , 300)
-			Writepipe !"r\n"
+			writepipe !"r\n"
 			
 			MutexLock tlockGDB
 			Dim As String Result
@@ -14452,7 +14456,7 @@ End Sub
 							
 							'killtimer(0, TimerID)
 							
-							Writepipe(!"info inferiors\n")
+							writepipe(!"info inferiors\n")
 							
 							'Updateinfoxserver(10)
 							
@@ -14502,6 +14506,7 @@ End Sub
 						ThreadsLeave
 						WatchIndex = -1
 					Else
+						fcurlig = -2
 						line_highlight iStateMenu
 						If iFlagStartDebug = 0 Then Exit Do
 						info_loc_variables_debug
@@ -14513,7 +14518,7 @@ End Sub
 						For i As Integer = 0 To lvWatches.Nodes.Count - 1
 							If Trim(lvWatches.Nodes.Item(i)->Text(0)) = "" Then Continue For
 							writepipe "print " & UCase(lvWatches.Nodes.Item(i)->Text(0)) & !"\n"
-							Result = readpipe
+							Result = readpipe(, True)
 							UpdateWatch i, Result
 						Next
 						ThreadsLeave
@@ -14716,7 +14721,7 @@ End Sub
 		
 		'memset(@szDataForPipe , 0 , 200000)
 		
-		get_read_data(4, iFlagAutoUpdate)
+		get_read_data(4, iFlagAutoUpdate, True)
 		
 	End Sub
 	
@@ -14728,7 +14733,7 @@ End Sub
 		
 		'memset(@szDataForPipe , 0 , 200000)
 		
-		get_read_data(3 , iFlagAutoUpdate)
+		get_read_data(3 , iFlagAutoUpdate, True)
 		
 	End Sub
 	
@@ -14740,7 +14745,7 @@ End Sub
 		
 		'memset(@szDataForPipe , 0 , 200000)
 		
-		get_read_data(2 , iFlagUpdate)
+		get_read_data(2 , iFlagUpdate, True)
 		
 	End Sub
 	
@@ -14781,6 +14786,8 @@ End Sub
 		iFlagUpdateVariables = 0
 		
 		iCounterUpdateVariables = 0
+		
+		fcurlig = -1
 		
 		DeleteDebugCursor
 		
