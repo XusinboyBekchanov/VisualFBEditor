@@ -97,7 +97,7 @@ End Type
 
 Type ElementType
 	Name As ZString * 50
-	MLName As ZString * 50
+	MLName As WString * 50
 	IconName As ZString * 50
 	Colors As ECColorScheme Ptr
 End Type
