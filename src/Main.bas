@@ -6203,7 +6203,7 @@ Sub LoadSettings
 	#else
 		WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "Integrated GDB Debugger"))
 	#endif
-	DefaultDebuggerType64 = IIf(*DefaultDebugger64 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger32 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
+	DefaultDebuggerType64 = IIf(*DefaultDebugger64 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger64 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
 	WLet(CurrentDebugger64, *DefaultDebugger64)
 	CurrentDebuggerType64 = DefaultDebuggerType64
 	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
