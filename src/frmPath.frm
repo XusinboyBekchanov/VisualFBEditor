@@ -193,7 +193,7 @@ End Sub
 Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 	With This
 		If ForConfiguration Then
-			If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+			If frmCompilerOptions.ShowModal(Me) = ModalResults.OK Then
 				.txtPath.Text = ""
 				For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
 					If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
@@ -204,7 +204,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 				Me.BringToFront
 			End If
 		ElseIf .WithKey AndAlso .cboType.ItemIndex = 0 Then
-			If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+			If pfImageManager->ShowModal(Me) = ModalResults.OK Then
 				If pfImageManager->SelectedItem <> 0 Then
 					.txtPath.Text = pfImageManager->SelectedItem->Text(0)
 					.txtVersion.Text = .txtPath.Text

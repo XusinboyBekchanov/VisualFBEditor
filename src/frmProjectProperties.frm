@@ -1474,7 +1474,7 @@ Private Sub frmProjectProperties.cmdAdvancedOptions_Click(ByRef Designer As My.S
 				.chkShowMainWarnings.Checked = ppe->ShowMainWarnings
 			End If
 		End If
-		.ShowModal *pfrmMain
+		.ShowModal fProjectProperties
 	End With
 End Sub
 
@@ -1519,7 +1519,7 @@ End Sub
 Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 	pfImageManager->OnlyIcons = True
 	pfImageManager->WithoutMainNode = True
-	If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+	If pfImageManager->ShowModal(Me) = ModalResults.OK Then
 		If pfImageManager->SelectedItem <> 0 Then
 			txtIcon.Text = pfImageManager->SelectedItem->Text(0)
 			'#ifdef __USE_GTK__
@@ -1618,7 +1618,7 @@ End Sub
 Private Sub frmProjectProperties.cmdAddComponent_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		If Not lstComponents.Items.Contains(pfPath->txtPath.Text) Then
 			lstComponents.AddItem pfPath->txtPath.Text
 		Else
@@ -1635,7 +1635,7 @@ End Sub
 Private Sub frmProjectProperties.cmdAddOtherInclude_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		If Not lstOtherIncludes.Items.Contains(pfPath->txtPath.Text) Then
 			lstOtherIncludes.AddItem pfPath->txtPath.Text
 		Else
@@ -1652,7 +1652,7 @@ End Sub
 Private Sub frmProjectProperties.cmdAddLibrary_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		If Not lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
 			lstLibraryPaths.AddItem pfPath->txtPath.Text
 		Else

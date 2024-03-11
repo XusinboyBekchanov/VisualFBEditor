@@ -473,7 +473,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 		pfrmPath->WithKey = CurrentImageList <> 0
 		pfrmPath->SetFileNameToVersion = True
 		pfrmPath->ExeFileName = ExeFileName
-		If pfrmPath->ShowModal() = ModalResults.OK Then
+		If pfrmPath->ShowModal(Me) = ModalResults.OK Then
 			If lvImages.SelectedItem->Text(0) = pfrmPath->txtVersion.Text OrElse lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
 				Var ImageIndex = ImageList1.IndexOf(pfrmPath->txtVersion.Text)
 				If ImageIndex = -1 Then
@@ -520,7 +520,7 @@ Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 	Case "AddFromResource"
 		'tbToolbar_ButtonClick tbToolbar, *tbToolbar.Buttons.Item("Add")
 		pfImageManager->lvImages.MultiSelect = True
-		If pfImageManager->ShowModal(*pfrmMain) = ModalResults.OK Then
+		If pfImageManager->ShowModal(Me) = ModalResults.OK Then
 			For i As Integer = 0 To pfImageManager->SelectedItems.Count - 1
 				Dim As UString ResourceName = Cast(ListViewItem Ptr, pfImageManager->SelectedItems.Item(i))->Text(0)
 				Dim As UString RelativePath = GetResNamePath(ResourceName, ResourceFile)
@@ -626,7 +626,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 			'pfrmPath->WithKey = CurrentImageList <> 0
 			'pfrmPath->SetFileNameToVersion = True
 			'pfrmPath->ExeFileName = ExeFileName
-			'If pfrmPath->ShowModal() = ModalResults.OK Then
+			'If pfrmPath->ShowModal(Me) = ModalResults.OK Then
 			'	If lvImages.ListItems.IndexOf(pfrmPath->txtVersion.Text) = -1 Then
 			'		If pfrmPath->cboType.Text = ML("Resource") Then
 			'			ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text

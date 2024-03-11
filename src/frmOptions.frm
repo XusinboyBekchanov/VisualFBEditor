@@ -593,36 +593,50 @@ pfOptions = @fOptions
 			.ID = 1009
 			.Parent = @vbxGeneral
 		End With
+		' chkAutoSaveSession
+		With chkAutoSaveSession
+			.Name = "chkAutoSaveSession"
+			.Text = ML("Auto save session (if session opened)")
+			.TabIndex = 246
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.ControlIndex = 2
+			.Constraints.Height = 21
+			.SetBounds 0, 0, 142, 21
+			.Designer = @This
+			.Parent = @vbxGeneral
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
 		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
-		chkAutoCreateRC.ExtraMargins.Top = 5
+		chkAutoCreateRC.ExtraMargins.Top = 0
 		chkAutoCreateRC.Align = DockStyle.alTop
 		chkAutoCreateRC.TabIndex = 101
 		chkAutoCreateRC.Constraints.Height = 21
 		chkAutoCreateRC.AutoSize = True
-		chkAutoCreateRC.SetBounds 0, 28, 295, 21
+		chkAutoCreateRC.SetBounds 0, 26, 295, 21
 		chkAutoCreateRC.Parent = @vbxGeneral
+		chkAutoCreateRC.ControlIndex = 1
+		End With
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
 		CheckBox1.Text = ML("Auto increment version")
 		CheckBox1.Align = DockStyle.alTop
-		CheckBox1.ExtraMargins.Top = 5
+		CheckBox1.ExtraMargins.Top = 0
 		CheckBox1.TabIndex = 102
 		CheckBox1.Constraints.Height = 21
 		CheckBox1.AutoSize = True
-		CheckBox1.SetBounds 0, 51, 166, 21
+		CheckBox1.SetBounds 0, 72, 166, 21
 		CheckBox1.Parent = @vbxGeneral
 		' chkAddRelativePathsToRecent
 		With chkAddRelativePathsToRecent
 			.Name = "chkAddRelativePathsToRecent"
 			.Text = ML("Add relative paths to recent")
 			.TabIndex = 103
-			.ExtraMargins.Top = 5
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.Constraints.Height = 21
 			.AutoSize = True
-			.SetBounds 0, 74, 190, 21
+			.SetBounds 0, 98, 190, 21
 			.Parent = @vbxGeneral
 		End With
 		' grbIncludePaths
@@ -2875,6 +2889,7 @@ Sub frmOptions.LoadSettings()
 		.chkAutoIndentation.Checked = AutoIndentation
 		.chkAutoCreateRC.Checked = AutoCreateRC
 		.chkAutoCreateBakFiles.Checked = AutoCreateBakFiles
+		.chkAutoSaveSession.Checked = AutoSaveSession
 		.chkAddRelativePathsToRecent.Checked = AddRelativePathsToRecent
 		.chkCreateNonStaticEventHandlers.Checked = CreateNonStaticEventHandlers
 		.chkPlaceStaticEventHandlersAfterTheConstructor.Checked = PlaceStaticEventHandlersAfterTheConstructor
@@ -3522,6 +3537,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		AutoSuggestions = .chkEnableAutoSuggestions.Checked
 		AutoCreateRC = .chkAutoCreateRC.Checked
 		AutoCreateBakFiles = .chkAutoCreateBakFiles.Checked
+		AutoSaveSession = .chkAutoSaveSession.Checked
 		AddRelativePathsToRecent = .chkAddRelativePathsToRecent.Checked
 		CreateNonStaticEventHandlers = .chkCreateNonStaticEventHandlers.Checked
 		PlaceStaticEventHandlersAfterTheConstructor = .chkPlaceStaticEventHandlersAfterTheConstructor.Checked
@@ -3714,6 +3730,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "AutoSuggestions", AutoSuggestions
 		piniSettings->WriteBool "Options", "AutoCreateRC", AutoCreateRC
 		piniSettings->WriteBool "Options", "AutoCreateBakFiles", AutoCreateBakFiles
+		piniSettings->WriteBool "Options", "AutoSaveSession", AutoSaveSession
 		piniSettings->WriteBool "Options", "AddRelativePathsToRecent", AddRelativePathsToRecent
 		piniSettings->WriteString "Options", "DefaultProjectFile", WGet(DefaultProjectFile)
 		piniSettings->WriteInteger "Options", "LastOpenedFileType", LastOpenedFileType
@@ -4493,7 +4510,7 @@ Private Sub frmOptions.chkUnderline_Click(ByRef Designer As My.Sys.Object, ByRef
 End Sub
 
 Private Sub frmOptions.cmdAdd_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	If pfTheme->ShowModal() = ModalResults.OK Then
+	If pfTheme->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			.cboTheme.AddItem pfTheme->txtThemeName.Text
 			.cboTheme.ItemIndex = .cboTheme.IndexOf(pfTheme->txtThemeName.Text)
@@ -4515,7 +4532,7 @@ Private Sub frmOptions.cmdAddCompiler_Click(ByRef Designer As My.Sys.Object, ByR
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvCompilerPaths.ListItems.Add pfPath->txtVersion.Text, IIf(FileExists(pfPath->txtPath.Text), "", "FileError")
@@ -4536,7 +4553,7 @@ Private Sub frmOptions.cmdChangeCompiler_Click(ByRef Designer As My.Sys.Object, 
 		pfPath->txtVersion.Text = .lvCompilerPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvCompilerPaths.SelectedItem->Text(1)
 		pfPath->txtCommandLine.Text = .lvCompilerPaths.SelectedItem->Text(2)
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 			If .lvCompilerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboCompiler32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboCompiler32.IndexOf(.lvCompilerPaths.SelectedItem->Text(0))
 				.cboCompiler32.Item(i) = pfPath->txtVersion.Text
@@ -4582,7 +4599,7 @@ Private Sub frmOptions.cmdAddMakeTool_Click(ByRef Designer As My.Sys.Object, ByR
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvMakeToolPaths.ListItems.Add pfPath->txtVersion.Text
@@ -4602,7 +4619,7 @@ Private Sub frmOptions.cmdChangeMakeTool_Click(ByRef Designer As My.Sys.Object, 
 		pfPath->txtVersion.Text = .lvMakeToolPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvMakeToolPaths.SelectedItem->Text(1)
 		pfPath->txtCommandLine.Text = .lvMakeToolPaths.SelectedItem->Text(2)
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 			If .lvMakeToolPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboMakeTool.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboTerminal.IndexOf(.lvMakeToolPaths.SelectedItem->Text(0))
 				.cboMakeTool.Item(i) = pfPath->txtVersion.Text
@@ -4639,7 +4656,7 @@ Private Sub frmOptions.cmdAddDebugger_Click(ByRef Designer As My.Sys.Object, ByR
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvDebuggerPaths.ListItems.Add pfPath->txtVersion.Text
@@ -4660,7 +4677,7 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Designer As My.Sys.Object, 
 		pfPath->txtVersion.Text = .lvDebuggerPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvDebuggerPaths.SelectedItem->Text(1)
 		pfPath->txtCommandLine.Text = .lvDebuggerPaths.SelectedItem->Text(2)
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 			If .lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboDebugger32.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
 				.cboDebugger32.Item(i) = pfPath->txtVersion.Text
@@ -4706,7 +4723,7 @@ Private Sub frmOptions.cmdAddTerminal_Click(ByRef Designer As My.Sys.Object, ByR
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvTerminalPaths.ListItems.Add pfPath->txtVersion.Text
@@ -4726,7 +4743,7 @@ Private Sub frmOptions.cmdChangeTerminal_Click(ByRef Designer As My.Sys.Object, 
 		pfPath->txtVersion.Text = .lvTerminalPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvTerminalPaths.SelectedItem->Text(1)
 		pfPath->txtCommandLine.Text = .lvTerminalPaths.SelectedItem->Text(2)
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 			If .lvTerminalPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboTerminal.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboTerminal.IndexOf(.lvTerminalPaths.SelectedItem->Text(0))
 				.cboTerminal.Item(i) = pfPath->txtVersion.Text
@@ -4763,7 +4780,7 @@ Private Sub frmOptions.cmdAddHelp_Click(ByRef Designer As My.Sys.Object, ByRef S
 	pfPath->txtVersion.Text = ""
 	pfPath->txtPath.Text = ""
 	pfPath->WithoutCommandLine = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvHelpPaths.ListItems.Add pfPath->txtVersion.Text
@@ -4782,7 +4799,7 @@ Private Sub frmOptions.cmdChangeHelp_Click(ByRef Designer As My.Sys.Object, ByRe
 		pfPath->txtVersion.Text = .lvHelpPaths.SelectedItem->Text(0)
 		pfPath->txtPath.Text = .lvHelpPaths.SelectedItem->Text(1)
 		pfPath->WithoutCommandLine = True
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 			If .lvHelpPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboHelp.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboHelp.IndexOf(.lvHelpPaths.SelectedItem->Text(0))
 				.cboHelp.Item(i) = pfPath->txtVersion.Text
@@ -4830,7 +4847,7 @@ End Sub
 Private Sub frmOptions.cmdAddInclude_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If Not .lstIncludePaths.Items.Contains(pfPath->txtPath.Text) Then
 				'.lstIncludePaths.Items.Add pfPath->txtPath.Text
@@ -4845,7 +4862,7 @@ End Sub
 Private Sub frmOptions.cmdAddLibrary_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ChooseFolder = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fOptions) = ModalResults.OK Then
 		With fOptions
 			If Not .lstLibraryPaths.Items.Contains(pfPath->txtPath.Text) Then
 				'.lstLibraryPaths.Items.Add pfPath->txtPath.Text
@@ -4904,7 +4921,7 @@ Private Sub frmOptions.cmdAddEditor_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->txtCommandLine.Text = ""
 	pfPath->WithExtensions = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		With lvOtherEditors.ListItems
 			Var ItemsCount = .Count
 			If .IndexOf(pfPath->txtVersion.Text) = -1 Then
@@ -4930,7 +4947,7 @@ Private Sub frmOptions.cmdChangeEditor_Click(ByRef Sender As Control)
 		pfPath->txtPath.Text = .SelectedItem->Text(2)
 		pfPath->txtCommandLine.Text = .SelectedItem->Text(3)
 		pfPath->WithExtensions = True
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(Me) = ModalResults.OK Then
 			If .SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .ListItems.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .ListItems.IndexOf(.SelectedItem->Text(0))
 				.SelectedItem->Text(0) = pfPath->txtVersion.Text
@@ -5982,7 +5999,7 @@ Private Sub frmOptions.cmdAddConfiguration_Click(ByRef Sender As Control)
 	pfPath->txtPath.Text = ""
 	pfPath->ForConfiguration = True
 	pfPath->WithoutCommandLine = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		With fOptions
 			If .cboConfiguration.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				.lvConfigurations.ListItems.Add pfPath->txtVersion.Text
@@ -6002,7 +6019,7 @@ Private Sub frmOptions.cmdChangeConfiguration_Click(ByRef Sender As Control)
 		pfPath->txtPath.Text = .lvConfigurations.SelectedItem->Text(1)
 		pfPath->ForConfiguration = True
 		pfPath->WithoutCommandLine = True
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(Me) = ModalResults.OK Then
 			If .lvConfigurations.SelectedItem->Text(0) = pfPath->txtVersion.Text OrElse .cboConfiguration.IndexOf(pfPath->txtVersion.Text) = -1 Then
 				Var i = .cboConfiguration.IndexOf(.lvConfigurations.SelectedItem->Text(0))
 				.cboConfiguration.Item(i) = pfPath->txtVersion.Text

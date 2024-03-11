@@ -282,7 +282,7 @@ Private Sub frmTools.cmdAdd_Click(ByRef Designer As My.Sys.Object, ByRef Sender 
 	pfPath->txtPath.Text = ""
 	pfPath->lblVersion.Caption = ML("Tool Name")
 	pfPath->SetFileNameToVersion = True
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(fTools) = ModalResults.OK Then
 		With fTools
 			Dim As UserToolType Ptr Tool = _New( UserToolType)
 			Tool->Name = pfPath->txtVersion.Text
@@ -303,7 +303,7 @@ Private Sub frmTools.cmdChange_Click(ByRef Designer As My.Sys.Object, ByRef Send
 		Dim As UserToolType Ptr Tool = .lvTools.SelectedItem->Tag
 		pfPath->lblVersion.Caption = ML("Tool Name")
 		pfPath->SetFileNameToVersion = True
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(fTools) = ModalResults.OK Then
 			If Tool <> 0 Then
 				Tool->Name = pfPath->txtVersion.Text
 				Tool->Path = pfPath->txtPath.Text

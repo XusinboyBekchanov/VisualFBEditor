@@ -584,7 +584,7 @@ Private Sub frmTemplates.cmdChange_Click(ByRef Sender As Control)
 		End If
 		pfPath->txtPath.Text = lvRecent.SelectedItem->Text(1)
 		Dim As UString Path
-		If pfPath->ShowModal() = ModalResults.OK Then
+		If pfPath->ShowModal(Me) = ModalResults.OK Then
 			Path = pfPath->txtPath.Text
 		Else
 			Exit Sub
@@ -620,7 +620,7 @@ Private Sub frmTemplates.cmdAdd_Click(ByRef Sender As Control)
 	End If
 	pfPath->txtPath.Text = ""
 	Dim As UString Path
-	If pfPath->ShowModal() = ModalResults.OK Then
+	If pfPath->ShowModal(Me) = ModalResults.OK Then
 		Path = pfPath->txtPath.Text
 	Else
 		Exit Sub

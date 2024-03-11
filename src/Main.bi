@@ -146,6 +146,7 @@ Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoSuggestions, ProjectAutoSuggestions
 Common Shared As Boolean AutoCreateRC
 Common Shared As Boolean AutoCreateBakFiles, gLocalProperties
+Common Shared As Boolean AutoSaveSession, SessionOpened
 Common Shared As Boolean AddRelativePathsToRecent
 Common Shared As Boolean UseMakeOnStartWithCompile
 Common Shared As Boolean CreateNonStaticEventHandlers, CreateFormTypesWithoutTypeWord
@@ -289,7 +290,7 @@ Declare Sub ChangeFolderType(Value As ProjectFolderTypes)
 Declare Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 Declare Sub Save
 Declare Function SaveAllBeforeCompile() As Boolean
-Declare Function SaveSession() As Boolean
+Declare Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 Declare Sub CompileProgram(Param As Any Ptr)
 Declare Sub CompileWithDebugger(Param As Any Ptr)
 Declare Sub CompileAndRun(Param As Any Ptr)

@@ -1905,6 +1905,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		MsgBox ML("File not found") & ": " & FileName
 		Return False
 	End If
+	SessionOpened = True
 	Dim As TreeNode Ptr tn
 	AddMRUSession FileName
 	Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
@@ -2105,23 +2106,28 @@ Sub OpenProgram()
 	tpProject->SelectTab
 End Sub
 
-Function SaveSession() As Boolean
+Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 	Dim As ExplorerElement Ptr ee
-	SaveD.Caption = ML("Save Session As")
-	SaveD.Filter = ML("VisualFBEditor Session") & " (*.vfs)|*.vfs|"
 	Dim As WString Ptr Temp, Temp2
-	If WGet(LastOpenPath) <> "" Then
-		SaveD.InitialDir = *LastOpenPath
+	If WithoutQuestion Then
+		SaveD.FileName = *RecentSession
 	Else
-		SaveD.InitialDir = GetFullPath(*ProjectsPath)
-	End If
-	If Not SaveD.Execute Then Return False
-	WLet(LastOpenPath, GetFolderName(SaveD.FileName))
-	If FileExists(SaveD.FileName) Then
-		Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
-		Case mrYes:
-		Case mrNo: Return SaveSession()
-		End Select
+		SaveD.Caption = ML("Save Session As")
+		SaveD.Filter = ML("VisualFBEditor Session") & " (*.vfs)|*.vfs|"
+		If WGet(LastOpenPath) <> "" Then
+			SaveD.InitialDir = *LastOpenPath
+		Else
+			SaveD.InitialDir = GetFullPath(*ProjectsPath)
+		End If
+		If Not SaveD.Execute Then Return False
+		WLet(LastOpenPath, GetFolderName(SaveD.FileName))
+		WLet(RecentSession, *LastOpenPath)
+		If FileExists(SaveD.FileName) Then
+			Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
+			Case mrYes:
+			Case mrNo: Return SaveSession()
+			End Select
+		End If
 	End If
 	Dim As TreeNode Ptr tn1
 	Dim As Integer p
@@ -6234,6 +6240,7 @@ Sub LoadSettings
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
 	AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", True)
 	AutoCreateRC = iniSettings.ReadBool("Options", "AutoCreateRC", True)
+	AutoSaveSession = iniSettings.ReadBool("Options", "AutoSaveSession", False)
 	AutoSaveBeforeCompiling = iniSettings.ReadInteger("Options", "AutoSaveBeforeCompiling", 1)
 	AutoCreateBakFiles = iniSettings.ReadBool("Options", "AutoCreateBakFiles", False)
 	AddRelativePathsToRecent = iniSettings.ReadBool("Options", "AddRelativePathsToRecent", True)
@@ -6513,7 +6520,7 @@ End Function
 Sub GDBCommand
 	fTheme.Text = ML("GDB Command")
 	fTheme.lblThemeName.Text = ML("Type command:")
-	If fTheme.ShowModal() = ModalResults.OK Then
+	If fTheme.ShowModal(frmMain) = ModalResults.OK Then
 		'ShowResult = True
 		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 			command_debug fTheme.txtThemeName.Text
@@ -9742,8 +9749,6 @@ Function CheckCompilerPaths As Boolean
 	Return bFind
 End Function
 
-pfTemplates->Visible = False: pfTemplates->CreateWnd
-
 Dim Shared As Boolean bSharedFind
 Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_GTK__
@@ -9756,6 +9761,8 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#endif
 	
 	LoadToolBox
+	
+	pfTemplates->Visible = False: pfTemplates->Parent = @frmMain: pfTemplates->CreateWnd
 	
 	pnlRightPin.Height = tbRight.Height
 	pnlLeftPin.Height = tbLeft.Height
@@ -10095,6 +10102,9 @@ End Sub
 
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
+	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
+		SaveSession(True)
+	End If
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
 	If frmMain.WindowState <> WindowStates.wsMaximized Then

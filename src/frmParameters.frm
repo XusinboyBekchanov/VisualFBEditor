@@ -370,7 +370,7 @@ Private Sub frmParameters.cmdCancel_Click(ByRef Designer As My.Sys.Object, ByRef
 End Sub
 
 Private Sub frmParameters.lblAddCompilerOption32_Click(ByRef Sender As Label)
-	If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+	If frmCompilerOptions.ShowModal(Me) = ModalResults.OK Then
 		For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
 			If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
 				txtfbc32.Text = RTrim(txtfbc32.Text) & " " & frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Text(0)
@@ -382,7 +382,7 @@ Private Sub frmParameters.lblAddCompilerOption32_Click(ByRef Sender As Label)
 End Sub
 
 Private Sub frmParameters.lblAddCompilerOption64_Click(ByRef Sender As Label)
-	If frmCompilerOptions.ShowModal() = ModalResults.OK Then
+	If frmCompilerOptions.ShowModal(Me) = ModalResults.OK Then
 		For i As Integer = 0 To frmCompilerOptions.lvCompilerOptions.ListItems.Count - 1
 			If frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Checked Then
 				txtfbc64.Text = RTrim(txtfbc64.Text) & " " & frmCompilerOptions.lvCompilerOptions.ListItems.Item(i)->Text(0)
