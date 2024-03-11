@@ -1,4 +1,4 @@
- @<file>          Read more command line arguments from a file
+﻿ @<file>          Read more command line arguments from a file
 -a <file>        Treat file as .o/.a input file
 -arch <type>     Set target architecture (default: 686)
 -asm att|intel   Set asm format (-gen gcc|llvm, x86 or x86_64 only)
