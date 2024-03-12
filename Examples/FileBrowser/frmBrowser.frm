@@ -71,20 +71,19 @@
 	Constructor frmBrowserType
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/Languages/"
-				.CurLanguage = "english"
+				.CurLanguagePath = ExePath & "/"
+				.CurLanguage = "chinese"
 			End With
 		#endif
 		' frmBrowser
 		With This
 			.Name = "frmBrowser"
-			.Text = "File Browser"
+			.Text = ML("File Browser")
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
-			.Caption = "File Browser"
 			.StartPosition = FormStartPosition.CenterScreen
 			.SetBounds 0, 0, 900, 700
 		End With
@@ -194,7 +193,7 @@
 		With MenuOpen
 			.Name = "MenuOpen"
 			.Designer = @This
-			.Caption = "Open"
+			.Caption = ML("Open")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuFile_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -202,7 +201,7 @@
 		With MenuNotepad
 			.Name = "MenuNotepad"
 			.Designer = @This
-			.Caption = "Notepad"
+			.Caption = ML("Notepad")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuFile_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -210,7 +209,7 @@
 		With MenuBrowser
 			.Name = "MenuBrowser"
 			.Designer = @This
-			.Caption = "Browser"
+			.Caption = ML("Browser")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuFile_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -225,7 +224,7 @@
 		With MenuItem1
 			.Name = "MenuItem1"
 			.Designer = @This
-			.Caption = "Icon"
+			.Caption = ML("Icon")
 			.Tag = @"0"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -234,7 +233,7 @@
 		With MenuItem2
 			.Name = "MenuItem2"
 			.Designer = @This
-			.Caption = "Detials"
+			.Caption = ML("Detials")
 			.Tag = @"1"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -252,7 +251,7 @@
 		With MenuItem4
 			.Name = "MenuItem4"
 			.Designer = @This
-			.Caption = "List"
+			.Caption = ML("List")
 			.Tag = @"3"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -261,7 +260,7 @@
 		With MenuItem5
 			.Name = "MenuItem5"
 			.Designer = @This
-			.Caption = "Title"
+			.Caption = ML("Title")
 			.Tag = @"4"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -270,7 +269,7 @@
 		With MenuItem6
 			.Name = "MenuItem6"
 			.Designer = @This
-			.Caption = "Max"
+			.Caption = ML("Max")
 			.Tag = @"5"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -278,9 +277,8 @@
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
-			.Text = "Up"
+			.Text = ML("Up")
 			.TabIndex = 4
-			.Caption = "Up"
 			.SetBounds 5, 5, 60, 22
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
@@ -358,11 +356,11 @@ Private Sub frmBrowserType.Form_Create(ByRef Sender As Control)
 	SendMessage(ListView1.Handle, LVM_SETIMAGELIST, LVSIL_SMALL, Cast(LPARAM, mImageList))
 	
 	'init columns of listview
-	ListView1.Columns.Add("Name", , 150)
-	ListView1.Columns.Add("Size", , 100, cfRight)
-	ListView1.Columns.Add("Write", , 120)
-	ListView1.Columns.Add("Creation", , 120)
-	ListView1.Columns.Add("Access", , 120)
+	ListView1.Columns.Add(ML("Name"), , 150)
+	ListView1.Columns.Add(ML("Size"), , 100, cfRight)
+	ListView1.Columns.Add(ML("Write"), , 120)
+	ListView1.Columns.Add(ML("Creation"), , 120)
+	ListView1.Columns.Add(ML("Access"), , 120)
 	
 	'init root of treeview
 	mRootNode = RootInit()
@@ -626,9 +624,9 @@ Private Sub frmBrowserType.ListView1_ItemClick(ByRef Sender As ListView, ByVal I
 	Next
 	
 	If ItemIndex < 0 Then
-		StatusPanel1.Caption = j + 1 & " items, " & c & " selected none"
+		StatusPanel1.Caption = j + 1 & " " & ML("items") & ", " & c & " " & ML("selected None.")
 	Else
-		StatusPanel1.Caption = j + 1 & " items, " & c & " selected: " & *mSelectPath & "\" & ListView1.ListItems.Item(ItemIndex)->Text(0)
+		StatusPanel1.Caption = j + 1 & " " & ML("items") & ", " & c & ", " & ML("selected:") & *mSelectPath & " \ " & ListView1.ListItems.Item(ItemIndex)->Text(0)
 	End If
 End Sub
 
