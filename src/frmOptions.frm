@@ -605,6 +605,7 @@ pfOptions = @fOptions
 			.SetBounds 0, 0, 142, 21
 			.Designer = @This
 			.Parent = @vbxGeneral
+		End With
 		' chkAutoCreateRC
 		chkAutoCreateRC.Name = "chkAutoCreateRC"
 		chkAutoCreateRC.Text = ML("Auto create resource and manifest files (.rc, .xml)")
@@ -616,7 +617,6 @@ pfOptions = @fOptions
 		chkAutoCreateRC.SetBounds 0, 26, 295, 21
 		chkAutoCreateRC.Parent = @vbxGeneral
 		chkAutoCreateRC.ControlIndex = 1
-		End With
 		' CheckBox1
 		CheckBox1.Name = "CheckBox1"
 		CheckBox1.Text = ML("Auto increment version")
@@ -2667,7 +2667,6 @@ pfOptions = @fOptions
 			.Text = ML("Create event handlers without static event handler if event allows it")
 			.TabIndex = 233
 			.ControlIndex = 4
-			.Caption = ML("Create event handlers without static event handler if event allows it")
 			.SetBounds 32, 219, 380, 24
 			.Designer = @This
 			.Parent = @pnlDesigner
@@ -2697,7 +2696,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.AutoSize = True
 			.TabIndex = 155
-			.Caption = ML("Default Configuration")
+			'.Caption = ML("Default Configuration")
 			.SetBounds 10, 0, 417, 61
 			.Parent = @pnlBuildConfigurations
 		End With
@@ -2723,7 +2722,7 @@ pfOptions = @fOptions
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
-			.Caption = ML("Configurations")
+			'.Caption = ML("Configurations")
 			.SetBounds 10, 66, 417, 334
 			.Designer = @This
 			.Parent = @pnlBuildConfigurations
@@ -5409,7 +5408,11 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 					FileNameSrc = ExePath & "/" & Buff
 				End If
 				Fn2 = FreeFile_
-				If Open(FileNameSrc For Input Encoding "utf-8" As #Fn2) = 0 Then
+				Result = Open(FileNameSrc For Input Encoding "utf-8" As #Fn2)
+				If Result <> 0 Then Result = Open(FileNameSrc For Input Encoding "utf-16" As #Fn2)
+				If Result <> 0 Then Result = Open(FileNameSrc For Input Encoding "utf-32" As #Fn2)
+				If Result <> 0 Then Result = Open(FileNameSrc For Input As #Fn2)
+				If Result = 0 Then
 					Print "FileNameSrc: " & FileNameSrc
 					lblShowMsg.Text = ML("Open") & "...  " & FileNameSrc
 					Do Until EOF(Fn2)
@@ -5759,7 +5762,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 		Next
 		For i As Integer = 0 To mlKeysCompilerEnglish.Count - 1
 			tKey = mlKeysCompilerEnglish.Item(i)->Key
-			'If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
+			If InStr(tKey, "=") Then tKey = Replace(tKey, "=", "~")
 			If tKey <> "" Then
 				If Not mlKeysCompiler.ContainsKey(tKey) Then 
 					mlKeysCompiler.Add tKey, , CPtr(Any Ptr, 1)
