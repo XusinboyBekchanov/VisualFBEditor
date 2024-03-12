@@ -14133,35 +14133,35 @@ AnimatePalette    AnimatePalette函数将替换指定逻辑调色板中的条目
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiLower ----
-AnsiLowerAnsiLower函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharLower函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiLowerAnsiLower    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharLower函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiLowerBuff ----
-AnsiLowerBuffAnsiLowerBuff函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharLowerBuff函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiLowerBuffAnsiLowerBuff    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharLowerBuff函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiNext ----
-AnsiNextAnsiNext函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharNext函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiNextAnsiNext    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharNext函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiPrev ----
-AnsiPrevAnsiPrev函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharPrev函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiPrevAnsiPrev    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharPrev函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiToOem ----
-AnsiToOem  AnsiToOem函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharToOem函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiToOem  AnsiToOem    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharToOem函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiToOemBuff ----
-AnsiToOemBuff  AnsiToOemBuff函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharToOemBuff函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiToOemBuff  AnsiToOemBuff    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharToOemBuff函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiUpper ----
-AnsiUpperAnsiUpper函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharUpper函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiUpperAnsiUpper    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharUpper函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnsiUpperBuff ----
-AnsiUpperBuffAnsiUpperBuff函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharUpperBuff函数的宏，该函数应用于新的基于Win32的应用程序。
+AnsiUpperBuffAnsiUpperBuff    函数已过时。为了与16位版本的Windows兼容，此函数实现为调用CharUpperBuff函数的宏，该函数应用于新的基于Win32的应用程序。
 
 
 -------------------------------------------------------- KeyGTK3Win32AnyPopup ----
@@ -14997,7 +14997,7 @@ CopyImage    CopyImage函数创建一个新图像（图标，光标或位图）�
 
 
 -------------------------------------------------------- KeyGTK3Win32CopyLZFile ----
-CopyLZFile  CopyLZFile函数已过时。它仅用于与16位版本的Windows兼容。对于基于Win32的应用程序，请使用LZCopy函数。
+CopyLZFile      CopyLZFile函数已过时。它仅用于与16位版本的Windows兼容。对于基于Win32的应用程序，请使用LZCopy函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32CopyMemory ----
@@ -16091,7 +16091,7 @@ DefFrameProc    DefFrameProc函数为多文档界面（MDI）框架窗口的窗�
 
 
 -------------------------------------------------------- KeyGTK3Win32DefHookProc ----
-DefHookProc  DefHookProc函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用CallNextHookEx函数。
+DefHookProc       DefHookProc函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用CallNextHookEx函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32DefineDosDevice ----
@@ -16102,7 +16102,7 @@ DefineDosDevice    DefineDosDevice函数允许应用程序定义，重新定义�
 
 
 -------------------------------------------------------- KeyGTK3Win32DefineHandleTable ----
-DefineHandleTable  DefineHandleTable函数已过时。它被提供为一个宏，以简化16位Windows应用程序的移植。在评估其参数后，它将扩展为TRUE。没有其他的效果。
+DefineHandleTable         DefineHandleTable函数已过时。它被提供为一个宏，以简化16位Windows应用程序的移植。在评估其参数后，它将扩展为TRUE。没有其他的效果。
 
 
 -------------------------------------------------------- KeyGTK3Win32DefMDIChildProc ----
@@ -17214,7 +17214,7 @@ EnumSystemLocales    EnumSystemLocales函数枚举系统上安装或支持的区
 
 
 -------------------------------------------------------- KeyGTK3Win32EnumTaskWindows ----
-EnumTaskWindows  EnumTaskWindows函数已过时。它已被EnumThreadWindows函数所取代。为了保持16位应用程序的兼容性，EnumTaskWindows已被替换为调用EnumThreadWindows的宏。之前的应用程序可以继续调用EnumTaskWindows，但新的应用程序应该使用EnumThreadWindows.
+EnumTaskWindows              EnumTaskWindows函数已过时。它已被EnumThreadWindows函数所取代。为了保持16位应用程序的兼容性，EnumTaskWindows已被替换为调用EnumThreadWindows的宏。之前的应用程序可以继续调用EnumTaskWindows，但新的应用程序应该使用EnumThreadWindows.
 
 
 -------------------------------------------------------- KeyGTK3Win32EnumThreadWindows ----
@@ -17845,7 +17845,7 @@ FreeLibraryAndExitThread    FreeLibraryAndExitThread函数将加载的动态链�
 
 
 -------------------------------------------------------- KeyGTK3Win32FreeModule ----
-FreeModule  FreeModule函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用FreeLibrary函数。
+FreeModule              FreeModule函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用FreeLibrary函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32FreePrinterNotifyInfo ----
@@ -17856,11 +17856,11 @@ FreePrinterNotifyInfo    FreePrinterNotifyInfo函数释放由FindNextPrinterChan
 
 
 -------------------------------------------------------- KeyGTK3Win32FreeProcInstance ----
-FreeProcInstance  FreeProcInstance函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序不应该使用此函数;它在32位环境中没有任何意义。
+FreeProcInstance      FreeProcInstance函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序不应该使用此函数;它在32位环境中没有任何意义。
 
 
 -------------------------------------------------------- KeyGTK3Win32FreeResource ----
-FreeResource  FreeResource函数已过时。它提供了简化16位Windows应用程序的移植。基于Win32的应用程序不需要使用LoadResource函数来释放加载的资源。
+FreeResource       FreeResource函数已过时。它提供了简化16位Windows应用程序的移植。基于Win32的应用程序不需要使用LoadResource函数来释放加载的资源。
 另请参见
 LoadResource, LockResource
 
@@ -18943,7 +18943,7 @@ GetForm    GetForm函数使用描述打印机指定表单的数据初始化FORM_
 
 
 -------------------------------------------------------- KeyGTK3Win32GetFreeSpace ----
-GetFreeSpace  GetFreeSpace函数已过时。它提供了简化16位Windows应用程序的移植。基于Win32的应用程序应使用GlobalMemoryStatus函数。
+GetFreeSpace         GetFreeSpace函数已过时。它提供了简化16位Windows应用程序的移植。基于Win32的应用程序应使用GlobalMemoryStatus函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GetFullPathName ----
@@ -20036,7 +20036,7 @@ GetSysColorBrush    GetSysColorBrush函数检索一个标识对应于指定颜�
 
 
 -------------------------------------------------------- KeyGTK3Win32GetSysModalWindow ----
-GetSysModalWindow  GetSysModalWindow函数已过时。此函数仅用于与16位版本的Windows兼容。
+GetSysModalWindow          GetSysModalWindow函数已过时。此函数仅用于与16位版本的Windows兼容。
 
 
 -------------------------------------------------------- KeyGTK3Win32GetSystemDefaultLangID ----
@@ -20576,7 +20576,7 @@ GetWindowsDirectory    GetWindowsDirectory函数检索Windows目录的路径。W
 
 
 -------------------------------------------------------- KeyGTK3Win32GetWindowTask ----
-GetWindowTask  GetWindowTask函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用GetWindowThreadProcessId函数。
+GetWindowTask     GetWindowTask函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用GetWindowThreadProcessId函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GetWindowText ----
@@ -20643,7 +20643,7 @@ GlobalAlloc    GlobalAlloc函数从堆中分配指定的字节数。在线性Win
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalCompact ----
-GlobalCompact  GlobalCompact函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
+GlobalCompact        GlobalCompact函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalDeleteAtom ----
@@ -20676,7 +20676,7 @@ GlobalFindAtom    GlobalFindAtom函数在全局原子表中搜索指定的字符
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalFix ----
-GlobalFix  GlobalFix函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
+GlobalFix         GlobalFix函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalFlags ----
@@ -20725,11 +20725,11 @@ GlobalLock    GlobalLock函数锁定全局内存对象，并返回指向对象�
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalLRUNewest ----
-GlobalLRUNewest  GlobalLRUNewest函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
+GlobalLRUNewest         GlobalLRUNewest函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalLRUOldest ----
-GlobalLRUOldest  GlobalLRUOldest函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
+GlobalLRUOldest        GlobalLRUOldest函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用VirtualLock和VirtualUnlock函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalMemoryStatus ----
@@ -20760,7 +20760,7 @@ GlobalSize    GlobalSize函数检索指定的全局内存对象的当前大小�
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalUnfix ----
-GlobalUnfix  GlobalUnfix函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
+GlobalUnfix       GlobalUnfix函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalUnlock ----
@@ -20773,11 +20773,11 @@ GlobalUnlock    GlobalUnlock函数减少与使用GMEM_MOVEABLE标志分配的内
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalUnWire ----
-GlobalUnWire  GlobalUnWire函数已过时。需要锁定全局内存对象的应用程序应使用GlobalLock和GlobalUnlock函数。此函数仅用于与16位版本的Windows兼容。新的基于Win32的应用程序不应该使用此函数。
+GlobalUnWire      GlobalUnWire函数已过时。需要锁定全局内存对象的应用程序应使用GlobalLock和GlobalUnlock函数。此函数仅用于与16位版本的Windows兼容。新的基于Win32的应用程序不应该使用此函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GlobalWire ----
-GlobalWire  GlobalWire函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用GlobalLock和GlobalUnlock函数。
+GlobalWire       GlobalWire函数已过时。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用GlobalLock和GlobalUnlock函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32GrayString ----
@@ -22126,7 +22126,7 @@ LeaveCriticalSection    LeaveCriticalSection函数释放指定的关键段对象
 
 
 -------------------------------------------------------- KeyGTK3Win32LimitEmsPages ----
-LimitEmsPages  LimitEmsPages函数已过时。此函数仅用于与16位版本的Windows兼容。新的基于Win32的应用程序不需要此函数。
+LimitEmsPages     LimitEmsPages函数已过时。此函数仅用于与16位版本的Windows兼容。新的基于Win32的应用程序不需要此函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32LineDDA ----
@@ -22262,7 +22262,7 @@ LocalAlloc    LocalAlloc函数从堆中分配指定的字节数。在线性Win32
 
 
 -------------------------------------------------------- KeyGTK3Win32LocalCompact ----
-LocalCompact  LocalCompact函数已过时。此函数仅用于与16位版本的Windows兼容。
+LocalCompact      LocalCompact函数已过时。此函数仅用于与16位版本的Windows兼容。
 
 
 -------------------------------------------------------- KeyGTK3Win32LocalDiscard ----
@@ -22325,7 +22325,7 @@ LocalReAlloc    LocalReAlloc函数更改指定的本地内存对象的大小或�
 
 
 -------------------------------------------------------- KeyGTK3Win32LocalShrink ----
-LocalShrink  LocalShrink函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
+LocalShrink     LocalShrink函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
 
 
 -------------------------------------------------------- KeyGTK3Win32LocalSize ----
@@ -22372,7 +22372,7 @@ LockResource    LockResource函数将指定的资源锁定在内存中。
 
 
 -------------------------------------------------------- KeyGTK3Win32LockSegment ----
-LockSegment  LockSegment函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
+LockSegment     LockSegment函数已过时。此函数仅用于与16位版本的Windows兼容。它在32位环境中没有任何意义。
 
 
 -------------------------------------------------------- KeyGTK3Win32LockServiceDatabase ----
@@ -22590,7 +22590,7 @@ LZCopy    LZCopy函数将源文件复制到目标文件。如果使用Microsoft�
 
 
 -------------------------------------------------------- KeyGTK3Win32LZDone ----
-LZDone  LZDone函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用LZOpenFile函数。
+LZDone      LZDone函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用LZOpenFile函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32LZInit ----
@@ -22623,7 +22623,7 @@ LZSeek    LZSeek函数将一个文件指针从起始位置移动多个字节。
 
 
 -------------------------------------------------------- KeyGTK3Win32LZStart ----
-LZStart  LZStart函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用LZCopy函数。
+LZStart     LZStart函数已过时。它仅用于与16位版本的Windows兼容。基于Win32的应用程序应使用LZCopy函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32MakeAbsoluteSD ----
@@ -22640,7 +22640,7 @@ MakeDragList    MakeDragList函数将指定的单选列表框更改为拖动列�
 
 
 -------------------------------------------------------- KeyGTK3Win32MakeProcInstance ----
-MakeProcInstance  MakeProcInstance函数已过时。Win32函数可以直接调用。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序不应该使用此函数。
+MakeProcInstance     MakeProcInstance函数已过时。Win32函数可以直接调用。此函数仅用于与16位版本的Windows兼容。基于Win32的应用程序不应该使用此函数。
 
 
 -------------------------------------------------------- KeyGTK3Win32MakeSelfRelativeSD ----
