@@ -40,7 +40,7 @@
 	Constructor Form1
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguagePath = ExePath & "/"
 				.CurLanguage = "english"
 			End With
 		#endif
@@ -48,9 +48,14 @@
 		With This
 			.Name = "Form1"
 			.Text = ML("Update language texts")
+			#ifdef __USE_GTK__
+				.Icon.LoadFromFile(ExePath & "../../Resources/VisualFBEditor.ico")
+			#else
+				.Icon.LoadFromResourceID(1)
+			#endif
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.Designer = @This
-			.SetBounds 0, 0, 460, 146
+			.SetBounds 0, 0, 460, 155
 		End With
 		
 		' txtPathProj
@@ -102,8 +107,8 @@
 		' chkAllLNG
 		With chkAllLNG
 			.Name = "chkAllLNG"
-			.Text = "Update all language file"
-			.SetBounds 2, 56, 128, 18
+			.Text = ML("Update all language file")
+			.SetBounds 10, 56, 128, 18
 			.Checked = True
 			.Designer = @This
 			.Parent = @This
@@ -160,7 +165,7 @@
 			.Text = ML("Save as HTML files for translation by Edge or Chrome.")
 			.TabIndex = 8
 			.Checked = True
-			.SetBounds 140, 56, 310, 18
+			.SetBounds 145, 56, 310, 18
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -176,13 +181,6 @@
 	#endif
 '#End Region
 
-
-Private Sub Form1.cmdExploreProj_Click(ByRef Sender As Control)
-	Dim OpenD As OpenFileDialog
-	OpenD.Filter = "Visual FB Editor projects (.vfp)|*.vfp|"
-	If OpenD.Execute Then txtPathProj.Text = OpenD.FileName
-End Sub
-
 Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
 	Dim Pos1 As Long = InStrRev(FileName, "\", Len(FileName) - 1)
 	Dim Pos2 As Long = InStrRev(FileName, "/", Len(FileName) - 1)
@@ -194,6 +192,15 @@ Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) A
 	Return ""
 End Function
 
+Private Sub Form1.cmdExploreProj_Click(ByRef Sender As Control)
+	Dim OpenD As OpenFileDialog
+	OpenD.Filter = "Visual FB Editor projects (.vfp)|*.vfp|Froms file (.frm)|*.frm|Modules file (.bas)|*.bas|"
+	If OpenD.Execute Then 
+		txtPathProj.Text = OpenD.FileName
+		txtPathLng.Text = GetFolderName(txtPathProj.Text)
+	End If
+End Sub
+
 Private Sub Form1.cmdRun_Click(ByRef Sender As Control)
 	If Dir(txtPathProj.Text) = "" Then
 		StatusBar1.Panels[0]->Caption = "File not found! " & txtPathProj.Text
@@ -203,7 +210,7 @@ Private Sub Form1.cmdRun_Click(ByRef Sender As Control)
 	Dim As WStringList mlKeys, mlTexts, mlTextsOther, mlKeysNew
 	Dim As Boolean EmptyLng, StartGeneral = True, StartOther
 	Dim As String Key, f
-	Dim As Integer p, p1, n, Result, Fn1 = FreeFile, Fn2
+	Dim As Integer p, p1, n, Result, FileCount, Fn1 = FreeFile, Fn2
 	Lang_Name = "english"
 	txtPathProj.Text = Trim(txtPathProj.Text)
 	txtPathLng.Text = Trim(txtPathLng.Text)
@@ -219,78 +226,135 @@ Private Sub Form1.cmdRun_Click(ByRef Sender As Control)
 	If Dir(PathLng) = "" Then MkDir PathLng
 	PathProj = GetFolderName(txtPathProj.Text)
 	Debug.Print "PathLng=" & PathLng
-	Result = Open(txtPathProj.Text For Input Encoding "utf-8" As #Fn1)
-	If Result <> 0 Then Result = Open(txtPathProj.Text For Input Encoding "utf-16" As #Fn1)
-	If Result <> 0 Then Result = Open(txtPathProj.Text For Input Encoding "utf-32" As #Fn1)
-	If Result <> 0 Then Result = Open(txtPathProj.Text For Input As #Fn1)
-	If Result = 0 Then
-		Do Until EOF(Fn1)
-			Line Input #Fn1, Buff
-			If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
-				Buff = Mid(Buff, InStr(Buff, "=") + 1)
-				If InStr(Buff, ":") Then
-					FileName= Buff
-				Else
-					FileName= GetFolderName(txtPathProj.Text) & Buff
-				End If
-				StatusBar1.Panels[0]->Caption = ML("now open file ") & " " & FileName
-				App.DoEvents
-				Fn2 = FreeFile
-				Result = Open(FileName For Input Encoding "utf-8" As #Fn2)
-				If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn2)
-				If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn2)
-				If Result <> 0 Then Result = Open(FileName For Input As #Fn2)
-				If Result = 0 Then
-					Do Until EOF(Fn2)
-						Line Input #Fn2, Buff1
-						p = InStr(LCase(Buff1), "ml(""")
-						Do While p > 0
-							p1 = InStr(p + 1, Buff1, """)")
-							If p1 > 0 Then
-								Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
-								If Key <> "" Then
-									If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
-										mlKeysNew.Add Key
-										Key = Replace(Key, "&", "")
-										If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
-									End If
-								End If
+	If EndsWith(txtPathProj.Text, ".frm") OrElse EndsWith(txtPathProj.Text, ".bas") Then
+		FileName= txtPathProj.Text
+		Fn2 = FreeFile
+		Result = Open(FileName For Input Encoding "utf-8" As #Fn2)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn2)
+		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn2)
+		If Result <> 0 Then Result = Open(FileName For Input As #Fn2)
+		If Result = 0 Then
+			Do Until EOF(Fn2)
+				Line Input #Fn2, Buff1
+				p = InStr(LCase(Buff1), "ml(""")
+				Do While p > 0
+					p1 = InStr(p + 1, Buff1, """)")
+					If p1 > 0 Then
+						Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
+						If Key <> "" Then
+							If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
+								mlKeysNew.Add Key
+								Key = Replace(Key, "&", "")
+								If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
 							End If
-							p = InStr(p + 1, LCase(Buff1), "ml(""")
-						Loop
-						p = InStr(LCase(Buff1), "ms(""")
-						Do While p > 0
-							p1 = InStr(p + 1, Buff1, """,")
-							If p1 > 0 Then
-								Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
-								If Key <> "" Then
-									If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
-										mlKeysNew.Add Key
-										Key = Replace(Key, "&", "")
-										If Not mlKeys.Contains(Key) Then mlKeys.Add Key
-									End If
-								End If
-							End If
-							p = InStr(p + 1, LCase(Buff1), "ms(""")
-						Loop
-						p = InStr(LCase(Buff1), ".curlanguage =")
-						If p < 1 Then p = InStr(LCase(Buff1), ".curlanguage=")
-						If p > 0 Then
-							p = InStr(p + 1, LCase(Buff1), Chr(34))
-							p1 = InStr(p + 1, Buff1, Chr(34))
-							If p1 > 0 Then Lang_Name = Mid(Buff1, p + 1, p1 - p - 1)
-							Debug.Print ".curlanguage =" & Lang_Name
 						End If
-					Loop
-					Close #Fn2
-				Else
-					StatusBar1.Panels[0]->Caption = ML("Can not open file!") & " " & FileName
+					End If
+					p = InStr(p + 1, LCase(Buff1), "ml(""")
+				Loop
+				p = InStr(LCase(Buff1), "ms(""")
+				Do While p > 0
+					p1 = InStr(p + 1, Buff1, """,")
+					If p1 > 0 Then
+						Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
+						If Key <> "" Then
+							If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
+								mlKeysNew.Add Key
+								Key = Replace(Key, "&", "")
+								If Not mlKeys.Contains(Key) Then mlKeys.Add Key
+							End If
+						End If
+					End If
+					p = InStr(p + 1, LCase(Buff1), "ms(""")
+				Loop
+				p = InStr(LCase(Buff1), ".curlanguage =")
+				If p < 1 Then p = InStr(LCase(Buff1), ".curlanguage=")
+				If p > 0 Then
+					p = InStr(p + 1, LCase(Buff1), Chr(34))
+					p1 = InStr(p + 1, Buff1, Chr(34))
+					If p1 > 0 Then Lang_Name = Mid(Buff1, p + 1, p1 - p - 1)
+					Debug.Print ".curlanguage =" & Lang_Name
 				End If
-			End If
-		Loop
-		Close #Fn1
+			Loop
+			FileCount += 1
+			Close #Fn2
+		Else
+			StatusBar1.Panels[0]->Caption = ML("Can not open file!") & " " & FileName
+		End If
 	Else
-		StatusBar1.Panels[0]->Caption = ML("Can not open file!") & " " & txtPathProj.Text
+		Result = Open(txtPathProj.Text For Input Encoding "utf-8" As #Fn1)
+		If Result <> 0 Then Result = Open(txtPathProj.Text For Input Encoding "utf-16" As #Fn1)
+		If Result <> 0 Then Result = Open(txtPathProj.Text For Input Encoding "utf-32" As #Fn1)
+		If Result <> 0 Then Result = Open(txtPathProj.Text For Input As #Fn1)
+		If Result = 0 Then
+			Do Until EOF(Fn1)
+				Line Input #Fn1, Buff
+				If StartsWith(Buff, "File=") OrElse StartsWith(Buff, "*File=") Then
+					Buff = Mid(Buff, InStr(Buff, "=") + 1)
+					If InStr(Buff, ":") Then
+						FileName= Buff
+					Else
+						FileName= GetFolderName(txtPathProj.Text) & Buff
+					End If
+					StatusBar1.Panels[0]->Caption = ML("now open file ") & " " & FileName
+					App.DoEvents
+					Fn2 = FreeFile
+					Result = Open(FileName For Input Encoding "utf-8" As #Fn2)
+					If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn2)
+					If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn2)
+					If Result <> 0 Then Result = Open(FileName For Input As #Fn2)
+					If Result = 0 Then
+						Do Until EOF(Fn2)
+							Line Input #Fn2, Buff1
+							p = InStr(LCase(Buff1), "ml(""")
+							Do While p > 0
+								p1 = InStr(p + 1, Buff1, """)")
+								If p1 > 0 Then
+									Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
+									If Key <> "" Then
+										If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
+											mlKeysNew.Add Key
+											Key = Replace(Key, "&", "")
+											If Not mlKeysNew.Contains(Key) Then mlKeysNew.Add Key
+										End If
+									End If
+								End If
+								p = InStr(p + 1, LCase(Buff1), "ml(""")
+							Loop
+							p = InStr(LCase(Buff1), "ms(""")
+							Do While p > 0
+								p1 = InStr(p + 1, Buff1, """,")
+								If p1 > 0 Then
+									Key = Trim(Mid(Buff1, p + 4, p1 - p - 4), Any !"\t ")
+									If Key <> "" Then
+										If Key <> """" AndAlso Not mlKeysNew.Contains(Key) Then
+											mlKeysNew.Add Key
+											Key = Replace(Key, "&", "")
+											If Not mlKeys.Contains(Key) Then mlKeys.Add Key
+										End If
+									End If
+								End If
+								p = InStr(p + 1, LCase(Buff1), "ms(""")
+							Loop
+							p = InStr(LCase(Buff1), ".curlanguage =")
+							If p < 1 Then p = InStr(LCase(Buff1), ".curlanguage=")
+							If p > 0 Then
+								p = InStr(p + 1, LCase(Buff1), Chr(34))
+								p1 = InStr(p + 1, Buff1, Chr(34))
+								If p1 > 0 Then Lang_Name = Mid(Buff1, p + 1, p1 - p - 1)
+								Debug.Print ".curlanguage =" & Lang_Name
+							End If
+						Loop
+						Close #Fn2
+						FileCount += 1
+					Else
+						StatusBar1.Panels[0]->Caption = ML("Can not open file!") & " " & FileName
+					End If
+				End If
+			Loop
+			Close #Fn1
+		Else
+			StatusBar1.Panels[0]->Caption = ML("Can not open file!") & " " & txtPathProj.Text
+		End If
 	End If
 	mlKeysNew.Sort
 	If Dir(PathLng & Lang_Name & ".lng") = "" Then EmptyLng = True
@@ -390,11 +454,12 @@ Private Sub Form1.cmdRun_Click(ByRef Sender As Control)
 			StatusBar1.Panels[0]->Caption = ML("Can not save file!") & " " &  PathLng & "english.html"
 		End If
 	End If
+	StatusBar1.Panels[0]->Caption = ML("Success searching") & " " & FileCount & " " & ML("files")
 End Sub
 
 Private Sub Form1.cmdExploreLng_Click(ByRef Sender As Control)
 	Dim OpenD As OpenFileDialog
-	OpenD.Filter = "Language file (.lng)|*.lng|"
+	OpenD.Filter = ML("Language file (.lng)") & "|*.lng|"
 	If OpenD.Execute Then
 		txtPathLng.Text = OpenD.FileName
 	End If
