@@ -12,6 +12,7 @@
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
+	#include once "mff/sys.bi"
 	#include once "mff/TextBox.bi"
 	#include once "mff/Label.bi"
 	#include once "mff/Dialogs.bi"
@@ -40,8 +41,8 @@
 	Constructor Form1
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/"
-				.CurLanguage = "english"
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
 			End With
 		#endif
 		' Form1
@@ -197,7 +198,7 @@ Private Sub Form1.cmdExploreProj_Click(ByRef Sender As Control)
 	OpenD.Filter = "Visual FB Editor projects (.vfp)|*.vfp|Froms file (.frm)|*.frm|Modules file (.bas)|*.bas|"
 	If OpenD.Execute Then 
 		txtPathProj.Text = OpenD.FileName
-		txtPathLng.Text = GetFolderName(txtPathProj.Text)
+		txtPathLng.Text = GetFolderName(txtPathProj.Text) & "Languages/"
 	End If
 End Sub
 
@@ -215,7 +216,7 @@ Private Sub Form1.cmdRun_Click(ByRef Sender As Control)
 	txtPathProj.Text = Trim(txtPathProj.Text)
 	txtPathLng.Text = Trim(txtPathLng.Text)
 	If LCase(Right(txtPathLng.Text, 4)) = ".lng" Then
-		PathLng = GetFolderName(txtPathLng.Text)
+		PathLng = GetFolderName(txtPathLng.Text) 
 	Else
 		If Right(Trim(txtPathLng.Text), 1) = "/" OrElse Right(Trim(txtPathLng.Text), 1) = "\" Then
 			PathLng = txtPathLng.Text
@@ -467,9 +468,11 @@ End Sub
 
 Private Sub Form1.Form_Create(ByRef Sender As Control)
 	Debug.Print "Command args =" & Command
+	Debug.Print "App.Language =" & App.Language & " App.CurLanguage =" & App.CurLanguage
+	'Debug.Print "App.Language =" & My.Sys.Language
 	If Command <> "" Then
 		txtPathProj.Text = Command
-		txtPathLng.Text = GetFolderName(Command) & "Language\english.lng"
+		txtPathLng.Text = GetFolderName(Command) & "english.lng"
 	End If
 	StatusBar1.Align = DockStyle.alBottom
 	StatusBar1.Add ML("")

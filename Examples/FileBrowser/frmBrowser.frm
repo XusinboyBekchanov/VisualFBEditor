@@ -7,6 +7,7 @@
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
+	#include once "mff/sys.bi"
 	#include once "mff/ComboBoxEx.bi"
 	#include once "mff/TreeView.bi"
 	#include once "mff/ListView.bi"
@@ -71,14 +72,19 @@
 	Constructor frmBrowserType
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/"
-				.CurLanguage = "english"
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
 			End With
 		#endif
 		' frmBrowser
 		With This
 			.Name = "frmBrowser"
 			.Text = ML("File Browser")
+			#ifdef __USE_GTK__
+				.Icon.LoadFromFile(ExePath & "../../Resources/VisualFBEditor.ico")
+			#else
+				.Icon.LoadFromResourceID(1)
+			#endif
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
@@ -233,7 +239,7 @@
 		With MenuItem2
 			.Name = "MenuItem2"
 			.Designer = @This
-			.Caption = ML("Detials")
+			.Caption = ML("Details")
 			.Tag = @"1"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1

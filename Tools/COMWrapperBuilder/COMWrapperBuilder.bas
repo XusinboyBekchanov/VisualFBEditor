@@ -1,20 +1,28 @@
 ﻿'#############################################################
-'#  frmCOMWrapperBuilder.bi                                         #
+'#  COMWrapperBuilder.bas                                    #
 '#  Author: Xusinboy Bekchanov (bxusinboy@mail.ru) (2020)    #
 '#############################################################
-	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
-		#define __MAIN_FILE__
-		#ifdef __FB_WIN32__
-			#cmdline "COMWrapperBuilder.rc -x COMWrapperBuilder.exe"
-		#endif
-		Const _MAIN_FILE_ = __FILE__
+
+'A FreeBasic module that generates including files (not dependent on libraries) on the fly can be used to write  the code normally according to the COM and VBA syntax. Before compiling the code
+'Click On COMWrapperBuilder in the Menu "Settings" To automatically generate a reference header FILE that calls Com. Add "#include once 'Com_xxx.bi" in the code including area.
+
+'一个即时翻译生成头文件（不依赖于库）的 FreeBasic 调用Com的模块，你可以先按照COM和VBA语法正常必须代码，在编译代码前
+'点击菜单”设置”里的COMWrapperBuilder,将自动生成调用com的引用头文件。在代码引用区加入”#include once "Com_xxx.bi"即可
+
+#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+	#define __MAIN_FILE__
+	#ifdef __FB_WIN32__
+		#cmdline "COMWrapperBuilder.rc -x COMWrapperBuilder.exe"
 	#endif
-#include once "mff\Form.bi"
-#include once "mff\TextBox.bi"
-#include once "mff\Label.bi"
-#include once "mff\Dialogs.bi"
-#include once "mff\CommandButton.bi"
-#include once "mff\Label.bi"
+	Const _MAIN_FILE_ = __FILE__
+#endif
+#include once "mff/Form.bi"
+#include once "mff/sys.bi"
+#include once "mff/TextBox.bi"
+#include once "mff/Label.bi"
+#include once "mff/Dialogs.bi"
+#include once "mff/CommandButton.bi"
+#include once "mff/Label.bi"
 #include once "mff/TextBox.bi"
 
 Using My.Sys.Forms
@@ -36,53 +44,73 @@ Using My.Sys.Forms
 	Constructor frmCOMWrapperBuilder
 		#if _MAIN_FILE_ = __FILE__
 			With App
-				.CurLanguagePath = ExePath & "/"
-				.CurLanguage = "english"
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
 			End With
 		#endif
 		' Form
-		This.Name = "frmCOMWrapperBuilder"
-		This.Text = ML("COM Wrapper Builder")
-		This.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
-		This.Icon.LoadFromResourceID(1)
-		This.BorderStyle = FormBorderStyle.FixedSingle
-		This.DoubleBuffered = False
-		This.ID = 0
-		This.MaximizeBox = False
-		This.SetBounds 0, 0, 500, 182
+		With This
+			.Name = "frmCOMWrapperBuilder"
+			.Text = ML("COM Wrapper Builder")
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.Icon.LoadFromResourceID(1)
+			.BorderStyle = FormBorderStyle.FixedSingle
+			.DoubleBuffered = False
+			.Designer = @This
+			.ID = 0
+			.MaximizeBox = False
+			.ModalResult = ModalResults.OK
+			.SetBounds 0, 0, 500, 182
+		End With
+		
 		' txtPath
-		txtPath.Name = "txtPath"
-		txtPath.Text = ""
-		txtPath.SetBounds 135, 4, 300, 18
-		txtPath.Designer = @This
-		txtPath.Parent = @This
+		With txtPath
+			.Name = "txtPath"
+			.Text = ""
+			.SetBounds 135, 4, 300, 18
+			.Designer = @This
+			.Parent = @This
+		End With
+		
 		' lblPath
-		lblPath.Name = "lblPath"
-		lblPath.Text = ML("Path to project (optional)")
-		lblPath.SetBounds 12, -1, 120, 28
-		txtPath.Designer = @This
-		lblPath.Parent = @This
+		With lblPath
+			.Name = "lblPath"
+			.Text = ML("Path to project (optional)")
+			.SetBounds 12, -1, 120, 28
+			.Designer = @This
+			.Parent = @This
+		End With
+		
 		' cmdPath
-		cmdPath.Name = "cmdPath"
-		cmdPath.Text = "..."
-		cmdPath.SetBounds 440, 3, 44, 20
-		txtPath.Designer = @This
-		cmdPath.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPath_Click)
-		cmdPath.Parent = @This
+		With cmdPath
+			.Name = "cmdPath"
+			.Text = "..."
+			.SetBounds 440, 3, 44, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPath_Click)
+			.Parent = @This
+		End With
+		
 		' cmdPathSource
-		cmdPathSource.Name = "cmdPathSource"
-		cmdPathSource.Text = "..."
-		cmdPathSource.SetBounds 440, 33, 44, 20
-		txtPath.Designer = @This
-		cmdPathSource.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPathSource_Click)
-		cmdPathSource.Parent = @This
+		With cmdPathSource
+			.Name = "cmdPathSource"
+			.Text = "..."
+			.SetBounds 440, 33, 44, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdPathSource_Click)
+			.Parent = @This
+		End With
+		
 		' cmdRun
-		cmdRun.Name = "cmdRun"
-		cmdRun.Text = ML("Run")
-		cmdRun.SetBounds 373, 90, 110, 20
-		txtPath.Designer = @This
-		cmdRun.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRun_Click)
-		cmdRun.Parent = @This
+		With cmdRun
+			.Name = "cmdRun"
+			.Text = ML("Run")
+			.SetBounds 373, 90, 110, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRun_Click)
+			.Parent = @This
+		End With
+		
 		' lblPathMainFile
 		With lblPathMainFile
 			.Name = "lblPathMainFile"
@@ -91,6 +119,7 @@ Using My.Sys.Forms
 			.Designer = @This
 			.Parent = @This
 		End With
+		
 		' txtPathSource
 		With txtPathSource
 			.Name = "txtPathSource"
@@ -99,6 +128,7 @@ Using My.Sys.Forms
 			.SetBounds 135, 34, 300, 18
 			.Parent = @This
 		End With
+		
 		' cmdExit
 		With cmdExit
 			.Name = "cmdExit"
@@ -108,6 +138,7 @@ Using My.Sys.Forms
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdExit_Click)
 			.Parent = @This
 		End With
+		
 		' lblPathToSVP
 		With lblPathToSVP
 			.Name = "lblPathToSVP"
@@ -116,6 +147,7 @@ Using My.Sys.Forms
 			.Designer = @This
 			.Parent = @This
 		End With
+		
 		' lblPathSVP
 		With lblPathSVP
 			.Name = "lblPathSVP"
@@ -124,6 +156,7 @@ Using My.Sys.Forms
 			.Designer = @This
 			.Parent = @This
 		End With
+		
 		' cmdOpen
 		With cmdOpen
 			.Name = "cmdOpen"
@@ -133,14 +166,17 @@ Using My.Sys.Forms
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOpen_Click)
 			.Parent = @This
 		End With
+		
 		' txtMsg
 		With txtMsg
 			.Name = "txtMsg"
-			.Text = ""
+			.Text = ML("A FreeBasic module that generates including files (Not dependent On libraries) On the fly can be used To Write the code normally according To the Com And VBA syntax.")
+			.Text = .Text + Chr(13, 10) + ML("Before compiling the code, Click On COMWrapperBuilder in the Menu 'Settings' To automatically generate a reference header FILE that calls Com. Add '#include once 'Com_xxx.bi' in the code including area.")
 			.TabIndex = 11
 			.Multiline = True
-			.ID = 1085
-			.ScrollBars = ScrollBarsType.Both
+			.ID = 1202
+			.ScrollBars = ScrollBarsType.Vertical
+			.WordWraps = True
 			.SetBounds 10, 90, 350, 64
 			.Designer = @This
 			.Parent = @This
@@ -182,7 +218,6 @@ Private Sub frmCOMWrapperBuilder.Form_Create(ByRef Sender As Control)
 				txtPathSource.Text = WithoutQuotes(Mid(Command, PosS + 3))
 			End If
 		End If
-		
 		cmdRun_Click(Sender)
 	End If
 End Sub
@@ -564,8 +599,8 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 					Loop
 					Close #Fn1
 				Else
-					MsgBox ML("File not opened!") & " " & *fileName 
-					.txtMsg.Text = .txtMsg.Text & Chr(13, 10) & ML("File not opened!") & " " & *fileName 
+					MsgBox ML("File not opened!") & " " & *fileName
+					.txtMsg.Text = .txtMsg.Text & Chr(13, 10) & ML("File not opened!") & " " & *fileName
 					Deallocate fileName
 					Deallocate FLine
 					Deallocate FoldName
