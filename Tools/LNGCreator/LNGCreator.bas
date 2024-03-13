@@ -41,7 +41,7 @@
 		#if _MAIN_FILE_ = __FILE__
 			With App
 				.CurLanguagePath = ExePath & "/"
-				.CurLanguage = "chinese"
+				.CurLanguage = "english"
 			End With
 		#endif
 		' Form1
