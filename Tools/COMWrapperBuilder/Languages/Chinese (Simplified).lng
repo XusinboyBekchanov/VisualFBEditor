@@ -2,16 +2,17 @@
 [General]
 ' Add Declares at  =  ' 添加声明在以下位置
 ' Add Functions at  =  ' 在以下位置添加函数
-A FreeBasic module that generates including files (Not dependent On libraries) On the fly can be used To Write the code normally according To the Com And VBA syntax.  =  生成包含文件（不依赖于库）的 FreeBasic 模块可以动态地用于根据 Com 和 VBA 语法正常编写代码。
-Before compiling the code, Click On COMWrapperBuilder in the Menu 'Settings' To automatically generate a reference header FILE that calls Com. Add '#include once 'Com_xxx.bi' in the code including area.  =  在编译代码之前，单击菜单“设置”中的 COMWrapperBuilder，以自动生成调用 Com 的引用标头 FILE。 在代码包含区域中添加一次“#include”Com_xxx.bi”。
-COM Wrapper Builder  =  COM 包装生成器
+A FreeBasic module that generates including files (Not dependent On libraries) On the fly can be used To Write the code normally according To the Com And VBA syntax.  =  一个即时翻译生成头文件(不依赖于库)的FreeBasic调用Com的模块。你可以先按照COM和VBA语法正常输入代码。
+Before compiling the code, Click On COMWrapperBuilder in the Menu 'Settings' To automatically generate a reference header FILE that calls Com. Add '#include once 'Com_xxx.bi' in the code including area.  =  在编译代码前，点击菜单'设置'里的COMWrapperBuilder,将自动生成调用com的引用头文件。在代码引用区加入”#include once "Com_xxx.bi"即可
+COM Wrapper Builder  =  COM包装生成器
 Exit  =  退出
 File not opened!  =  文件未打开！
+File not saved!  =  文件未保存！
 File not selected!  =  文件未选择！
 is changed  =  已更改
 is created  =  被创建
-Not find the code 'CreateObject' in modules!  =  在模块中找不到代码‘CreateObject’！
-Open  =  打开
+Not find the code 'CreateObject' in modules!  =  在模块代码中找不到代码‘CreateObject’！
+Change  =  更改
 Path to Main File (optional)  =  主文件的路径（可选）
 Path to project (optional)  =  项目路径（可选）
 Path to SimpleVariantPlus.bi:  =  SimpleVariantPlus.bi 路径：
