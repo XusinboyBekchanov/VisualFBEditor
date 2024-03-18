@@ -234,7 +234,7 @@ Namespace My.Sys.Forms
 				Dim ParentHwndPtr As HWND Ptr = Cast(HWND Ptr, st->ReadPropertyFunc(Parent, "Handle"))
 				If ParentHwndPtr = 0 Then Return Parent
 				Dim ParentHwnd As HWND = *Cast(HWND Ptr, st->ReadPropertyFunc(Parent, "Handle"))
-				Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
+				Dim Result As HWND = ChildWindowFromPointEx(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)), CWP_SKIPINVISIBLE)
 				If IsWindowVisible(Result) = 0 Then Return Parent
 				If GetControl(Result) = Parent Then Return Parent
 				If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then

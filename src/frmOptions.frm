@@ -37,160 +37,171 @@ pfOptions = @fOptions
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
+		' pplGeneral
+		pplGeneral.Name = "pplGeneral"
+		pplGeneral.Text = ""
+		pplGeneral.Align = DockStyle.alClient
+		pplGeneral.ExtraMargins.Bottom = 9
+		pplGeneral.ExtraMargins.Top = 4
+		pplGeneral.ExtraMargins.Right = 10
+		pplGeneral.Margins.Left = 10
+		pplGeneral.TabIndex = 67
+		pplGeneral.SetBounds 188, 4, 427, 400
+		pplGeneral.Parent = @This
 		' pnlCompiler
 		pnlCompiler.Name = "pnlCompiler"
 		pnlCompiler.Text = ""
 		pnlCompiler.Align = DockStyle.alClient
-		pnlCompiler.ExtraMargins.Bottom = 9
-		pnlCompiler.ExtraMargins.Top = 4
-		pnlCompiler.ExtraMargins.Right = 10
-		pnlCompiler.Margins.Left = 10
+		'pnlCompiler.ExtraMargins.Bottom = 9
+		'pnlCompiler.ExtraMargins.Top = 4
+		'pnlCompiler.ExtraMargins.Right = 10
+		'pnlCompiler.Margins.Left = 10
 		pnlCompiler.TabIndex = 67
 		pnlCompiler.SetBounds 188, 4, 427, 400
-		pnlCompiler.Parent = @This
+		pnlCompiler.Parent = @pplGeneral
 		' pnlMake
 		pnlMake.Name = "pnlMake"
 		pnlMake.Text = ""
-		pnlMake.ExtraMargins.Top = 4
-		pnlMake.ExtraMargins.Bottom = 9
-		pnlMake.ExtraMargins.Right = 10
-		pnlMake.Margins.Left = 10
+		'pnlMake.ExtraMargins.Top = 4
+		'pnlMake.ExtraMargins.Bottom = 9
+		'pnlMake.ExtraMargins.Right = 10
+		'pnlMake.Margins.Left = 10
 		pnlMake.Align = DockStyle.alClient
 		pnlMake.TabIndex = 68
 		pnlMake.SetBounds 188, 4, 427, 400
-		pnlMake.Parent = @This
+		pnlMake.Parent = @pplGeneral
 		' pnlDebugger
 		pnlDebugger.Name = "pnlDebugger"
 		pnlDebugger.Text = ""
-		pnlDebugger.ExtraMargins.Top = 4
-		pnlDebugger.ExtraMargins.Bottom = 9
-		pnlDebugger.ExtraMargins.Right = 10
-		pnlDebugger.Margins.Left = 10
+		'pnlDebugger.ExtraMargins.Top = 4
+		'pnlDebugger.ExtraMargins.Bottom = 9
+		'pnlDebugger.ExtraMargins.Right = 10
+		'pnlDebugger.Margins.Left = 10
 		pnlDebugger.Align = DockStyle.alClient
 		pnlDebugger.TabIndex = 69
 		pnlDebugger.SetBounds 188, 4, 427, 400
-		pnlDebugger.Parent = @This
+		pnlDebugger.Parent = @pplGeneral
 		' pnlTerminal
 		pnlTerminal.Name = "pnlTerminal"
 		pnlTerminal.Text = ""
-		pnlTerminal.Margins.Left = 10
-		pnlTerminal.ExtraMargins.Top = 4
-		pnlTerminal.ExtraMargins.Right = 10
-		pnlTerminal.ExtraMargins.Bottom = 9
+		'pnlTerminal.Margins.Left = 10
+		'pnlTerminal.ExtraMargins.Top = 4
+		'pnlTerminal.ExtraMargins.Right = 10
+		'pnlTerminal.ExtraMargins.Bottom = 9
 		pnlTerminal.Align = DockStyle.alClient
 		pnlTerminal.TabIndex = 70
 		pnlTerminal.SetBounds 188, 4, 427, 400
-		pnlTerminal.Parent = @This
+		pnlTerminal.Parent = @pplGeneral
 		' pnlDesigner
 		pnlDesigner.Name = "pnlDesigner"
 		pnlDesigner.Text = ""
-		pnlDesigner.ExtraMargins.Top = 4
-		pnlDesigner.ExtraMargins.Right = 10
-		pnlDesigner.ExtraMargins.Bottom = 9
+		'pnlDesigner.ExtraMargins.Top = 4
+		'pnlDesigner.ExtraMargins.Right = 10
+		'pnlDesigner.ExtraMargins.Bottom = 9
 		pnlDesigner.Align = DockStyle.alClient
-		pnlDesigner.Margins.Left = 10
+		'pnlDesigner.Margins.Left = 10
 		pnlDesigner.TabIndex = 71
 		pnlDesigner.SetBounds -162, 4, 427, 400
-		pnlDesigner.Parent = @This
+		pnlDesigner.Parent = @pplGeneral
 		' pnlLocalization
 		pnlLocalization.Name = "pnlLocalization"
 		pnlLocalization.Text = ""
-		pnlLocalization.ExtraMargins.Top = 4
-		pnlLocalization.ExtraMargins.Bottom = 9
-		pnlLocalization.ExtraMargins.Right = 10
+		'pnlLocalization.ExtraMargins.Top = 4
+		'pnlLocalization.ExtraMargins.Bottom = 9
+		'pnlLocalization.ExtraMargins.Right = 10
 		pnlLocalization.Align = DockStyle.alClient
-		pnlLocalization.Margins.Left = 10
+		'pnlLocalization.Margins.Left = 10
 		pnlLocalization.TabIndex = 72
 		pnlLocalization.SetBounds 188, 4, 427, 400
-		pnlLocalization.Parent = @This
+		pnlLocalization.Parent = @pplGeneral
 		' pnlThemes
 		pnlThemes.Name = "pnlThemes"
 		pnlThemes.Text = ""
-		pnlThemes.ExtraMargins.Top = 4
-		pnlThemes.ExtraMargins.Bottom = 9
-		pnlThemes.ExtraMargins.Right = 10
-		pnlThemes.Margins.Left = 10
+		'pnlThemes.ExtraMargins.Top = 4
+		'pnlThemes.ExtraMargins.Bottom = 9
+		'pnlThemes.ExtraMargins.Right = 10
+		'pnlThemes.Margins.Left = 10
 		pnlThemes.Align = DockStyle.alClient
 		pnlThemes.TabIndex = 73
 		pnlThemes.SetBounds 188, 4, 427, 400
-		pnlThemes.Parent = @This
+		pnlThemes.Parent = @pplGeneral
 		' pnlShortcuts
 		pnlShortcuts.Name = "pnlShortcuts"
 		pnlShortcuts.Text = ""
-		pnlShortcuts.Margins.Left = 10
-		pnlShortcuts.Margins.Right = 0
-		pnlShortcuts.ExtraMargins.Bottom = 9
-		pnlShortcuts.ExtraMargins.Top = 4
-		pnlShortcuts.ExtraMargins.Right = 10
+		'pnlShortcuts.Margins.Left = 10
+		'pnlShortcuts.Margins.Right = 0
+		'pnlShortcuts.ExtraMargins.Bottom = 9
+		'pnlShortcuts.ExtraMargins.Top = 4
+		'pnlShortcuts.ExtraMargins.Right = 10
 		pnlShortcuts.Align = DockStyle.alClient
 		pnlShortcuts.TabIndex = 74
 		pnlShortcuts.SetBounds 188, 4, 427, 400
-		pnlShortcuts.Parent = @This
+		pnlShortcuts.Parent = @pplGeneral
 		' pnlHelp
 		pnlHelp.Name = "pnlHelp"
 		pnlHelp.Text = ""
-		pnlHelp.ExtraMargins.Top = 4
-		pnlHelp.ExtraMargins.Right = 10
-		pnlHelp.ExtraMargins.Bottom = 9
-		pnlHelp.Margins.Left = 10
+		'pnlHelp.ExtraMargins.Top = 4
+		'pnlHelp.ExtraMargins.Right = 10
+		'pnlHelp.ExtraMargins.Bottom = 9
+		'pnlHelp.Margins.Left = 10
 		pnlHelp.Align = DockStyle.alClient
 		pnlHelp.TabIndex = 75
 		pnlHelp.SetBounds 188, 4, 427, 400
-		pnlHelp.Parent = @This
+		pnlHelp.Parent = @pplGeneral
 		' pnlOtherEditors
 		pnlOtherEditors.Name = "pnlOtherEditors"
 		pnlOtherEditors.Text = ""
-		pnlOtherEditors.ExtraMargins.Right = 10
+		'pnlOtherEditors.ExtraMargins.Right = 10
 		pnlOtherEditors.Align = DockStyle.alClient
-		pnlOtherEditors.ExtraMargins.Bottom = 9
-		pnlOtherEditors.ExtraMargins.Top = 4
+		'pnlOtherEditors.ExtraMargins.Bottom = 9
+		'pnlOtherEditors.ExtraMargins.Top = 4
 		pnlOtherEditors.TabIndex = 76
 		pnlOtherEditors.SetBounds 188, 4, 427, 400
-		pnlOtherEditors.Parent = @This
+		pnlOtherEditors.Parent = @pplGeneral
 		' pnlIncludes
 		pnlIncludes.Name = "pnlIncludes"
-		pnlIncludes.ExtraMargins.Bottom = 9
-		pnlIncludes.ExtraMargins.Right = 10
+		'pnlIncludes.ExtraMargins.Bottom = 9
+		'pnlIncludes.ExtraMargins.Right = 10
 		pnlIncludes.Align = DockStyle.alClient
-		pnlIncludes.ExtraMargins.Top = 4
+		'pnlIncludes.ExtraMargins.Top = 4
 		pnlIncludes.TabIndex = 77
 		pnlIncludes.SetBounds 188, 4, 427, 400
 		pnlIncludes.Text = ""
-		pnlIncludes.Parent = @This
+		pnlIncludes.Parent = @pplGeneral
 		' pnlCodeEditor
 		pnlCodeEditor.Name = "pnlCodeEditor"
 		pnlCodeEditor.Text = ""
-		pnlCodeEditor.ExtraMargins.Top = 4
-		pnlCodeEditor.ExtraMargins.Bottom = 9
-		pnlCodeEditor.ExtraMargins.Right = 10
-		pnlCodeEditor.Margins.Left = 10
+		'pnlCodeEditor.ExtraMargins.Top = 4
+		'pnlCodeEditor.ExtraMargins.Bottom = 9
+		'pnlCodeEditor.ExtraMargins.Right = 10
+		'pnlCodeEditor.Margins.Left = 10
 		pnlCodeEditor.Align = DockStyle.alClient
 		pnlCodeEditor.TabIndex = 78
 		pnlCodeEditor.SetBounds 188, 4, 427, 400
-		pnlCodeEditor.Parent = @This
+		pnlCodeEditor.Parent = @pplGeneral
 		' pnlColorsAndFonts
 		pnlColorsAndFonts.Name = "pnlColorsAndFonts"
 		pnlColorsAndFonts.Text = ""
-		pnlColorsAndFonts.ExtraMargins.Top = 4
-		pnlColorsAndFonts.ExtraMargins.Right = 10
-		pnlColorsAndFonts.ExtraMargins.Bottom = 9
-		pnlColorsAndFonts.Margins.Left = 10
+		'pnlColorsAndFonts.ExtraMargins.Top = 4
+		'pnlColorsAndFonts.ExtraMargins.Right = 10
+		'pnlColorsAndFonts.ExtraMargins.Bottom = 9
+		'pnlColorsAndFonts.Margins.Left = 10
 		pnlColorsAndFonts.Align = DockStyle.alClient
 		pnlColorsAndFonts.TabIndex = 79
 		pnlColorsAndFonts.SetBounds 188, 4, 427, 400
-		pnlColorsAndFonts.Parent = @This
+		pnlColorsAndFonts.Parent = @pplGeneral
 		' pnlGeneral
 		pnlGeneral.Name = "pnlGeneral"
 		pnlGeneral.Text = ""
-		pnlGeneral.Margins.Left = 10
-		pnlGeneral.ExtraMargins.Top = 0
-		pnlGeneral.ExtraMargins.Bottom = 9
-		pnlGeneral.ExtraMargins.Right = 10
+		'pnlGeneral.Margins.Left = 10
+		'pnlGeneral.ExtraMargins.Top = 0
+		'pnlGeneral.ExtraMargins.Bottom = 9
+		'pnlGeneral.ExtraMargins.Right = 10
 		pnlGeneral.Align = DockStyle.alClient
-		pnlGeneral.Margins.Top = 0
+		'pnlGeneral.Margins.Top = 0
 		pnlGeneral.TabIndex = 1
 		pnlGeneral.SetBounds 188, 0, 427, 404
-		pnlGeneral.Parent = @This
+		pnlGeneral.Parent = @pplGeneral
 		' pnlCommands
 		With pnlCommands
 			.Name = "pnlCommands"
@@ -584,7 +595,7 @@ pfOptions = @fOptions
 		With chkAutoCreateBakFiles
 			.Name = "chkAutoCreateBakFiles"
 			.Text = ML("Auto create bak files before saving")
-			.ExtraMargins.Top = 5
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.TabIndex = 100
 			.Constraints.Height = 21
@@ -644,13 +655,13 @@ pfOptions = @fOptions
 			.Name = "grbIncludePaths"
 			.Text = ML("Include Paths")
 			.Align = DockStyle.alClient
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.Margins.Top = 23
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
 			.TabIndex = 104
-			.SetBounds 10, 0, 417, 214
+			.SetBounds 10, 0, 407, 214
 			.Parent = @pnlIncludes
 		End With
 		' grbLibraryPaths
@@ -658,14 +669,14 @@ pfOptions = @fOptions
 			.Name = "grbLibraryPaths"
 			.Text = ML("Library Paths")
 			.Align = DockStyle.alBottom
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Top = 8
 			.Margins.Top = 20
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
 			.TabIndex = 105
-			.SetBounds 10, 222, 417, 178
+			.SetBounds 10, 222, 407, 178
 			.Parent = @pnlIncludes
 		End With
 		' pnlIncludeMFFPath
@@ -1909,13 +1920,13 @@ pfOptions = @fOptions
 			.Text = ML("Other Editors")
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 0
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.Margins.Top = 21
 			.Margins.Right = 15
 			.Margins.Left = 15
 			.Margins.Bottom = 15
 			.TabIndex = 166
-			.SetBounds 10, 0, 417, 400
+			.SetBounds 10, 0, 407, 400
 			.Parent = @pnlOtherEditors
 		End With
 		' lvOtherEditors
@@ -2677,13 +2688,13 @@ pfOptions = @fOptions
 			.TabIndex = 234
 			.Align = DockStyle.alClient
 			.ControlIndex = 8
-			.ExtraMargins.Top = 4
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Bottom = 9
-			.Margins.Left = 10
+			'.ExtraMargins.Top = 4
+			'.ExtraMargins.Right = 10
+			'.ExtraMargins.Bottom = 9
+			'.Margins.Left = 10
 			.SetBounds 188, 4, 427, 400
 			.Designer = @This
-			.Parent = @This
+			.Parent = @pplGeneral
 		End With
 		' grbDefaultConfiguration
 		With grbDefaultConfiguration

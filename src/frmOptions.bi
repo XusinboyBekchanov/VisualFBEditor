@@ -35,6 +35,7 @@
 #include once "mff/ScrollControl.bi"
 #include once "mff/VerticalBox.bi"
 #include once "mff/HorizontalBox.bi"
+#include once "mff/PagePanel.bi"
 
 Using My.Sys.Forms
 
@@ -186,6 +187,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing, optPromptToSave, optMainFileFolder, optInFolder
 		Dim As VerticalBox vbxCodeEditor, vbxGeneral, vbxColors
 		Dim As VerticalBox vbxTheme
+		Dim As PagePanel pplGeneral
 	End Type
 '#End Region
 
