@@ -1347,7 +1347,7 @@ Private Sub exception_handle(adr As Integer)
 	ML("Line") & "  : " + Str(rline(thread(threadcur).sv).nu) + ML("(selected and put in red)") + Chr(13) + _
 	linetext + Chr(13) + Chr(13) + ML("Try To continue? (if yes change values and/or use [M]odify execution)") + Chr(13)
 	ThreadsEnter
-	debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception)  ''used in thread2
+	debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception, , , btYesNo)  ''used in thread2
 	ThreadsLeave
 End Sub
 '===================================================

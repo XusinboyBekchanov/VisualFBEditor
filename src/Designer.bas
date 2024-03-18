@@ -235,6 +235,7 @@ Namespace My.Sys.Forms
 				If ParentHwndPtr = 0 Then Return Parent
 				Dim ParentHwnd As HWND = *Cast(HWND Ptr, st->ReadPropertyFunc(Parent, "Handle"))
 				Dim Result As HWND = ChildWindowFromPoint(ParentHwnd, Type<..Point>(ScaleX(X), ScaleY(Y)))
+				If IsWindowVisible(Result) = 0 Then Return Parent
 				If GetControl(Result) = Parent Then Return Parent
 				If Result = 0 OrElse Result = ParentHwnd OrElse GetControl(Result) = 0 Then
 					Return Parent
@@ -689,7 +690,6 @@ Namespace My.Sys.Forms
 		FDotIndex   = IsDot(FOverControl)
 		If FDotIndex = -1 Then
 			If bCtrl Or bShift Then
-				
 				If SelectedControls.Contains(SelCtrl) Then
 					If SelectedControls.Count > 1 Then SelectedControls.Remove SelectedControls.IndexOf(SelCtrl)
 					SelectedControl = SelectedControls.Items[0]
