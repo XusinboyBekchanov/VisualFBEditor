@@ -1021,7 +1021,7 @@ Private Sub frmMenuEditor.Form_MouseUp(ByRef Sender As Control, MouseButton As I
 	If ActiveRect <> 0 Then
 		#ifndef __USE_GTK__
 			PopupMenu1.ParentWindow = @This
-			Dim As Point pt = Type(x, y)
+			Dim As My.Sys.Drawing.Point pt = Type(x, y)
 			ClientToScreen pt
 			PopupMenu1.Popup pt.X, pt.Y
 		#endif
