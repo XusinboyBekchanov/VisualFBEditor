@@ -16,6 +16,9 @@
 		Declare Sub cmdOK_Click(ByRef Sender As Control)
 		Declare Sub cboType_Change(ByRef Sender As ComboBoxEdit)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Sub optClass_Click(ByRef Sender As RadioButton)
+		Declare Sub optType_Click(ByRef Sender As RadioButton)
+		Declare Sub optUnion_Click(ByRef Sender As RadioButton)
 		Declare Constructor
 		
 		Dim As Label lblName, lblField, lblType, lblDescription, lblAlias, lblExtends
@@ -25,6 +28,7 @@
 		Dim As RadioButton optClass, optType, optUnion, optPublicScope, optPrivateScope, optPublicAccess, optProtectedAccess, optPrivateAccess, optDefaultScope
 		Dim As ComboBoxEdit cboType, cboExtends
 		Dim As NumericUpDown txtField
+		Dim As CheckBox chkRedefineClassKeyword
 	End Type
 	
 	Constructor frmAddTypeType
@@ -106,6 +110,7 @@
 			.Caption = ML("Class")
 			.SetBounds 10, 20, 100, 20
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @optClass_Click)
 			.Parent = @grbType
 		End With
 		' optType
@@ -117,6 +122,7 @@
 			.Caption = ML("Type")
 			.SetBounds 110, 20, 100, 20
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @optType_Click)
 			.Parent = @grbType
 		End With
 		' optUnion
@@ -128,6 +134,7 @@
 			.Caption = ML("Union")
 			.SetBounds 210, 20, 90, 20
 			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @optUnion_Click)
 			.Parent = @grbType
 		End With
 		' grbScope
@@ -323,6 +330,18 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' chkRedefineClassKeyword
+		With chkRedefineClassKeyword
+			.Name = "chkRedefineClassKeyword"
+			.Text = ML("Redefine Class keyword")
+			.TabIndex = 27
+			.Caption = ML("Redefine Class keyword")
+			.Visible = False
+			.Checked = True
+			.SetBounds 10, 390, 140, 20
+			.Designer = @This
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared frmAddType As frmAddTypeType
@@ -355,12 +374,12 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 	End Select
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi, ptxtCodeType
 	Dim As EditControl txtCodeBi
+	Dim As Integer iStart, iEnd, j
+	Dim As Boolean t, b, bFind, bAddSpaces = True, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 	tb->txtCode.Changing "Insert procedure"
 	If cboExtends.ItemIndex <> 0 Then
 		Dim te As TypeElement Ptr = cboExtends.ItemData(cboExtends.ItemIndex)
 		If te <> 0 AndAlso te->FileName <> tb->FileName Then
-			Dim As Integer iStart, iEnd, j
-			Dim As Boolean t, b, bFind, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
 			For i As Integer = 0 To tb->txtCode.LinesCount - 1
 				GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 				For k As Integer = iStart To iEnd
@@ -384,6 +403,26 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 			End If
 		End If
 	End If
+	If optClass.Checked AndAlso chkRedefineClassKeyword.Checked Then
+		t = False
+		For i As Integer = 0 To tb->txtCode.LinesCount - 1
+			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
+			For k As Integer = iStart To iEnd
+				If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "#include ") Then
+					j = k + 1
+				ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "redefineclasskeyword") Then
+					t = True
+					Exit For, For
+				End If
+			Next
+		Next
+		Var InsLineCount = 0
+		If Not t Then
+			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+			ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "RedefineClassKeyword"
+			InsLineCount += 1
+		End If
+	End If
 	Dim As Integer i = tb->txtCode.LinesCount, q1, q2
 	If Not bInsideType Then
 		tb->txtCode.InsertLine i, ""
@@ -396,18 +435,30 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 			Next
 		End If
 		tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & sType & " " & txtName.Text & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(cboExtends.ItemIndex = 0, "", " Extends " & cboExtends.Text) & IIf(txtField.Position = 0, "", " Field = " & txtField.Text)
-		tb->txtCode.InsertLine i + q1 + 2, !"\t"
-		tb->txtCode.InsertLine i + q1 + 3, "End " & sType
+		If optClass.Checked AndAlso chkRedefineClassKeyword.Checked Then
+			tb->txtCode.InsertLine i + q1 + 2, !"\t"
+			tb->txtCode.InsertLine i + q1 + 3, !"\t__StartOfClassBody__"
+			tb->txtCode.InsertLine i + q1 + 4, !"\t"
+			tb->txtCode.InsertLine i + q1 + 5, !"\t__EndOfClassBody__"
+			tb->txtCode.InsertLine i + q1 + 6, !"\t"
+			tb->txtCode.InsertLine i + q1 + 7, "End " & sType
+		Else
+			tb->txtCode.InsertLine i + q1 + 2, !"\t"
+			tb->txtCode.InsertLine i + q1 + 3, "End " & sType
+		End If
 	Else
 		sTypeName = cboType.Text
 		sTypeNameDot = sTypeName & "."
+		Dim As TypeElement Ptr te = cboType.ItemData(cboType.ItemIndex)
 		Dim As String SpaceStr
 		Dim As Integer iStart, iEnd, LineToAdd, LineEndPublic = -1, LineEndProtected = -1, LineEndPrivate = -1, LineEndType = -1
 		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+		Dim As EditControlLine Ptr FLine
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd
-				If (Not b) AndAlso (StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
+				FLine = ptxtCode->Content.Lines.Item(k)
+				If (Not b) AndAlso (FLine->ConstructionIndex = C_Class OrElse FLine->ConstructionIndex = C_Type) AndAlso FLine->ConstructionPart = 0 AndAlso FLine->InConstruction = te Then '(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
 					ptxtCodeType = ptxtCode
 					b = True
 				ElseIf b Then
@@ -417,7 +468,8 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 						If bPublic Then LineEndPublic = k
 						LineEndType = k
 						SpaceStr = .Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t ")))
-						Exit For
+						If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "__startofclassbody__ ") Then bAddSpaces = False
+						Exit For, For
 					ElseIf StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "public:") Then
 						bPublic = True
 						If bPrivate Then LineEndPrivate = k: bPrivate = False
@@ -470,16 +522,16 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 				Dim As UString res()
 				Split(txtDescription.Text, Chr(13) & Chr(10), res())
 				For j As Integer = 0 To UBound(res)
-					ptxtCode->InsertLine LineToAdd + q2 + j, SpaceStr & !"\t'" & res(j)
+					ptxtCode->InsertLine LineToAdd + q2 + j, SpaceStr & IIf(bAddSpaces, !"\t", "") & "'" & res(j)
 				Next
 				q2 += UBound(res) + 1
 				If ptxtCode = @tb->txtCode Then q1 += UBound(res) + 1
 			End If
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & !"\t" & IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & sType & " " & txtName.Text & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(cboExtends.ItemIndex = 0, "", " Extends " & cboExtends.Text) & IIf(txtField.Position = 0, "", " Field = " & txtField.Text)
-			ptxtCode->InsertLine LineToAdd + q2 + 1, SpaceStr & !"\t\t"
-			ptxtCode->InsertLine LineToAdd + q2 + 2, SpaceStr & !"\t" & "End " & sType
+			ptxtCode->InsertLine LineToAdd + q2, SpaceStr & IIf(bAddSpaces, !"\t", "") & IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & sType & " " & txtName.Text & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(cboExtends.ItemIndex = 0, "", " Extends " & cboExtends.Text) & IIf(txtField.Position = 0, "", " Field = " & txtField.Text)
+			ptxtCode->InsertLine LineToAdd + q2 + 1, SpaceStr & IIf(bAddSpaces, !"\t", "") & !"\t"
+			ptxtCode->InsertLine LineToAdd + q2 + 2, SpaceStr & IIf(bAddSpaces, !"\t", "") & "End " & sType
 			i = LineToAdd - 2
 			If ptxtCode = @tb->txtCode Then q1 += 1
 		End If
@@ -512,15 +564,17 @@ Private Sub frmAddTypeType.Form_Create(ByRef Sender As Control)
 	txtAlias.Text = ""
 	txtDescription.Text = ""
 	txtField.Position = 0
+	Dim te As TypeElement Ptr
 	cboType.Clear
 	cboType.AddItem ML("(not selected)")
 	For i As Integer = 0 To tb->txtCode.Content.Types.Count - 1
-		cboType.AddItem tb->txtCode.Content.Types.Item(i)
+		te = tb->txtCode.Content.Types.Object(i)
+		cboType.AddItem te->Name
+		cboType.ItemData(cboType.ItemCount - 1) = te
 	Next
 	cboType.ItemIndex = 0
 	cboExtends.Clear
 	cboExtends.AddItem ML("(not selected)")
-	Dim te As TypeElement Ptr
 	For i As Integer = 0 To tb->txtCode.Content.Types.Count - 1
 		te = tb->txtCode.Content.Types.Object(i)
 		If te->TypeName <> "" AndAlso te->ElementType <> ElementTypes.E_TypeCopy Then 
@@ -552,4 +606,17 @@ Private Sub frmAddTypeType.Form_Create(ByRef Sender As Control)
 	optPublicScope.Checked = False
 	optPrivateScope.Checked = False
 	optDefaultScope.Checked = True
+End Sub
+
+Private Sub frmAddTypeType.optClass_Click(ByRef Sender As RadioButton)
+	Dim As Boolean bVisible = optClass.Checked
+	chkRedefineClassKeyword.Visible = bVisible
+End Sub
+
+Private Sub frmAddTypeType.optType_Click(ByRef Sender As RadioButton)
+	optClass_Click(Sender)
+End Sub
+
+Private Sub frmAddTypeType.optUnion_Click(ByRef Sender As RadioButton)
+	optClass_Click(Sender)
 End Sub
