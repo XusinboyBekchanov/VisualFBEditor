@@ -458,7 +458,7 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd
 				FLine = ptxtCode->Content.Lines.Item(k)
-				If (Not b) AndAlso (FLine->ConstructionIndex = C_Class OrElse FLine->ConstructionIndex = C_Type) AndAlso FLine->ConstructionPart = 0 AndAlso FLine->InConstruction = te Then '(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
+				If (Not b) AndAlso Cbool(FLine->ConstructionIndex = C_Class OrElse FLine->ConstructionIndex = C_Type) AndAlso Cbool(FLine->ConstructionPart = 0) AndAlso CBool(FLine->InConstruction = te) Then '(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
 					ptxtCodeType = ptxtCode
 					b = True
 				ElseIf b Then
@@ -606,6 +606,7 @@ Private Sub frmAddTypeType.Form_Create(ByRef Sender As Control)
 	optPublicScope.Checked = False
 	optPrivateScope.Checked = False
 	optDefaultScope.Checked = True
+	chkRedefineClassKeyword.Visible = False
 End Sub
 
 Private Sub frmAddTypeType.optClass_Click(ByRef Sender As RadioButton)
