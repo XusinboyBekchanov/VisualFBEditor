@@ -326,6 +326,7 @@ Sub ChangeMenuItemsEnabled
 	miGoto->Enabled = bEnabledTab
 	miDefine->Enabled = bEnabledTab
 	miAddProcedure->Enabled = bEnabledTab
+	miAddType->Enabled = bEnabledTab
 	mnuSplitHorizontally->Enabled = bEnabledTab
 	mnuSplitVertically->Enabled = bEnabledTab
 	miSave->Enabled = bEnabled
