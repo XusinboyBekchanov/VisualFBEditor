@@ -191,7 +191,7 @@
 			.TabIndex = 8
 			.ControlIndex = 0
 			.Caption = ML("Type") & ":"
-			.SetBounds 10, 150, 90, 20
+			.SetBounds 10, 180, 90, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -200,7 +200,7 @@
 			.Name = "cboType"
 			.Text = ""
 			.TabIndex = 9
-			.SetBounds 110, 150, 210, 21
+			.SetBounds 110, 180, 210, 21
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cboType_Change)
 			.Parent = @This
@@ -310,7 +310,7 @@
 			.TabIndex = 24
 			.ControlIndex = 8
 			.Caption = ML("Extends") & ":"
-			.SetBounds 10, 180, 90, 20
+			.SetBounds 10, 150, 90, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -319,7 +319,7 @@
 			.Name = "cboExtends"
 			.TabIndex = 25
 			.ControlIndex = 10
-			.SetBounds 110, 180, 210, 21
+			.SetBounds 110, 150, 210, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -377,10 +377,10 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 				Next
 			Next
 			Var InsLineCount = 0
-?381:			If Not t Then
-?382:				CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-?383:				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & te->IncludeFile & """"
-?384:				InsLineCount += 1
+			If Not t Then
+				CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+				ptxtCode->InsertLine j, ..Left(ptxtCode->Lines(j - 1), Len(ptxtCode->Lines(j - 1)) - Len(LTrim(ptxtCode->Lines(j - 1), Any !"\t "))) & "#include once """ & te->IncludeFile & """"
+				InsLineCount += 1
 			End If
 		End If
 	End If
