@@ -2,8 +2,8 @@
 
 #define VER_FILEDESCRIPTION_STR     "Example Add-In for Visual FB Editor\0"
 
-#define VER_FILEVERSION             1,0,0,97
-#define VER_FILEVERSION_STR         "1.0.0.97\0"
+#define VER_FILEVERSION             1,0,0,106
+#define VER_FILEVERSION_STR         "1.0.0.106\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 
