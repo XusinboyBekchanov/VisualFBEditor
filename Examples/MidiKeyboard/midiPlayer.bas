@@ -142,7 +142,7 @@ Function midiPlayer.threadPlay(ByVal pParam As Any Ptr) As Any Ptr
 	a->buildSequence()
 	a->playTo(0)
 	a->midiThread = NULL
-	
+	a->Stop()
 	If a->breakPlaying Then
 		a->PlayStatus = MidiPlayStatus.MidiBreak
 	Else
