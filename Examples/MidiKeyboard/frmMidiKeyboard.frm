@@ -21,13 +21,7 @@
 	
 	#include once "midi.bi"
 	#include once "../gdipClock/gdip.bi"
-	
-	Type RectPi Extends Rect
-		Width As Integer
-		Height As Integer
-	End Type
-	
-	#define vbRGB(r, g, b) CULng((CUByte(b) Shl 16) Or (CUByte(g) Shl 8) Or CUByte(r))
+
 	Using My.Sys.Forms
 	
 	Type frmMidiKeyboardType Extends Form
@@ -43,12 +37,16 @@
 		mPiano As gdipBitmap
 		
 		KeyWhiteNumber As Integer = 37  '白键数start from 0
-		KeyPad(Any) As RectPi             '键盘位置数组
+		KeyPad(Any) As RectPi           '键盘位置数组
 		KeyBlack(Any) As Boolean        '是否黑键
 		KeyCount As Integer = -1        '键数
 		KeyIndex As Integer = -1        '当前键值
 		KeyBase As Integer = 0          '基本音调
-		KeyCanvas As Boolean = False     '用Canvas
+		KeyCanvas As Boolean = False    '用Canvas
+
+		mMidiID As UINT
+	    mMidiOut As HMIDIOUT
+		mMidiVelocity As Integer
 		
 		Declare Function KeyInvalid(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean   '是否需从新计算键盘位置
 		Declare Sub KeyLocate(ByRef Canvas As My.Sys.Drawing.Canvas)                    '获取键盘位置
@@ -59,8 +57,8 @@
 		Declare Sub cobInstrument_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Sub cobChannel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Sub tbDeviceVolume_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbVolume_Change(ByRef Sender As TrackBar, Position As Integer)
+		Declare Sub tbVelocity_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub tbNote_Change(ByRef Sender As TrackBar, Position As Integer)
 		Declare Sub CommandButton1_Click(ByRef Sender As Control)
 		Declare Sub CommandButton2_Click(ByRef Sender As Control)
@@ -73,9 +71,9 @@
 		Declare Constructor
 		
 		Dim As ComboBoxEdit cobDevice, cobInstrument, cobChannel
-		Dim As TrackBar tbNote, tbVolume, tbDeviceVolume, tbBase
+		Dim As TrackBar tbNote, tbVelocity, tbVolume, tbBase
 		Dim As CommandButton CommandButton1, CommandButton2
-		Dim As Label lblNote, lblVolume, lblDeviceVolume, lblBase
+		Dim As Label lblNote, lblVelocity, lblVolume, lblBase
 		Dim As Panel Panel1
 		Dim As CheckBox CheckBox1
 	End Type
@@ -119,10 +117,10 @@
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cobDevice_Selected)
 			.Parent = @This
 		End With
-		' tbDeviceVolume
-		With tbDeviceVolume
-			.Name = "tbDeviceVolume"
-			.Text = "tbDeviceVolume"
+		' tbVolume
+		With tbVolume
+			.Name = "tbVolume"
+			.Text = "tbVolume"
 			.TabIndex = 1
 			.MaxValue = 65535
 			.MinValue = 0
@@ -130,15 +128,15 @@
 			.PageSize = 1000
 			.SetBounds 350, 10, 160, 20
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbDeviceVolume_Change)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbVolume_Change)
 			.Parent = @This
 		End With
-		' lblDeviceVolume
-		With lblDeviceVolume
-			.Name = "lblDeviceVolume"
-			.Text = "Device Volume"
+		' lblVolume
+		With lblVolume
+			.Name = "lblVolume"
+			.Text = "Volume"
 			.TabIndex = 2
-			.Caption = "Device Volume"
+			.Caption = "Volume"
 			.SetBounds 520, 15, 160, 20
 			.Designer = @This
 			.Parent = @This
@@ -165,10 +163,10 @@
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cobChannel_Selected)
 			.Parent = @This
 		End With
-		' tbVolume
-		With tbVolume
-			.Name = "tbVolume"
-			.Text = "tbVolume"
+		' tbVelocity
+		With tbVelocity
+			.Name = "tbVelocity"
+			.Text = "tbVelocity"
 			.TabIndex = 5
 			.MaxValue = 127
 			.Hint = "Note"
@@ -176,17 +174,17 @@
 			.PageSize = 1
 			.SetBounds 10, 70, 160, 20
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbVolume_Change)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @tbVelocity_Change)
 			.Parent = @This
 		End With
-		' lblVolume
-		With lblVolume
-			.Name = "lblVolume"
-			.Text = "Volume"
+		' lblVelocity
+		With lblVelocity
+			.Name = "lblVelocity"
+			.Text = "Velocity"
 			.TabIndex = 6
 			.Alignment = AlignmentConstants.taLeft
 			.ID = 1024
-			.Caption = "Volume"
+			.Caption = "Velocity"
 			.SetBounds 180, 75, 160, 20
 			.Designer = @This
 			.Parent = @This
@@ -318,41 +316,41 @@ Private Sub frmMidiKeyboardType.Form_Create(ByRef Sender As Control)
 	cobChannel.ItemIndex = 0
 	cobChannel_Selected(cobChannel, 0)
 	tbNote_Change(tbNote, 0)
-	tbVolume_Change(tbVolume, 0)
+	tbVelocity_Change(tbVelocity, 0)
 	tbBase_Change(tbBase, 0)
 End Sub
 
 Private Sub frmMidiKeyboardType.cobDevice_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	GMidiID = CULng("" & cobDevice.ItemData(cobDevice.ItemIndex))
-	If GMidiOut Then midiOutClose(GMidiOut)
-	midiOutOpen(@GMidiOut, GMidiID, NULL, NULL, NULL)
+	mMidiID = CULng("" & cobDevice.ItemData(cobDevice.ItemIndex))
+	If mMidiOut Then midiOutClose(mMidiOut)
+	midiOutOpen(@mMidiOut, mMidiID, NULL, NULL, NULL)
 	Dim sVol As DWORD
-	midiOutGetVolume(GMidiOut, @sVol)
-	tbDeviceVolume.Position = sVol And &HFFFF
-	tbDeviceVolume_Change(tbDeviceVolume, 0)
+	midiOutGetVolume(mMidiOut, @sVol)
+	tbVolume.Position = sVol And &HFFFF
+	tbVolume_Change(tbVolume, 0)
 	cobInstrument_Selected(cobInstrument, 0)
 End Sub
 
 Private Sub frmMidiKeyboardType.cobInstrument_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	SendProgramChange(GMidiOut, cobChannel.ItemIndex, cobInstrument.ItemIndex)
+	SendProgramChange(mMidiOut, cobChannel.ItemIndex, cobInstrument.ItemIndex)
 End Sub
 
 Private Sub frmMidiKeyboardType.cobChannel_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	SendProgramChange(GMidiOut, cobChannel.ItemIndex, cobInstrument.ItemIndex)
+	SendProgramChange(mMidiOut, cobChannel.ItemIndex, cobInstrument.ItemIndex)
 End Sub
 
 Private Sub frmMidiKeyboardType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	If GMidiOut Then midiOutClose(GMidiOut)
-End Sub
-
-Private Sub frmMidiKeyboardType.tbDeviceVolume_Change(ByRef Sender As TrackBar, Position As Integer)
-	Dim sVol As DWORD = tbDeviceVolume.Position + (tbDeviceVolume.Position * &H10000)
-	midiOutSetVolume(GMidiOut, sVol)
-	lblDeviceVolume.Caption = "Device Volume: " & Format(tbDeviceVolume.Position, "#,#")
+	If mMidiOut Then midiOutClose(mMidiOut)
 End Sub
 
 Private Sub frmMidiKeyboardType.tbVolume_Change(ByRef Sender As TrackBar, Position As Integer)
+	Dim sVol As DWORD = tbVolume.Position + (tbVolume.Position * &H10000)
+	midiOutSetVolume(mMidiOut, sVol)
 	lblVolume.Caption = "Volume: " & Format(tbVolume.Position, "#,#")
+End Sub
+
+Private Sub frmMidiKeyboardType.tbVelocity_Change(ByRef Sender As TrackBar, Position As Integer)
+	lblVelocity.Caption = "Velocity: " & Format(tbVelocity.Position, "#,#")
 End Sub
 
 Private Sub frmMidiKeyboardType.tbNote_Change(ByRef Sender As TrackBar, Position As Integer)
@@ -362,11 +360,11 @@ Private Sub frmMidiKeyboardType.tbNote_Change(ByRef Sender As TrackBar, Position
 End Sub
 
 Private Sub frmMidiKeyboardType.CommandButton1_Click(ByRef Sender As Control)
-	SendNoteOn(GMidiOut, cobChannel.ItemIndex, tbNote.Position, tbVolume.Position)
+	SendNoteOn(mMidiOut, cobChannel.ItemIndex, tbNote.Position, tbVelocity.Position)
 End Sub
 
 Private Sub frmMidiKeyboardType.CommandButton2_Click(ByRef Sender As Control)
-	SendNoteOff(GMidiOut, cobChannel.ItemIndex, tbNote.Position)
+	SendNoteOff(mMidiOut, cobChannel.ItemIndex, tbNote.Position, 0)
 End Sub
 
 Private Function frmMidiKeyboardType.KeyInvalid(ByRef Canvas As My.Sys.Drawing.Canvas) As Boolean
@@ -482,7 +480,7 @@ Private Sub frmMidiKeyboardType.Panel1_Paint(ByRef Sender As Control, ByRef Canv
 		Dim sBrushB As Any Ptr
 		Dim sBrushA As Any Ptr
 		Dim sPen As GpPen Ptr
-
+		
 		GdipCreateSolidFill(RGBA(&HFF, &HFF, &HFF, &HFF), @sBrushW)
 		GdipCreateSolidFill(RGBA(&H00, &H00, &H00, &HFF), @sBrushB)
 		GdipCreateSolidFill(RGBA(&HFF, &HFF, &H00, &HFF), @sBrushA)
@@ -514,7 +512,7 @@ Private Sub frmMidiKeyboardType.Panel1_Paint(ByRef Sender As Control, ByRef Canv
 					End If
 				End If
 			End With
-		Next		
+		Next
 		GdipDeleteBrush(sBrushW)
 		GdipDeleteBrush(sBrushB)
 		GdipDeleteBrush(sBrushA)
@@ -531,8 +529,23 @@ Private Sub frmMidiKeyboardType.Panel1_MouseMove(ByRef Sender As Control, MouseB
 		Panel1_Paint(Panel1, Panel1.Canvas)
 		'Debug.Print "KeyIndex=" & KeyIndex & ", MouseButton=" & MouseButton
 		If MouseButton=0 Then
-			SendNoteOn(GMidiOut, cobChannel.ItemIndex, KeyBase+ KeyIndex, tbVolume.Position)
+			SendNoteOn(mMidiOut, cobChannel.ItemIndex, KeyBase+ KeyIndex, tbVelocity.Position)
 		End If
+		
+		Dim pTmp As WString Ptr
+		
+		WLet(pTmp, "")
+		If cobChannel.ItemIndex = 9 Then
+			WLet(pTmp, *PercussionStringE(KeyIndex + KeyBase))
+		End If
+		
+		If *pTmp = "" Then
+			WLet(pTmp, *NoteStringE((KeyIndex + KeyBase)  Mod 12))
+		End If
+		
+		Panel1.Hint = KeyIndex + KeyBase & " - Note " & *pTmp
+		
+		Deallocate(pTmp)
 	End If
 	
 End Sub
@@ -546,41 +559,17 @@ Private Sub frmMidiKeyboardType.Panel1_MouseLeave(ByRef Sender As Control)
 End Sub
 
 Private Sub frmMidiKeyboardType.Panel1_Click(ByRef Sender As Control)
-	SendNoteOn(GMidiOut, cobChannel.ItemIndex, KeyBase + KeyIndex, tbVolume.Position)
+	SendNoteOn(mMidiOut, cobChannel.ItemIndex, KeyBase + KeyIndex, tbVelocity.Position)
 	'Debug.Print KeyBase + KeyIndex
 End Sub
 
 Private Sub frmMidiKeyboardType.tbBase_Change(ByRef Sender As TrackBar, Position As Integer)
 	KeyBase = tbBase.Position
-	Select Case KeyBase Mod 12
-	Case 0
-		lblBase.Caption = KeyBase & " - C"
-	Case 1
-		lblBase.Caption = KeyBase & " - C#"
-	Case 2
-		lblBase.Caption = KeyBase & " - D"
-	Case 3
-		lblBase.Caption = KeyBase & " - D#"
-	Case 4
-		lblBase.Caption = KeyBase & " - E"
-	Case 5
-		lblBase.Caption = KeyBase & " - F"
-	Case 6
-		lblBase.Caption = KeyBase & " - F#"
-	Case 7
-		lblBase.Caption = KeyBase & " - G"
-	Case 8
-		lblBase.Caption = KeyBase & " - G#"
-	Case 9
-		lblBase.Caption = KeyBase & " - A"
-	Case 10
-		lblBase.Caption = KeyBase & " - A#"
-	Case 11
-		lblBase.Caption = KeyBase & " - B"
-	End Select
+	lblBase.Caption = "Base Note " & KeyBase & " - " & *NoteStringE(KeyBase Mod 12)
 End Sub
 
 Private Sub frmMidiKeyboardType.CheckBox1_Click(ByRef Sender As CheckBox)
-	KeyCanvas = CheckBox1.Checked 
+	KeyCanvas = CheckBox1.Checked
+	Panel1.DoubleBuffered = KeyCanvas
 	Panel1_Paint(Panel1, Panel1.Canvas)
 End Sub
