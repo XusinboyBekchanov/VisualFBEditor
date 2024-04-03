@@ -679,7 +679,7 @@ Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlay
 			End If
 		End If
 		a->ListView1.ListItems.Item(k)->Selected = True
-		a->ListView1_ItemDblClick(a->ListView1, k)
+		a->CommandButton_Click(a->cmdPlay)
 		
 	Case MidiPlayStatus.MidiPause
 		a->cmdPlay.Enabled = True
@@ -713,7 +713,7 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 	Dim i As Integer
 	Select Case Sender.Name
 	Case "cmdPlay"
-		If ListView1.SelectedItemIndex<0 Then
+		If ListView1.SelectedItemIndex < 0 Then
 			ListView1.SelectedItemIndex = 0
 		End If
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
@@ -737,14 +737,7 @@ End Sub
 
 Private Sub frmMidiPlayerType.ListView1_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If ItemIndex < 0 Then Exit Sub
-	
-	If Midi.midiThread Then
-		CommandButton_Click(cmdStop)
-		Do
-			App.DoEvents
-			Sleep 10
-		Loop While Midi.midiThread
-	End If
+	If Midi.midiThread Then CommandButton_Click(cmdStop)
 	Label_Click(lblSpeed)
 	
 	Caption = "MidiPlay - " & ListView1.ListItems.Item(ItemIndex)->Text(0)
