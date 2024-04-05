@@ -6828,7 +6828,7 @@ Sub CreateMenusAndToolBars
 	miView->Add(ML("Project Explorer") & HK("ProjectExplorer", "Ctrl+R"), "Project", "ProjectExplorer", @mClick)
 	miView->Add(ML("Properties Window") & HK("PropertiesWindow", "F4"), "Property", "PropertiesWindow", @mClick)
 	miView->Add(ML("Events Window") & HK("EventsWindow"), "Event", "EventsWindow", @mClick)
-	miView->Add(ML("Toolbox") & HK("Toolbox"), "Tools", "Toolbox", @mClick)
+	miView->Add(ML("Toolbox") & HK("Toolbox", "Ctrl+T"), "Tools", "Toolbox", @mClick)
 	Var miOtherWindows = miView->Add(ML("Other Windows"))
 	miOtherWindows->Add(ML("Output Window") & HK("OutputWindow"), "", "OutputWindow", @mClick)
 	miOtherWindows->Add(ML("Problems Window") & HK("ProblemsWindow"), "", "ProblemsWindow", @mClick)
@@ -9440,7 +9440,7 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 	End If
 	Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 	If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
-	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel
+	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel, bEnabledIndentAndOutdent
 	Select Case ActiveForm->ActiveControl->ClassName
 	Case "EditControl"
 		bEnabled = True
@@ -9450,6 +9450,10 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 		bEnabledPanel = True
 	Case "TextBox", "ComboBoxEdit", "ComboBoxEx"
 		bEnabled = True
+	End Select
+	Select Case ActiveForm->ActiveControl
+	Case @txtExplorer, @tvExplorer, @txtForm, @tbToolBox, @txtProperties, @lvProperties, @txtEvents, @lvEvents
+		bEnabledIndentAndOutdent = True
 	End Select
 	miUndo->Enabled = bEnabled
 	tbtUndo->Enabled = bEnabled
@@ -9469,8 +9473,8 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 	tbtUncommentBlock->Enabled = bEnabledEditControl
 	miDuplicate->Enabled = bEnabledEditControl Or bEnabledPanel
 	miSelectAll->Enabled = bEnabled
-	miIndent->Enabled = bEnabledEditControl
-	miOutdent->Enabled = bEnabledEditControl
+	miIndent->Enabled = bEnabledEditControl OrElse bEnabledIndentAndOutdent
+	miOutdent->Enabled = bEnabledEditControl OrElse bEnabledIndentAndOutdent
 	miFormat->Enabled = bEnabledEditControl
 	tbtFormat->Enabled = bEnabledEditControl
 	miUnformat->Enabled = bEnabledEditControl
@@ -9678,6 +9682,75 @@ Sub SetAutoColors
 	GetColors Strings, clMaroon
 End Sub
 
+Sub tbToolBox_ButtonActivate(ByRef Designer As My.Sys.Object, ByRef Sender As ToolPalette, ByRef Button As ToolButton)
+	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	If tb->Des = 0 Then Exit Sub
+	Dim As String FName, FClass = SelectedClass
+	If tb->Des->OnInsertingControl Then
+		FName = SelectedClass
+		tb->Des->OnInsertingControl(*(tb->Des), SelectedClass, FName)
+	End If
+	Dim As ..Rect R
+	Dim ctr As Any Ptr
+	'#IfDef __USE_GTK__
+	ctr = tb->Des->DesignControl
+	'#Else
+	'	ctr = Cast(Any Ptr, GetWindowLongPtr(FSelControl, GWLP_USERDATA))
+	'#EndIf
+	Dim As Integer iLeft, iTop, iWidth, iHeight
+	tb->Des->GetControlBounds(ctr, iLeft, iTop, iWidth, iHeight)
+	If SelectedType = 3 Or SelectedType = 4 Then
+		Dim cpnt As Any Ptr = tb->Des->CreateComponent(SelectedClass, FName, ctr, (iWidth - 16) / 2, (iHeight - 16) / 2)
+		If tb->Des->OnInsertComponent Then tb->Des->OnInsertComponent(* (tb->Des), FClass, cpnt, 0, 0, (iWidth - 16) / 2, (iHeight - 16) / 2)
+		If tb->Des->FSelControl Then
+			tb->Des->SelectedControls.Clear
+		End If
+		#ifdef __USE_GTK__
+			tb->Des->MoveDots(cpnt, , (iWidth - 16) / 2, (iHeight - 16) / 2, 16, 16)
+		#else
+			tb->Des->MoveDots(cpnt)
+			'LockWindowUpdate(0)
+		#endif
+	Else
+		tb->Des->CreateControl(SelectedClass, FName, FName, ctr, (iWidth - 78) / 2, (iHeight - 36) / 2, 78, 36)
+		If tb->Des->FSelControl Then
+			tb->Des->SelectedControls.Clear
+			#ifdef __USE_GTK__
+				Dim bTrue As Boolean = True
+				If tb->Des->Symbols(tb->Des->SelectedControl) Then tb->Des->Symbols(tb->Des->SelectedControl)->WritePropertyFunc(tb->Des->SelectedControl, "Visible", @bTrue)
+			#else
+				LockWindowUpdate(tb->Des->FSelControl)
+				BringWindowToTop(tb->Des->FSelControl)
+			#endif
+			If tb->Des->OnInsertControl Then tb->Des->OnInsertControl(* (tb->Des), FClass, tb->Des->SelectedControl, 0, 0, (iWidth - 78) / 2, (iHeight - 36) / 2, 78, 36)
+			#ifdef __USE_GTK__
+				tb->Des->MoveDots(tb->Des->SelectedControl, , (iWidth - 78) / 2, (iHeight - 36) / 2, 78, 36)
+			#else
+				tb->Des->MoveDots(tb->Des->SelectedControl)
+				LockWindowUpdate(0)
+			#endif
+		Else
+			Dim cpnt As Any Ptr = tb->Des->CreateComponent(FClass, FName, ctr, (iWidth - 16) / 2, (iHeight - 16) / 2)
+			If cpnt Then
+				If tb->Des->OnInsertComponent Then tb->Des->OnInsertComponent(* (tb->Des), FClass, cpnt, 0, 0, (iWidth - 16) / 2, (iHeight - 16) / 2)
+				If tb->Des->FSelControl Then
+					tb->Des->SelectedControls.Clear
+				End If
+				#ifdef __USE_GTK__
+					tb->Des->MoveDots(cpnt, , (iWidth - 16) / 2, (iHeight - 16) / 2, 16, 16)
+				#else
+					tb->Des->MoveDots(cpnt)
+					'LockWindowUpdate(0)
+				#endif
+			Else
+				tb->Des->SelectedControl = tb->Des->DesignControl
+				tb->Des->MoveDots(tb->Des->SelectedControl)
+			End If
+		End If
+	End If
+End Sub
+
 #ifdef __USE_GTK__
 	tbToolBox.Align = DockStyle.alClient
 #else
@@ -9696,6 +9769,7 @@ tbToolBox.Style = tpsBothHorizontal
 #endif
 tbToolBox.ImagesList = @imgListTools
 tbToolBox.HotImagesList = @imgListTools
+tbToolBox.OnButtonActivate = @tbToolBox_ButtonActivate
 
 LoadHelp
 LoadSnippets

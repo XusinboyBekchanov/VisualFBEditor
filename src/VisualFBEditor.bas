@@ -193,6 +193,19 @@ Sub mClickWindow(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	If tb <> 0 Then tb->SelectTab
 End Sub
 
+Sub SelectNextControl
+	Select Case frmMain.ActiveControl
+	Case @txtExplorer: tvExplorer.SetFocus
+	Case @tvExplorer: txtExplorer.SetFocus
+	Case @txtForm: tbToolBox.SetFocus
+	Case @tbToolBox: txtForm.SetFocus
+	Case @txtProperties: lvProperties.SetFocus
+	Case @lvProperties: txtProperties.SetFocus
+	Case @txtEvents: lvEvents.SetFocus
+	Case @lvEvents: txtEvents.SetFocus
+	End Select
+End Sub
+
 Sub ClearThreadsWindow
 	lvThreads.Nodes.Clear
 	tpThreads->Caption = ML("Threads")
@@ -267,10 +280,10 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				End If
 			Next i
 		#endif
-	Case "ProjectExplorer":                     tpProject->SelectTab
-	Case "PropertiesWindow":                    tpProperties->SelectTab
-	Case "EventsWindow":                        tpEvents->SelectTab
-	Case "Toolbox":                             tpToolbox->SelectTab
+	Case "ProjectExplorer":                     tpProject->SelectTab: txtExplorer.SetFocus
+	Case "PropertiesWindow":                    tpProperties->SelectTab: txtProperties.SetFocus
+	Case "EventsWindow":                        tpEvents->SelectTab: txtEvents.SetFocus
+	Case "Toolbox":                             tpToolbox->SelectTab: txtForm.SetFocus
 	Case "OutputWindow":                        tpOutput->SelectTab
 	Case "ProblemsWindow":                      tpProblems->SelectTab
 	Case "SuggestionsWindow":                   tpSuggestions->SelectTab
@@ -793,6 +806,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 			Exit Sub
 		End If
+		Select Case Sender.ToString
+		Case "Indent", "Outdent":           SelectNextControl
+		End Select
 		If ActiveForm->ActiveControl->ClassName <> "EditControl" AndAlso ActiveForm->ActiveControl->ClassName <> "TextBox" AndAlso ActiveForm->ActiveControl->ClassName <> "Panel" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEdit" AndAlso ActiveForm->ActiveControl->ClassName <> "ComboBoxEx" Then Exit Sub
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If ActiveForm->ActiveControl->ClassName = "TextBox" Then
