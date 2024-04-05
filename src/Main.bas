@@ -960,6 +960,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
 						End If
+						Dim As String buffer = Str(sOutput)
+						Dim As Integer wideCharsNeeded = MultiByteToWideChar(866, 0, StrPtr(buffer), -1, NULL, 0)
+						sOutput.Resize wideCharsNeeded
+						MultiByteToWideChar(866, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
 							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For

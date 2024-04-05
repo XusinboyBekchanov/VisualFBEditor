@@ -2,15 +2,18 @@
 ' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
+'Some of codes are refer to Test of midiOutShortMsg()
 'https://www.freebasic.net/forum/viewtopic.php?t=29670
-'Test of midiOutShortMsg()
 
 #include once "win\mmsystem.bi"
 #include once "vbcompat.bi"
 
-Dim Shared GMidiID As UINT
-Dim Shared GMidiOut As HMIDIOUT
-Dim Shared GMidiVolume As Integer
+#define vbRGB(r, g, b) CULng((CUByte(b) Shl 16) Or (CUByte(g) Shl 8) Or CUByte(r))
+
+Type RectPi Extends Rect
+	Width As Integer
+	Height As Integer
+End Type
 
 #macro InRange(v, l, h)
 	If v < l Then
@@ -183,14 +186,216 @@ Enum InstrumentsEnum
 	Gunshot
 End Enum
 
+'通道
+Enum ChannelsEnum
+	channel1 = 0
+	channel2
+	channel3
+	channel4
+	channel5
+	channel6
+	channel7
+	channel8
+	channel9
+	channel10
+	channel11
+	channel12
+	channel13
+	channel14
+	channel15
+	channel16
+End Enum
+
+'控制符
+Enum ControlModeChangesEnum           ' Byte1, Byte2
+	BankSelectHi                  = &H00 ' 0-127 MSB
+	ModulationwheelHi                    ' 0-127 MSB
+	BreathControlHi                      ' 0-127 MSB
+	UndefinedHi1                         ' 0-127 MSB
+	FootControllerHi                     ' 0-127 MSB
+	PortamentoTimeHI                     ' 0-127 MSB
+	DataEntryHi                          ' 0-127 MSB
+	ChannelVolumeHi                      ' 0-127 MSB
+	BalanceHi                            ' 0-127 MSB
+	
+	PanHi                         = &H0A ' 0-127 MSB
+	ExpressionControllerHi               ' 0-127 MSB
+	EffectControl1Hi                     ' 0-127 MSB
+	EffectControl2Hi                     ' 0-127 MSB
+	
+	GeneralPurposeController1Hi   = &H10 ' 0-127 MSB
+	GeneralPurposeController2Hi          ' 0-127 MSB
+	GeneralPurposeController3Hi          ' 0-127 MSB
+	GeneralPurposeController4Hi          ' 0-127 MSB
+	
+	BankSelectLo                  = &H20 ' 0-127 LSB
+	ModulationWheelLo                    ' 0-127 LSB
+	BreathControlLo                      ' 0-127 LSB
+	
+	FootControllerLo              = &H24 ' 0-127 LSB
+	PortamentoTimeLo                     ' 0-127 LSB
+	DataEntryLo                          ' 0-127 LSB
+	ChannelVolumeLo                      ' 0-127 LSB
+	BalanceLo                            ' 0-127 LSB
+	
+	PanLo                         = &H42 ' 0-127 LSB
+	ExpressionControllerLo               ' 0-127 LSB
+	EffectControl1Lo                     ' 0-127 LSB
+	EffectControl2Lo                     ' 0-127 LSB
+	
+	GeneralPurposeControllerLo1   = &H30 ' 0-127 LSB
+	GeneralPurposeControllerLo2          ' 0-127 LSB
+	GeneralPurposeControllerLo3          ' 0-127 LSB
+	GeneralPurposeControllerLo4          ' 0-127 LSB
+	
+	DamperPedal                   = &H40 ' Sustain <63=off >64=on
+	Portamento                           ' on/off  <63=off >64=on
+	Sustenuto                            ' on/off  <63=off >64=on
+	SoftPedal                            ' on/off  <63=off >64=on
+	LegatoFootSwitch                     ' on/off  <63=off >64=on
+	Hold2                                ' on/off  <63=off >64=on
+	
+	SoundController1Lo                   ' Variation  0-127 LSB
+	SoundController2Lo                   ' Timbre     0-127 LSB
+	SoundController3Lo                   ' Release 	  0-127 LSB
+	SoundController4Lo                   ' Attack     0-127 LSB
+	SoundController5Lo                   ' Brightness 0-127 LSB
+	
+	SoundController6Lo                   ' 0-127 LSB
+	SoundController7Lo                   ' 0-127 LSB
+	SoundController8Lo                   ' 0-127 LSB
+	SoundController9Lo                   ' 0-127 LSB
+	SoundController10Lo                  ' 0-127 LSB
+	
+	GeneralPurposeController5Lo          ' 0-127 LSB
+	GeneralPurposeController6Lo          ' 0-127 LSB
+	GeneralPurposeController7Lo          ' 0-127 LSB
+	GeneralPurposeController8Lo          ' 0-127 LSB
+	PortamentoControlLo                  ' 0-127 Source Note
+	
+	Effects1DepthLo               = &H5B ' 0-127 LSB
+	Effects2DepthLo                      ' 0-127 LSB
+	Effects3DepthLo                      ' 0-127 LSB
+	Effects4DepthLo                      ' 0-127 LSB
+	Effects5DepthLo                      ' 0-127 LSB
+	DataEntryInc                         '= +1 	(none)
+	DataEntryDec                         '= -1 	(none)
+	NonRegisteredParameterNumberLo       ' 0-127 LSB
+	NonRegisteredParameterNumberHi       ' 0-127 MSB
+	RegisteredParameterNumberLo          ' 0-127 LSB
+	RegisteredParameterNumberHi          ' 0-127 MSB
+	
+	AllSoundOff                   = &H78 ' 0
+	ResetAllControllers                  ' 0
+	LocalControl                         ' 0=off 127=on
+	AllNotesOff                          ' 0
+	OmniModeOff                          ' (+ all notes off) 	0
+	OmniModeOn                           ' (+ all notes off) 	0
+	PolyModeOnOff                        ' (+ all notes off)
+	PolyModeOn                           ' (incl mono=off +all notes off) 	0
+End Enum
+
+Enum MetaEventsEnum
+	SequenceNumber       = &H00
+	TextEvent
+	CopyrightNotice
+	SequenceTrackName
+	InstrumentName
+	Lyric
+	Marker
+	CuePoint
+	ChanneelPrefix       = &H20
+	EndofTrack           = &H2F
+	SetTempo             = &H51
+	SMPTEOffset          = &H54
+	TimeSignature        = &H58
+	KeySignature
+	SequencerSpecific    = &H7F
+End Enum
+
+'事件
+Enum SequencerEventsEnum  'Statusbyte data  byte1            data byte2
+	NoteOff              = &H80 'b1000:chn  note 0-127       (none)
+	NoteOn               = &H90 'b1001:chn  note 0-127       velocity   0-127
+	PolyphonicAftertouch = &HA0 'b1010:chn  note 0-127       aftertouch 0-127
+	ControlMode          = &HB0 'b1011:chn  (see ControlModeChanges)
+	ProgramChange        = &HC0 'b1100:chn  program    0-127 (none)
+	ChannelAftertouch    = &HD0 'b1101:chn  Aftertouch 0-127 (none)
+	PitchWheelControl    = &HE0 'b1110:chn  LSB 0-127        MSB 0-127
+	SysEx                = &HF0 'b1111:0000
+	
+	MIDITimeCode         = &HF1 'b1111:0001
+	
+	SongPositionPointer  = &HF2 'b1111:0010
+	SongSelect           = &HF3 'b1111:0011
+	Undefined1           = &HF4 'b1111:0100
+	Undefined2           = &HF5 'b1111:0101
+	TuneRequest          = &HF6 'b1111:0110
+	EOFSysEx             = &HF7 'b1111:0111
+	TimingClock          = &HF8 'b1111:1000
+	Undefined3           = &HF9 'b1111:1001
+	
+	MIDIStart            = &HFA 'b1111:1010
+	MIDIContinue         = &HFB 'b1111:1011
+	MIDIStop             = &HFC 'b1111:1100
+	
+	Undefined4           = &HFD 'b1111:1101
+	ActiveSensing        = &HFE 'b1111:1110
+	SystemReset          = &HFF 'b1111:1111
+End Enum
+
+'八度音程
+'+1=C# +3=D# +6=F# +8=G# +10=A#
+'+0=C  +2=D  +4=E  +5=F  +7=G   +9A   +11=B or H
+Enum OctavesEnum
+	octaveM =   0 ' minus 1
+	octave0 =  12
+	octave1 =  24
+	octave2 =  36
+	octave3 =  48
+	octave4 =  60 ' midle C
+	octave5 =  72
+	octave6 =  84
+	octave7 =  96
+	octave8 = 108
+	octave9 = 120
+End Enum
+
+'音调
+Enum NotesEnum
+	_C   =  0
+	_Cis =  1
+	_D   =  2
+	_E   =  3
+	_Eis =  4
+	_F   =  5
+	_Fis =  6
+	_G   =  7
+	_Gis =  8
+	_A   =  9
+	_Ais = 10
+	_B   = 11 ' or H
+	_H   = _B
+End Enum
+
+Type Event
+	Union
+		As Byte  bytes(3)
+		As ULong event
+	End Union
+End Type
+
+Public Const MidiChannelCount = channel16 'start from 0
+Public Const MidiInstrumentCount = Gunshot 'start from 0
+
 '乐器
 Dim Shared InstrumentsStringE(Gunshot) As WString Ptr = { _
-@WStr("Piano 1"), _
-@WStr("Piano 2"), _
-@WStr("Piano 3"), _
-@WStr("Honky-tonk"), _
-@WStr("E.Piano 1"), _
-@WStr("E.piano 2"), _
+@WStr("Acoustic Grand Piano"), _
+@WStr("Bright Acoustic Piano"), _
+@WStr("Electric Grand Piano"), _
+@WStr("Honky-tonk Piano"), _
+@WStr("Electric Piano 1 (Rhodes Piano)"), _
+@WStr("Electric Piano 2 (Chorused Piano)"), _
 @WStr("Harpsichord"), _
 @WStr("Clavinet"), _
 @WStr("Celesta"), _
@@ -199,120 +404,120 @@ Dim Shared InstrumentsStringE(Gunshot) As WString Ptr = { _
 @WStr("Vibraphone"), _
 @WStr("Marimba"), _
 @WStr("Xylophone"), _
-@WStr("Tubular bell"), _
-@WStr("Dulcimer"), _
-@WStr("Organ 1"), _
-@WStr("Organ 2"), _
-@WStr("Organ 3"), _
-@WStr("Church org. 1"), _
+@WStr("Tubular Bells"), _
+@WStr("Dulcimer (Santur)"), _
+@WStr("Drawbar Organ (Hammond)"), _
+@WStr("Percussive Organ"), _
+@WStr("Rock Organ"), _
+@WStr("Church Organ"), _
 @WStr("Reed Organ"), _
-@WStr("Accordion Fr"), _
+@WStr("Accordion (French)"), _
 @WStr("Harmonica"), _
-@WStr("Tango Accordion"), _
-@WStr("Nylon-str Gt"), _
-@WStr("Steel-str Gt"), _
-@WStr("Jazz Gt"), _
-@WStr("Clean Gt"), _
-@WStr("Muted Gt"), _
-@WStr("Overdrive Gt"), _
-@WStr("Distortion Gt"), _
-@WStr("Gt. Harmonics"), _
-@WStr("Acoustic Bs."), _
-@WStr("Fingered Bs."), _
-@WStr("Picked Bs."), _
-@WStr("Fretless Bs."), _
-@WStr("Slap Bs. 1"), _
-@WStr("Slap Bs. 2"), _
-@WStr("Synth Bs. 1"), _
-@WStr("Synth Bs. 2"), _
+@WStr("Tango Accordion (Band neon)"), _
+@WStr("Acoustic Guitar (nylon)"), _
+@WStr("Acoustic Guitar (steel)"), _
+@WStr("Electric Guitar (jazz)"), _
+@WStr("Electric Guitar (clean)"), _
+@WStr("Electric Guitar (muted)"), _
+@WStr("Overdriven Guitar"), _
+@WStr("Distortion Guitar"), _
+@WStr("Guitar harmonics"), _
+@WStr("Acoustic Bass"), _
+@WStr("Electric Bass (fingered)"), _
+@WStr("Electric Bass (picked)"), _
+@WStr("Fretless Bass"), _
+@WStr("Slap Bass 1"), _
+@WStr("Slap Bass 2"), _
+@WStr("Synth Bass 1"), _
+@WStr("Synth Bass 2"), _
 @WStr("Violin"), _
 @WStr("Viola"), _
 @WStr("Cello"), _
 @WStr("Contrabass"), _
-@WStr("Tremolo Str"), _
-@WStr("Pizzicato"), _
-@WStr("Harp"), _
+@WStr("Tremolo Strings"), _
+@WStr("Pizzicato Strings"), _
+@WStr("Orchestral Harp"), _
 @WStr("Timpani"), _
-@WStr("Strings"), _
-@WStr("Slow Str."), _
-@WStr("Syn Str. 1"), _
-@WStr("Syn Str. 2"), _
+@WStr("String Ensemble 1 (strings)"), _
+@WStr("String Ensemble 2 (slow strings)"), _
+@WStr("SynthStrings 1"), _
+@WStr("SynthStrings 2"), _
 @WStr("Choir Aahs"), _
 @WStr("Voice Oohs"), _
-@WStr("SynVox"), _
+@WStr("Synth Voice"), _
 @WStr("Orchestra Hit"), _
 @WStr("Trumpet"), _
 @WStr("Trombone"), _
 @WStr("Tuba"), _
-@WStr("Muted Tr."), _
+@WStr("Muted Trumpet"), _
 @WStr("French Horn"), _
-@WStr("Brass 1"), _
-@WStr("Synth Br.1"), _
-@WStr("Synth Br.2"), _
+@WStr("Brass Section"), _
+@WStr("SynthBrass 1"), _
+@WStr("SynthBrass 2"), _
 @WStr("Soprano Sax"), _
 @WStr("Alto Sax"), _
 @WStr("Tenor Sax"), _
 @WStr("Baritone Sax"), _
 @WStr("Oboe"), _
 @WStr("English Horn"), _
-@WStr("Basson"), _
+@WStr("Bassoon"), _
 @WStr("Clarinet"), _
 @WStr("Piccolo"), _
 @WStr("Flute"), _
 @WStr("Recorder"), _
 @WStr("Pan Flute"), _
-@WStr("Bottle Blow"), _
+@WStr("Blown Bottle"), _
 @WStr("Shakuhachi"), _
 @WStr("Whistle"), _
 @WStr("Ocarina"), _
-@WStr("Square Wave"), _
-@WStr("Saw Wave"), _
-@WStr("Syn. Calliope"), _
-@WStr("Chiffer Lead"), _
-@WStr("Charang"), _
-@WStr("Solo Vox"), _
-@WStr("5th Saw Wave"), _
-@WStr("Bass&Lead"), _
-@WStr("Fantasia"), _
-@WStr("Warm Pad"), _
-@WStr("PolySynth"), _
-@WStr("Space Voice"), _
-@WStr("Bowed Glass"), _
-@WStr("Metal Pad"), _
-@WStr("Halo Pad"), _
-@WStr("Sweep Pad"), _
-@WStr("Ice Rain"), _
-@WStr("Sound Track"), _
-@WStr("Crystal"), _
-@WStr("Atmosphere"), _
-@WStr("Brightness"), _
-@WStr("Goblin"), _
-@WStr("Echo Drops"), _
-@WStr("Star Theme"), _
+@WStr("Lead 1 (square wave)"), _
+@WStr("Lead 2 (sawtooth wave)"), _
+@WStr("Lead 3 (calliope)"), _
+@WStr("Lead 4 (chiffer)"), _
+@WStr("Lead 5 (charang)"), _
+@WStr("Lead 6 (voice solo)"), _
+@WStr("Lead 7 (fifths)"), _
+@WStr("Lead 8 (bass + lead)"), _
+@WStr("Pad 1 (new age Fantasia)"), _
+@WStr("Pad 2 (warm)"), _
+@WStr("Pad 3 (polysynth)"), _
+@WStr("Pad 4 (choir space voice)"), _
+@WStr("Pad 5 (bowed glass)"), _
+@WStr("Pad 6 (metallic pro)"), _
+@WStr("Pad 7 (halo)"), _
+@WStr("Pad 8 (sweep)"), _
+@WStr("FX 1 (rain)"), _
+@WStr("FX 2 (soundtrack)"), _
+@WStr("FX 3 (crystal)"), _
+@WStr("FX 4 (atmosphere)"), _
+@WStr("FX 5 (brightness)"), _
+@WStr("FX 6 (goblins)"), _
+@WStr("FX 7 (echoes, drops)"), _
+@WStr("FX 8 (sci-fi, star theme)"), _
 @WStr("Sitar"), _
 @WStr("Banjo"), _
 @WStr("Shamisen"), _
 @WStr("Koto"), _
 @WStr("Kalimba"), _
-@WStr("Bag Pipe"), _
+@WStr("Bag pipe"), _
 @WStr("Fiddle"), _
 @WStr("Shanai"), _
 @WStr("Tinkle Bell"), _
 @WStr("Agogo"), _
 @WStr("Steel Drums"), _
 @WStr("Woodblock"), _
-@WStr("Taiko"), _
-@WStr("Melo Tom 1"), _
+@WStr("Taiko Drum"), _
+@WStr("Melodic Tom"), _
 @WStr("Synth Drum"), _
-@WStr("Reverse Cym."), _
-@WStr("Gt. FretNoise"), _
+@WStr("Reverse Cymbal"), _
+@WStr("Guitar Fret Noise"), _
 @WStr("Breath Noise"), _
 @WStr("Seashore"), _
-@WStr("Bird"), _
-@WStr("Telephone 1"), _
+@WStr("Bird Tweet"), _
+@WStr("Telephone Ring"), _
 @WStr("Helicopter"), _
 @WStr("Applause"), _
-@WStr("Gun Shot") _
+@WStr("Gunshot") _
 }
 
 Dim Shared InstrumentsStringC(Gunshot) As WString Ptr = { _
@@ -446,231 +651,152 @@ Dim Shared InstrumentsStringC(Gunshot) As WString Ptr = { _
 @WStr("枪声") _
 }
 
-'通道
-Enum ChannelsEnum
-	channel1 = 0
-	channel2
-	channel3
-	channel4
-	channel5
-	channel6
-	channel7
-	channel8
-	channel9
-	channel10
-	channel11
-	channel12
-	channel13
-	channel14
-	channel15
-	channel16
-End Enum
+Dim Shared PercussionStringE(Gunshot) As WString Ptr = { _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr("B1	Acoustic Bass Drum"), _
+@WStr("C2	Bass Drum 1"), _
+@WStr("C#2	Side Stick"), _
+@WStr("D2	Acoustic Snare"), _
+@WStr("D#2	Hand Clap"), _
+@WStr("E2	Electric Snare"), _
+@WStr("F2	Low Floor Tom"), _
+@WStr("F#2	Closed Hi Hat"), _
+@WStr("G2	High Floor Tom"), _
+@WStr("G#2	Pedal Hi-Hat"), _
+@WStr("A2	Low Tom"), _
+@WStr("A#2	Open Hi-Hat"), _
+@WStr("B2	Low-Mid Tom"), _
+@WStr("C3	Hi Mid Tom"), _
+@WStr("C#3	Crash Cymbal 1"), _
+@WStr("D3	High Tom"), _
+@WStr("D#3	Ride Cymbal 1"), _
+@WStr("E3	Chinese Cymbal"), _
+@WStr("F3	Ride Bell"), _
+@WStr("F#3	Tambourine"), _
+@WStr("G3	Splash Cymbal"), _
+@WStr("G#3	Cowbell"), _
+@WStr("A3	Crash Cymbal 2"), _
+@WStr("A#3	Vibraslap"), _
+@WStr("B3	Ride Cymbal 2"), _
+@WStr("C4	Hi Bongo"), _
+@WStr("C#4	Low Bongo"), _
+@WStr("D4	Mute Hi Conga"), _
+@WStr("D#4	Open Hi Conga"), _
+@WStr("E4	Low Conga"), _
+@WStr("F4	High Timbale"), _
+@WStr("F#4	Low Timbale"), _
+@WStr("G4	High Agogo"), _
+@WStr("G#4	Low Agogo"), _
+@WStr("A4	Cabasa"), _
+@WStr("A#4	Maracas"), _
+@WStr("B4	Short Whistle"), _
+@WStr("C5	Long Whistle"), _
+@WStr("C#5	Short Guiro"), _
+@WStr("D5	Long Guiro"), _
+@WStr("D#5	Claves"), _
+@WStr("E5	Hi Wood Block"), _
+@WStr("F5	Low Wood Block"), _
+@WStr("F#5	Mute Cuica"), _
+@WStr("G5	Open Cuica"), _
+@WStr("G#5	Mute Triangle"), _
+@WStr("A5	Open Triangle"), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr(""), _
+@WStr("") _
+}
 
-'控制符
-Enum ControlModeChangesEnum           ' Byte1, Byte2
-	BankSelectHi                  = &H00 ' 0-127 MSB
-	ModulationwheelHi                    ' 0-127 MSB
-	BreathControlHi                      ' 0-127 MSB
-	UndefinedHi1                         ' 0-127 MSB
-	FootControllerHi                     ' 0-127 MSB
-	PortamentoTimeHI                     ' 0-127 MSB
-	DataEntryHi                          ' 0-127 MSB
-	ChannelVolumeHi                      ' 0-127 MSB
-	BalanceHi                            ' 0-127 MSB
-	
-	PanHi                         = &H0A ' 0-127 MSB
-	ExpressionControllerHi               ' 0-127 MSB
-	EffectControl1Hi                     ' 0-127 MSB
-	EffectControl2Hi                     ' 0-127 MSB
-	
-	GeneralPurposeController1Hi   = &H10 ' 0-127 MSB
-	GeneralPurposeController2Hi          ' 0-127 MSB
-	GeneralPurposeController3Hi          ' 0-127 MSB
-	GeneralPurposeController4Hi          ' 0-127 MSB
-	
-	BankSelectLo                  = &H20 ' 0-127 LSB
-	ModulationWheelLo                    ' 0-127 LSB
-	BreathControlLo                      ' 0-127 LSB
-	
-	FootControllerLo              = &H24 ' 0-127 LSB
-	PortamentoTimeLo                     ' 0-127 LSB
-	DataEntryLo                          ' 0-127 LSB
-	ChannelVolumeLo                      ' 0-127 LSB
-	BalanceLo                            ' 0-127 LSB
-	
-	PanLo                         = &H42 ' 0-127 LSB
-	ExpressionControllerLo               ' 0-127 LSB
-	EffectControl1Lo                     ' 0-127 LSB
-	EffectControl2Lo                     ' 0-127 LSB
-	
-	GeneralPurposeControllerLo1   = &H30 ' 0-127 LSB
-	GeneralPurposeControllerLo2          ' 0-127 LSB
-	GeneralPurposeControllerLo3          ' 0-127 LSB
-	GeneralPurposeControllerLo4          ' 0-127 LSB
-	
-	DamperPedal                   = &H40 ' Sustain <63=off >64=on
-	Portamento                           ' on/off  <63=off >64=on
-	Sustenuto                            ' on/off  <63=off >64=on
-	SoftPedal                            ' on/off  <63=off >64=on
-	LegatoFootSwitch                     ' on/off  <63=off >64=on
-	Hold2                                ' on/off  <63=off >64=on
-	
-	SoundController1Lo                   ' Variation  0-127 LSB
-	SoundController2Lo                   ' Timbre     0-127 LSB
-	SoundController3Lo                   ' Release 	  0-127 LSB
-	SoundController4Lo                   ' Attack     0-127 LSB
-	SoundController5Lo                   ' Brightness 0-127 LSB
-	
-	SoundController6Lo                   ' 0-127 LSB
-	SoundController7Lo                   ' 0-127 LSB
-	SoundController8Lo                   ' 0-127 LSB
-	SoundController9Lo                   ' 0-127 LSB
-	SoundController10Lo                  ' 0-127 LSB
-	
-	GeneralPurposeController5Lo          ' 0-127 LSB
-	GeneralPurposeController6Lo          ' 0-127 LSB
-	GeneralPurposeController7Lo          ' 0-127 LSB
-	GeneralPurposeController8Lo          ' 0-127 LSB
-	PortamentoControlLo                  ' 0-127 Source Note
-	
-	Effects1DepthLo               = &H5B ' 0-127 LSB
-	Effects2DepthLo                      ' 0-127 LSB
-	Effects3DepthLo                      ' 0-127 LSB
-	Effects4DepthLo                      ' 0-127 LSB
-	Effects5DepthLo                      ' 0-127 LSB
-	DataEntryInc                         '= +1 	(none)
-	DataEntryDec                         '= -1 	(none)
-	NonRegisteredParameterNumberLo       ' 0-127 LSB
-	NonRegisteredParameterNumberHi       ' 0-127 MSB
-	RegisteredParameterNumberLo          ' 0-127 LSB
-	RegisteredParameterNumberHi          ' 0-127 MSB
-	
-	AllSoundOff                   = &H78 ' 0
-	ResetAllControllers                  ' 0
-	LocalControl                         ' 0=off 127=on
-	AllNotesOff                          ' 0
-	OmniModeOff                          ' (+ all notes off) 	0
-	OmniModeOn                           ' (+ all notes off) 	0
-	PolyModeOnOff                        ' (+ all notes off)
-	PolyModeOn                           ' (incl mono=off +all notes off) 	0
-End Enum
+Dim Shared NoteStringE(11) As WString Ptr = { _
+@WStr("C"), _
+@WStr("C#"), _
+@WStr("D"), _
+@WStr("D#"), _
+@WStr("E"), _
+@WStr("F"), _
+@WStr("F#"), _
+@WStr("G"), _
+@WStr("G#"), _
+@WStr("A"), _
+@WStr("A#"), _
+@WStr("B") _
+}
 
-'事件
-Enum MidiEventsSEnum                 'Statusbyte data byte1       data byte2
-	NoteOff              = &H80 'b1000:chn  note 0-127       (none)
-	NoteOn               = &H90 'b1001:chn  note 0-127       velocity   0-127
-	PolyphonicAftertouch = &HA0 'b1010:chn  note 0-127       aftertouch 0-127
-	ControlMode          = &HB0 'b1011:chn  (see ControlModeChanges)
-	ProgramChange        = &HC0 'b1100:chn  program    0-127 (none)
-	ChannelAftertouch    = &HD0 'b1101:chn  Aftertouch 0-127 (none)
-	PitchWheelControl    = &HE0 'b1110:chn  LSB 0-127        MSB 0-127
-	SysEx                = &HF0 'b1111:0000
-	
-	MIDITimeCode         = &HF1 'b1111:0001
-	
-	SongPositionPointer  = &HF2 'b1111:0010
-	SongSelect           = &HF3 'b1111:0011
-	Undefined1           = &HF4 'b1111:0100
-	Undefined2           = &HF5 'b1111:0101
-	TuneRequest          = &HF6 'b1111:0110
-	EOFSysEx             = &HF7 'b1111:0111
-	TimingClock          = &HF8 'b1111:1000
-	Undefined3           = &HF9 'b1111:1001
-	
-	MIDIStart            = &HFA 'b1111:1010
-	MIDIContinue         = &HFB 'b1111:1011
-	MIDIStop             = &HFC 'b1111:1100
-	
-	Undefined4           = &HFD 'b1111:1101
-	ActiveSensing        = &HFE 'b1111:1110
-	SystemReset          = &HFF 'b1111:1111
-End Enum
-
-'八度音程
-'+1=C# +3=D# +6=F# +8=G# +10=A#
-'+0=C  +2=D  +4=E  +5=F  +7=G   +9A   +11=B or H
-Enum OctavesEnum
-	octaveM =   0 ' minus 1
-	octave0 =  12
-	octave1 =  24
-	octave2 =  36
-	octave3 =  48
-	octave4 =  60 ' midle C
-	octave5 =  72
-	octave6 =  84
-	octave7 =  96
-	octave8 = 108
-	octave9 = 120
-End Enum
-
-'音调
-Enum NotesEnum
-	_C   =  0
-	_Cis =  1
-	_D   =  2
-	_E   =  3
-	_Eis =  4
-	_F   =  5
-	_Fis =  6
-	_G   =  7
-	_Gis =  8
-	_A   =  9
-	_Ais = 10
-	_B   = 11 ' or H
-	_H   = _B
-End Enum
-
-Type Event
-	Union
-		As Byte  bytes(3)
-		As ULong event
-	End Union
-End Type
-
-'指定乐器
-'see InstrumentEnum,InstrumentString for Instrument
-Function SendProgramChange(hDev As HMIDIOUT, Chn As ChannelsEnum, Instrument As UByte) As MMRESULT
-	Dim As Event ev
-	InRange(Chn, 0, 15)
-	InRange(Instrument, 0, 127)
-	ev.bytes(0) = ProgramChange Or Chn
-	ev.bytes(1) = Instrument
-	Return midiOutShortMsg(hDev, ev.event)
-End Function
-
-'音调调节轮
-' 7low and 7hi bits=14 bits (0 - 16383)
-Function SendPitchWheelControl(hDev As HMIDIOUT, Chn As ChannelsEnum, Num As InstrumentsEnum) As MMRESULT
-	Dim As Event ev
-	InRange(Chn, 0, 15)
-	InRange(Num, 0, 16383)
-	ev.bytes(0) = PitchWheelControl Or Chn
-	ev.bytes(1) = Num And &H7F
-	Num Shr = 7
-	ev.bytes(2) = Num And &H7F
-	Return midiOutShortMsg(hDev, ev.event)
-End Function
-
-'音符发声
-'参数分别为通道编号，音调，音量
-Function SendNoteOn(hDev As HMIDIOUT, Chn As ChannelsEnum, Note As UByte, Vol As UByte) As MMRESULT
-	Dim As Event ev
-	InRange(Chn, 0, 15)
-	InRange(Note, 0, 127)
-	InRange(Vol, 0, 127)
-	ev.bytes(0) = NoteOn Or Chn
-	ev.bytes(1) = Note
-	ev.bytes(2) = Vol
-	Return midiOutShortMsg(hDev, ev.event)
-End Function
-
-'音符静音
-Function SendNoteOff(hDev As HMIDIOUT, Chn As ChannelsEnum, Note As UByte) As MMRESULT
-	Dim As Event ev
-	InRange(Chn, 0, 15)
-	InRange(Note, 0, 127)
-	ev.bytes(0) = NoteOff Or Chn
-	ev.bytes(1) = Note
-	Return midiOutShortMsg(hDev, ev.event)
-End Function
-
+#ifndef __USE_MAKE__
+	#include once "midi.bas"
+#endif
