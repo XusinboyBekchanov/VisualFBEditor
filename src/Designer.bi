@@ -222,6 +222,7 @@ Namespace My.Sys.Forms
 		SelectedControl As Any Ptr
 		SelectedControls As List
 		Objects As List
+		Components As List
 		Controls As List
 		CtrlSymbols As PointerList
 		#ifdef __USE_GTK__
@@ -290,6 +291,7 @@ Namespace My.Sys.Forms
 		Declare Function CreateComponent(AClassName As String, AName As String, AParent As Any Ptr, x As Integer, y As Integer, bNotHook As Boolean = False) As Any Ptr
 		Declare Function CreateObject(AClassName As String) As Any Ptr
 		Declare Function ClassExists() As Boolean
+		Declare Sub SelectNextControl(Direction As Integer = 0)
 		'declare static     function GetClassName(hDlg as HWND) as string
 		#ifdef __USE_GTK__
 			Declare Property Dialog As GtkWidget Ptr

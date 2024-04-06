@@ -187,6 +187,27 @@ Namespace My.Sys.Forms
 		HideDots
 	End Sub
 	
+	Sub Designer.SelectNextControl(Direction As Integer = 0)
+		If Components.Count > 0 Then
+			SelectedControls.Clear
+			If Direction < 0 Then
+				Var iIndex = Components.IndexOf(SelectedControl)
+				If iIndex < 1 Then
+					MoveDots Components.Item(Components.Count - 1)
+				Else
+					MoveDots Components.Item(iIndex - 1)
+				End If
+			Else
+				Var iIndex = Components.IndexOf(SelectedControl)
+				If iIndex = Components.Count - 1 Then
+					MoveDots Components.Item(0)
+				Else
+					MoveDots Components.Item(iIndex + 1)
+				End If
+			End If
+		End If
+	End Sub
+	
 	Function Designer.ClassExists() As Boolean
 		'FClass = SelectedClass
 		#ifndef __USE_GTK__
@@ -1507,6 +1528,7 @@ Namespace My.Sys.Forms
 				If Ctrl Then
 					Objects.Add Ctrl
 					CtrlSymbols.Add Ctrl, st
+					Components.Add Ctrl
 					Controls.Add Ctrl
 					SelectedControl = Ctrl
 					If st->ReadPropertyFunc Then
@@ -1704,6 +1726,7 @@ Namespace My.Sys.Forms
 				Cpnt = st->CreateComponentFunc(AClassName, AName, x, y, AParent)
 				If Cpnt Then
 					Objects.Add Cpnt
+					Components.Add Cpnt
 					CtrlSymbols.Add Cpnt, st
 					SelectedControl = Cpnt
 					If st->WritePropertyFunc Then

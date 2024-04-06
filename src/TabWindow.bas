@@ -8551,10 +8551,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			End If
 			.SelectedControls.Clear
 			.Objects.Clear
+			.Components.Clear
 			.Controls.Clear
 			Events.Clear
 			If .DesignControl Then
 				.Objects.Add .DesignControl
+				.Components.Add .DesignControl
+				.Controls.Add .DesignControl
 				Dim As Any Ptr st = .CtrlSymbols.Object(0)
 				.CtrlSymbols.Clear
 				.CtrlSymbols.Add .DesignControl, st

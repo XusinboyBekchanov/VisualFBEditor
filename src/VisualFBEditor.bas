@@ -802,6 +802,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Case "Delete":                  des->DeleteControl
 				Case "Duplicate":               des->DuplicateControl
 				Case "SelectAll":               des->SelectAllControls
+				Case "Indent":                  des->SelectNextControl
+				Case "Outdent":                 des->SelectNextControl - 1
 				End Select
 			End If
 			Exit Sub
@@ -840,6 +842,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Case "Delete":                  des->DeleteControl
 				Case "Duplicate":               des->DuplicateControl
 				Case "SelectAll":               des->SelectAllControls
+				Case "Indent":                  des->SelectNextControl
+				Case "Outdent":                 des->SelectNextControl - 1
 				End Select
 			ElseIf ActiveForm->ActiveControl->ClassName = "EditControl" OrElse ActiveForm->ActiveControl->ClassName = "Panel" Then
 				Dim ec As EditControl Ptr = @tb->txtCode

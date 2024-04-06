@@ -9452,6 +9452,7 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 	Case "Panel"
 		bEnabled = True
 		bEnabledPanel = True
+		bEnabledIndentAndOutdent = True
 	Case "TextBox", "ComboBoxEdit", "ComboBoxEx"
 		bEnabled = True
 	End Select
@@ -9459,6 +9460,17 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 	Case @txtExplorer, @tvExplorer, @txtForm, @tbToolBox, @txtProperties, @lvProperties, @txtEvents, @lvEvents
 		bEnabledIndentAndOutdent = True
 	End Select
+	If bEnabledIndentAndOutdent Then
+		If miIndent->Caption <> ML("Move focus forward") & !"\tTab" Then
+			miIndent->Caption = ML("Move focus forward") & !"\tTab"
+			miOutdent->Caption = ML("Move focus backward") & !"\tShift+Tab"
+		End If
+	Else
+		If miIndent->Caption <> ML("Indent") & !"\tTab" Then
+			miIndent->Caption = ML("Indent") & !"\tTab"
+			miOutdent->Caption = ML("Outdent") & !"\tShift+Tab"
+		End If
+	End If
 	miUndo->Enabled = bEnabled
 	tbtUndo->Enabled = bEnabled
 	miRedo->Enabled = bEnabled
