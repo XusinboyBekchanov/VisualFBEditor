@@ -555,6 +555,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 		If tb->cboClass.Items.Count < 2 Then
 			miForm->Enabled = False
 			miCodeAndForm->Enabled = False
+			miGotoCodeForm->Enabled = False
 			tb->tbrTop.Buttons.Item("Form")->Enabled = False
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 			tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
@@ -563,6 +564,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			'SetRightClosedStyle False, False
 			miForm->Enabled = True
 			miCodeAndForm->Enabled = True
+			miGotoCodeForm->Enabled = True
 			tb->tbrTop.Buttons.Item("Form")->Enabled = True
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
 			'tpProperties->SelectTab
