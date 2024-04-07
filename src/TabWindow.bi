@@ -185,6 +185,7 @@ Public:
 	mi As MenuItem Ptr
 	bQuitThread As Boolean
 	LastThread As Any Ptr
+	LastButton As String
 	Project As ProjectElement Ptr
 	'CheckedFiles As WStringList
 	'OldIncludes As WStringList

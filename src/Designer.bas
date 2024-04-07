@@ -3020,6 +3020,7 @@ Namespace My.Sys.Forms
 		#endif
 		Select Case KeyCode
 		Case Keys.Key_Delete: DeleteControl()
+		Case Keys.Key_Enter: If OnDblClickControl Then OnDblClickControl(This, SelectedControl)
 		Case Keys.Key_Left, Keys.Key_Right, Keys.Key_Up, Keys.Key_Down
 			FStepX = GridSize
 			FStepY = GridSize

@@ -10108,6 +10108,7 @@ Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar,
 			.pnlForm.Align = DockStyle.alClient
 			.pnlForm.Visible = True
 			.splForm.Visible = False
+			.LastButton = Button.Name
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
 			'tpToolbox->SelectTab
 		Case "CodeAndForm"
@@ -10117,6 +10118,7 @@ Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar,
 			.pnlForm.Visible = True
 			.splForm.Visible = True
 			.pnlCode.Visible = True
+			.LastButton = Button.Name
 			If (.bNotDesign = False) AndAlso tb->FormNeedDesign Then .FormDesign: tb->FormNeedDesign = False
 			'tpToolbox->SelectTab
 		End Select
@@ -10447,6 +10449,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'txtCode.Functions.Sorted = True
 	'txtCode.FunctionsOthers.Sorted = True
 	'txtCode.Args.Sorted = True
+	LastButton = "CodeAndForm"
 	lvPropertyWidth = 150
 	btnClose.tbParent = @This
 	#ifdef __USE_GTK__
