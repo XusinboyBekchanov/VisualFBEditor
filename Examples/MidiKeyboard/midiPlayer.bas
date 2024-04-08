@@ -19,6 +19,7 @@ Constructor midiPlayer
 End Constructor
 
 Destructor midiPlayer
+	If midiThread Then Stop()
 	If midiHandle Then midiOutClose(midiHandle)
 	Release()
 End Destructor
@@ -81,7 +82,6 @@ Sub midiPlayer.Stop()
 			App.DoEvents
 		Loop While midiThread
 	End If
-	Release()
 End Sub
 
 'play a midifile
@@ -139,15 +139,15 @@ Function midiPlayer.threadPlay(ByVal pParam As Any Ptr) As Any Ptr
 		a->PlayStatus = MidiPlayStatus.MidiLooping
 	Loop While True
 	midiOutReset(a->midiHandle)
-	a->buildSequence()
-	a->playTo(0)
-	a->midiThread = NULL
-	a->Stop()
+
 	If a->breakPlaying Then
+		a->Release()
 		a->PlayStatus = MidiPlayStatus.MidiBreak
 	Else
+		a->Release()
 		a->PlayStatus = MidiPlayStatus.MidiStopped
 	End If
+	
 	Return 0
 End Function
 
@@ -753,5 +753,7 @@ Sub midiPlayer.Release()
 	threadPause = False
 	pausePosition = -1
 	breakPlaying = False
+	
+	midiThread = NULL
 End Sub
 

@@ -99,13 +99,13 @@ Type tSequence
 End Type
 
 Enum MidiPlayStatus
-	MidiStopped
-	MidiPlaying
-	MidiPause
-	MidiContinue
-	MidiBreak
-	MidiLooping
-	MidiError
+	MidiStopped = 0
+	MidiPlaying = 1
+	MidiPause= 2
+	MidiContinue= 3
+	MidiBreak = 4
+	MidiLooping = 5
+	MidiError = 6
 End Enum
 
 Type midiPlayer
