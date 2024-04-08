@@ -762,8 +762,10 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 				k -= 1
 			End If
 		End If
-		ListView1.ListItems.Item(k)->Selected = True
-		ListView1.EnsureVisible(k)
+		If ListView1.ListItems.Count > 0 Then
+			ListView1.ListItems.Item(k)->Selected = True
+			ListView1.EnsureVisible(k)
+		End If
 		
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
 	Case "cmdNext"
@@ -783,14 +785,16 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 		If k < 0 Then
 			k = 0
 		Else
-			If k = ListView1.ListItems.Count - 1 Then
+			If k >= ListView1.ListItems.Count - 1 Then
 				k = 0
 			Else
 				k += 1
 			End If
 		End If
-		ListView1.ListItems.Item(k)->Selected = True
-		ListView1.EnsureVisible(k)
+		If ListView1.ListItems.Count > 0 Then
+			ListView1.ListItems.Item(k)->Selected = True
+			ListView1.EnsureVisible(k)
+		End If
 		
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
 	Case "cmdContinue"
