@@ -1042,7 +1042,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Erase res
 						sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
-						If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
+						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
 							sOutput +=  Chr(10) + sBuffer
 							FirstErrFlag +=1
 						Else
