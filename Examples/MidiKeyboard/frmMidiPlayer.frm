@@ -20,6 +20,7 @@
 	#include once "mff/TreeView.bi"
 	#include once "mff/RadioButton.bi"
 	#include once "mff/Menus.bi"
+	#include once "mff/ImageList.bi"
 	
 	#include once "../MDINotepad/text.bi"
 	#include once "midi.bi"
@@ -30,7 +31,6 @@
 	
 	Type frmMidiPlayerType Extends Form
 		mFileList As WString Ptr
-		mImageList As ULong
 		
 		Midi As midiPlayer
 		mPositionUpdate As Boolean = True
@@ -81,16 +81,17 @@
 		Declare Sub TrackBar_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
-		Dim As CheckBox chkAll, chkDark
+		Dim As CheckBox chkAll, chkDark, chkReset
 		Dim As ComboBoxEdit cmbDevice
-		Dim As CommandButton cmdPlay, cmdContinue, cmdStop, cmdPause
+		Dim As CommandButton cmdNext, cmdContinue, cmdStop, cmdPause, cmdPrev
 		Dim As Label lblSpeed, lblVolume, lblPosition, lblInstruments, lblNote
 		Dim As ListView ListView1
-		Dim As MenuItem mnuAdd, mnuDelete
+		Dim As MenuItem mnuAdd, mnuDelete, mnuClear
 		Dim As OpenFileDialog OpenFileDialog1
 		Dim As PopupMenu PopupMenu1
 		Dim As RadioButton rdbLoopNone, rdbLoop1, rdbLoopList
 		Dim As TrackBar tbSpeed, tbVolume, tbPosition
+		Dim As ImageList ImageList1
 	End Type
 	
 	Constructor frmMidiPlayerType
@@ -117,13 +118,24 @@
 			.ControlBox = True
 			.SetBounds 0, 0, 735, 590
 		End With
-		' cmdPlay
-		With cmdPlay
-			.Name = "cmdPlay"
-			.Text = "Play"
+		' cmdNext
+		With cmdNext
+			.Name = "cmdNext"
+			.Text = "Next"
 			.TabIndex = 1
-			.Caption = "Play"
-			.SetBounds 10, 10, 80, 20
+			.Caption = "Next"
+			.SetBounds 10, 10, 70, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
+			.Parent = @This
+		End With
+		' cmdPrev
+		With cmdPrev
+			.Name = "cmdPrev"
+			.Text = "Prev"
+			.TabIndex = 19
+			.Caption = "Prev"
+			.SetBounds 80, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @This
@@ -135,7 +147,7 @@
 			.TabIndex = 2
 			.Caption = "Stop"
 			.Enabled = False
-			.SetBounds 100, 10, 80, 20
+			.SetBounds 150, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @This
@@ -147,7 +159,7 @@
 			.TabIndex = 3
 			.Caption = "Pause"
 			.Enabled = False
-			.SetBounds 190, 10, 80, 20
+			.SetBounds 220, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @This
@@ -159,7 +171,7 @@
 			.TabIndex = 4
 			.Caption = "Continue"
 			.Enabled = False
-			.SetBounds 280, 10, 80, 20
+			.SetBounds 290, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @This
@@ -170,7 +182,7 @@
 			.Text = "No loop"
 			.TabIndex = 5
 			.Caption = "No loop"
-			.SetBounds 10, 40, 80, 20
+			.SetBounds 10, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioButton_Click)
 			.Parent = @This
@@ -182,7 +194,7 @@
 			.TabIndex = 6
 			.Caption = "Loop 1"
 			.Checked = True
-			.SetBounds 100, 40, 80, 20
+			.SetBounds 80, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioButton_Click)
 			.Parent = @This
@@ -193,9 +205,21 @@
 			.Text = "Loop list"
 			.TabIndex = 7
 			.Caption = "Loop list"
-			.SetBounds 190, 40, 80, 20
+			.SetBounds 150, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton), @RadioButton_Click)
+			.Parent = @This
+		End With
+		' chkReset
+		With chkReset
+			.Name = "chkReset"
+			.Text = "Reset"
+			.TabIndex = 20
+			.Caption = "Reset"
+			.Hint = "Reset Volume and Speed on play"
+			.SetBounds 220, 40, 70, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox_Click)
 			.Parent = @This
 		End With
 		' chkDark
@@ -205,7 +229,7 @@
 			.TabIndex = 8
 			.Caption = "Dark"
 			.Checked = True
-			.SetBounds 280, 40, 80, 20
+			.SetBounds 290, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox_Click)
 			.Parent = @This
@@ -313,6 +337,8 @@
 			.ColumnHeaderHidden = True
 			.ContextMenu = @PopupMenu1
 			.MultiSelect = True
+			.Images = @ImageList1
+			.SmallImages = @ImageList1
 			.SetBounds 370, 10, 350, 190
 			.Designer = @This
 			.OnItemDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer), @ListView1_ItemDblClick)
@@ -364,6 +390,13 @@
 			.Designer = @This
 			.Parent = @This
 		End With
+		' ImageList1
+		With ImageList1
+			.Name = "ImageList1"
+			.SetBounds 300, 60, 16, 16
+			.Designer = @This
+			.Parent = @This
+		End With
 		' OpenFileDialog1
 		With OpenFileDialog1
 			.Name = "OpenFileDialog1"
@@ -393,6 +426,14 @@
 			.Name = "mnuDelete"
 			.Designer = @This
 			.Caption = "Delete"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @Menu_Click)
+			.Parent = @PopupMenu1
+		End With
+		' mnuClear
+		With mnuClear
+			.Name = "mnuClear"
+			.Designer = @This
+			.Caption = "Clear"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @Menu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -507,8 +548,10 @@ Private Sub frmMidiPlayerType.Form_Create(ByRef Sender As Control)
 	cmbDevice.ItemIndex = 0
 	ComboBoxEdit_Selected(cmbDevice, 0)
 	
-	'init default midi volume
+	'reset default midi volume
 	Label_Click(lblVolume)
+	'reset default midi speed
+	'Label_Click(lblSpeed)
 	
 	'load controls for channels, acts, notes
 	For i = 0 To MidiChannelCount
@@ -559,12 +602,12 @@ Private Sub frmMidiPlayerType.Form_Create(ByRef Sender As Control)
 	
 	'init imagelist
 	Dim pFileInfo As SHFILEINFO
-	mImageList = SHGetFileInfo("", 0, @pFileInfo, SizeOf(pFileInfo), SHGFI_SYSICONINDEX Or SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_LARGEICON Or SHGFI_PIDL Or SHGFI_DISPLAYNAME Or SHGFI_TYPENAME Or SHGFI_ATTRIBUTES)
-	SendMessage(ListView1.Handle, LVM_SETIMAGELIST, LVSIL_SMALL, Cast(LPARAM, mImageList))
-	'init columns of listview for midi file list
+	ImageList1.Handle = SHGetFileInfo("", 0, @pFileInfo, SizeOf(pFileInfo), SHGFI_SYSICONINDEX Or SHGFI_ICON Or SHGFI_SMALLICON Or SHGFI_LARGEICON Or SHGFI_PIDL Or SHGFI_DISPLAYNAME Or SHGFI_TYPENAME Or SHGFI_ATTRIBUTES)
+	SendMessage(ListView1.Handle, LVM_SETIMAGELIST, LVSIL_SMALL, Cast(LPARAM, ImageList1.Handle))
+	'init columns of listview for midi playlist
 	ListView1.Columns.Add("Name", , ListView1.Width - 22)
-	'file list from mFileList
-	WLet(mFileList, FullName2Path(App.FileName) & "\MidiPlayer.ini")
+	'playlist init from .\MidiPlayer.ini
+	WLet(mFileList, ExePath() & "\MidiPlayer.ini")
 	If Dir(*mFileList) = "" Then Exit Sub
 	Dim s() As WString Ptr
 	Dim t As WString Ptr
@@ -581,22 +624,8 @@ Private Sub frmMidiPlayerType.Form_Close(ByRef Sender As Form, ByRef Action As I
 	'stop play
 	If Midi.midiThread Then CommandButton_Click(cmdStop)
 	
-	'save midi file list to mFileList
-	Dim s() As WString Ptr
-	Dim t As WString Ptr
 	Dim i As Integer
-	Dim j As Integer = ListView1.ListItems.Count - 1
-	ReDim s(j)
-	For i = 0 To j
-		WLet(s(i), ListView1.ListItems.Item(i)->Text(0))
-	Next
-	JoinWStr(s(), WStr(vbCrLf), t)
-	If Dir(*mFileList) <> "" Then Kill(*mFileList)
-	TextToFile(*mFileList, *t)
-	ArrayDeallocate(s())
-	If t Then Deallocate(t)
-	If mFileList Then Deallocate(mFileList)
-	
+
 	'release control
 	For i = 0 To MidiChannelCount
 		Remove chkChannel(i)
@@ -610,6 +639,24 @@ Private Sub frmMidiPlayerType.Form_Close(ByRef Sender As Form, ByRef Action As I
 	Erase pnlAct
 	Erase pnlNote
 	Erase NotePad
+	
+	'update playlist
+	If Dir(*mFileList) <> "" Then Kill(*mFileList)
+	Dim j As Integer = ListView1.ListItems.Count - 1
+	
+	If j >-1 Then
+		Dim s() As WString Ptr
+		Dim t As WString Ptr
+		ReDim s(j)
+		For i = 0 To j
+			WLet(s(i), ListView1.ListItems.Item(i)->Text(0))
+		Next
+		JoinWStr(s(), WStr(vbCrLf), t)
+		TextToFile(*mFileList, *t)
+		ArrayDeallocate(s())
+		If t Then Deallocate(t)
+	End If
+	If mFileList Then Deallocate(mFileList)
 End Sub
 
 'midi Instrument changes
@@ -635,12 +682,13 @@ End Sub
 'midi play status changes
 Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlayStatus)
 	Dim a As frmMidiPlayerType Ptr = Owner
+	
 	Select Case sStatus
 	Case MidiPlayStatus.MidiPlaying
 		a->ActiveChannel = -1
 		a->tbPosition.MaxValue = a->Midi.TotalTime * 1000
 		a->chkAll.Checked = True
-		a->cmdPlay.Enabled = True
+		a->cmdNext.Enabled = True
 		a->cmdContinue.Enabled = False
 		a->cmdPause.Enabled = True
 		a->cmdStop.Enabled = True
@@ -648,7 +696,7 @@ Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlay
 		a->tbPosition.Enabled = True
 		a->NoteChannels()
 	Case MidiPlayStatus.MidiStopped
-		a->cmdPlay.Enabled = True
+		a->cmdNext.Enabled = True
 		a->cmdContinue.Enabled = False
 		a->cmdPause.Enabled = False
 		a->cmdStop.Enabled = False
@@ -658,43 +706,22 @@ Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlay
 		a->lblPosition.Caption = "Position"
 		a->NoteChannels()
 		If a->rdbLoopList.Checked = False Then Exit Sub
-		
-		Dim i As Integer
-		Dim j As Integer
-		Dim k As Integer = -1
-		For i = 0 To a->ListView1.ListItems.Count - 1
-			If a->ListView1.ListItems.Item(i)->Selected Then
-				If k < 0 Then k = i
-				a->ListView1.ListItems.Item(i)->Selected = False
-			End If
-		Next
-		
-		If k < 0 Then
-			k = 0
-		Else
-			If k < a->ListView1.ListItems.Count - 1 Then
-				k = k + 1
-			Else
-				k = 0
-			End If
-		End If
-		a->ListView1.ListItems.Item(k)->Selected = True
-		a->CommandButton_Click(a->cmdPlay)
-		
+		'loop list
+		a->CommandButton_Click(a->cmdNext)
 	Case MidiPlayStatus.MidiPause
-		a->cmdPlay.Enabled = True
+		a->cmdNext.Enabled = True
 		a->cmdContinue.Enabled = True
 		a->cmdPause.Enabled = False
 		a->cmdStop.Enabled = True
 		a->cmbDevice.Enabled = True
 	Case MidiPlayStatus.MidiContinue
-		a->cmdPlay.Enabled = True
+		a->cmdNext.Enabled = True
 		a->cmdContinue.Enabled = False
 		a->cmdPause.Enabled = True
 		a->cmdStop.Enabled = True
 		a->cmbDevice.Enabled = False
 	Case MidiPlayStatus.MidiBreak
-		a->cmdPlay.Enabled = True
+		a->cmdNext.Enabled = True
 		a->cmdContinue.Enabled = False
 		a->cmdPause.Enabled = False
 		a->cmdStop.Enabled = False
@@ -712,10 +739,59 @@ End Sub
 Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 	Dim i As Integer
 	Select Case Sender.Name
-	Case "cmdPlay"
-		If ListView1.SelectedItemIndex < 0 Then
-			ListView1.SelectedItemIndex = 0
+	Case "cmdPrev"
+		'If ListView1.SelectedItemIndex < 0 Then
+		'	ListView1.SelectedItemIndex = 0
+		'End If
+
+		Dim j As Integer
+		Dim k As Integer = -1
+		For i = 0 To ListView1.ListItems.Count - 1
+			If ListView1.ListItems.Item(i)->Selected Then
+				If k < 0 Then k = i
+				ListView1.ListItems.Item(i)->Selected = False
+			End If
+		Next
+		
+		If k < 0 Then
+			k = ListView1.ListItems.Count - 1
+		Else
+			If k = 0 Then
+				k = ListView1.ListItems.Count - 1
+			Else
+				k -= 1
+			End If
 		End If
+		ListView1.ListItems.Item(k)->Selected = True
+		ListView1.EnsureVisible(k)
+		
+		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
+	Case "cmdNext"
+		'If ListView1.SelectedItemIndex < 0 Then
+		'	ListView1.SelectedItemIndex = 0
+		'End If
+
+		Dim j As Integer
+		Dim k As Integer = -1
+		For i = 0 To ListView1.ListItems.Count - 1
+			If ListView1.ListItems.Item(i)->Selected Then
+				If k < 0 Then k = i
+				ListView1.ListItems.Item(i)->Selected = False
+			End If
+		Next
+		
+		If k < 0 Then
+			k = 0
+		Else
+			If k = ListView1.ListItems.Count - 1 Then
+				k = 0
+			Else
+				k += 1
+			End If
+		End If
+		ListView1.ListItems.Item(k)->Selected = True
+		ListView1.EnsureVisible(k)
+		
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
 	Case "cmdContinue"
 		Midi.Resume
@@ -737,9 +813,18 @@ End Sub
 
 Private Sub frmMidiPlayerType.ListView1_ItemDblClick(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If ItemIndex < 0 Then Exit Sub
-	If Midi.midiThread Then CommandButton_Click(cmdStop)
-	Label_Click(lblSpeed)
+	If Midi.midiThread Then
+		CommandButton_Click(cmdStop)
+		ListView1.ListItems.Item(ItemIndex)->Selected = True
+	End If
 	
+	If chkReset.Checked Then
+		'reset default midi volume
+		Label_Click(lblVolume)
+		'reset default midi speed
+		Label_Click(lblSpeed)
+	End If
+
 	Caption = "MidiPlay - " & ListView1.ListItems.Item(ItemIndex)->Text(0)
 	Midi.Play(ListView1.ListItems.Item(ItemIndex)->Text(0))
 End Sub
@@ -870,6 +955,7 @@ End Sub
 
 Private Sub frmMidiPlayerType.CheckBox_Click(ByRef Sender As CheckBox)
 	Select Case Sender.Name
+	Case "chkReset"
 	Case "chkAll"
 		NoteChannels()
 	Case "chkDark"
@@ -936,5 +1022,7 @@ Private Sub frmMidiPlayerType.Menu_Click(ByRef Sender As MenuItem)
 				ListView1.ListItems.Remove(i)
 			End If
 		Next
+	Case "mnuClear"
+		ListView1.ListItems.Clear
 	End Select
 End Sub
