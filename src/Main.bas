@@ -559,6 +559,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
 		End If
 		If *FbcExe = "" Then
+		If *FbcExe = "" OrElse InStr(*FbcExe, " ") > 0 Then
 			ThreadsEnter()
 			ShowMessages ML("Invalid defined compiler path.")
 			ThreadsLeave()
@@ -954,16 +955,16 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					If Pos1 > 0 Then
 						Dim res() As WString Ptr
 						sOutput += Left(sBuffer, Pos1 - 1)
-						If InStr(sOutput, "GoRC.exe' terminated with exit code") > 0 Then
+						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
 							ERRGoRc = True
 						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
 						End If
 						Dim As String buffer = Str(sOutput)
-						Dim As Integer wideCharsNeeded = MultiByteToWideChar(866, 0, StrPtr(buffer), -1, NULL, 0)
+						Dim As Integer wideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, NULL, 0)
 						sOutput.Resize wideCharsNeeded
-						MultiByteToWideChar(866, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
+						MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
 							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
