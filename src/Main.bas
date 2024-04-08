@@ -558,7 +558,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Else
 			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
 		End If
-		If *FbcExe = "" Then
 		If *FbcExe = "" OrElse InStr(*FbcExe, " ") > 0 Then
 			ThreadsEnter()
 			ShowMessages ML("Invalid defined compiler path.")
