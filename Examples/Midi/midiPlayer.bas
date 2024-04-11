@@ -84,6 +84,11 @@ Sub midiPlayer.Stop()
 	End If
 End Sub
 
+'last error message
+Property midiPlayer.ErrMsg() As String
+	Return mErrorMessage
+End Property
+
 'play a midifile
 Sub midiPlayer.Play(filename As String)
 	If midiThread Then Stop()
@@ -98,16 +103,15 @@ Sub midiPlayer.Play(filename As String)
 	'load file into midiBuffer
 	Dim filenum As Integer = FreeFile()
 	If Open(filename For Binary Access Read As #filenum ) = 0 Then
-		Dim filesize As Integer = LOF(filenum)
 		midiBuffer = Input(LOF(filenum), filenum)
 		midiUByte = StrPtr(midiBuffer)
 		Close #filenum
+		readMidi()
+		buildSequence()
+		midiThread = ThreadCreate(Cast(Any Ptr, @threadPlay), @This)
+	Else
+		reportError("ERROR - Can't open [" & filename & "] file.")
 	End If
-	
-	readMidi()
-	buildSequence()
-	
-	midiThread = ThreadCreate(Cast(Any Ptr, @threadPlay), @This)
 End Sub
 
 Function midiPlayer.threadPlay(ByVal pParam As Any Ptr) As Any Ptr
@@ -135,11 +139,11 @@ Function midiPlayer.threadPlay(ByVal pParam As Any Ptr) As Any Ptr
 			If a->breakPlaying Then Exit Do
 		Loop Until a->isEndOfMusic
 		If a->breakPlaying Then Exit Do
-		If a->LoopPlayback = False Then Exit Do
+		If a->loopOne = False Then Exit Do
 		a->PlayStatus = MidiPlayStatus.MidiLooping
 	Loop While True
 	midiOutReset(a->midiHandle)
-
+	
 	If a->breakPlaying Then
 		a->Release()
 		a->PlayStatus = MidiPlayStatus.MidiBreak
@@ -373,8 +377,9 @@ Function midiPlayer.isPlayable(eventCode As Integer) As Boolean
 	Return False
 End Function
 
-Sub midiPlayer.reportError(errMsg As String)
-	If OnPlayStatus Then OnPlayStatus(mOwner, MidiPlayStatus.MidiError)
+Sub midiPlayer.reportError(sErrMsg As String)
+	mErrorMessage = sErrMsg 
+	PlayStatus = MidiPlayStatus.MidiError
 End Sub
 
 'read all events in a chunk
@@ -404,7 +409,7 @@ Sub midiPlayer.readTrackEvents(trkNum As Integer, event As tEvent Ptr, startAddr
 			If runningStatus<>0 Then
 				eventCode=runningStatus       'save the running status
 			Else
-				reportError("ERROR: Running Status is zero at @" + Hex(midiAddress))
+				reportError("ERROR - Running Status is zero at @" + Hex(midiAddress))
 			End If
 		End If
 		newEvent = NewtEvent()
@@ -496,7 +501,7 @@ Sub midiPlayer.readTrackChunk(trkNum As Integer)
 	trChunk.chunkSize    = getNum4
 	midiAddress = startAddr + trChunk.chunkSize+ 8
 	If (trChunk.chunkID <> "MTrk") Then
-		reportError("ERROR - invalid Track Chunk " + Str(trkNum) + ":" + trChunk.chunkID)
+		reportError("ERROR - Invalid Track Chunk " + Str(trkNum) + ":" + trChunk.chunkID)
 	End If
 	
 	Dim As tEvent Ptr newEvent = NewtEvent()
@@ -504,7 +509,7 @@ Sub midiPlayer.readTrackChunk(trkNum As Integer)
 	newEvent->pPrev = 0
 	newEvent->pNext = 0
 	newEvent->evCode= -1   'track start
-	readTrackEvents(trkNum, newEvent, startAddr + 8, startAddr + trChunk.chunkSize+ 7)
+	readTrackEvents(trkNum, newEvent, startAddr + 8, startAddr + trChunk.chunkSize + 7)
 End Sub
 
 'get header chunk
@@ -519,7 +524,7 @@ Sub midiPlayer.readHeaderChunk()
 		reportError("ERROR - Format not supported")
 	End If
 	If (MThd.chunkID <> "MThd") OrElse (MThd.formatType> 2) Then
-		reportError("ERROR - invalid Header Chunk")
+		reportError("ERROR - Invalid Header Chunk: " & MThd.chunkID & " or Type: " & MThd.formatType)
 	End If
 End Sub
 
@@ -570,18 +575,17 @@ End Function
 'build sequence
 Sub midiPlayer.buildSequence()
 	Dim As Integer nextEvent
-	Dim As Integer lastTicks
+	Dim As Integer lastTicks = 0
 	
 	rootSeq = NewtSequence()
 	nextSeq = rootSeq
-	'set playCursors to track start (get first event with pNext)
+	'set play cursors to track start (get first event with pNext)
 	For i As Integer = 1 To MThd.numOfTracks
 		playEvent(i) = trackEvent(i)->pNext  '->pNext, because first element is dummy
 	Next
 	playTime=0
 	lastTime=0
-	lastTicks=0
-	midiTempo = 60000000 / 120  ' set to default value
+	midiTempo = 50000 '60000000 / 120 set to default value
 	Do
 		'search all tracks for next to play event (time)
 		For i As Integer = 1 To MThd.numOfTracks
@@ -622,7 +626,8 @@ Sub midiPlayer.saveEnergy()
 	
 	If nextSeq<>0 AndAlso (nextSeq->pEvent<>0) Then
 		If nextSeq->playTime - (baseTimer - lastTime) > 0.025 Then
-			Sleep 20
+			Dim i As Integer = 20 / mSpeed
+			Sleep IIf(i < 1, 1, i)
 		Else
 			While nextSeq->playTime > (baseTimer - lastTime)
 				Sleep 1
@@ -674,10 +679,10 @@ End Function
 
 'play next MIDI event from "seq" in a loop
 Sub midiPlayer.playTo(dPosition As Double)
-	updateTime = 0
 	nextSeq = rootSeq
 	startTime = baseTimer - dPosition
 	lastTime = startTime
+	updateTime = 0
 	
 	If dPosition>0 Then
 		'search for event to be played
@@ -749,11 +754,9 @@ Sub midiPlayer.Release()
 	heapPtr = 0
 	textinfoPtr = 0
 	midiAddress = 0
-	
 	threadPause = False
 	pausePosition = -1
 	breakPlaying = False
-	
-	midiThread = NULL
+	If midiThread Then midiThread = NULL
 End Sub
 

@@ -149,6 +149,8 @@ Private:
 	updateTime As Double
 	updateFrequency As Double = 0.1
 	
+	mErrorMessage As String
+	
 	midiBuffer As String
 	midiUByte As UByte Ptr
 	midiAddress As Integer
@@ -168,7 +170,6 @@ Private:
 	Declare Sub readMidi()
 	Declare Sub readTrackChunk(trkNum As Integer)
 	Declare Sub readTrackEvents(trkNum As Integer, event As tEvent Ptr, startAddr As Integer, endAddr As Integer)
-	Declare Sub reportError(errMsg As String)
 	
 	NewtEventPtr(Any) As tEvent Ptr
 	NewtEventCount As Integer = -1
@@ -180,22 +181,23 @@ Private:
 	Declare Function baseTimer() As Double
 	Declare Function eventType(eventCode As Integer) As ParameterType
 	Declare Function isEndOfMusic() As Integer
-	Declare Function isEndOfTrack(event As tEvent Ptr) As Boolean
+	Declare Function isEndOfTrack(Event As tEvent Ptr) As Boolean
 	Declare Function isPlayable(eventCode As Integer) As Boolean
 	Declare Property PlayStatus (v As MidiPlayStatus)
 	Declare Static Function threadPlay(ByVal pParam As Any Ptr) As Any Ptr
 	Declare Sub buildSequence()
 	Declare Sub playLoop()
 	Declare Sub playMidiEvent(midiSeq As tSequence Ptr)
-	Declare Sub retimeTrack()
-	Declare Sub saveEnergy()
 	Declare Sub playTo(dPosition As Double)
 	Declare Sub Release()
+	Declare Sub reportError(sErrMsg As String)
+	Declare Sub retimeTrack()
+	Declare Sub saveEnergy()
 	
 Public:
 	midiThread As Any Ptr
 	mOwner As Any Ptr
-	LoopPlayback As Boolean
+	loopOne As Boolean
 	UsedChannel(Any) As Boolean
 	EnabledChannel(Any) As Boolean
 	MIChannel(Any) As UByte
@@ -214,6 +216,7 @@ Public:
 	Declare Property Device() As UINT
 	Declare Property Device(selectDevice As UINT)
 	Declare Property PlayStatus As MidiPlayStatus
+	Declare Property ErrMsg() As String
 	
 	OnChange As Sub(Owner As Any Ptr, Channel As UByte, Instrument As UByte)
 	OnNoteOff As Sub(Owner As Any Ptr, Channel As UByte, Note As UByte)
