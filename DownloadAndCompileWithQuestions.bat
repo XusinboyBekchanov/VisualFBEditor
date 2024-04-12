@@ -75,11 +75,15 @@ PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEd
 
 if "%DownloadCompiler%" == "no" goto label7z
 
+MKDIR %~dp0VisualFBEditor\Compilers
+
 "%e7Zip%" x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -o%~dp0VisualFBEditor\Compilers
 
 :label7z
 
 if "%Download7Zip%" == "no" goto start
+
+MKDIR %~dp0VisualFBEditor\Debuggers
 
 "%e7Zip%" x "gdb-11.2.90.20220320-i686.7z" -o%~dp0VisualFBEditor\Debuggers\gdb-11.2.90.20220320-i686
 
