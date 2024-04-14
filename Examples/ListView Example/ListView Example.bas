@@ -36,10 +36,13 @@
 			.TabIndex = 0
 			.Images = @ImageList1
 			.SmallImages = @ImageList1
-			.SetBounds 20, 20, 130, 130
+			.SetBounds 19, 30, 280, 130
 			.Parent = @This
-			.Columns.Add "Column", , 100
-			.ListItems.Add "Item1", "About"
+			.Columns.Add "Column1", , 100
+			.Columns.Add "Column2", , 100
+			Var Item1 = .ListItems.Add("Item1", "About")
+			Item1->Text(1) = "Item1_1"
+			Item1->Tag = @"Item"
 			.ListItems.Add "Item2"
 		End With
 	End Constructor
