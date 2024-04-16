@@ -11044,6 +11044,7 @@ Function Err2Description(Code As Integer) ByRef As WString
 	Case 17: Return ML("End of file")
 	Case 193: Return ML("Could not execute:Bad executable format")
 	Case 3221225477: Return ML("Stack Overflow")
+	Case 3221225781: Return ML("The application could not run as the required library was not found")
 	Case Else: Return WStr("")
 	End Select
 End Function
