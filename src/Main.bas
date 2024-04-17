@@ -292,11 +292,19 @@ Function MP(ByRef V As WString) ByRef As WString
 				End If
 			End If
 		Next
-		Return TempWstr
+		If TempWstr = "" Then
+			Return V
+		Else
+			Return TempWstr
+		End If
 	Else
 		tIndex = mpKeys.IndexOfKey(V)
-		If tIndex >=0 Then
-			Return mpKeys.Item(tIndex)->Text
+		If tIndex >= 0 Then
+			If mpKeys.Item(tIndex)->Text = "" Then
+				Return V
+			Else
+				Return mpKeys.Item(tIndex)->Text
+			End If
 		Else
 			Return V
 		End If
