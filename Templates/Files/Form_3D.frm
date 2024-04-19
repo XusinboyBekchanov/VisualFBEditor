@@ -31,41 +31,10 @@
 		Dim Shared As HWND HandleRender
 	#endif
 	
-	'the main rendering code.  渲染代码主过程。
-	Sub RenderProj(Param As Any Ptr)
-		#ifdef __fbgfx_bi__
-			
-		#elseif defined(RAYLIB_H)
-			While RayLib.WindowShouldClose = False
-				Dim t As Double = GetTime()
-				'每循环更新一帧
-				Dim cameraTime As Double = t
-				Camera.position.x = Cos(cameraTime) * 40
-				Camera.position.z = Sin(cameraTime) * 40
-				RayLib.BeginDrawing()
-				RayLib.ClearBackground(WHITE)
-				RayLib.BeginMode3D(Camera) '以相机视角绘制3d
-				
-				RayLib.DrawGrid(100, 5) '绘制水平面网格
-				'绘制立方体
-				RayLib.DrawCube(Type(0, 0, 0), 10, 10, 10, VIOLET)
-				RayLib.DrawCubeWires(Type(0, 0, 0), 10, 10, 10, BLACK)
-				'绘制球体
-				RayLib.DrawSphere(Type(0, -40, 0), 10, RED)
-				RayLib.EndMode3D()
-				RayLib.EndDrawing()
-				'ThreadsEnter
-				
-				'ThreadsLeave
-			Wend
-			RayLib.CloseWindowRL
-		#endif
-	End Sub
-	
 	Type Form1Type Extends Form
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-		Declare Sub Form_Destroy(ByRef Sender As Control)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As Panel PanelRender
@@ -75,7 +44,7 @@
 	#if _MAIN_FILE_ = __FILE__
         With App
 			.CurLanguagePath = ExePath & "/Languages/"
-			.CurLanguage = "english"
+			.CurLanguage = .Language
 		End With
     #endif
 		' Form1
@@ -85,8 +54,8 @@
 			.Designer = @This
 			.StartPosition = FormStartPosition.CenterScreen
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
-			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 350, 300
 		End With
 		
@@ -119,20 +88,48 @@
 	#endif
 '#End Region
 
-
-Private Sub Form1Type.Form_Destroy(ByRef Sender As Control)
+	'the main rendering code.  渲染代码主过程。
+	Sub RenderProj(Param As Any Ptr)
+		#ifdef __fbgfx_bi__
+			
+		#elseif defined(RAYLIB_H)
+			While RayLib.WindowShouldClose = False
+				Dim t As Double = GetTime()
+				'每循环更新一帧
+				Dim cameraTime As Double = t
+				Camera.position.x = Cos(cameraTime) * 40
+				Camera.position.z = Sin(cameraTime) * 40
+				RayLib.BeginDrawing()
+				RayLib.ClearBackground(WHITE)
+				RayLib.BeginMode3D(Camera) '以相机视角绘制3d
+				
+				RayLib.DrawGrid(100, 5) '绘制水平面网格
+				'绘制立方体
+				RayLib.DrawCube(Type(0, 0, 0), 10, 10, 10, VIOLET)
+				RayLib.DrawCubeWires(Type(0, 0, 0), 10, 10, 10, BLACK)
+				'绘制球体
+				RayLib.DrawSphere(Type(0, -40, 0), 10, RED)
+				RayLib.EndMode3D()
+				RayLib.EndDrawing()
+				'ThreadsEnter
+				
+				'ThreadsLeave
+			Wend
+		#endif
+	End Sub
 	
-End Sub
-
 Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 	'Initialize the drawing engine in sub Form_Create or Form_Show. The official freeBasic drawing engine is fbgfx,
 	'and third-party drawing engines like RayLib are employed. It cannot be mixed simultaneously.
 	'在Form_Create或者Form_Show初始化绘图引擎。freeBasic官方绘图引擎是fbgfx，第三方绘图引擎如RayLib。不能同时混用。
+	Dim As Integer IMAGE_W = ScaleX(PanelRender.Width)
+	Dim As Integer IMAGE_H = ScaleY(PanelRender.Height)
 	#ifdef __fbgfx_bi__
-		'ScreenControl(GET_WINDOW_HANDLE, Cast(Integer, HandleRender))
+		ScreenRes IMAGE_W, IMAGE_H, 32
+		ScreenControl(2, Cast(Integer, HandleRender))
 	#elseif defined(RAYLIB_H)
 		RayLib.SetConfigFlags(FLAG_MSAA_4X_HINT) '启用反锯齿
-		RayLib.InitWindow(ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), "RaylibWindows")
+		RayLib.InitWindow(IMAGE_W, IMAGE_H, "RaylibWindows")
 		HandleRender = RayLib.GetWindowHandle
 		If HandleRender = 0 Then
 			Debug.Print("Failed to create RayLib window")
@@ -154,13 +151,25 @@ Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 	If HandleRender > 0 Then
 		SetParent(HandleRender, PanelRender.Handle)
 		SetWindowLongW(HandleRender, GWL_STYLE, WS_VISIBLE)
-		MoveWindow(HandleRender, 0, 0, ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), True)
+		MoveWindow(HandleRender, 0, 0, IMAGE_W, IMAGE_H, True)
 	End If
 End Sub
 
 Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	#if defined(__fbgfx_bi__) Or defined(RAYLIB_H)
+	#if defined(__fbgfx_bi__)
+		
+	#elseif defined(RAYLIB_H)
 		MoveWindow(HandleRender, 0, 0, ScaleX(PanelRender.Width), ScaleY(PanelRender.Height), True)
 	#endif
 End Sub
 
+Private Sub Form1Type.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	Ending = True
+	#ifdef __fbgfx_bi__
+		'cairo_destroy(cairoCreate)
+		'cairo_surface_destroy(cairoSurface)
+		'ImageDestroy image
+	#elseif defined(RAYLIB_H)
+		RayLib.CloseWindowRL
+	#endif
+End Sub
