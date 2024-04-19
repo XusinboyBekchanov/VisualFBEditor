@@ -1,4 +1,7 @@
-﻿'#Region "Form"
+﻿' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -25,16 +28,18 @@
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
 	
 	Type frmSapiTTSType Extends Form
+		pSpVoice As ISpVoice Ptr
+		'pSpAudio As ISpAudio Ptr
+		'pSpeechVoice As ISpeechVoice Ptr
+		
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Sub CommandButton1_Click(ByRef Sender As Control)
+		Declare Sub CommandButton_Click(ByRef Sender As Control)
 		Declare Sub Form_Message(ByRef Sender As Control, ByRef MSG As Message)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
-		Declare Sub ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
+		Declare Sub ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub TrackBar_Change(ByRef Sender As TrackBar, Position As Integer)
+		Declare Sub TimerComponent_Timer(ByRef Sender As TimerComponent)
 		Declare Constructor
-		
-		pSpVoice As Afx_ISpVoice Ptr
 		
 		Dim As TextBox TextBox1, TextBox2
 		Dim As GroupBox GroupBox1, GroupBox2
@@ -56,7 +61,7 @@
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Form_Message)
 			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
-			.BorderStyle = FormBorderStyle.FixedDialog
+			.BorderStyle = FormBorderStyle.Fixed3D
 			.SetBounds 0, 0, 346, 380
 		End With
 		' TextBox1
@@ -67,7 +72,7 @@
 			"the code overhead required for an application to use speech recognition " & _
 			"and text-to-speech, making speech technology more accessible and robust " & _
 			"for a wide range of applications."
-			.TabIndex = 0
+			.TabIndex = 1
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Vertical
 			.WordWraps = True
@@ -76,36 +81,26 @@
 			.Designer = @This
 			.Parent = @This
 		End With
-		' GroupBox1
-		With GroupBox1
-			.Name = "GroupBox1"
-			.Text = "Speach to Audio"
-			.TabIndex = 2
-			.Caption = "Speach to Audio"
-			.SetBounds 10, 130, 320, 100
-			.Designer = @This
-			.Parent = @This
-		End With
 		' ComboBoxEdit1
 		With ComboBoxEdit1
 			.Name = "ComboBoxEdit1"
 			.Text = "ComboBoxEdit1"
-			.TabIndex = 3
+			.TabIndex = 2
 			.Style = ComboBoxEditStyle.cbDropDown
 			.Hint = "Voice"
 			.ControlIndex = 2
 			.SetBounds 10, 100, 320, 21
 			.Designer = @This
-			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 			.Parent = @This
 		End With
-		' GroupBox2
-		With GroupBox2
-			.Name = "GroupBox2"
-			.Text = "Speach to File"
-			.TabIndex = 4
-			.Caption = "Speach to File"
-			.SetBounds 10, 240, 320, 100
+		' GroupBox1
+		With GroupBox1
+			.Name = "GroupBox1"
+			.Text = "Speach to Audio"
+			.TabIndex = 3
+			.Caption = "Speach to Audio"
+			.SetBounds 10, 130, 320, 100
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -113,64 +108,74 @@
 		With ComboBoxEdit2
 			.Name = "ComboBoxEdit2"
 			.Text = "ComboBoxEdit2"
-			.TabIndex = 5
+			.TabIndex = 4
 			.Style = ComboBoxEditStyle.cbDropDown
 			.Hint = "Output"
 			.SetBounds 10, 20, 300, 21
 			.Designer = @This
-			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 			.Parent = @GroupBox1
 		End With
 		' TrackBar1
 		With TrackBar1
 			.Name = "TrackBar1"
 			.Text = "TrackBar1"
-			.TabIndex = 6
+			.TabIndex = 5
 			.MinValue = -10
 			.Hint = "Rate"
 			.SetBounds 10, 55, 200, 10
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar_Change)
 			.Parent = @GroupBox1
 		End With
 		' TrackBar2
 		With TrackBar2
 			.Name = "TrackBar2"
 			.Text = "TrackBar2"
-			.TabIndex = 7
+			.TabIndex = 6
 			.MaxValue = 100
 			.Hint = "Volume"
 			.SetBounds 10, 75, 200, 10
 			.Designer = @This
-			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar1_Change)
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar_Change)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
 			.Text = "Speach"
-			.TabIndex = 8
+			.TabIndex = 7
 			.Caption = "Speach"
 			.Align = DockStyle.alNone
 			.Anchor.Right = AnchorStyle.asNone
 			.SetBounds 220, 50, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @GroupBox1
 		End With
 		' CommandButton2
 		With CommandButton2
 			.Name = "CommandButton2"
 			.Text = "Stop"
-			.TabIndex = 9
+			.TabIndex = 8
 			.Caption = "Stop"
 			.Align = DockStyle.alNone
 			.Anchor.Right = AnchorStyle.asNone
 			.Enabled = False
 			.SetBounds 220, 70, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @GroupBox1
+		End With
+		' GroupBox2
+		With GroupBox2
+			.Name = "GroupBox2"
+			.Text = "Speach to File"
+			.TabIndex = 9
+			.Caption = "Speach to File"
+			.SetBounds 10, 240, 320, 100
+			.Designer = @This
+			.Parent = @This
 		End With
 		' TextBox2
 		With TextBox2
@@ -189,7 +194,7 @@
 			.Hint = "Audio Format"
 			.SetBounds 10, 55, 200, 21
 			.Designer = @This
-			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit1_Selected)
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 			.AddItem "8kHz 8Bit Mono"
 			.AddItem "8kHz 8Bit Stereo"
 			.AddItem "8kHz 16Bit Mono"
@@ -237,7 +242,7 @@
 			.Caption = "Select"
 			.SetBounds 220, 49, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @GroupBox2
 		End With
 		' CommandButton4
@@ -248,7 +253,7 @@
 			.Caption = "Speach to file"
 			.SetBounds 220, 69, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @GroupBox2
 		End With
 		' SaveFileDialog1
@@ -265,15 +270,15 @@
 			.Interval = 100
 			.SetBounds 40, -1, 16, 16
 			.Designer = @This
-			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
 			.Parent = @This
 		End With
 	End Constructor
 	
 	Dim Shared frmSapiTTS As frmSapiTTSType
-
+	
 	#if _MAIN_FILE_ = __FILE__
-		'App.DarkMode= True
+		App.DarkMode= True
 		frmSapiTTS.MainForm = True
 		frmSapiTTS.Show
 		App.Run
@@ -281,79 +286,80 @@
 '#End Region
 
 Private Sub frmSapiTTSType.Form_Create(ByRef Sender As Control)
+	'init com
 	CoInitialize(NULL)
-	' // Create an instance of the SpVoice object
 	
+	'Create an instance of the SpVoice object
 	Dim classID As IID, riid As IID
-	CLSIDFromString(Afx_CLSID_SpVoice, @classID)
-	IIDFromString(Afx_IID_ISpVoice, @riid)
+	CLSIDFromString(CLSID_SpVoice, @classID)
+	IIDFromString(IID_ISpVoice, @riid)
 	CoCreateInstance(@classID, NULL, CLSCTX_ALL, @riid, @pSpVoice)
 	
 	If pSpVoice Then
-		' // Set the object of interest to word boundaries
+		' Set the object of interest to word boundaries
 		pSpVoice->SetInterest(SPFEI(SPEI_WORD_BOUNDARY), SPFEI(SPEI_WORD_BOUNDARY))
-		' // Set the handle of the window that will receive the MSG_SAPI_EVENT message
+		' Set the handle of the window that will receive the MSG_SAPI_EVENT message
 		pSpVoice->SetNotifyWindowMessage(Handle, MSG_SAPI_EVENT, 0, 0)
+		Dim pToken As ISpObjectToken Ptr
 		
-		Dim pVoice As Afx_ISpObjectToken Ptr
-		Dim pToken As Afx_ISpObjectTokenCategory Ptr
-		Dim mToken As Afx_IEnumSpObjectTokens Ptr
-		Dim cToken As Afx_ISpObjectToken Ptr
-		Dim pCount As Long
-		Dim i As Long
-		Dim mWStr As WString Ptr = CAllocate(1024)
+		' Voice list
+		TokenCategory2Cob(SPCAT_VOICES, ComboBoxEdit1)
 		
-		pSpVoice->GetVoice(@pVoice)
-		pVoice->GetCategory(@pToken)
-		pToken->EnumTokens(@"", @"", @mToken)
-		mToken->GetCount(@pCount)
+		' Output list
+		TokenCategory2Cob(SPCAT_AUDIOOUT, ComboBoxEdit2)
 		
-		ComboBoxEdit1.Clear
-		For i = 0 To pCount - 1
-			mToken->Item(i, @cToken)
-			cToken->GetStringValue(NULL, @mWStr)
-			ComboBoxEdit1.AddItem *mWStr
-			ComboBoxEdit1.ItemData(i) = cToken
-		Next
-		ComboBoxEdit1.ItemIndex = 0
-		
-		mToken->Release()
-		pVoice->Release()
-		pToken->Release()
-		
-		pSpVoice->GetOutputObjectToken(@pVoice)
-		pVoice->GetCategory(@pToken)
-		pToken->EnumTokens(@"", @"", @mToken)
-		mToken->GetCount(@pCount)
-		
-		ComboBoxEdit2.Clear
-		For i = 0 To pCount - 1
-			mToken->Item(i, @cToken)
-			cToken->GetStringValue(NULL, @mWStr)
-			ComboBoxEdit2.AddItem *mWStr
-			ComboBoxEdit2.ItemData(i) = cToken
-		Next
-		ComboBoxEdit2.ItemIndex = 0
-		
-		mToken->Release()
-		pVoice->Release()
-		pToken->Release()
-		
+		' Init rate
 		Dim lg As Long
-		Dim us As UShort
 		pSpVoice->GetRate(@lg)
 		TrackBar1.Position = lg
+		
+		' Init volume
+		Dim us As UShort
 		pSpVoice->GetVolume(@us)
 		TrackBar2.Position = us
 	End If
 	
-	TextBox2.Text = CurDir & "\SapiTTS.wav"
+	TextBox2.Text = ExePath & "\SapiTTS.wav"
 End Sub
 
-Private Sub frmSapiTTSType.CommandButton1_Click(ByRef Sender As Control)
+Private Sub frmSapiTTSType.CommandButton_Click(ByRef Sender As Control)
 	Select Case LCase(Sender.Text)
 	Case "speach"
-		If pSpVoice Then pSpVoice->Speak(@TextBox1.Text , SVSFlagsAsync, NULL)
+		If pSpVoice Then
+			
+			Dim classID As IID, riid As IID
+			Dim As ISpeechAudioFormat Ptr pSpAudio
+			Debug.Print "CoCreateInstance(pSpAudio) " & CoCreateInstance(@classID, NULL, CLSCTX_INPROC_SERVER, @riid, @pSpAudio)
+			Debug.Print "QueryInterface " & pSpVoice->QueryInterface(@riid, @pSpAudio)
+			
+			IIDFromString(IID_ISpeechAudioFormat, @riid)
+			Dim ppStream As ISpStreamFormat Ptr
+			pSpVoice->GetOutputStream(@ppStream)
+			Debug.Print "ppStream   " & ppStream
+			Dim As WaveFormatEx Ptr pWaveFormat = Allocate(SizeOf(WaveFormatEx))
+
+			pWaveFormat->wFormatTag = 1 'WAVE_FORMAT_PCM
+			pWaveFormat->nChannels = 2
+			pWaveFormat->nSamplesPerSec = 16000
+			pWaveFormat->wBitsPerSample = 16
+			pWaveFormat->nBlockAlign = (pWaveFormat->nChannels * pWaveFormat->wBitsPerSample) / 8
+			pWaveFormat->nAvgBytesPerSec = pWaveFormat->nSamplesPerSec * pWaveFormat->nBlockAlign
+			pWaveFormat->cbSize = 0
+			
+			Dim friid As GUID
+			IIDFromString(SPDFID_WaveFormatEx, @friid)
+			Debug.Print "GetFormat      " & ppStream->GetFormat(@friid, @pWaveFormat)
+			Debug.Print "Audio Format:"
+			Debug.Print "  Format Tag:              " & pWaveFormat->wFormatTag
+			Debug.Print "  Channels:                " & pWaveFormat->nChannels
+			Debug.Print "  Samples Per Second:      " & pWaveFormat->nSamplesPerSec
+			Debug.Print "  Bits Per Sample:         " & pWaveFormat->wBitsPerSample
+			Debug.Print "  Block Align:             " & pWaveFormat->nBlockAlign
+			Debug.Print "  Avg Bytes Per Second:    " & pWaveFormat->nAvgBytesPerSec
+			Debug.Print "  Extra Size:              " & pWaveFormat->cbSize
+			
+			pSpVoice->Speak(@TextBox1.Text , SVSFlagsAsync, NULL)
+		End If
 		CommandButton1.Text = "Pause"
 		CommandButton2.Enabled = True
 		CommandButton4.Enabled = False
@@ -391,14 +397,14 @@ Private Sub frmSapiTTSType.CommandButton1_Click(ByRef Sender As Control)
 		
 		App.DoEvents()
 		
-		Dim classID As IID, riid As IID
-		Dim pSpFileStream As Afx_ISpeechFileStream Ptr
-		Dim pSpAudioFormat As Afx_ISpeechAudioFormat Ptr
-		
 		'创建音频输出文件流设备
-		CLSIDFromString(AFX_CLSID_SpFileStream, @classID)
-		IIDFromString(AFX_IID_ISpeechFileStream, @riid)
+		Dim classID As IID, riid As IID
+		CLSIDFromString(CLSID_SpFileStream, @classID)
+		IIDFromString(IID_ISpeechFileStream, @riid)
+		Dim pSpFileStream As ISpeechFileStream Ptr
 		CoCreateInstance(@classID, NULL, CLSCTX_INPROC_SERVER, @riid, @pSpFileStream)
+		
+		Dim pSpAudioFormat As ISpeechAudioFormat Ptr
 		
 		'设置音频格式
 		If ComboBoxEdit3.ItemIndex >-1 Then
@@ -421,6 +427,8 @@ Private Sub frmSapiTTSType.CommandButton1_Click(ByRef Sender As Control)
 		
 		'关闭音频流
 		pSpFileStream->Close()
+		
+		'恢复音频输出装置
 		pSpVoice->SetOutput(ComboBoxEdit2.ItemData(ComboBoxEdit2.ItemIndex), True)
 		
 		'释放资源
@@ -458,16 +466,19 @@ Private Sub frmSapiTTSType.Form_Destroy(ByRef Sender As Control)
 	CoUninitialize()
 End Sub
 
-Private Sub frmSapiTTSType.ComboBoxEdit1_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+Private Sub frmSapiTTSType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Dim friid As GUID
+	
 	Select Case Sender.Name
 	Case "ComboBoxEdit1"
 		pSpVoice->SetVoice(Sender.ItemData(ItemIndex))
 	Case "ComboBoxEdit2"
 		pSpVoice->SetOutput(Sender.ItemData(ItemIndex), True)
+	Case "ComboBoxEdit3"
 	End Select
 End Sub
 
-Private Sub frmSapiTTSType.TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
+Private Sub frmSapiTTSType.TrackBar_Change(ByRef Sender As TrackBar, Position As Integer)
 	Select Case Sender.Name
 	Case "TrackBar1"
 		If pSpVoice Then pSpVoice->SetRate(Position)
@@ -476,12 +487,12 @@ Private Sub frmSapiTTSType.TrackBar1_Change(ByRef Sender As TrackBar, Position A
 	End Select
 End Sub
 
-Private Sub frmSapiTTSType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
-	If pSpVoice= NULL Then Exit Sub
+Private Sub frmSapiTTSType.TimerComponent_Timer(ByRef Sender As TimerComponent)
+	If pSpVoice = NULL Then Exit Sub
+	
 	Dim eventStatus As SPVOICESTATUS
 	pSpVoice->GetStatus(@eventStatus, NULL)
-	If eventStatus.dwRunningState= 1 Then
-		'语音播报完成
-		CommandButton1_Click(CommandButton2)
+	If eventStatus.dwRunningState = 1 Then
+		CommandButton_Click(CommandButton2)
 	End If
 End Sub
