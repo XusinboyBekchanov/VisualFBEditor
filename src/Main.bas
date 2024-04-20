@@ -94,7 +94,8 @@ Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Termin
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue, txtLabelProperty, txtLabelEvent
+Dim Shared As TextBox txtPropertyValue
+Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
@@ -8143,9 +8144,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 	'#endif
 	'If te->Comment <> 0 Then
 	If LCase(App.CurLanguage) = "default" Then
-		txtLabelProperty.Text = GetItemText(Item) & !"\r\n" & te->Comment
+		txtLabelProperty.TextRTF = "{\urtf1\b " & GetItemText(Item) & "\b0\par " & te->Comment & "}"
 	Else
-		txtLabelProperty.Text = MC(GetItemText(Item))
+		txtLabelProperty.TextRTF = "{\urtf1\b " & Replace(MC(GetItemText(Item)), !"\r\n", "\b0\par ") & "}"
 	End If
 	'Else
 	'	txtLabelProperty.Text = ""
@@ -8160,7 +8161,11 @@ Sub lvEvents_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender A
 	Var te = GetPropertyType(WGet(st->ReadPropertyFunc(tb->Des->SelectedControl, "ClassName")), GetItemText(Item))
 	'If te = 0 Then Exit Sub
 	'If te->Comment <> 0 Then
-	txtLabelEvent.Text = MC(Item->Text(0)) 'te->Comment
+	If LCase(App.CurLanguage) = "default" Then
+		txtLabelEvent.TextRTF = "{\urtf1\b " & Item->Text(0) & "\b0\par " & te->Comment & "}"
+	Else
+		txtLabelEvent.TextRTF = "{\urtf1\b " & Replace(MC(Item->Text(0)), !"\r\n", "\b0\par ") & "}"
+	End If
 	'Else
 	'	txtLabelEvent.Text = ""
 	'End If
