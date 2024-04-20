@@ -645,7 +645,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """"
 				End If
 			Next
-		Else
+		End If
 			Dim CtlLibrary As Library Ptr
 			For i As Integer = 0 To ControlLibraries.Count - 1
 				CtlLibrary = ControlLibraries.Item(i)
@@ -682,7 +682,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					End If
 				End If
 			Next
-		End If
+		
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
 		Next
@@ -6411,13 +6411,13 @@ Sub LoadLanguageTexts
 						If Pos2 > 0 Then
 							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), Any !"\t ")
 							If Len(Buff) - Pos2 <= 1 Then
-								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), "")   ' No comment
+								mcKeys.Add tKey, Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")  & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), Any !"\t "), "")   ' No comment
 							Else
-								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), "") & Chr(13, 10) & Trim(Mid(Buff, Pos2 + 1, Len(Buff) - Pos2))
+								mcKeys.Add tKey, Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ")  & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), Any !"\t "), "") & Chr(13, 10) & Trim(Mid(Buff, Pos2 + 1, Len(Buff) - Pos2), Any !"\t ")
 							End If
 						Else
 							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Len(Buff) - Pos2), Any !"\t ")
-							mcKeys.Add tKey, Trim(Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Len(Buff) - Pos2))
+							mcKeys.Add tKey, Trim(Mid(Buff, 1, Pos1 - 1), Any !"\t ") & "  " & Trim(Mid(Buff, Pos1 + 1, Len(Buff) - Pos2), Any !"\t ")
 						End If
 					ElseIf StartKeyWords = True Then
 						
