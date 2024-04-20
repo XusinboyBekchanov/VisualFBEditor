@@ -645,7 +645,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """"
 				End If
 			Next
-		Else
+		End If
 			Dim CtlLibrary As Library Ptr
 			For i As Integer = 0 To ControlLibraries.Count - 1
 				CtlLibrary = ControlLibraries.Item(i)
@@ -682,7 +682,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					End If
 				End If
 			Next
-		End If
+		
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
 		Next
