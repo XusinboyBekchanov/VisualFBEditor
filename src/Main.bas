@@ -6411,13 +6411,13 @@ Sub LoadLanguageTexts
 						If Pos2 > 0 Then
 							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), Any !"\t ")
 							If Len(Buff) - Pos2 <= 1 Then
-								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)   ' No comment
+								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), "")   ' No comment
 							Else
-								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1) & Chr(13, 10) & Mid(Buff, Pos2 + 1, Len(Buff) - Pos2)
+								mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & IIf(Trim(Mid(Buff, 1, Pos1 - 1)) <> Trim(Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1)), "  " & Mid(Buff, Pos1 + 1, Pos2 - Pos1 - 1), "") & Chr(13, 10) & Trim(Mid(Buff, Pos2 + 1, Len(Buff) - Pos2))
 							End If
 						Else
 							mpKeys.Add tKey, Trim(Mid(Buff, Pos1 + 1, Len(Buff) - Pos2), Any !"\t ")
-							mcKeys.Add tKey, Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Len(Buff) - Pos2)
+							mcKeys.Add tKey, Trim(Mid(Buff, 1, Pos1 - 1) & "  " & Mid(Buff, Pos1 + 1, Len(Buff) - Pos2))
 						End If
 					ElseIf StartKeyWords = True Then
 						
@@ -8142,7 +8142,11 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 	pnlPropertyValue.Visible = True
 	'#endif
 	'If te->Comment <> 0 Then
-	txtLabelProperty.Text = MC(GetItemText(Item)) 'te->Comment
+	If LCase(App.CurLanguage) = "default" Then
+		txtLabelProperty.Text = GetItemText(Item) & !"\r\n" & te->Comment
+	Else
+		txtLabelProperty.Text = MC(GetItemText(Item))
+	End If
 	'Else
 	'	txtLabelProperty.Text = ""
 	'End If
