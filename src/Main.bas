@@ -6315,12 +6315,9 @@ Sub LoadSettings
 	End If
 	#ifdef __USE_WINAPI__
 		If DarkMode Then
-			txtLabelProperty.BackColor = darkBkColor
-			txtLabelEvent.BackColor = darkBkColor
-			txtLabelProperty.ForeColor = darkTextColor
-			txtLabelEvent.ForeColor = darkTextColor
-			fAddIns.txtDescription.BackColor = darkBkColor
-			fAddIns.txtDescription.ForeColor = darkTextColor
+			txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+			txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+			fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
 		End If
 	#endif
 	pDefaultFont->Name = WGet(InterfaceFontName)

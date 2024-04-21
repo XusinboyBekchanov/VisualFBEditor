@@ -263,19 +263,13 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		End If
 		#ifdef __USE_WINAPI__
 			If DarkMode Then
-				txtLabelProperty.BackColor = darkBkColor
-				txtLabelEvent.BackColor = darkBkColor
-				txtLabelProperty.ForeColor = darkTextColor
-				txtLabelEvent.ForeColor = darkTextColor
-				fAddIns.txtDescription.BackColor = darkBkColor
-				fAddIns.txtDescription.ForeColor = darkTextColor
+				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
+				txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
 			Else
 				txtLabelProperty.BackColor = clBtnFace
 				txtLabelEvent.BackColor = clBtnFace
-				txtLabelProperty.ForeColor = clBtnText
-				txtLabelEvent.ForeColor = clBtnText
 				fAddIns.txtDescription.BackColor = clBtnFace
-				fAddIns.txtDescription.ForeColor = clBtnText
 			End If
 			For i As Integer = 0 To pApp->FormCount - 1
 				If pApp->Forms[i]->Handle Then
