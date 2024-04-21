@@ -263,8 +263,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		End If
 		#ifdef __USE_WINAPI__
 			If DarkMode Then
-				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
-				txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+				txtLabelProperty.BackColor = darkBkColor
+				txtLabelEvent.BackColor = darkBkColor
 				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
 			Else
 				txtLabelProperty.BackColor = clBtnFace

@@ -3799,8 +3799,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		SetDarkMode DarkMode, False
 		#ifdef __USE_WINAPI__
 			If DarkMode Then
-				txtLabelProperty.BackColor = GetSysColor(COLOR_WINDOW)
-				txtLabelEvent.BackColor = GetSysColor(COLOR_WINDOW)
+				txtLabelProperty.BackColor = darkBkColor
+				txtLabelEvent.BackColor = darkBkColor
 				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)
 			Else
 				txtLabelProperty.BackColor = clBtnFace
@@ -5434,7 +5434,7 @@ Private Sub frmOptions.cmdUpdateLng_Click(ByRef Sender As Control)
 				If Result <> 0 Then Result = Open(FileNameSrc For Input Encoding "utf-32" As #Fn2)
 				If Result <> 0 Then Result = Open(FileNameSrc For Input As #Fn2)
 				If Result = 0 Then
-					Print "FileNameSrc: " & FileNameSrc
+					Print "Source file name: " & FileNameSrc
 					lblShowMsg.Text = ML("Open") & "...  " & FileNameSrc
 					Do Until EOF(Fn2)
 						Line Input #Fn2, Buff
