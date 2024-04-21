@@ -633,7 +633,7 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 	'If tb->txtCode.DropDownShowed Then Exit Sub
 	If tb->txtCode.MouseHoverToolTipShowed Then
 		If CBool((Abs(OldY - y) > 0 OrElse Abs(OldX - x) > 0)) Then
-			'tb->txtCode.CloseToolTip
+			tb->txtCode.CloseMouseHoverToolTip
 		Else
 			Exit Sub
 		End If

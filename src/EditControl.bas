@@ -5467,7 +5467,6 @@ Namespace My.Sys.Forms
 		#else
 			DropDownToolTipItemIndex = cboIntellisense.ItemIndex
 		#endif
-		DropDownToolTipShowed = True
 		If *FHintDropDown = "" Then WLet(FHintDropDown, " ")
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
@@ -5511,10 +5510,10 @@ Namespace My.Sys.Forms
 			SendMessage(hwndTTDropDown, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
 		#endif
 		This.SetFocus
+		DropDownToolTipShowed = True
 	End Sub
 	
 	Sub EditControl.ShowMouseHoverToolTipAt(X As Integer, Y As Integer)
-		MouseHoverToolTipShowed = True
 		Dim As Boolean IsFocused = Focused
 		If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
 		#ifdef __USE_GTK__
@@ -5559,6 +5558,7 @@ Namespace My.Sys.Forms
 			SendMessage(hwndTTMouseHover, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(X), rc.Top + ScaleY(Y)))
 		#endif
 		If IsFocused Then This.SetFocus
+		MouseHoverToolTipShowed = True
 	End Sub
 	
 	Sub EditControl.ShowToolTipAt(iSelEndLine As Integer, iSelEndChar As Integer)
@@ -5567,7 +5567,6 @@ Namespace My.Sys.Forms
 		Var HCaretPos = LeftMargin + nCaretPosX - IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso ActiveCodePane = 1, iDividedX + 7, 0)
 		Var VCaretPos = (nCaretPosY - IIf(ActiveCodePane = 0, VScrollPosTop, VScrollPosBottom) + 1) * dwCharY + IIf(bDividedY AndAlso ActiveCodePane = 1, iDividedY + 7, 0)
 		ToolTipChar = iSelEndChar
-		ToolTipShowed = True
 		#ifdef __USE_GTK__
 			Dim As gint x, y
 			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
@@ -5611,6 +5610,7 @@ Namespace My.Sys.Forms
 			GetWindowRect(FHandle, @rc)
 			SendMessage(hwndTT, TTM_TRACKPOSITION, 0, MAKELPARAM(rc.Left + ScaleX(HCaretPos), rc.Top + IIf(ShowTooltipsAtTheTop, ScaleY(VCaretPos - dwCharY) - HiWord(Result), ScaleY(VCaretPos + 5))))
 		#endif
+		ToolTipShowed = True
 	End Sub
 	
 	Sub EditControl.UpdateDropDownToolTip()
@@ -6206,6 +6206,9 @@ Namespace My.Sys.Forms
 			Case WM_KILLFOCUS
 				HideCaret(FHandle)
 				DestroyCaret()
+				If ToolTipShowed Then CloseToolTip
+				If DropDownToolTipShowed Then CloseDropDownToolTip
+				If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			Case WM_UNDO
 				Undo
 				'Case WM_REDO

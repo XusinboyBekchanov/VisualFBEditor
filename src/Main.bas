@@ -9469,6 +9469,12 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 			CloseBottom
 		End If
 	End If
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb Then
+		If tb->txtCode.ToolTipShowed Then tb->txtCode.CloseToolTip
+		If tb->txtCode.DropDownShowed Then tb->txtCode.CloseDropDownToolTip
+		If tb->txtCode.MouseHoverToolTipShowed Then tb->txtCode.CloseMouseHoverToolTip
+	End If
 	Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 	If ActiveForm = 0 OrElse ActiveForm->ActiveControl = 0 Then Exit Sub
 	Dim As Boolean bEnabled, bEnabledEditControl, bEnabledPanel, bEnabledIndentAndOutdent
