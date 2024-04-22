@@ -542,7 +542,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If bAll Then ProjectNode = tvExplorer.Nodes.Item(k) Else ProjectNode = 0
 		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
 		If Project Then
-			If EndsWith(*Project->FileName, ".vfp") Then
+			If EndsWith(LCase(*Project->FileName), ".vfp") Then
 				WLet(ProjectPath, GetFolderName(*Project->FileName))
 			Else
 				WLet(ProjectPath, *Project->FileName)
@@ -747,7 +747,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If Project Then BatchCompilationFileName = Project->BatchCompilationFileNameLinux
 		#endif
 		If WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then 'CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/gradlew") Then
-			If EndsWith(*BatchCompilationFileName, "gradlew.bat") OrElse EndsWith(*BatchCompilationFileName, "/gradlew") Then
+			If EndsWith(LCase(*BatchCompilationFileName), "gradlew.bat") OrElse EndsWith(LCase(*BatchCompilationFileName), "/gradlew") Then
 				Dim As String gradlewFile, gradlewCommand
 				If Parameter = "Bundle" Then
 					gradlewCommand = "bundleRelease"
@@ -1255,7 +1255,7 @@ Sub GenerateSignedBundleAPK(Parameter As String)
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
 		Dim MainFile As UString = GetMainFile(, Project, ProjectNode)
-		If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
+		If CBool(Project <> 0) AndAlso (Not EndsWith(LCase(*Project->FileName), ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
 		Else
 			ShowMessages ML("File") & " local.properties " & ML("not found") & "!"
 			Exit Sub
@@ -1391,13 +1391,13 @@ End Sub
 
 Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As TreeNode Ptr
 	If tn->Tag AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement AndAlso Cast(ProjectElement Ptr, tn->Tag)->ProjectFolderType = ProjectFolderTypes.ShowWithFolders Then
-		If EndsWith(FileName, ".bi") Then
+		If EndsWith(LCase(FileName), ".bi") Then
 			Return tn->Nodes.Item(0)
-		ElseIf EndsWith(FileName, ".frm") Then
+		ElseIf EndsWith(LCase(FileName), ".frm") Then
 			Return tn->Nodes.Item(1)
-		ElseIf EndsWith(FileName, ".bas") OrElse EndsWith(FileName, ".inc") Then
+		ElseIf EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".inc") Then
 			Return tn->Nodes.Item(2)
-		ElseIf EndsWith(FileName, ".rc") Then
+		ElseIf EndsWith(LCase(FileName), ".rc") Then
 			Return tn->Nodes.Item(3)
 		Else
 			Return tn->Nodes.Item(4)
@@ -1727,7 +1727,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							If bNew AndAlso IconName <> "MainRes" Then AddTab *ee->TemplateFileName, bNew, tn2
 						End If
 					End If
-					If EndsWith(*ee->FileName, ".bas") OrElse EndsWith(*ee->FileName, ".frm") OrElse EndsWith(*ee->FileName, ".bi") OrElse EndsWith(*ee->FileName, ".inc") Then
+					If EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
 						pFiles->Add *ee->FileName, ppe
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
@@ -2084,7 +2084,7 @@ Function FolderExists(ByRef FolderName As WString) As Boolean
 End Function
 
 Sub AddNew(ByRef Template As WString = "")
-	If EndsWith(Template, ".vfp") Then
+	If EndsWith(LCase(Template), ".vfp") Then
 		AddProject Template, , , True
 	Else
 		AddTab Template, True
@@ -2092,10 +2092,10 @@ Sub AddNew(ByRef Template As WString = "")
 End Sub
 
 Sub OpenFiles(ByRef FileName As WString)
-	If EndsWith(FileName, ".vfs") Then
+	If EndsWith(LCase(FileName), ".vfs") Then
 		AddSession FileName
 		WLet(RecentSession, FileName)
-	ElseIf EndsWith(FileName, ".vfp") Then
+	ElseIf EndsWith(LCase(FileName), ".vfp") Then
 		AddProject FileName
 		WLet(RecentProject, FileName)
 	ElseIf FolderExists(FileName) Then
@@ -2210,15 +2210,15 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 		'pSaveD->FileName = FileName & ".bas"
 		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
 		pSaveD->FilterIndex = 1
-	ElseIf EndsWith(FileName, ".bas") Then
+	ElseIf EndsWith(LCase(FileName), ".bas") Then
 		pSaveD->FilterIndex = 1
-	ElseIf EndsWith(FileName, ".bi") Then
+	ElseIf EndsWith(LCase(FileName), ".bi") Then
 		pSaveD->FilterIndex = 2
-	ElseIf EndsWith(FileName, ".inc") Then
+	ElseIf EndsWith(LCase(FileName), ".inc") Then
 		pSaveD->FilterIndex = 3
-	ElseIf EndsWith(FileName, ".frm") Then
+	ElseIf EndsWith(LCase(FileName), ".frm") Then
 		pSaveD->FilterIndex = 4
-	ElseIf EndsWith(FileName, ".rc") Then
+	ElseIf EndsWith(LCase(FileName), ".rc") Then
 		pSaveD->FilterIndex = 5
 	Else
 		pSaveD->FileName = FileName
@@ -2310,7 +2310,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		End If
 	Next
 	Dim As Integer Fn = FreeFile_
-	If Not EndsWith(*ppe->FileName, ".vfp") Then
+	If Not EndsWith(LCase(*ppe->FileName), ".vfp") Then
 		Open *ppe->FileName & "/" & GetFileName(*ppe->FileName) & ".vfp" For Output Encoding "utf-8" As #Fn
 		For i As Integer = 0 To ppe->Files.Count - 1
 			Zv = IIf(ppe AndAlso (ppe->Files.Item(i) = *ppe->MainFileName OrElse ppe->Files.Item(i) = *ppe->ResourceFileName OrElse ppe->Files.Item(i) = *ppe->IconResourceFileName OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameWindows OrElse ppe->Files.Item(i) = *ppe->BatchCompilationFileNameLinux), "*", "")
@@ -7507,11 +7507,16 @@ Sub tvExplorer_NodeActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 					End If
 				Next
 			End If
-			If (EndsWith(*ee->FileName, ".exe") OrElse EndsWith(*ee->FileName, ".dll") OrElse EndsWith(*ee->FileName, ".dll.a") OrElse EndsWith(*ee->FileName, ".so") OrElse _
-				EndsWith(*ee->FileName, ".png") OrElse EndsWith(*ee->FileName, ".jpg") OrElse EndsWith(*ee->FileName, ".bmp") OrElse EndsWith(*ee->FileName, ".ico") OrElse EndsWith(*ee->FileName, ".cur") OrElse EndsWith(*ee->FileName, ".gif") OrElse EndsWith(*ee->FileName, ".avi") OrElse _
-				EndsWith(*ee->FileName, ".chm") OrElse EndsWith(*ee->FileName, ".zip") OrElse EndsWith(*ee->FileName, ".7z") OrElse EndsWith(*ee->FileName, ".rar")) Then
+			Dim As String extStr = LCase(Right(*ee->FileName, 4))
+			If CBool(extStr = ".exe" OrElse extStr = ".dll"  OrElse extStr = ".png" OrElse extStr = ".jpg" OrElse extStr = ".bmp" OrElse extStr = ".ico" OrElse extStr = ".cur" OrElse extStr = ".gif" OrElse extStr = ".avi" OrElse _
+				extStr = ".chm" OrElse extStr = ".zip" OrElse extStr = ".rar") OrElse EndsWith(LCase(*ee->FileName), ".dll.a") OrElse EndsWith(LCase(*ee->FileName), ".so") OrElse EndsWith(LCase(*ee->FileName), ".7z") Then
 				'Shell *ee->FileName
 				PipeCmd "", *ee->FileName
+				Exit Sub
+			ElseIf extStr = ".vfp" Then
+				AddProject *ee->FileName
+				WLet(RecentProject, *ee->FileName)
+				tpProject->SelectTab
 				Exit Sub
 			End If
 		End If
