@@ -892,12 +892,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							ShowMessages(Buff, False)
 								ThreadsLeave()
 							bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
+							If iLine > 0 Then
 							If bFlagErr = 2 Then
 								NumberErr += 1
 							ElseIf bFlagErr = 1 Then
 								NumberWarning += 1
 							Else
 								NumberInfo += 1
+								End If
 							End If
 							If 	bFlagErr >= 0 Then
 								ThreadsEnter()
@@ -989,12 +991,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
 								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
+								If iLine > 0 Then
 								If bFlagErr = 2 Then
 									NumberErr += 1
 								ElseIf bFlagErr = 1 Then
 									NumberWarning += 1
 								Else
 									NumberInfo += 1
+								End If
 								End If
 								If 	bFlagErr >= 0 Then
 									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
