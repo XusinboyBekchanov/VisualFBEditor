@@ -4610,10 +4610,10 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Parameter = te->Parameters
 						iPos = InStr(LCase(Parameter), LCase(sWord))
 						FuncName = Mid(Parameter, iPos, Len(sWord))
-						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+						Link1 = te->FileName & "~" & WStr(te->StartLine) & "~" & FuncName & "~" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & te->Comment
+						If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
 					End If
 				Next
 			End If
@@ -4628,7 +4628,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & te->Comment
+						If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
 					End If
 				End If
 			Next
@@ -4643,7 +4643,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & te->Comment
+						If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
 					End If
 				End If
 			Next
@@ -4718,7 +4718,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & te->Comment
+									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
 								End If
 							Next
 						End If
@@ -4734,7 +4734,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & te->Comment
+									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
 								End If
 							End If
 						Next
@@ -4749,7 +4749,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & te->Comment
+									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
 								End If
 							End If
 						Next
@@ -4761,23 +4761,25 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			If Not ShowKeywordsToolTip Then
 				If te->ElementType = E_Keyword Then Return ""
 			End If
-			Dim As UString res(Any)
+			Dim As WString Ptr res(Any)
 			Split te->Parameters, !"\r", res()
 			For n As Integer = 0 To UBound(res)
-				Parameter = res(n) 'te->Parameters
+				Parameter = *res(n) 'te->Parameters
 				Parameters &= IIf(Parameters = "", "", !"\r")
 				iPos = InStr(LCase(Parameter), LCase(sWord))
 				'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
 				If iPos > 0 Then
 					FuncName = Mid(Parameter, iPos, Len(sWord))
-					Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
+					Link1 = te->FileName & "~" & WStr(te->StartLine) & "~" & FuncName & "~" & FuncName
 					Parameters &= ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 				Else
 					Parameters &= Parameter
 				End If
+				Deallocate res(n)
 			Next n
+			Erase res
 			ParametersList.Add te->Parameters
-			If te->Comment <> "" Then Comments &= "" & te->Comment
+			If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
 		End If
 		If (FECLine > 0) AndAlso FECLine->InAsm Then
 			Index = GlobalAsmFunctionsHelp.IndexOf(sWord)
@@ -4816,7 +4818,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 							Link1 = te->FileName & "~" & Str(te->StartLine) & "~" & FuncName & "~" & FuncName
 							Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							ParametersList.Add te->Parameters
-							If te->Comment <> "" Then Comments &= "" & te->Comment
+							If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
 						End If
 					Else
 						Exit For
@@ -4829,10 +4831,10 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 					te = pGlobalFunctions->Object(i)
 					If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
 						If CInt(Not ParametersList.Contains(te->Parameters)) Then
-							Dim As UString res(Any)
+							Dim As WString Ptr res(Any)
 							Split te->Parameters, !"\r", res()
 							For n As Integer = 0 To UBound(res)
-								Parameter = res(n) 'te->Parameters
+								Parameter = *res(n) 'te->Parameters
 								Parameters &= IIf(Parameters = "", "", !"\r")
 								iPos = InStr(LCase(Parameter), LCase(sWord))
 								'If StartsWith(Trim(LCase(Parameter)), LCase(sWord)) Then
@@ -4843,7 +4845,9 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 								Else
 									Parameters &= Parameter
 								End If
+								Deallocate res(n)
 							Next n
+							Erase res
 							ParametersList.Add te->Parameters
 							If te->Comment <> "" Then Comments &= "" & te->Comment
 							Index = GlobalFunctionsHelp.IndexOf(sWord)
@@ -4866,7 +4870,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 										End If
 									Next n
 									ParametersList.Add te->Parameters
-									If te->Comment <> "" Then Comments &= "" & te->Comment
+									If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
 								End If
 							End If
 						End If
