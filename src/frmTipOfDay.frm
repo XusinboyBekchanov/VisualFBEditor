@@ -195,6 +195,7 @@ Private Sub frmTipOfDayType.Form_Create(ByRef Sender As Control)
 	Dim As Integer Fn = FreeFile_, Result = -1, i = 0
 	Dim Buff As WString * 1024
 	Dim As WString * MAX_PATH FileName = ExePath & "/Help/Tip of the Day/" & App.CurLanguage & ".tip"
+	If Not FileExists(FileName) Then FileName = ExePath & "/Help/Tip of the Day/english.tip"
 	Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
