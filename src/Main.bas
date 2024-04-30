@@ -9,6 +9,7 @@
 #include once "Main.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/Form.bi"
+#include once "mff/SearchBar.bi"
 #include once "mff/TextBox.bi"
 #include once "mff/RichTextBox.bi"
 #include once "mff/TabControl.bi"
@@ -55,7 +56,7 @@ pApp->DoEvents
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration
 Dim Shared As IniFile iniSettings, iniTheme
-Dim Shared As TextBox txtExplorer, txtForm, txtProperties, txtEvents
+Dim Shared As SearchBar txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
@@ -7770,10 +7771,9 @@ pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
 
 tbLeft.ImagesList = @imgList
-tbLeft.Buttons.Add tbsAutosize, "FindSymbol", , @mClick, "FindItemInProject", "", ML("Find"), , tstEnabled
 tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
 tbLeft.Flat = True
-tbLeft.Width = 46
+tbLeft.Width = 23
 tbLeft.Parent = @pnlLeftPin
 
 tpProject = tabLeft.AddTab(ML("Project"))
@@ -7915,7 +7915,6 @@ tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
-tbProperties.Buttons.Add tbsAutosize, "FindSymbol", , @tbProperties_ButtonClick, "FindItemInProperties", "", ML("Find"), , tstEnabled
 tbProperties.Flat = True
 
 hbxProperties.Align = DockStyle.alTop
@@ -7929,7 +7928,6 @@ tbEvents.List = True
 tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
-tbEvents.Buttons.Add tbsAutosize, "FindSymbol", , @tbProperties_ButtonClick, "FindItemInEvents", "", ML("Find"), , tstEnabled
 tbEvents.Flat = True
 
 hbxEvents.Align = DockStyle.alTop
