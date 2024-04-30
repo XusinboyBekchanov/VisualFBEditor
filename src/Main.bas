@@ -7282,6 +7282,7 @@ Var tbFolder = tbExplorer.Buttons.Add(tbsWholeDropdown, "Folder", , @mClick, "Fo
 miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "ShowWithFolders", @mClick, , , True)
 miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
 miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
+tbExplorer.Buttons.Add tbsSeparator
 
 Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
@@ -7307,6 +7308,7 @@ tbForm.Flat = True
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
 tbForm.Buttons.Add , "Component", , @tbFormClick, "Components", "", ML("Add Components")
+tbForm.Buttons.Add tbsSeparator
 
 tabLeftWidth = 150
 tabRightWidth = 150
@@ -7915,6 +7917,7 @@ tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
+tbProperties.Buttons.Add tbsSeparator
 tbProperties.Flat = True
 
 hbxProperties.Align = DockStyle.alTop
@@ -7928,6 +7931,7 @@ tbEvents.List = True
 tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
+tbEvents.Buttons.Add tbsSeparator
 tbEvents.Flat = True
 
 hbxEvents.Align = DockStyle.alTop
