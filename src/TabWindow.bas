@@ -1759,13 +1759,15 @@ Sub TabWindow.FillAllProperties()
 	If Des = 0 OrElse Des->SelectedControl = 0 Then Exit Sub
 	ptabRight->Tag = @This
 	ptabRight->UpdateLock
-	cboFunction.Items.Clear
-	If cboClass.ItemIndex = 0 Then
-		cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
-	Else
-		cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
+	If Not txtCode.Focused Then
+		cboFunction.Items.Clear
+		If cboClass.ItemIndex = 0 Then
+			cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
+		Else
+			cboFunction.Items.Add "(" & ML("Events") & ")", , "Event", "Event"
+		End If
+		cboFunction.ItemIndex = 0
 	End If
-	cboFunction.ItemIndex = 0
 	plvProperties->Nodes.Clear
 	plvEvents->Nodes.Clear
 	Dim SelCount As Integer = Des->SelectedControls.Count
@@ -1820,7 +1822,9 @@ Sub TabWindow.FillAllProperties()
 				End If
 				lvItem->Text(1) = ItemText 'ReadObjProperty(Des->SelectedControl, FPropertyItems.Item(lvPropertyCount))
 			ElseIf .ElementType = E_Event Then
-				cboFunction.Items.Add .Name, , "Event", "Event"
+				If Not txtCode.Focused Then
+					cboFunction.Items.Add .Name, , "Event", "Event"
+				End If
 				lvItem = plvEvents->Nodes.Add(.Name, 3)
 				lvItem->Text(1) = ReadObjProperty(Des->SelectedControl, .Name)
 				'If *Ctrl Is Control Then
