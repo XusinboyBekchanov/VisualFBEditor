@@ -2407,11 +2407,11 @@ Namespace My.Sys.Forms
 		End If
 		If OldLine <> FSelEndLine Then
 			If ToolTipShowed Then CloseToolTip()
+			If DropDownToolTipShowed Then CloseDropDownToolTip
 			If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			If Not bOldCommented Then Changing "Matn kiritildi"
 			If This.OnLineChange Then This.OnLineChange(*Designer, This, FSelEndLine, OldLine)
 		End If
-		
 		If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < Content.Lines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, Content.Lines.Items[FSelStartLine])->Visible) Then
 			ShowLine FSelStartLine
 		End If
@@ -5833,6 +5833,7 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEWHEEL
 			#endif
 			If ToolTipShowed Then CloseToolTip
+			If DropDownToolTipShowed AndAlso GetFocus = FHandle Then CloseDropDownToolTip
 			If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			If DropDownShowed Then
 				#ifdef __USE_WINAPI__
@@ -6124,6 +6125,7 @@ Namespace My.Sys.Forms
 					End If
 				Else
 					If ToolTipShowed Then CloseToolTip()
+					If DropDownToolTipShowed Then CloseDropDownToolTip
 					If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 					scrStyle = SB_VERT
 					If bDividedY OrElse bDividedX Then
