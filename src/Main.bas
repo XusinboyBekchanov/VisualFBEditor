@@ -4184,6 +4184,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Dim As UString b2 = bTrim
 						Dim As UString CurType, ElementValue, TypeComment
 						Dim As UString res1(Any)
+						Dim As Integer uu, ct
 						Dim As Boolean bOldAs
 						If b2.ToLower.StartsWith("dim ") Then
 							b2 = Trim(Mid(b2, 4))
@@ -4236,34 +4237,55 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 								Pos1 = InStr(res1(n), "=")
 								If Pos1 > 0 Then
 									ElementValue = Trim(Mid(res1(n), Pos1 + 1))
+									If CBool(n = 0) AndAlso bOldAs Then
+										CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) + Pos1 - 2))
+										CurType = Replace(CurType, "`", "=")
+									End If
 								End If
 								If Pos1 > 0 Then res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							Pos1 = InStr(LCase(res1(n)), " as ")
-							If Pos1 > 0 Then
-								CurType = Trim(Mid(res1(n), Pos1 + 4))
-'								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
-'								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
-								res1(n) = Trim(Left(res1(n), Pos1 - 1))
-							End If
-							If CBool(n = 0) AndAlso bOldAs Then
-								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+							If Pos1 > 0 AndAlso Not bOldAs Then
+								CurType = Trim(Mid(res1(n), Pos1 + Len("As") + 2))
 								CurType = Replace(CurType, "`", "=")
+								res1(n) = Trim(..Left(res1(n), Pos1 - 1))
 							End If
+							'If Pos1 > 0 Then
+							'	CurType = Trim(Mid(res1(n), Pos1 + 4))
+''								Pos2 = InStr(CurType, "*") 'David Change. Like Wstring * 200
+''								If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(res1(n), Pos1 + 4))
+							'	res1(n) = Trim(Left(res1(n), Pos1 - 1))
+							'End If
+							'If CBool(n = 0) AndAlso bOldAs Then
+							'	CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n))))
+							'	CurType = Replace(CurType, "`", "=")
+							'End If
 							Pos1 = InStr(res1(n), ":")
 							If Pos1 > 0 Then
+								ct += Len(res1(n)) - Pos1 + 1
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
 							If res1(n).ToLower.StartsWith("byref") OrElse res1(n).ToLower.StartsWith("byval") Then
+								ct += Len(res1(n)) - Len(Trim(Mid(res1(n), 6)))
 								res1(n) = Trim(Mid(res1(n), 6))
 							End If
 							Pos1 = InStr(res1(n), "(")
 							If Pos1 > 0 Then
+								ct += Len(res1(n)) - Pos1 + 1
 								res1(n) = Trim(Left(res1(n), Pos1 - 1))
 							End If
+							Pos1 = InStr(LCase(res1(n)), " alias ")
+							If Pos1 > 0 Then
+								ct += Len(res1(n)) - Pos1 + 1
+								res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+							End If
+							ct += Len(res1(n)) - Len(res1(n).TrimAll)
 							res1(n) = res1(n).TrimAll
 							Pos1 = InStrRev(res1(n), " ")
 							If Pos1 > 0 Then res1(n) = Trim(Mid(res1(n), Pos1 + 1))
+							If CBool(n = 0) AndAlso bOldAs Then
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(res1(n)) - ct))
+							End If
 							If Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function")) Then
 								Pos1 = InStrRev(CurType, ".")
 								If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
