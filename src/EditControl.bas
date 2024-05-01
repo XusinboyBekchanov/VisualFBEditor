@@ -6206,9 +6206,11 @@ Namespace My.Sys.Forms
 			Case WM_KILLFOCUS
 				HideCaret(FHandle)
 				DestroyCaret()
-				If ToolTipShowed Then CloseToolTip
-				If DropDownToolTipShowed Then CloseDropDownToolTip
-				If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
+				If LCase(GetClassNameOf(Cast(HWND, msg.wParam))) <> "tooltips" Then
+					If ToolTipShowed Then CloseToolTip
+					If DropDownToolTipShowed Then CloseDropDownToolTip
+					If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
+				End If
 			Case WM_UNDO
 				Undo
 				'Case WM_REDO
