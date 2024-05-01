@@ -3477,7 +3477,7 @@ Function GetTypeControl(ControlType As String) As Integer
 		Select Case LCase(tbi->TypeName)
 		Case "control": Return 1
 		Case "containercontrol": Return 2
-		Case "component": Return 3
+		Case "component", "my.sys.componentmodel.component": Return 3
 		Case "dialog": Return 4
 		Case "": Return 0
 		Case Else
