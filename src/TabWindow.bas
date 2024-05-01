@@ -10151,7 +10151,15 @@ Sub cboIntellisense_CloseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Com
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
 	tb->txtCode.DropDownShowed = False
-	tb->txtCode.CloseDropDownToolTip
+	#ifdef __USE_WINAPI__
+		Dim pt As ..Point
+		GetCursorPos(@pt)
+		If LCase(GetClassNameOf(WindowFromPoint(pt))) <> "tooltips" Then
+			tb->txtCode.CloseDropDownToolTip
+		End If
+	#else
+		tb->txtCode.CloseDropDownToolTip
+	#endif
 	'CurrentTimerCloseUp = SetTimer(0, 0, 1000, @TimerProcCloseUp)
 End Sub
 
