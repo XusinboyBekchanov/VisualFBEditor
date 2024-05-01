@@ -251,15 +251,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
 			*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
 			LoadTheme
-			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-			If tb <> 0 Then
-				#ifdef __USE_GTK__
-					tb->txtCode.Update
-				#else
-					tb->txtCode.PaintControl True
-					'RedrawWindow tb->txtCode.Handle, NULL, NULL, RDW_INVALIDATE
-				#endif
-			End If
+			UpdateAllTabWindows
 		End If
 		#ifdef __USE_WINAPI__
 			If DarkMode Then

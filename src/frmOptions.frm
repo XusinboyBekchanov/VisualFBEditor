@@ -4461,15 +4461,7 @@ Private Sub frmOptions.cboTheme_Change(ByRef Designer As My.Sys.Object, ByRef Se
 		.Colors(36 + k, 6) = piniTheme->ReadInteger("FontStyles", "StringsUnderline", 0)
 		.lstColorKeys_Change(*.lstColorKeys.Designer, .lstColorKeys)
 		SetColors
-		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-		If tb <> 0 Then
-			#ifdef __USE_GTK__
-				tb->txtCode.Update
-			#else
-				tb->txtCode.PaintControl True
-				'RedrawWindow tb->txtCode.Handle, NULL, NULL, RDW_INVALIDATE
-			#endif
-		End If
+		UpdateAllTabWindows
 	End With
 End Sub
 

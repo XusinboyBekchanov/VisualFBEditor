@@ -330,6 +330,7 @@ Declare Sub LoadOnlyIncludeFiles(Param As Any Ptr)
 Declare Sub LoadFromTabWindow(Param As Any Ptr)
 Declare Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 Declare Sub CloseAllTabs(WithoutCurrent As Boolean = False)
+Declare Sub UpdateAllTabWindows
 Declare Sub RunHelp(Param As Any Ptr)
 
 Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight

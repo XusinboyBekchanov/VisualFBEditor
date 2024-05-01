@@ -6168,6 +6168,22 @@ Sub LoadTheme
 	SetAutoColors
 End Sub
 
+Sub UpdateAllTabWindows
+	Dim As TabWindow Ptr tb
+	#ifdef __USE_GTK__
+		tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb <> 0 Then tb->txtCode.Update
+	#else
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				If tb <> 0 Then tb->txtCode.PaintControl True
+			Next
+		Next
+	#endif
+End Sub
+
 Sub LoadSettings
 	Dim As UString Temp
 	Dim As ToolType Ptr Tool
