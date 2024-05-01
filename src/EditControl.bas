@@ -5833,7 +5833,11 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEWHEEL
 			#endif
 			If ToolTipShowed Then CloseToolTip
-			If DropDownToolTipShowed AndAlso GetFocus = FHandle Then CloseDropDownToolTip
+			#ifdef __USE_WINAPI__
+				If DropDownToolTipShowed AndAlso GetFocus = FHandle Then CloseDropDownToolTip
+			#else
+				If DropDownToolTipShowed Then CloseDropDownToolTip
+			#endif
 			If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
 			If DropDownShowed Then
 				#ifdef __USE_WINAPI__
