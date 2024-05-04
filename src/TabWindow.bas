@@ -3434,7 +3434,8 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	frmMain.UpdateLock
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
-	Select Case QWString(st->ReadPropertyFunc(Ctrl, "ClassName"))
+	Dim As WString * 255 tClassName = QWString(st->ReadPropertyFunc(Ctrl, "ClassName"))
+	Select Case tClassName
 	Case "MainMenu", "PopupMenu"
 		pfMenuEditor->UpdateLock
 		pfMenuEditor->ActiveCtrl = 0
@@ -3488,11 +3489,16 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
-			If QWString(st->ReadPropertyFunc(Ctrl, "ClassName")) = "TimerComponent" Then
+			Select Case tClassName
+			Case "TimerComponent"
 				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnTimer"
-			Else
+			Case "HTTPServer", "HTTPConnection"
+				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnReceive"
+			Case "PrintDocument"
+				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnPrintPage"
+			Case Else
 				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
-			End If
+			End Select
 			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
 				tb->tbrTop.Buttons.Item("Code")->Checked = True
 				tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
