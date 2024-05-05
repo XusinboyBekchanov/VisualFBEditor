@@ -6207,7 +6207,7 @@ Namespace My.Sys.Forms
 			#else
 			Case WM_SETFOCUS
 				CreateCaret(FHandle, 0, 0, ScaleY(dwCharY))
-				ScrollToCaret
+				'ScrollToCaret
 				ShowCaret(FHandle)
 			Case WM_KILLFOCUS
 				HideCaret(FHandle)
