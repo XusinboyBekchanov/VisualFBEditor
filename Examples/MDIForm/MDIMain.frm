@@ -64,6 +64,12 @@
 	End Type
 	
 	Constructor MDIMainType
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' MDIMain
 		With This
 			.Name = "MDIMain"
@@ -114,14 +120,14 @@
 		With mnuFile
 			.Name = "mnuFile"
 			.Designer = @This
-			.Caption = "&File"
+			.Caption = ML("&File")
 			.Parent = @MainMenu1
 		End With
 		' mnuFileNew
 		With mnuFileNew
 			.Name = "mnuFileNew"
 			.Designer = @This
-			.Caption = !"&New\tCtrl+N"
+			.Caption = ML("&New") & !"\tCtrl+N"
 			.ImageKey = "New"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -130,7 +136,7 @@
 		With mnuFileOpen
 			.Name = "mnuFileOpen"
 			.Designer = @This
-			.Caption = !"&Open\tCtrl+O"
+			.Caption = ML("&Open") & !"\tCtrl+O"
 			.ImageKey = "Open"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -146,7 +152,7 @@
 		With mnuFileSave
 			.Name = "mnuFileSave"
 			.Designer = @This
-			.Caption = !"Save\tCtrl+S"
+			.Caption = ML("Save") & !"\tCtrl+S"
 			.ImageKey = "Save"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -155,7 +161,7 @@
 		With mnuFileSaveAs
 			.Name = "mnuFileSaveAs"
 			.Designer = @This
-			.Caption = "Save &As..."
+			.Caption = ML("Save &As...")
 			.ImageKey = "SaveAs"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -164,7 +170,7 @@
 		With mnuFileSaveAll
 			.Name = "mnuFileSaveAll"
 			.Designer = @This
-			.Caption = "Save A&ll"
+			.Caption = ML("Save A&ll")
 			.ImageKey = "SaveAll"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -180,7 +186,7 @@
 		With mnuFileProperties
 			.Name = "mnuFileProperties"
 			.Designer = @This
-			.Caption = "Propert&ies"
+			.Caption = ML("Propert&ies")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
@@ -195,7 +201,7 @@
 		With mnuFilePrintSetup
 			.Name = "mnuFilePrintSetup"
 			.Designer = @This
-			.Caption = "Print Set&up..."
+			.Caption = ML("Print Set&up...")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
@@ -203,7 +209,7 @@
 		With mnuFilePrintPreview
 			.Name = "mnuFilePrintPreview"
 			.Designer = @This
-			.Caption = "Print Pre&view"
+			.Caption = ML("Print Pre&view")
 			.MenuIndex = 11
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -212,7 +218,7 @@
 		With mnuFilePrint
 			.Name = "mnuFilePrint"
 			.Designer = @This
-			.Caption = !"&Print...\tCtrl+P"
+			.Caption = ML("&Print...") & !"\tCtrl+P"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
 		End With
@@ -227,7 +233,7 @@
 		With mnuFileExit
 			.Name = "mnuFileExit"
 			.Designer = @This
-			.Caption = "E&xit"
+			.Caption = ML("E&xit")
 			.ImageKey = "Exit"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
 			.Parent = @mnuFile
@@ -236,14 +242,14 @@
 		With mnuEdit
 			.Name = "mnuEdit"
 			.Designer = @This
-			.Caption = "&Edit"
+			.Caption = ML("&Edit")
 			.Parent = @MainMenu1
 		End With
 		' mnuRedo
 		With mnuRedo
 			.Name = "mnuRedo"
 			.Designer = @This
-			.Caption = "&Redo"
+			.Caption = ML("&Redo")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
@@ -251,7 +257,7 @@
 		With mnuEditUndo
 			.Name = "mnuEditUndo"
 			.Designer = @This
-			.Caption = !"&Undo\tCtrl+Z"
+			.Caption = ML("&Undo") & !"\tCtrl+Z"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
@@ -265,7 +271,7 @@
 		With mnuEditCut
 			.Name = "mnuEditCut"
 			.Designer = @This
-			.Caption = !"Cu&t\tCtrl+X"
+			.Caption = ML("Cu&t") & !"\tCtrl+X"
 			.ImageKey = "Cut"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent =  @mnuEdit
@@ -274,7 +280,7 @@
 		With mnuEditCopy
 			.Name = "mnuEditCopy"
 			.Designer = @This
-			.Caption = !"&Copy\tCtrl+C"
+			.Caption = ML("&Copy") & !"\tCtrl+C"
 			.ImageKey = "Copy"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
@@ -283,7 +289,7 @@
 		With mnuEditPaste
 			.Name = "mnuEditPaste"
 			.Designer = @This
-			.Caption = !"&Paste\tCtrl+V"
+			.Caption = ML("&Paste") & !"\tCtrl+V"
 			.ImageKey = "Paste"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
@@ -292,7 +298,7 @@
 		With mnuEditDelete
 			.Name = "mnuEditDelete"
 			.Designer = @This
-			.Caption = !"Delete\tDel"
+			.Caption = ML("Delete") & !"\tDel"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
@@ -307,7 +313,7 @@
 		With mnuEditSelectAll
 			.Name = "mnuEditSelectAll"
 			.Designer = @This
-			.Caption = "Select &All"
+			.Caption = ML("Select &All")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuEdit_Click)
 			.Parent = @mnuEdit
 		End With
@@ -315,7 +321,7 @@
 		With mnuView
 			.Name = "mnuView"
 			.Designer = @This
-			.Caption = "&View"
+			.Caption = ML("&View")
 			.Parent = @MainMenu1
 		End With
 		With mnuViewToolbar
@@ -328,7 +334,7 @@
 		End With
 		With mnuViewStatusBar
 			.Name = "mnuViewStatusBar"
-			.Caption = "Status &Bar"
+			.Caption = ML("Status &Bar")
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Checked = True
@@ -344,7 +350,7 @@
 		With mnuViewDarkMode
 			.Name = "mnuViewDarkMode"
 			.Designer = @This
-			.Caption = "Dark Mode"
+			.Caption = ML("Dark Mode")
 			.Checked = True
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Parent = @mnuView
@@ -352,35 +358,35 @@
 		
 		With mnuWindow
 			.Name = "mnuWindow"
-			.Caption = "&Window"
+			.Caption = ML("&Window")
 			.Designer = @This
 			.Enabled = False
 			.Parent = @MainMenu1
 		End With
 		With mnuWindowTileHorizontal
 			.Name = "mnuWindowTileHorizontal"
-			.Caption = "Tile &Horizontal"
+			.Caption = ML("Tile &Horizontal")
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowTileVertical
 			.Name = "mnuWindowTileVertical"
-			.Caption = "Tile &Vertical"
+			.Caption = ML("Tile &Vertical")
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowCascade
 			.Name = "mnuWindowCascade"
-			.Caption = "&Cascade"
+			.Caption = ML("&Cascade")
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
 		With mnuWindowArrangeIcons
 			.Name= "mnuWindowArrangeIcons"
-			.Caption = "&Arrange Icons"
+			.Caption = ML("&Arrange Icons")
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
@@ -396,7 +402,7 @@
 		With mnuWindowClose
 			.Name = "mnuWindowClose"
 			.Designer = @This
-			.Caption = "Close"
+			.Caption = ML("Close")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
@@ -404,7 +410,7 @@
 		With mnuWindowCloseAll
 			.Name = "mnuWindowCloseAll"
 			.Designer = @This
-			.Caption = "Close All"
+			.Caption = ML("Close All")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
@@ -412,14 +418,14 @@
 		With mnuHelp
 			.Name = "mnuHelp"
 			.Designer = @This
-			.Caption = "&Help"
+			.Caption = ML("&Help")
 			.Parent = @MainMenu1
 		End With
 		' mnuHelpAbout
 		With mnuHelpAbout
 			.Name = "mnuHelpAbout"
 			.Designer = @This
-			.Caption = "About"
+			.Caption = ML("About")
 			.ImageKey = "About"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuHelp_Click)
 			.Parent = @mnuHelp
@@ -442,7 +448,7 @@
 			.Name = "tbFileNew"
 			.Designer = @This
 			.ImageKey = "New"
-			.Hint = "New"
+			.Hint = ML("New")
 			.Parent = @ToolBar1
 		End With
 		' tbFileOpen
@@ -450,7 +456,7 @@
 			.Name = "tbFileOpen"
 			.Designer = @This
 			.ImageKey = "Open"
-			.Hint = "Open"
+			.Hint = ML("Open")
 			.Parent = @ToolBar1
 		End With
 		' tbFileSave
@@ -458,7 +464,7 @@
 			.Name = "tbFileSave"
 			.Designer = @This
 			.ImageKey = "Save"
-			.Hint = "Save"
+			.Hint = ML("Save")
 			.Parent = @ToolBar1
 		End With
 		' tbFileSaveAll
@@ -466,7 +472,7 @@
 			.Name = "tbFileSaveAll"
 			.Designer = @This
 			.ImageKey = "SaveAll"
-			.Hint = "Save all"
+			.Hint = ML("Save all")
 			.Parent = @ToolBar1
 		End With
 		' StatusBar1
@@ -487,7 +493,7 @@
 		' OpenFileDialog1
 		With OpenFileDialog1
 			.Name = "OpenFileDialog1"
-			.Filter = "All files(*.*)|*.*"
+			.Filter = ML("All files") & "(*.*)|*.*"
 			.MultiSelect = True
 			.SetBounds 50, 30, 16, 16
 			.Designer = @This
@@ -539,7 +545,7 @@ Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 		ModalResult = ModalResults.OK
 		CloseForm
 	Case Else
-		MsgBox Sender.Name & !"\r\nThis function is under construction", "File"
+		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), " FILE "
 	End Select
 End Sub
 
@@ -557,7 +563,7 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 	Case "mnuEditDelete"
 		SendMessage(a->TextBox1.Handle, WM_CLEAR, EM_UNDO, 0)
 	Case Else
-		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
+		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), " Edit "
 	End Select
 End Sub
 
@@ -586,7 +592,7 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 		App.DarkMode = Sender.Checked
 		SetDarkMode(Sender.Checked, Sender.Checked)
 	Case Else
-		MsgBox Sender.Name & !"\r\nThis function is under construction", "View"
+		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), "View"
 	End Select
 	RequestAlign
 	InvalidateRect(Handle, NULL, False)
@@ -626,7 +632,7 @@ Private Sub MDIMainType.mnuHelp_Click(ByRef Sender As MenuItem)
 	Case "mnuHelpAbout"
 		MsgBox(!"Visual FB Editor MDI Form Demo\r\nBy Cm Wang", "MDI Form Demo")
 	Case Else
-		MsgBox Sender.Name & !"\r\nThis function is under construction", "Edit"
+		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), "Edit"
 	End Select
 End Sub
 
@@ -731,7 +737,7 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 		mnuWindows(i)->Designer = @This
 		mnuWindows(i)->Parent = @mnuWindow
 		mnuWindows(i)->Name = "mnuWindowMore"
-		mnuWindows(i)->Caption = "More Windows..."
+		mnuWindows(i)->Caption = ML("More Windows...")
 		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 		mnuWindow.Add mnuWindows(i)
 	End If
@@ -747,7 +753,7 @@ Private Sub MDIMainType.MDIChildNew(FileName As WString)
 	MDIChild->Show(MDIMain)
 	
 	If FileName= "" Then
-		MDIChild->Text = "Untitled - " & ChildIdx
+		MDIChild->Text = ML("Untitled") & " - " & ChildIdx
 	Else
 		MDIChild->Text = FileName
 	End If
