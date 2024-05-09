@@ -806,10 +806,10 @@ Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	
 	For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
 		If Cast(MDIChildType Ptr, lstMdiChild.Item(i))->Destroied Then
-			'Remove the MDIChild ptr from list
-			lstMdiChild.Remove(i)
 			'Delete the MDIChild ptr
 			Delete Cast(MDIChildType Ptr, lstMdiChild.Item(i))
+			'Remove the MDIChild ptr from list
+			lstMdiChild.Remove(i)
 			b = True
 		End If
 	Next
