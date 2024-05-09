@@ -78,7 +78,6 @@ End Sub
 
 Private Sub MDIListType.ListControl1_DblClick(ByRef Sender As Control)
 	If ListControl1.ItemIndex < 0 Then Exit Sub
-	ModalResult = ModalResults.OK
 	Tag = MDIMain.lstMdiChild.Item(ListControl1.ItemIndex)
 	CloseForm
 End Sub
