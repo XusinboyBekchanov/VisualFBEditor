@@ -553,15 +553,15 @@ Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 	Dim a As MDIChildType Ptr = actMdiChild
 	Select Case Sender.Name
 	Case "mnuEditUndo"
-		SendMessage(a->TextBox1.Handle, EM_UNDO, 0, 0)
+		a->TextBox1.Undo
 	Case "mnuEditCut"
-		SendMessage(a->TextBox1.Handle, WM_CUT, EM_UNDO, 0)
+		a->TextBox1.CutToClipboard
 	Case "mnuEditCopy"
-		SendMessage(a->TextBox1.Handle, WM_COPY, 0, 0)
+		a->TextBox1.CopyToClipboard
 	Case "mnuEditPaste"
-		SendMessage(a->TextBox1.Handle, WM_PASTE, EM_UNDO, 0)
+		a->TextBox1.PasteFromClipboard
 	Case "mnuEditDelete"
-		SendMessage(a->TextBox1.Handle, WM_CLEAR, EM_UNDO, 0)
+		a->TextBox1.ClearUndo
 	Case Else
 		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), " Edit "
 	End Select
@@ -609,13 +609,21 @@ Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 			App.DoEvents()
 		Loop
 	Case "mnuWindowCascade"
-		SendMessage FClient, WM_MDICASCADE, 0, 0
+		#ifdef __USE_WINAPI__
+			SendMessage FClient, WM_MDICASCADE, 0, 0
+		#endif
 	Case "mnuWindowArrangeIcons"
-		SendMessage FClient, WM_MDIICONARRANGE, 0, 0
+		#ifdef __USE_WINAPI__
+			SendMessage FClient, WM_MDIICONARRANGE, 0, 0
+		#endif
 	Case "mnuWindowTileHorizontal"
-		SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
+		#ifdef __USE_WINAPI__
+			SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
+		#endif
 	Case "mnuWindowTileVertical"
-		SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
+		#ifdef __USE_WINAPI__
+			SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
+		#endif
 	Case "mnuWindowMore"
 		Dim MdiList As MDIListType Ptr = New MDIListType
 		MdiList->ShowModal(MDIMain)
