@@ -3001,7 +3001,7 @@ Sub frmOptions.LoadSettings()
 		.cboTheme.Clear
 		f = Dir(ExePath & "/Settings/Themes/*.ini")
 		While f <> ""
-			.cboTheme.AddItem ..Left(f, Len(f) - 4)
+			If ..Left(f, Len(f) - 4) <> "" Then .cboTheme.AddItem ..Left(f, Len(f) - 4)
 			f = Dir()
 		Wend
 		.cboTheme.ItemIndex = .cboTheme.IndexOf(*CurrentTheme)
