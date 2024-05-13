@@ -27,10 +27,8 @@
 	Dim Shared  As Integer SudoCellChildFontSize = 10, SudoCellChildSize = 20, SudoCellChildTop = 2, SudoCellChildLeft = 2
 	Dim Shared  As Integer SudoCellChildColorBK, SudoCellChildColorFore, SudoCellChildColorHover
 	Dim Shared  As Integer SudoCellCurr, SudoCellChildCurr, SudoCellLast, SudoCellChildLast, mTabIndex = 81
-	'Dim Shared As String SudoString
 	Dim Shared As Point MsCell, MsCellChild                  ' 记录鼠标按下时的坐标
-	'Input "", SudoString
-	Dim Shared  As Boolean GameOver
+	Dim Shared  As Boolean GameOver, SudoShowChange
 	Dim Shared  As Integer SudoKu(0 To 9, 0 To 8, 0 To 8), SudoAns(0 To 9, 0 To 8, 0 To 8), SudoIn(0 To 8, 0 To 8)
 	
 	Type Form1Type Extends Form
@@ -47,10 +45,13 @@
 		Declare Sub lblSudoCellChild_MouseHover(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub lblSudoCellChild_MouseDown(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Sub lblSudoCellChild_KeyPress(ByRef Sender As Control, Key As Integer)
-
+		
 		Declare Sub Panel1_LostFocus(ByRef Sender As Control)
 		Declare Sub cmdSolveSudo_Click(ByRef Sender As Control)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		
 		Declare Constructor
+		Declare Sub UpdateShow()
 		
 		Dim As Panel pnlSudoCell(80), Panel1
 		' 9 * (i + j * 9) + 8
@@ -74,6 +75,7 @@
 			.Designer = @This
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.DoubleBuffered = True
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.SetBounds 0, -206, 740, 670
 		End With
 		' pnlSudoCell(0)
@@ -83,7 +85,6 @@
 			For i As Integer = 0 To 8
 				With pnlSudoCell(i + j * 9)
 					.Name = "pnlSudoCell(" & (i + j * 9) & ")"
-					.Current = Type<My.Sys.Drawing.Point>(SudoCellSize * 0.4, SudoCellSize * 0.2)
 					.BevelOuter = bvRaised
 					.BevelInner = bvLowered
 					.Canvas.Font.Size= SudoCellFontSize
@@ -134,7 +135,7 @@
 			.Text = "Panel1"
 			.TabIndex = 1
 			.BackColor = 12615935
-			.SetBounds 10, 10, 50, 30
+			.SetBounds 30, 10, 50, 30
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -143,12 +144,10 @@
 		With lblInfo
 			.Name = "lblInfo"
 			.Text = ML("Each Sudoku game consists of a 9x9 grid, divided into 9 3x3 subgrids, each containing 9 squares.") & !"\r" & _
-					ML("At the beginning of the SudoKu game, some squares are already filled with numbers, and the player must fill in the remaining empty squares based on the given numbers.") & !"\r" & _
-					ML("Each row, each column, and each subgrid must contain numbers from 1 to 9 without any repetition.") & !"\r" & _
-					ML("Right-click mouse to confirm the value of the selected subgrid") & !"\r\r" & _
-					"<a href=""https://github.com/XusinboyBekchanov/VisualFBEditor"">@VisualFBEditor</a>"
-	
-			'<a href=""mailto:cm.wang@126.com"">cm.wang@126.com</a>\r\r"
+			ML("At the beginning of the SudoKu game, some squares are already filled with numbers, and the player must fill in the remaining empty squares based on the given numbers.") & !"\r" & _
+			ML("Each row, each column, and each subgrid must contain numbers from 1 to 9 without any repetition.") & !"\r" & _
+			ML("Right-click mouse to confirm the value of the selected subgrid") & !"\r\r" & _
+			"<a href=""https://github.com/XusinboyBekchanov/VisualFBEditor"">@VisualFBEditor</a>"
 			.TabIndex = 2
 			.SetBounds 10, 50, 100, 340
 			.Designer = @This
@@ -208,9 +207,9 @@ Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	SudoCellChildColorHover = clGreenYellow
 	
 	SudoCellColorFore = clDarkOliveGreen
-	SudoCellColorBK = clDarkTurquoise 
+	SudoCellColorBK = clDarkTurquoise
 	SudoCellColorHover = SudoCellChildColorHover
-	SudoCellColorBKSelect = clYellowGreen 
+	SudoCellColorBKSelect = clYellowGreen
 	SudoCellColorForeSelect = SudoCellChildColorFore
 	SudoCellColorBKDefault = SudoCellChildColorBK
 	
@@ -230,7 +229,7 @@ Private Sub Form1Type.cmdSolveSudo_Click(ByRef Sender As Control)
 		SudoIn(i \ 9, i Mod 9) = SudoKu(0, i \ 9, i Mod 9) 'SudoString[i] - Asc("0")
 	Next i
 	SolveSudo(SudoAns(), SudoIn())
-	GameOver = True 
+	GameOver = True
 	'' 如果需要解对角线数独
 	'While (dialog_sudoku(sudoans[0])==0) {
 	'    solvesudo(sudoans, sudoin);
@@ -288,9 +287,11 @@ Private Sub Form1Type.cmdFromClipBoard_Click(ByRef Sender As Control)
 	'If i Mod 9 = 8 Then Print
 	'Next i
 	' pnlSudoCell(0)
+	UpdateShow
+End Sub
+
+Private Sub Form1Type.UpdateShow()
 	For j As Integer = 0 To 8
-		mTabIndex += 9
-		'Debug.Print ""
 		For i As Integer = 0 To 8
 			With pnlSudoCell(i + j * 9)
 				'.Font.Size = SudoCellFontSize
@@ -303,16 +304,17 @@ Private Sub Form1Type.cmdFromClipBoard_Click(ByRef Sender As Control)
 			
 			For k As Integer = 0 To 8
 				' lblSudoCellChild(0)
-				
 				With lblSudoCellChild(9 * (i + j * 9) + k)
 					'.Text = pnlSudoCell(i + j * 9).Text
 					.ForeColor = SudoCellChildColorFore
+					.BackColor = SudoCellChildColorBK
 					.Visible= IIf(SudoKu(0, i, j) > 0, False, IIf(SudoKu(k + 1, i, j) > 0, True, False))
 					'.Parent = @pnlSudoCell(i + j * 9)
 				End With
 			Next
 		Next
 	Next
+	SudoShowChange = False
 End Sub
 
 Private Sub Form1Type.pnlSudoCell_MouseLeave(ByRef Sender As Control)
@@ -333,11 +335,27 @@ Private Sub Form1Type.pnlSudoCell_MouseDown(ByRef Sender As Control, MouseButton
 	If GameOver Then Exit Sub
 	If MouseButton = 1 AndAlso Sender.BackColor = SudoCellColorBKSelect Then
 		Sender.BackColor = SudoCellColorBKDefault
+		Sender.Text = ""
+		Sender.ShowCaption = False
 		'Clear_Point(SudoKu(), tryNum, x, y)
 		For k As Integer = 0 To 8
 			With lblSudoCellChild(Index * 9 + k)
-				.Visible= IIf(SudoKu(k + 1, Index \ 9, Index Mod 9) = 1, True, False)
+				.Visible= IIf(SudoKu(k + 1, Index Mod 9, Index \ 9) = 1, True, False)
 			End With
+		Next
+	ElseIf MouseButton = 0 Then
+		If SudoShowChange Then UpdateShow
+		SudoShowChange = True
+		For i As Integer = 0 To 80
+			If pnlSudoCell(i).ShowCaption AndAlso pnlSudoCell(i).Text = Sender.Text Then
+				pnlSudoCell(i).BackColor = SudoCellColorHover
+			End If
+		Next
+		
+		For i As Integer = 0 To 728
+			If lblSudoCellChild(i).Visible AndAlso lblSudoCellChild(i).Text = Sender.Text Then
+				lblSudoCellChild(i).BackColor = SudoCellColorHover
+			End If
 		Next
 	End If
 End Sub
@@ -366,23 +384,56 @@ Private Sub Form1Type.lblSudoCellChild_MouseDown(ByRef Sender As Control, MouseB
 	If MouseButton = 1 Then
 		pnlSudoCell(IndexSudo).BackColor = SudoCellColorBKSelect
 		pnlSudoCell(IndexSudo).Text = Sender.Text
-		'Debug.Print Sender.Text, Str(IndexSudo \ 9), Str(IndexSudo Mod 9)
-		SudoKu(Val(Sender.Text), IndexSudo \ 9, IndexSudo Mod 9) = 1
 		pnlSudoCell(IndexSudo).ShowCaption = True
+		SudoKu(Val(Sender.Text), IndexSudo \ 9, IndexSudo Mod 9) = 1
 		For k As Integer = 0 To 8
 			With lblSudoCellChild(IndexSudo * 9 + k)
 				.Visible= False
 			End With
+		Next
+	ElseIf MouseButton = 0 Then
+		If SudoShowChange Then UpdateShow
+		SudoShowChange = True
+		For i As Integer = 0 To 80
+			If pnlSudoCell(i).ShowCaption AndAlso pnlSudoCell(i).Text = Sender.Text Then pnlSudoCell(i).BackColor = SudoCellColorHover
+		Next
+		
+		For i As Integer = 0 To 728
+			If lblSudoCellChild(i).Visible AndAlso lblSudoCellChild(i).Text = Sender.Text Then lblSudoCellChild(i).BackColor = SudoCellColorHover
 		Next
 	End If
 End Sub
 
 Private Sub Form1Type.lblSudoCellChild_GotFocus(ByRef Sender As Control)
 	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
-	'Dim As String ParentctrlName= Sender.Parent.Name
-	'Debug.Print Str(Sender.ID)
-	'pnlSudoCell(Sender.ID).BackColor = SudoCellColorBKDefault
-	'Sender.Parent.BackColor = SudoCellColorBKDefault
-	'Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
 	
+End Sub
+
+Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	If This.ClientWidth < 400 OrElse This.ClientHeight < 400 Then Exit Sub
+	Dim As Integer FormSize = Min(This.ClientWidth - (SudoCellLeft + 20) , This.ClientHeight - (cboFromClipBoard.Height + SudoCellTop + 20))
+	SudoCellSize = FormSize / 9 - 2
+	SudoCellChildSize= (SudoCellSize-3) / 3
+	Dim As Integer tFontSize= (SudoCellSize-6) * 72 / 96
+	pnlSudoCell(0).Font.Size= tFontSize
+	Dim As My.Sys.Drawing.Point  tCurrent = Type<My.Sys.Drawing.Point>((SudoCellSize - pnlSudoCell(0).Canvas.TextWidth("A")) / 2, (SudoCellSize - pnlSudoCell(0).Canvas.TextHeight("A")) / 2)
+	For j As Integer = 0 To 8
+		For i As Integer = 0 To 8
+			With pnlSudoCell(i + j * 9)
+				.Canvas.Font.Size= tFontSize
+				.Current = tCurrent
+				.SetBounds SudoCellLeft + SudoCellSize *i + i, SudoCellTop + SudoCellSize * j + j, SudoCellSize, SudoCellSize
+			End With
+			
+			For k As Integer = 0 To 8
+				With lblSudoCellChild(9 * (i + j * 9) + k)
+					.Font.Size= (SudoCellChildSize-6) * 72 / 96
+					.SetBounds SudoCellChildLeft + SudoCellChildSize * (k Mod 3) + (k Mod 3), SudoCellChildTop + SudoCellChildSize * (k \ 3) + (k \ 3), SudoCellChildSize, SudoCellChildSize
+				End With
+			Next
+		Next
+	Next
+	cboFromClipBoard.Top = pnlSudoCell(80).Top + SudoCellSize+ 5
+	cmdFromClipBoard.Top = cboFromClipBoard.Top
+	cmdSolveSudo.Top = cboFromClipBoard.Top - cmdSolveSudo.Height - 3
 End Sub
