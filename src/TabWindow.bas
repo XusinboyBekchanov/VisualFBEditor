@@ -69,9 +69,9 @@ Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 		#ifndef __USE_GTK__
 			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			bVisible = True
-			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ScaleX(18) + ScaleX(14) > ScaleX(ptabCode->UpDownControl.Left) Then bVisible = False
+			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ptabCode->ScaleX(18) + ptabCode->ScaleX(14) > ptabCode->ScaleX(ptabCode->UpDownControl.Left) Then bVisible = False
 			tb->btnClose.Visible = bVisible
-			MoveWindow tb->btnClose.Handle, RR.Right - ScaleX(18), ScaleY(4), ScaleX(14), ScaleY(14), True
+			MoveWindow tb->btnClose.Handle, RR.Right - ptabCode->ScaleX(14) - (RR.Bottom - ptabCode->ScaleY(14)) / 2, (RR.Bottom - ptabCode->ScaleY(14)) / 2, ptabCode->ScaleX(14), ptabCode->ScaleY(14), True
 			'If g_darkModeSupported AndAlso g_darkModeEnabled Then
 			'	UpdateWindow ptabCode->Handle
 			'End If
@@ -1864,10 +1864,10 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		#ifdef __USE_WINAPI__
 			Dim As ..Size sz
 			SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbProperties.Width = UnScaleX(sz.cx)
+			tbProperties.Width = tb->UnScaleX(sz.cx)
 			hbxProperties.RequestAlign
 			SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbEvents.Width = UnScaleX(sz.cx)
+			tbEvents.Width = tb->UnScaleX(sz.cx)
 			hbxEvents.RequestAlign
 		#endif
 	End If
@@ -5694,7 +5694,7 @@ Sub OnKeyPressEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key
 				If cbINFO.hwndList Then
 					Dim As Rect rc
 					GetWindowRect cbINFO.hwndList, @rc
-					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, Min(tb->txtCode.cboIntellisense.ItemCount, 7)) * ScaleY(tb->txtCode.cboIntellisense.ItemHeight) + 2, True
+					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, min(tb->txtCode.cboIntellisense.ItemCount, 7)) * tb->ScaleY(tb->txtCode.cboIntellisense.ItemHeight) + 2, True
 				End If
 			End If
 		#endif
@@ -9713,6 +9713,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						#endif
 						'Des->layout = pnlForm.layoutwidget
 						'Des->ContextMenu = @mnuForm
+						Des->xdpi = xdpi
+						Des->ydpi = ydpi
 						pnlTopMenu.Visible = False
 					End If
 					Pos1 = InStr(Trim(LCase(*FLine), Any !"\t "), " extends ")
@@ -9748,9 +9750,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									stDesignControl->WritePropertyFunc(.DesignControl, "ParentHandle", @pnlFormHandle)
 									'.ComponentSetBoundsSub(.DesignControl, 0, 0, 350, 300)
 								#endif
+								stDesignControl->WritePropertyFunc(.DesignControl, "xdpi", @xdpi)
+								stDesignControl->WritePropertyFunc(.DesignControl, "ydpi", @ydpi)
 								stDesignControl->WritePropertyFunc(.DesignControl, "DesignMode", @bTrue)
 								stDesignControl->WritePropertyFunc(.DesignControl, "Visible", @bTrue)
 								'.DesignControl->Parent = @pnlForm
+								If xdpi > 1 Then
+									stDesignControl->WritePropertyFunc(.DesignControl, "Visible", @bTrue)
+								End If
 							End If
 							If stDesignControl AndAlso stDesignControl->ReadPropertyFunc Then
 								#ifdef __USE_GTK__
@@ -10227,7 +10234,7 @@ Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			si.fMask  = SIF_RANGE Or SIF_PAGE
 			si.nMin   = 0
 			If dwClientX - iWidth < 0 Then
-				si.nMax   = ScaleX(iWidth - dwClientX)
+				si.nMax   = Sender.ScaleX(iWidth - dwClientX)
 			Else
 				si.nMax   = 0
 			End If
@@ -10242,7 +10249,7 @@ Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			si.fMask  = SIF_RANGE Or SIF_PAGE
 			si.nMin   = 0
 			If dwClientY - iHeight < 0 Then
-				si.nMax   = ScaleY(iHeight - dwClientY)
+				si.nMax   = Sender.ScaleY(iHeight - dwClientY)
 			Else
 				si.nMax   = 0
 			End If
@@ -12895,6 +12902,14 @@ Sub TabWindow.ProcessMessage(ByRef msg As Message)
 		Select Case msg.Msg
 		Case EM_SETMODIFY
 			FormDesign
+		Case WM_DPICHANGED
+			If Des <> 0 Then 
+				Des->xdpi = xdpi
+				Des->ydpi = ydpi
+				Dim As HWND DesignControlHandle = Des->GetControlHandle(Des->DesignControl)
+				SendMessage DesignControlHandle, msg.Msg, msg.wParam, msg.lParam
+				Des->MoveDots Des->SelectedControl
+			End If
 		End Select
 	#endif
 	Base.ProcessMessage(msg)

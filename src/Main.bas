@@ -837,7 +837,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CompileCommands.Add "", *PipeCommand
 			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & MainFileName & ".c"" -o """ & MainFileName & ".o"""
 			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD'"
+			For i As Integer = 0 To Globals.Functions.Count - 1
+				
+			Next
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
@@ -7826,12 +7830,12 @@ tpToolbox->Name = "Toolbox"
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y
 			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
-			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, ScaleX(pnlLeft.Width), 0, @x, @y)
+			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
-			allocation->x = x - ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - ScaleX(pnlLeft.Width), 0)
+			allocation->x = x - tbLeft.ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0)
 			allocation->y = y
-			allocation->width = ScaleX(tbLeft.Width)
-			allocation->height = ScaleY(tbLeft.Height)
+			allocation->width = tbLeft.ScaleX(tbLeft.Width)
+			allocation->height = tbLeft.ScaleY(tbLeft.Height)
 			Return True
 		End Function
 	#endif
@@ -8168,11 +8172,11 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		End If
 	End If
 	Dim As String teTypeName = LCase(te->TypeName)
-	pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+	pnlPropertyValue.SetBounds pnlPropertyValue.UnScaleX(lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Top), pnlPropertyValue.UnScaleX(lpRect.Right - lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	txtPropertyValue.LeftMargin = 3
 	If CInt(teTypeName = "icon") OrElse CInt(teTypeName = "cursor") OrElse CInt(teTypeName = "bitmaptype") OrElse CInt(teTypeName = "graphictype") OrElse CInt(teTypeName = "font") OrElse CInt(EndsWith(LCase(PropertyName), "color")) Then
-		btnPropertyValue.SetBounds UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top) - 1 - 1, -1, UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2, UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2
-		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left) - UnScaleY(lpRect.Bottom - lpRect.Top) - 1, UnScaleY(lpRect.Bottom - lpRect.Top) - 1
+		btnPropertyValue.SetBounds btnPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1 - 1, -1, btnPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2, btnPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1 + 2
+		txtPropertyValue.SetBounds 0, 0, txtPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) - txtPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1, txtPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left) - btnPropertyValue.Width + UnScaleX(2), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		btnPropertyValue.Visible = True
 		btnPropertyValue.Tag = te
@@ -8184,8 +8188,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 			txtPropertyValue.LeftMargin = 16
 		End If
 	Else
-		txtPropertyValue.SetBounds 0, 0, UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top) - 1
-		cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left) + 2
+		txtPropertyValue.SetBounds 0, 0, txtPropertyValue.UnScaleX(lpRect.Right - lpRect.Left), txtPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top) - 1
+		cboPropertyValue.Width = cboPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) + 2
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	End If
 	'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
@@ -8250,7 +8254,7 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 		'If lpRect.Top < lpRect.Bottom - lpRect.Top Then
 		'    txtPropertyValue.Visible = False
 		'Else
-		pnlPropertyValue.SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
+		pnlPropertyValue.SetBounds pnlPropertyValue.UnScaleX(lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Top), pnlPropertyValue.UnScaleX(lpRect.Right - lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		#ifdef __USE_GTK__
 			If pnlPropertyValue.Top < lvProperties.Top + gdkRect.height OrElse pnlPropertyValue.Top + pnlPropertyValue.Height > lvProperties.Top + lvProperties.Height Then
@@ -8366,7 +8370,7 @@ Sub lvProperties_DrawItem(ByRef Designer As My.Sys.Object, ByRef Sender As TreeL
 	#ifndef __USE_GTK__
 		If Item = 0 Then Exit Sub
 		Dim As ..Rect rc = *Cast(..Rect Ptr, @R)
-		rc.Left += ScaleX(40 + Item->Indent * 16)
+		rc.Left += Sender.ScaleX(40 + Item->Indent * 16)
 		If ItemAction = 17 Then                       'if selected Then
 			FillRect Canvas.Handle, @rc, GetSysColorBrush(COLOR_HIGHLIGHT)
 			SetBkColor Canvas.Handle, GetSysColor(COLOR_HIGHLIGHT)                    'Set text Background
@@ -8390,17 +8394,17 @@ Sub lvProperties_DrawItem(ByRef Designer As My.Sys.Object, ByRef Sender As TreeL
 		Dim zTxt As WString * 64
 		Dim iIndent As Integer
 		Dim l As Integer
-		rc.Top = R.Top + ScaleX(2)
+		rc.Top = R.Top + Sender.ScaleX(2)
 		For i As Integer = 0 To Sender.Columns.Count - 1
 			If i = 1 AndAlso EndsWith(LCase(Item->Text(0)), "color") Then
 				Canvas.Brush.Color = Val(Item->Text(1))
 				SelectObject(Canvas.Handle, Canvas.Brush.Handle)
-				Rectangle Canvas.Handle, rc.Left, R.Top + ScaleY(2), rc.Left + ScaleX(13 - 1), R.Top + ScaleY(1 + 13)
-				rc.Left += ScaleX(13 + 3)
+				Rectangle Canvas.Handle, rc.Left, R.Top + Sender.ScaleY(2), rc.Left + Sender.ScaleX(13 - 1), R.Top + Sender.ScaleY(1 + 13)
+				rc.Left += Sender.ScaleX(13 + 3)
 			Else
-				rc.Left += ScaleX(3)
+				rc.Left += Sender.ScaleX(3)
 			End If
-			rc.Right = l + ScaleX(Sender.Columns.Column(i)->Width)
+			rc.Right = l + Sender.ScaleX(Sender.Columns.Column(i)->Width)
 			zTxt = Item->Text(i)
 			iIndent = Item->Indent
 			DrawText Canvas.Handle, @zTxt, Len(zTxt), @rc, DT_END_ELLIPSIS     'Draw text
@@ -8408,14 +8412,14 @@ Sub lvProperties_DrawItem(ByRef Designer As My.Sys.Object, ByRef Sender As TreeL
 			If i = 0 Then
 				'DRAW IMAGE
 				If Sender.StateImages AndAlso Sender.StateImages->Handle AndAlso Item->State > 0 Then
-					ImageList_Draw(Sender.StateImages->Handle, Item->State - 1, Canvas.Handle, R.Left + ScaleX(iIndent * 16 + 3), R.Top, ILD_TRANSPARENT)
+					ImageList_Draw(Sender.StateImages->Handle, Item->State - 1, Canvas.Handle, R.Left + Sender.ScaleX(iIndent * 16 + 3), R.Top, ILD_TRANSPARENT)
 				End If
 				If Sender.Images AndAlso Sender.Images->Handle Then
-					ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + ScaleX(iIndent * 16 + 24), R.Top, ILD_TRANSPARENT)
+					ImageList_Draw(Sender.Images->Handle, Item->ImageIndex, Canvas.Handle, R.Left + Sender.ScaleX(iIndent * 16 + 24), R.Top, ILD_TRANSPARENT)
 				End If
 			End If
-			l += ScaleX(Sender.Columns.Column(i)->Width)
-			rc.Left = l + ScaleX(3)
+			l += Sender.ScaleX(Sender.Columns.Column(i)->Width)
+			rc.Left = l + Sender.ScaleX(3)
 		Next
 	#endif
 End Sub
@@ -8776,14 +8780,14 @@ tbRight.Parent = @pnlRightPin
 		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y, x1, y1
 			Dim As Control Ptr tb = IIf(tabRight.SelectedTab = tpProperties, @tbProperties, @tbEvents)
-			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, ScaleX(pnlRight.Width), 0, @x, @y)
+			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.ScaleX(pnlRight.Width), 0, @x, @y)
 			Dim As Control Ptr lv = IIf(tabRight.SelectedTab = tpProperties, @lvProperties, @lvEvents)
-			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, ScaleX(lv->Width), 0, @x1, @y1)
+			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
-			allocation->x = x - ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, ScaleX(pnlRight.Width) - x1 + 1, 0)
+			allocation->x = x - tbRight.ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.ScaleX(pnlRight.Width) - x1 + 1, 0)
 			allocation->y = y
-			allocation->width = ScaleX(tbRight.Width)
-			allocation->height = ScaleY(tbRight.Height)
+			allocation->width = tbRight.ScaleX(tbRight.Width)
+			allocation->height = tbRight.ScaleY(tbRight.Height)
 			Return True
 		End Function
 	#endif
@@ -10014,10 +10018,10 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_WINAPI__
 		Dim As ..Size sz
 		SendMessage(tbExplorer.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-		tbExplorer.Width = UnScaleX(sz.cx)
+		tbExplorer.Width = tbExplorer.UnScaleX(sz.cx)
 		hbxExplorer.RequestAlign
 		SendMessage(tbForm.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-		tbForm.Width = UnScaleX(sz.cx)
+		tbForm.Width = tbForm.UnScaleX(sz.cx)
 		hbxForm.RequestAlign
 	#endif
 	'	If MainNode <> 0 Then

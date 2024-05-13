@@ -181,7 +181,7 @@ Namespace My.Sys.Forms
 			Declare Function IsDot(hDlg As GtkWidget Ptr) As Integer
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As lParam) As Boolean
+			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
 			Declare Function IsDot(hDlg As HWND) As Integer
 		#endif
 		Declare Function GetContainerControl(Ctrl As Any Ptr) As Any Ptr
@@ -190,11 +190,6 @@ Namespace My.Sys.Forms
 		Declare Sub RegisterDotClass(ByRef clsName As WString)
 		Declare Sub CreateDots(Parent As Control Ptr)
 		Declare Sub DestroyDots
-		#ifdef __USE_GTK__
-			Declare Function GetControlHandle(Control As Any Ptr) As GtkWidget Ptr
-		#else
-			Declare Function GetControlHandle(Control As Any Ptr) As HWND
-		#endif
 		'#IfDef __USE_GTK__
 		Declare Function ControlAt(Parent As Any Ptr, X As Integer, Y As Integer, Ctrl As Any Ptr = 0) As Any Ptr
 		'#Else
@@ -277,6 +272,11 @@ Namespace My.Sys.Forms
 		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr
 		Declare Function SymbolsReadProperty(Ctrl As Any Ptr) As SymbolsType Ptr
 		Declare Function SymbolsWriteProperty(Ctrl As Any Ptr) As SymbolsType Ptr
+		#ifdef __USE_GTK__
+			Declare Function GetControlHandle(Control As Any Ptr) As GtkWidget Ptr
+		#else
+			Declare Function GetControlHandle(Control As Any Ptr) As HWND
+		#endif
 		#ifdef __USE_GTK__
 			Declare Function GetControl(CtrlHandle As GtkWidget Ptr) As Any Ptr
 			Declare Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True, Left1 As Integer = -1, Top As Integer = -1, Width1 As Integer = -1, Height As Integer = -1)

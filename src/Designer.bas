@@ -2187,14 +2187,14 @@ Namespace My.Sys.Forms
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.DblClick(UnScaleX(Event->motion.x + x), UnScaleY(Event->motion.y + y), Event->motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						.DblClick(.UnScaleX(Event->motion.x + x), .UnScaleY(Event->motion.y + y), Event->motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.DblClick(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.DblClick(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2205,7 +2205,7 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.MouseDown(UnScaleX(Event->button.x + x), UnScaleY(Event->button.y + y), Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						.MouseDown(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
 						If GTK_IS_NOTEBOOK(widget) AndAlso Event->button.y < 20 Then
 							Return False
 						Else
@@ -2215,7 +2215,7 @@ Namespace My.Sys.Forms
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF, GetProp(hDlg, "MFFControl"))
+						.MouseDown(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF, GetProp(hDlg, "MFFControl"))
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2226,12 +2226,12 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.MouseUp(UnScaleX(Event->button.x + x), UnScaleY(Event->button.y + y), Event->button.state)
+						.MouseUp(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
 						If Event->button.button = 3 Then
 							.ChangeFirstMenuItem
-							mnuDesigner.Popup(UnScaleX(Event->button.x), UnScaleY(Event->button.y), @Type<Message>(Des, widget, Event, False))
+							mnuDesigner.Popup(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), @Type<Message>(Des, widget, Event, False))
 						End If
-						If GTK_IS_NOTEBOOK(widget) AndAlso UnScaleY(Event->button.y) < 20 Then
+						If GTK_IS_NOTEBOOK(widget) AndAlso .UnScaleY(Event->button.y) < 20 Then
 							Return False
 						Else
 							Return True
@@ -2240,7 +2240,7 @@ Namespace My.Sys.Forms
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseUp(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
+						.MouseUp(GetXY(.UnScaleX(P.X)), GetXY(.UnScaleY(P.Y)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2252,13 +2252,13 @@ Namespace My.Sys.Forms
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
 						.FOverControl = widget
-						.MouseMove(UnScaleX(Event->button.x + x), UnScaleY(Event->button.y + y), Event->button.state)
+						.MouseMove(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseMove(GetXY(UnScaleX(P.X)), GetXY(UnScaleY(P.Y)), wParam And &HFFFF )
+						.MouseMove(GetXY(.UnScaleX(P.X)), GetXY(.UnScaleY(P.Y)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -2492,8 +2492,8 @@ Namespace My.Sys.Forms
 							'pncc->rgrc[0] Is the New rectangle
 							'pncc->rgrc[1] Is the old rectangle
 							'pncc->rgrc[2] Is the client rectangle
-							Des->TopMenu->SetBounds(UnScaleX(pncc->rgrc(2).Left), UnScaleY(pncc->rgrc(2).Top) - .TopMenuHeight, UnScaleX(pncc->rgrc(2).Right - pncc->rgrc(2).Left), .TopMenuHeight)
-							pncc->rgrc(0).Top += ScaleY(.TopMenuHeight)
+							Des->TopMenu->SetBounds(.UnScaleX(pncc->rgrc(2).Left), .UnScaleY(pncc->rgrc(2).Top) - .TopMenuHeight, .UnScaleX(pncc->rgrc(2).Right - pncc->rgrc(2).Left), .TopMenuHeight)
+							pncc->rgrc(0).Top += .ScaleY(.TopMenuHeight)
 						End If
 					Case WM_SIZE
 						SendMessage GetParent(hDlg), WM_SIZE, 0, 0
@@ -2505,25 +2505,25 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(UnScaleX(Event->motion.x), UnScaleY(Event->motion.y), Event->motion.state)
+						.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
-						.DblClick(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF)
+						.DblClick(.UnScaleX(LoWord(lParam)), .UnScaleY(HiWord(lParam)), wParam And &HFFFF)
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_BUTTON_PRESS
-						.MouseDown(UnScaleX(Event->button.x), UnScaleY(Event->button.y), Event->button.state)
+						.MouseDown(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
 						Return True
 					#else
 					Case WM_LBUTTONDOWN
-						.MouseDown(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
+						.MouseDown(.UnScaleX(LoWord(lParam)), .UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_BUTTON_RELEASE
-						.MouseUp(UnScaleX(Event->button.x), UnScaleY(Event->button.y), Event->button.state)
+						.MouseUp(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
 						If Event->button.button = 3 Then
 							.ChangeFirstMenuItem
 							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
@@ -2531,17 +2531,17 @@ Namespace My.Sys.Forms
 						Return True
 					#else
 					Case WM_LBUTTONUP
-						.MouseUp(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
+						.MouseUp(.UnScaleX(LoWord(lParam)), .UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_MOTION_NOTIFY
 						.FOverControl = widget
-						.MouseMove(UnScaleX(Event->button.x), UnScaleY(Event->button.y), Event->button.state)
+						.MouseMove(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
 						Return True
 					#else
 					Case WM_MOUSEMOVE
-						.MouseMove(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
+						.MouseMove(.UnScaleX(LoWord(lParam)), .UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						'Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -2665,7 +2665,7 @@ Namespace My.Sys.Forms
 						.DrawTopMenu
 						Return 1
 					Case WM_LBUTTONDOWN
-						Dim As Integer X = UnScaleX(LoWord(LPARAM)), Y = UnScaleY(HiWord(LPARAM)), i, CurRect
+						Dim As Integer X = .UnScaleX(LoWord(LPARAM)), Y = .UnScaleY(HiWord(LPARAM)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2692,8 +2692,8 @@ Namespace My.Sys.Forms
 									Dim As HMENU Ptr PHANDLE = Cast(HMENU Ptr, st->ReadPropertyFunc(.Ctrls(.ActiveRect), "Handle"))
 									If PHANDLE <> 0 Then
 										Dim As ..Point P
-										P.X = ScaleX(.Rects(.ActiveRect).Left)
-										P.Y = ScaleY(.Rects(.ActiveRect).Bottom)
+										P.X = .ScaleX(.Rects(.ActiveRect).Left)
+										P.Y = .ScaleY(.Rects(.ActiveRect).Bottom)
 										..ClientToScreen(hDlg, @P)
 										Var b = TrackPopupMenu(*PHANDLE, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
 										Dim As SymbolsType Ptr stDesignControl = .Symbols(.DesignControl)
@@ -2719,7 +2719,7 @@ Namespace My.Sys.Forms
 					Case WM_COMMAND
 					Case WM_LBUTTONUP
 					Case WM_MOUSEMOVE
-						Dim As Integer X = UnScaleX(LoWord(LPARAM)), Y = UnScaleY(HiWord(LPARAM)), i, CurRect
+						Dim As Integer X = .UnScaleX(LoWord(LPARAM)), Y = .UnScaleY(HiWord(LPARAM)), i, CurRect
 						For i = 1 To .RectsCount
 							With .Rects(i)
 								If X >= .Left And X <= .Right And Y >= .Top And Y <= .Bottom Then
@@ -2743,8 +2743,8 @@ Namespace My.Sys.Forms
 								UpdateWindow hDlg
 								If PHANDLE <> 0 Then
 									Dim As ..Point P
-									P.X = ScaleX(.Rects(CurRect).Left)
-									P.Y = ScaleY(.Rects(CurRect).Bottom)
+									P.X = .ScaleX(.Rects(CurRect).Left)
+									P.Y = .ScaleY(.Rects(CurRect).Bottom)
 									..ClientToScreen(hDlg, @P)
 									Var b = TrackPopupMenu(*PHANDLE, TPM_RETURNCMD, P.X, P.Y, 0, hDlg, 0)
 									.ActiveRect = 0
@@ -2807,14 +2807,14 @@ Namespace My.Sys.Forms
 				#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(UnScaleX(Event->motion.x), UnScaleY(Event->motion.y), Event->motion.state)
+						.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.DblClick(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF)
+						.DblClick(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF)
 						'Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2825,13 +2825,13 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseDown(UnScaleX(Event->button.x - x), UnScaleY(Event->button.y - y), Event->button.state)
+						.MouseDown(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.MouseDown(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -2842,13 +2842,13 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseUp(UnScaleX(Event->button.x - x), UnScaleY(Event->button.y - y), Event->button.state)
+						.MouseUp(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseUp(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.MouseUp(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifndef __USE_GTK__
@@ -2873,13 +2873,13 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseMove(UnScaleX(Event->motion.x - x), UnScaleY(Event->motion.y - y), Event->motion.state)
+						.MouseMove(.UnScaleX(Event->motion.x - x), .UnScaleY(Event->motion.y - y), Event->motion.state)
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
 						ClientToScreen(hDlg, @P)
 						ScreenToClient(.FDialog, @P)
-						.MouseMove(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.MouseMove(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -3169,7 +3169,7 @@ Namespace My.Sys.Forms
 						P.X = LoWord(lParam)
 						P.Y = HiWord(lParam)
 						ScreenToClient .FDialog, @P
-						.MouseDown(UnScaleX(P.X), UnScaleY(P.Y), wParam And &HFFFF )
+						.MouseDown(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )
 						Return 0
 					#endif
 					#ifdef __USE_GTK__
@@ -3190,7 +3190,7 @@ Namespace My.Sys.Forms
 						#endif
 						Return True
 					#else
-						.MouseUp(UnScaleX(LoWord(lParam)), UnScaleY(HiWord(lParam)), wParam And &HFFFF )
+						.MouseUp(.UnScaleX(LoWord(lParam)), .UnScaleY(HiWord(lParam)), wParam And &HFFFF )
 						Return 0
 						
 					Case WM_NCHITTEST
@@ -3407,7 +3407,7 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Property Designer.DotSize(value As Integer)
-		FDotSize = Value
+		FDotSize = value
 	End Property
 	
 	Property Designer.SnapToGrid As Boolean
@@ -3451,6 +3451,8 @@ Namespace My.Sys.Forms
 		FDotColor 	= clBlack
 		FSelDotColor = clBlue
 		Parent = ParentControl
+		xdpi = Parent->xdpi
+		ydpi = Parent->ydpi
 		#ifdef __USE_GTK__
 			FDialogParent = ParentControl->Handle
 		#else

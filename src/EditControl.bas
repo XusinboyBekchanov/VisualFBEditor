@@ -3044,12 +3044,11 @@ Namespace My.Sys.Forms
 			dwCharX = UnScaleX(extend.width)
 			dwCharY = UnScaleY(extend.height)
 		#else
-			'hd = GetDc(FHandle)
+			Dim As HDC hd = GetDC(FHandle)
 			SelectObject(hd, This.Font.Handle)
 			GetTextMetrics(hd, @tm)
-			'ReleaseDC(FHandle, hd)
+			ReleaseDC(FHandle, hd)
 			If bufDC <> 0 Then SelectObject(bufDC, This.Font.Handle)
-			
 			dwCharX = UnScaleX(tm.tmAveCharWidth)
 			dwCharY = UnScaleY(tm.tmHeight)
 			CreateCaret(FHandle, 0, 0, ScaleY(dwCharY))
@@ -3843,7 +3842,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			iC = 0
-			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc = min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
@@ -4602,7 +4601,7 @@ Namespace My.Sys.Forms
 															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 														End If
 													ElseIf tIndex = -1 Then
-														If isNumeric(Matn) OrElse isNumeric(MatnWithoutOldSymbol) Then
+														If IsNumeric(Matn) OrElse IsNumeric(MatnWithoutOldSymbol) Then
 															If InStr(Matn, ".") Then
 																sc = @RealNumbers
 															Else
@@ -5929,7 +5928,7 @@ Namespace My.Sys.Forms
 					If bShifted Then
 						#ifdef __USE_GTK__
 							If scrDirection = 1 Then
-								gtk_adjustment_set_value(adjustmenth, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
+								gtk_adjustment_set_value(adjustmenth, min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
 							ElseIf scrDirection = -1 Then
 								gtk_adjustment_set_value(adjustmenth, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmenth)))
 							End If
@@ -5941,7 +5940,7 @@ Namespace My.Sys.Forms
 							'End If
 						#else
 							If scrDirection = -1 Then
-								si.nPos = Min(si.nPos + 3, si.nMax)
+								si.nPos = min(si.nPos + 3, si.nMax)
 							Else
 								si.nPos = Max(si.nPos - 3, si.nMin)
 							End If
@@ -5976,7 +5975,7 @@ Namespace My.Sys.Forms
 					Else
 						#ifdef __USE_GTK__
 							If scrDirection = 1 Then
-								gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+								gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 							ElseIf scrDirection = -1 Then
 								gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 							End If
@@ -5988,7 +5987,7 @@ Namespace My.Sys.Forms
 							'End If
 						#else
 							If scrDirection = -1 Then
-								si.nPos = Min(si.nPos + 3, si.nMax)
+								si.nPos = min(si.nPos + 3, si.nMax)
 							Else
 								si.nPos = Max(si.nPos - 3, si.nMin)
 							End If
@@ -6039,6 +6038,13 @@ Namespace My.Sys.Forms
 					Dim As LITEM item = pNMLink1->item
 					If OnToolTipLinkClicked Then OnToolTipLinkClicked(*Designer, This, item.szUrl)
 				End Select
+			Case WM_DPICHANGED
+				Canvas.xdpi = xdpi
+				Canvas.ydpi = ydpi
+				Font.xdpi = xdpi
+				Font.ydpi = ydpi
+				Font.Size = Font.Size
+				FontSettings
 			#endif
 			#ifndef __USE_GTK__
 			Case WM_SETCURSOR
@@ -6174,7 +6180,7 @@ Namespace My.Sys.Forms
 					si.nPos = si.nTrackPos
 				End Select
 				si.fMask = SIF_POS Or SIF_TRACKPOS
-				si.nPos = Min(Max(si.nPos, si.nMin), si.nMax)
+				si.nPos = min(Max(si.nPos, si.nMin), si.nMax)
 				'si.nTrackPos = si.nTrackPos
 				'If msg.wParamLo <> SB_THUMBTRACK Then
 				'?msg.wParamLo
@@ -7250,10 +7256,10 @@ Namespace My.Sys.Forms
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
 				#ifdef __USE_WINAPI__
-					.sbScrollBarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
-					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, ScaleX(Sender.ClientWidth - 17), 5, ScaleX(17), ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
-					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, Instance, 0)
-					.sbScrollBarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, ScaleY(Sender.ClientHeight - 17), ScaleX(Sender.ClientWidth - 17), ScaleY(17), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, .ScaleX(17), .ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, .ScaleX(Sender.ClientWidth - 17), 5, .ScaleX(17), .ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, .ScaleY(Sender.ClientHeight - 17), .ScaleX(Sender.ClientWidth - 17), .ScaleY(17), Sender.Handle, 0, Instance, 0)
+					.sbScrollBarhRight = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, .ScaleY(Sender.ClientHeight - 17), .ScaleX(Sender.ClientWidth - 17), .ScaleY(17), Sender.Handle, 0, Instance, 0)
 					ShowWindow .sbScrollBarvTop, SW_HIDE
 					ShowWindow .sbScrollBarvBottom, SW_SHOW
 					ShowWindow .sbScrollBarhLeft, SW_HIDE
@@ -7298,8 +7304,8 @@ Namespace My.Sys.Forms
 					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(ec->layout, 0)
 				#endif
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-				ec->dwCharX = UnScaleX(extend.width)
-				ec->dwCharY = UnScaleY(extend.height)
+				ec->dwCharX = ec->UnScaleX(extend.width)
+				ec->dwCharY = ec->UnScaleY(extend.height)
 				
 				'Dim extend As cairo_text_extents_t
 				'cairo_text_extents (cr, "|", @extend)
