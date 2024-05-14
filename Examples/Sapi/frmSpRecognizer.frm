@@ -82,9 +82,9 @@
 		' Label2
 		With Label2
 			.Name = "Label2"
-			.Text = "Voice select"
+			.Text = "Recognizer select"
 			.TabIndex = 2
-			.Caption = "Voice select"
+			.Caption = "Recognizer select"
 			.SetBounds 10, 60, 180, 20
 			.Designer = @This
 			.Parent = @This
@@ -167,7 +167,13 @@ Private Sub frmSpRecognizerType.ProcessRecognition()
 		Select Case sEvent.eEventId
 		Case 0
 		Case SPEI_RECOGNITION
-			Dim As ISpRecoResult Ptr pSpRecoResult = Cast(UInteger, sEvent.lParam)
+			Dim As ISpRecoResult Ptr pSpRecoResult
+			#ifdef __FB_64BIT__
+				pSpRecoResult = Cast(ISpRecoResult Ptr, CULngInt(sEvent.lParam))
+			#else
+				'Todo: fb32 will crash
+				pSpRecoResult = Cast(ISpRecoResult Ptr, CUInt(sEvent.lParam))
+			#endif
 			Debug.Print "pSpRecoResult  " & pSpRecoResult
 			Dim As WString Ptr pwszText
 			pSpRecoResult->GetText(SP_GETWHOLEPHRASE, SP_GETWHOLEPHRASE, True, @pwszText, nullptr)

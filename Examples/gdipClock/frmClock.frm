@@ -14,6 +14,7 @@
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/Menus.bi"
 	#include once "mff/Dialogs.bi"
+	#include once "mff/ComboBoxEdit.bi"
 	
 	#include once "gdip.bi"
 	#include once "gdipAnalogClock.bi"
@@ -21,7 +22,7 @@
 	#include once "gdipMonth.bi"
 	#include once "gdipTextClock.bi"
 	
-	#include once "../SapiTTS/Speech.bi"
+	#include once "../Sapi/Speech.bi"
 	#include once "../MDINotepad/Text.bi"
 	
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
@@ -62,7 +63,7 @@
 		mnuAudioSub(Any) As MenuItem Ptr
 		mnuVoiceSub(Any) As MenuItem Ptr
 		mVoiceCount As Integer = -1
-		pSpVoice As Afx_ISpVoice Ptr
+		pSpVoice As ISpVoice Ptr
 		
 		'Profile
 		mRectAnalog As Rect
@@ -3132,8 +3133,8 @@ Private Sub frmClockType.SpeechInit()
 	#ifdef __USE_WINAPI__
 		' // Create an instance of the SpVoice object
 		Dim classID As IID, riid As IID
-		CLSIDFromString(Afx_CLSID_SpVoice, @classID)
-		IIDFromString(Afx_IID_ISpVoice, @riid)
+		CLSIDFromString(CLSID_SpVoice, @classID)
+		IIDFromString(IID_ISpVoice, @riid)
 		CoCreateInstance(@classID, NULL, CLSCTX_ALL, @riid, @pSpVoice)
 		If pSpVoice = NULL Then Exit Sub
 		
@@ -3144,12 +3145,12 @@ Private Sub frmClockType.SpeechInit()
 		' // Set the handle of the window that will receive the MSG_SAPI_EVENT message
 		pSpVoice->SetNotifyWindowMessage(Handle, MSG_SAPI_EVENT, 0, 0)
 		
-		Dim pVoice As Afx_ISpObjectToken Ptr
-		Dim pAudio As Afx_ISpObjectToken Ptr
-		Dim pTokenCategory As Afx_ISpObjectTokenCategory Ptr
-		Dim pTokenEnum As Afx_IEnumSpObjectTokens Ptr
+		Dim pVoice As ISpObjectToken Ptr
+		Dim pAudio As ISpObjectToken Ptr
+		Dim pTokenCategory As ISpObjectTokenCategory Ptr
+		Dim pTokenEnum As IEnumSpObjectTokens Ptr
 		
-		Dim pTokenItem As Afx_ISpObjectToken Ptr
+		Dim pTokenItem As ISpObjectToken Ptr
 		Dim pStr As WString Ptr = CAllocate(0, 2048)
 		Dim pCount As Long
 		Dim i As Long
@@ -4304,7 +4305,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			For i = 0 To mVoiceCount
 				If @Sender = mnuVoiceSub(i) Then
 					#ifdef __USE_WINAPI__
-						If pSpVoice Then pSpVoice->SetVoice(Cast(Afx_ISpObjectToken Ptr, Sender.Tag))
+						If pSpVoice Then pSpVoice->SetVoice(Cast(ISpObjectToken Ptr, Sender.Tag))
 					#endif
 				Else
 					mnuVoiceSub(i)->Checked = False
@@ -4315,7 +4316,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 			For i = 0 To mAudioCount
 				If @Sender = mnuAudioSub(i) Then
 					#ifdef __USE_WINAPI__
-						If pSpVoice Then pSpVoice->SetOutput(Cast(Afx_ISpObjectToken Ptr, Sender.Tag), True)
+						If pSpVoice Then pSpVoice->SetOutput(Cast(ISpObjectToken Ptr, Sender.Tag), True)
 					#endif
 				Else
 					mnuAudioSub(i)->Checked = False
