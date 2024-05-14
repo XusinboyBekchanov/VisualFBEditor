@@ -1,6 +1,6 @@
 ﻿#pragma once
 'playcap摄像设备预览和截图
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "playcap.bi"
@@ -126,7 +126,7 @@ Function CaptureBmp(filename As ZString Ptr) As HRESULT
 	'Retrieves the state of the filter graph—paused, running, or stopped.
 	Dim As FILTER_STATE Ptr pfs
 	Do
-		hr = pMC->lpVtbl->GetState(pMC, NULL, @pfs)
+		hr = pMC->lpVtbl->GetState(pMC, NULL, Cast(Any Ptr, @pfs))
 		Print "FILTER_STATE=" & pfs & ", " &  hr
 		Select Case hr
 		Case VFW_S_STATE_INTERMEDIATE
@@ -268,12 +268,12 @@ Private Function SetupVideoWindow(ghApp As OAHWND) As HRESULT
 End Function
 
 Private Sub ResizeVideoWindow(ghApp As OAHWND)
-	Dim As RECT rc
+	Dim As Rect rc
 	
 	' Make the preview video fill our window
 	GetClientRect(Cast(HWND, ghApp), @rc)
 	
 	' Resize the video preview window to match owner window size
-	If (pVW) Then pVW->lpVtbl->SetWindowPosition(pVW, 0, 0, rc.right, rc.bottom)
+	If (pVW) Then pVW->lpVtbl->SetWindowPosition(pVW, 0, 0, rc.Right, rc.Bottom)
 End Sub
 
