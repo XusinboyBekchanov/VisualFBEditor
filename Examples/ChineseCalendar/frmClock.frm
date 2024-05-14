@@ -20,7 +20,7 @@
 	#include once "vbcompat.bi"
 	
 	#include once "DrawClockCalendar.bi"
-	#include once "../SapiTTS/Speech.bi"
+	#include once "../Sapi/Speech.bi"
 	
 	Using My.Sys.Forms
 	Using Speech
