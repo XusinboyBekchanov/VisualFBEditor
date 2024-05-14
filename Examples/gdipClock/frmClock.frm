@@ -21,7 +21,7 @@
 	#include once "gdipMonth.bi"
 	#include once "gdipTextClock.bi"
 	
-	#include once "../SapiTTS/Speech.bi"
+	#include once "../Sapi/Speech.bi"
 	#include once "../MDINotepad/Text.bi"
 	
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
