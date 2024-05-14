@@ -193,7 +193,7 @@
 	Dim Shared Form1 As Form1Type
 	
 	#if _MAIN_FILE_ = __FILE__
-		App.DarkMode = False
+		App.DarkMode = True
 		Form1.MainForm = True
 		Form1.Show
 		App.Run
@@ -340,7 +340,7 @@ Private Sub Form1Type.pnlSudoCell_MouseDown(ByRef Sender As Control, MouseButton
 	Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, "(") + 1))
 	If GameOver Then Exit Sub
 	'Debug.Print "MouseButton=" & MouseButton
-	If MouseButton = 1 AndAlso Sender.BackColor = SudoCellColorBKSelect Then
+	If MouseButton = 1 AndAlso Sender.BackColor <> SudoCellColorBK AndAlso SudoKu(0, Index \ 9, Index Mod 9) = 0 Then
 		Sender.BackColor = SudoCellColorBKDefault
 		Sender.Text = "0"
 		Sender.ShowCaption = False
@@ -401,7 +401,7 @@ Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, 
 	If This.ClientWidth < 400 OrElse This.ClientHeight < 400 Then Exit Sub
 	Dim As Integer FormSize = Min(This.ClientWidth - (SudoCellLeft + 20) , This.ClientHeight - (cboFromClipBoard.Height + SudoCellTop + 20))
 	SudoCellSize = FormSize / 9 - 6
-	SudoCellChildSize= (SudoCellSize - 6) / 3
+	SudoCellChildSize= (SudoCellSize - 9) / 3
 	Dim As Integer tFontSize= (SudoCellSize - 6) * 72 / 96 - 2
 	pnlSudoCell(0).Font.Size= tFontSize
 	pnlBack.SetBounds SudoCellLeft, SudoCellTop, SudoCellSize * 9 + SudoCellGaps * 5, SudoCellSize * 9 + SudoCellGaps * 6 + 2
