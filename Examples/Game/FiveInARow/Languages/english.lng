@@ -1,0 +1,22 @@
+﻿english
+[General]
+Chess Background: = 
+Chess Board Size = 
+Compile the source code need the frame = 
+Computer first = 
+Computer win. = 
+Download address: = 
+Edited by freeBasic visual design IDE VisualFBEditor = 
+Grid Color: = 
+Man-Computer Playing = 
+Man-Man Playing = 
+Noone Win. = 
+Pieces are never taken off the board, and once the whole board is filled, the game draws. = 
+Player Win. = 
+Restart = 
+Ruler: = 
+Setting = 
+The objective of the game is to be the first player to create a sequence of five same-colored pieces vertically, horizontally, or diagonally. = 
+This APP made by Avata with = 
+Wuziqi = 
+Wuziqi(also known as 'Five in a Row', Gomoku, GoLang) is a two-player abstract strategy game generally played with Go pieces on a 19x19 Go board. = 
