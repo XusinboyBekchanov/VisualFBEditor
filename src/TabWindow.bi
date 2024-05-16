@@ -417,7 +417,7 @@ Declare Function GetParentNode(tn As TreeNode Ptr) As TreeNode Ptr
 
 Declare Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0, WithoutMainNode As Boolean = False, FromProject As Boolean = False) As UString
 
-Declare Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
+Declare Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "", ProjectNode_ As TreeNode Ptr = 0) As UString
 
 Declare Sub SetCodeVisible(tb As TabWindow Ptr)
 

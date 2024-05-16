@@ -11495,10 +11495,10 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 	Return ""
 End Function
 
-Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "") As UString
+Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "", ProjectNode_ As TreeNode Ptr = 0) As UString
 	Dim As UString ResourceFile, MainFile, sFirstLine, CompileLine
 	Dim As ProjectElement Ptr Project
-	Dim As TreeNode Ptr ProjectNode
+	Dim As TreeNode Ptr ProjectNode = ProjectNode_
 	MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
 	If FirstLine = "" Then
 		sFirstLine = GetFirstCompileLine(MainFile, Project, CompileLine, True)
@@ -11558,7 +11558,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			End If
 		End If
 	End If
-	WLet(File, GetResourceFile(, sFirstLine))
+	WLet(File, GetResourceFile(, sFirstLine, ProjectNode))
 	Var bFinded = False, bChanged = False
 	Dim As String NewLine = ""
 	If AutoCreateRC Then
