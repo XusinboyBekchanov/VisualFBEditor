@@ -669,6 +669,11 @@ Private Property Scintilla.DarkMode (ByVal bVal As Boolean)
 		ForeColor(STYLE_LINENUMBER) = RGB(&hFF, &h00, &h00)
 		BackColor(STYLE_LINENUMBER) = RGB(&hE0, &hE0, &hE0)
 	End If
+	If bVal Then
+		SetWindowTheme(Handle, "DarkMode_Explorer", nullptr)
+	Else
+		SetWindowTheme(Handle, NULL, NULL)
+	End If
 End Property
 
 Private Property Scintilla.ViewWhiteSpace As Boolean
