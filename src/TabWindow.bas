@@ -1861,15 +1861,13 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		Next
 		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlNames
 		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlNames
-		#ifdef __USE_WINAPI__
-			Dim As ..Size sz
-			SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbProperties.Width = tb->UnScaleX(sz.cx)
-			hbxProperties.RequestAlign
-			SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-			tbEvents.Width = tb->UnScaleX(sz.cx)
-			hbxEvents.RequestAlign
-		#endif
+		'#ifdef __USE_WINAPI__
+		'	Dim As ..Size sz
+		'	SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+		'	tbProperties.Width = tb->UnScaleX(sz.cx)
+		'	SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+		'	tbEvents.Width = tb->UnScaleX(sz.cx)
+		'#endif
 	End If
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then

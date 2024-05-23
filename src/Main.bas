@@ -9,7 +9,7 @@
 #include once "Main.bi"
 #include once "mff/Dialogs.bi"
 #include once "mff/Form.bi"
-#include once "mff/SearchBar.bi"
+#include once "mff/SearchBox.bi"
 #include once "mff/TextBox.bi"
 #include once "mff/RichTextBox.bi"
 #include once "mff/TabControl.bi"
@@ -56,7 +56,7 @@ pApp->DoEvents
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration
 Dim Shared As IniFile iniSettings, iniTheme
-Dim Shared As SearchBar txtExplorer, txtForm, txtProperties, txtEvents
+Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
@@ -66,7 +66,6 @@ Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
-Dim Shared As HorizontalBox hbxExplorer, hbxForm, hbxProperties, hbxEvents
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
@@ -7311,12 +7310,19 @@ End Sub
 CreateMenusAndToolBars
 'tbStandard.AddRange 1, @cboCommands
 
+tbLeft.ImagesList = @imgList
+tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
+tbLeft.Flat = True
+tbLeft.Width = 23
+tbLeft.Parent = @pnlLeftPin
+
 tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
 'tbExplorer.DisabledImagesList = @imgList
 tbExplorer.Flat = True
-tbExplorer.Align = DockStyle.alLeft
+tbExplorer.Align = DockStyle.alTop
 tbExplorer.AutoSize = True
+tbExplorer.ExtraMargins.Right = tbLeft.Width
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbtRemoveFileFromProject = tbExplorer.Buttons.Add(, "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True, 0)
 tbExplorer.Buttons.Add tbsSeparator
@@ -7324,6 +7330,11 @@ Var tbFolder = tbExplorer.Buttons.Add(tbsWholeDropdown, "Folder", , @mClick, "Fo
 miShowWithFolders = tbFolder->DropDownMenu.Add(ML("Show With Folders"), "", "ShowWithFolders", @mClick, , , True)
 miShowWithoutFolders = tbFolder->DropDownMenu.Add(ML("Show Without Folders"), "", "ShowWithoutFolders", @mClick, , , True)
 miShowAsFolder = tbFolder->DropDownMenu.Add(ML("Show As Folder"), "", "ShowAsFolder", @mClick, , , False)
+tbExplorer.Buttons.Add tbsSeparator
+Var tbSearch = tbExplorer.Buttons.Add(tbsCustom)
+txtExplorer.Width = 2
+tbSearch->Child = @txtExplorer
+tbSearch->Expand = True
 tbExplorer.Buttons.Add tbsSeparator
 
 Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
@@ -7345,11 +7356,17 @@ End Sub
 tbForm.ImagesList = @imgList
 tbForm.HotImagesList = @imgList
 'tbForm.DisabledImagesList = @imgListD
-tbForm.Align = DockStyle.alLeft
+tbForm.Align = DockStyle.alTop
 tbForm.Flat = True
+tbForm.ExtraMargins.Right = tbLeft.Width
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , tstChecked Or tstEnabled
 tbForm.Buttons.Add tbsSeparator
 tbForm.Buttons.Add , "Component", , @tbFormClick, "Components", "", ML("Add Components")
+tbForm.Buttons.Add tbsSeparator
+Var FormSearch = tbForm.Buttons.Add(tbsCustom)
+txtForm.Width = 2
+FormSearch->Child = @txtForm
+FormSearch->Expand = True
 tbForm.Buttons.Add tbsSeparator
 
 tabLeftWidth = 150
@@ -7814,12 +7831,6 @@ tabLeft.OnSelChange = @tabLeft_SelChange
 pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
 
-tbLeft.ImagesList = @imgList
-tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
-tbLeft.Flat = True
-tbLeft.Width = 23
-tbLeft.Parent = @pnlLeftPin
-
 tpProject = tabLeft.AddTab(ML("Project"))
 
 tpToolbox = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
@@ -7832,6 +7843,8 @@ tpToolbox->Name = "Toolbox"
 			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
 			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
+			tbExplorer.ExtraMargins.Right = tbLeft.Width - 10
+			tbForm.ExtraMargins.Right = tbLeft.Width - 10
 			allocation->x = x - tbLeft.ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0)
 			allocation->y = y
 			allocation->width = tbLeft.ScaleX(tbLeft.Width)
@@ -7890,20 +7903,12 @@ Sub txtExplorer_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	End If
 End Sub
 
-txtExplorer.ExtraMargins.Right = pnlLeftPin.Width + 2
-txtExplorer.ExtraMargins.Bottom = 5
-txtExplorer.Align = DockStyle.alClient
 txtExplorer.OnChange = @txtExplorer_Change
-
-hbxExplorer.Align = DockStyle.alTop
-hbxExplorer.Height = 10
-hbxExplorer.Add @tbExplorer
-hbxExplorer.Add @txtExplorer
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = DockStyle.alBottom
 
-tpProject->Add @hbxExplorer
+tpProject->Add @tbExplorer
 tpProject->Add @lblLeft
 tpProject->Add @tvExplorer
 
@@ -7925,18 +7930,10 @@ Sub txtForm_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	Next
 End Sub
 
-txtForm.ExtraMargins.Right = pnlLeftPin.Width + 2
-txtForm.ExtraMargins.Bottom = 5
-txtForm.Align = DockStyle.alClient
 txtForm.OnChange = @txtForm_Change
 
-hbxForm.Align = DockStyle.alTop
-hbxForm.Height = 10
-hbxForm.Add @tbForm
-hbxForm.Add @txtForm
-
 tpToolbox->Add @pnlToolBox 'tbToolBox
-tpToolbox->Add @hbxForm
+tpToolbox->Add @tbForm
 'tpToolbox->Style = tpToolbox->Style Or ES_AUTOVSCROLL or WS_VSCROLL
 
 'pnlLeft.Width = 153
@@ -7952,34 +7949,42 @@ Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My
 	End Select
 End Sub
 
+tbRight.ImagesList = @imgList
+tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , tstEnabled Or tstChecked
+tbRight.Flat = True
+tbRight.Width = 23
+tbRight.Parent = @pnlRightPin
+
 tbProperties.ImagesList = @imgList
-tbProperties.Align = DockStyle.alLeft
+tbProperties.Align = DockStyle.alTop
 tbProperties.List = True
+tbProperties.ExtraMargins.Right = tbRight.Width
 tbProperties.Buttons.Add tbsCheck Or tbsAutosize, "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , tstEnabled Or tstChecked
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
 tbProperties.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbProperties.Buttons.Add tbsSeparator
+Var PropertiesSearch = tbProperties.Buttons.Add(tbsCustom)
+txtProperties.Width = 2
+PropertiesSearch->Child = @txtProperties
+PropertiesSearch->Expand = True
+tbProperties.Buttons.Add tbsSeparator
 tbProperties.Flat = True
 
-hbxProperties.Align = DockStyle.alTop
-hbxProperties.Height = 10
-hbxProperties.Add @tbProperties
-hbxProperties.Add @txtProperties
-
 tbEvents.ImagesList = @imgList
-tbEvents.Align = DockStyle.alLeft
+tbEvents.Align = DockStyle.alTop
 tbEvents.List = True
+tbEvents.ExtraMargins.Right = tbRight.Width
 tbEvents.Buttons.Add tbsAutosize Or tbsCheck, "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , 0
 tbEvents.Buttons.Add tbsSeparator
+Var EventsSearch = tbEvents.Buttons.Add(tbsCustom)
+txtEvents.Width = 2
+EventsSearch->Child = @txtEvents
+EventsSearch->Expand = True
+tbEvents.Buttons.Add tbsSeparator
 tbEvents.Flat = True
-
-hbxEvents.Align = DockStyle.alTop
-hbxEvents.Height = 10
-hbxEvents.Add @tbEvents
-hbxEvents.Add @txtEvents
 
 Sub txtPropertyValue_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	lvProperties.SetFocus
@@ -8755,12 +8760,12 @@ tabRight.Detachable = True
 tabRight.Reorderable = True
 'tabRight.TabPosition = tpRight
 tpProperties = tabRight.AddTab(ML("Properties"))
-tpProperties->Add @hbxProperties
+tpProperties->Add @tbProperties
 tpProperties->Add @txtLabelProperty
 tpProperties->Add @splProperties
 tpProperties->Add @lvProperties
 tpEvents = tabRight.AddTab(ML("Events"))
-tpEvents->Add @hbxEvents
+tpEvents->Add @tbEvents
 tpEvents->Add @txtLabelEvent
 tpEvents->Add @splEvents
 tpEvents->Add @lvEvents
@@ -8768,12 +8773,6 @@ pnlRight.Add @tabRight
 #ifdef __USE_GTK__
 	tpProperties->Add @pnlPropertyValue
 #endif
-
-tbRight.ImagesList = @imgList
-tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , tstEnabled Or tstChecked
-tbRight.Flat = True
-tbRight.Width = 23
-tbRight.Parent = @pnlRightPin
 
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
@@ -8784,6 +8783,8 @@ tbRight.Parent = @pnlRightPin
 			Dim As Control Ptr lv = IIf(tabRight.SelectedTab = tpProperties, @lvProperties, @lvEvents)
 			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
+			tbProperties.ExtraMargins.Right = tbRight.Width - 10
+			tbEvents.ExtraMargins.Right = tbRight.Width - 10
 			allocation->x = x - tbRight.ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.ScaleX(pnlRight.Width) - x1 + 1, 0)
 			allocation->y = y
 			allocation->width = tbRight.ScaleX(tbRight.Width)
@@ -8852,14 +8853,8 @@ Sub txtEvents_Change(ByRef Designer As My.Sys.Object, Sender As TextBox)
 	tabRight.UpdateUnLock
 End Sub
 
-txtProperties.ExtraMargins.Right = pnlRightPin.Width + 2
-txtProperties.ExtraMargins.Bottom = 5
-txtProperties.Align = DockStyle.alClient
 txtProperties.OnChange = @txtProperties_Change
 
-txtEvents.ExtraMargins.Right = pnlRightPin.Width + 2
-txtEvents.ExtraMargins.Bottom = 5
-txtEvents.Align = DockStyle.alClient
 txtEvents.OnChange = @txtEvents_Change
 
 'ptabCode->Images.AddIcon bmp
@@ -10015,15 +10010,13 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tviewthd = @tvThd
 		tviewwch = @tvWch
 	#endif
-	#ifdef __USE_WINAPI__
-		Dim As ..Size sz
-		SendMessage(tbExplorer.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-		tbExplorer.Width = tbExplorer.UnScaleX(sz.cx)
-		hbxExplorer.RequestAlign
-		SendMessage(tbForm.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
-		tbForm.Width = tbForm.UnScaleX(sz.cx)
-		hbxForm.RequestAlign
-	#endif
+	'#ifdef __USE_WINAPI__
+	'	Dim As ..Size sz
+	'	SendMessage(tbExplorer.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+	'	tbExplorer.Width = tbExplorer.UnScaleX(sz.cx)
+	'	SendMessage(tbForm.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
+	'	tbForm.Width = tbForm.UnScaleX(sz.cx)
+	'#endif
 	'	If MainNode <> 0 Then
 	'		' Should have changelog file for every project
 	'		If MainNode->Text<>"" AndAlso InStr(MainNode->Text,".") Then
