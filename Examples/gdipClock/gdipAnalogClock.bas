@@ -33,6 +33,7 @@ Private Property AnalogClock.FileName(ByRef fFileName As WString)
 		mBackScale = mBackImage.Height / mBackImage.Width
 	End If
 End Property
+
 Private Property AnalogClock.FileName() ByRef As WString
 	If mBackFile Then
 		Return *mBackFile
@@ -126,6 +127,7 @@ Private Function AnalogClock.DrawTray() As GpImage Ptr
 	
 	Return sTmpBitmap.Image
 End Function
+
 Private Function AnalogClock.DrawScale() As GpImage Ptr
 	Dim As Single fRadius = mWidth / 2
 	'刻度距离边缘

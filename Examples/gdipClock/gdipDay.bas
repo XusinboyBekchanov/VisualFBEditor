@@ -18,7 +18,7 @@ Private Sub gdipDay.Background(pWidth As Single, pHeight As Single, pSelectDate 
 	mTxt.Initial(mWidth, mHeight)
 	
 	mBackBitmap.Initial(mWidth, mHeight)
-
+	
 	If mPanelEnabled Then
 		sTmpBitmap.Initial(mWidth, mHeight)
 		GdipGraphicsClear(sTmpBitmap.Graphics, mBackAlpha(DayPanel) + mBackColor(DayPanel))
@@ -60,10 +60,8 @@ Private Sub gdipDay.Background(pWidth As Single, pHeight As Single, pSelectDate 
 		End If
 		mBackBitmap.DrawAlphaImage(sTmpBitmap.Image, mBackAlpha(DayImageFile) Shr 24)
 	End If
-
 	
 	mBackBitmap.DrawImage(DayCalendar(), 0, 0)
-
 	
 	If mOutlineEnabled Then
 		sTmpBitmap.Initial(mWidth, mHeight)
@@ -148,7 +146,8 @@ Private Function gdipDay.DayCalendar() As GpImage Ptr
 		'月
 		mTxt.SetFont(*mFontName, mFontSize / 2.5, FontStyleRegular)
 		'公历月
-		sTxt = mCalendar.sMonthName(Month(mSelectDate))
+		'sTxt = mCalendar.sMonthName(Month(mSelectDate))
+		sTxt = Format(mSelectDate, "mmm")
 		mTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mOffsetX - mTxt.TextWidth(sTxt)) / 2, mOH(1) + (mH(1) - mTxt.TextHeight(sTxt)) / 2, mForeAlpha(DayMonth) + mForeColor(DayMonth))
 		'农历月
 		sTxt = IIf(mCalendar.IsLeap, "闰", "") & mCalendar.lMonthName(mCalendar.lMonth)
@@ -168,7 +167,8 @@ Private Function gdipDay.DayCalendar() As GpImage Ptr
 		mTxt.SetFont(*mFontName, mFontSize / 3.5, FontStyleRegular)
 		'公历节日
 		sTxt = mCalendar.sHoliday & mCalendar.wHoliday
-		If sTxt = "" Then sTxt = mCalendar.WeekNameFull(Weekday(mSelectDate))
+		'If sTxt = "" Then sTxt = mCalendar.WeekNameFull(Weekday(mSelectDate))
+		If sTxt = "" Then sTxt = Format(mSelectDate, "dddd")
 		mTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mOffsetX - mTxt.TextWidth(sTxt)) / 2, mOH(3) + (mH(3) - mTxt.TextHeight(sTxt)) / 2, mForeAlpha(DayWeek) + mForeColor(DayWeek))
 		'农历节日
 		sTxt = mCalendar.lSolarTerm & mCalendar.lHoliday
@@ -186,7 +186,8 @@ Private Function gdipDay.DayCalendar() As GpImage Ptr
 		'月
 		mTxt.SetFont(*mFontName, mFontSize / 3.5, FontStyleRegular)
 		'公历月
-		sTxt = mCalendar.sMonthName(Month(mSelectDate))
+		'sTxt = mCalendar.sMonthName(Month(mSelectDate))
+		sTxt = Format(mSelectDate, "mmm")
 		mTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mOffsetX - mTxt.TextWidth(sTxt)) / 2, mOH(1) + (mH(1) - mTxt.TextHeight(sTxt)) / 2, mForeAlpha(DayMonth) + mForeColor(DayMonth))
 		
 		'日
@@ -199,7 +200,8 @@ Private Function gdipDay.DayCalendar() As GpImage Ptr
 		mTxt.SetFont(*mFontName, mFontSize / 3.5, FontStyleRegular)
 		'公历节日
 		sTxt = mCalendar.sHoliday & mCalendar.wHoliday
-		If sTxt = "" Then sTxt = mCalendar.WeekNameFull(Weekday(mSelectDate))
+		'If sTxt = "" Then sTxt = mCalendar.WeekNameFull(Weekday(mSelectDate))
+		If sTxt = "" Then sTxt = Format(mSelectDate, "dddd")
 		mTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mOffsetX - mTxt.TextWidth(sTxt)) / 2, mOH(3) + (mH(3) - mTxt.TextHeight(sTxt)) / 2, mForeAlpha(DayWeek) + mForeColor(DayWeek))
 	Case 2 '农历
 		'年

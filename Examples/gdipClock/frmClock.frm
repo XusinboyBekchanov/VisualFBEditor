@@ -24,6 +24,7 @@
 	
 	#include once "../Sapi/Speech.bi"
 	#include once "../MDINotepad/Text.bi"
+	#include once "../Midi/midi.bi"
 	
 	Const MSG_SAPI_EVENT = WM_USER + 1024   ' --> change me
 	
@@ -65,6 +66,10 @@
 		mVoiceCount As Integer = -1
 		pSpVoice As ISpVoice Ptr
 		
+		'midi
+		mMidiID As UINT = -1
+		mMidiOut As HMIDIOUT
+		
 		'Profile
 		mRectAnalog As Rect
 		mRectDay As Rect
@@ -102,6 +107,8 @@
 		Declare Sub ProfileInitial()    '初始化Profile
 		Declare Sub ProfileRelease()    '释放Profile资源
 		Declare Sub ProfileSave(sFileName As WString, sKeyValue() As WString Ptr)   '存储Profile
+		
+		Declare Sub Notify(Title As WString, Info As WString)
 		
 		'Clock
 		mLocateHorizontal As Integer
@@ -3125,13 +3132,14 @@ Private Sub frmClockType.SpeechNow(sDt As Double, ByVal sLan As Integer = 0)
 	End Select
 	#ifdef __USE_WINAPI__
 		If pSpVoice Then pSpVoice->Speak(s, SVSFlagsAsync, NULL)
+		Notify(!"VisualFBEditor GDIP Clock\0", *s)
 	#endif
 	WDeAllocate(s)
 End Sub
 
 Private Sub frmClockType.SpeechInit()
 	#ifdef __USE_WINAPI__
-		' // Create an instance of the SpVoice object
+		' Create an instance of the SpVoice object
 		Dim classID As IID, riid As IID
 		CLSIDFromString(CLSID_SpVoice, @classID)
 		IIDFromString(IID_ISpVoice, @riid)
@@ -3140,9 +3148,9 @@ Private Sub frmClockType.SpeechInit()
 		
 		mnuAnnounce.Enabled = True
 		
-		' // Set the object of interest to word boundaries
+		' Set the object of interest to word boundaries
 		pSpVoice->SetInterest(SPFEI(SPEI_WORD_BOUNDARY), SPFEI(SPEI_WORD_BOUNDARY))
-		' // Set the handle of the window that will receive the MSG_SAPI_EVENT message
+		' Set the handle of the window that will receive the MSG_SAPI_EVENT message
 		pSpVoice->SetNotifyWindowMessage(Handle, MSG_SAPI_EVENT, 0, 0)
 		
 		Dim pVoice As ISpObjectToken Ptr
@@ -3521,6 +3529,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		ProfileSave(*mProfileName, mKeyValue())
 		Form_Resize(This, Width, Height)
 		FileName2Menu(*mProfileExt)
+		Notify(!"VisualFBEditor GDIP Clock\0", !"Profile saved.\r\n" & *mProfileName)
 	Case "mnuProfileSaveAs"
 		SaveFileDialog1.FileName = *mProfileName
 		SaveFileDialog1.Filter = "gdipClock Profile|*" & *mProfileExt
@@ -3542,6 +3551,7 @@ Private Sub frmClockType.mnuMenu_Click(ByRef Sender As MenuItem)
 		WLet(mProfileName, *mAppPath & Sender.Caption & *mProfileExt)
 		If ProfileLoad(*mProfileName, mKeyValue()) Then
 			Profile2Clock(mKeyValue())
+			Notify(!"VisualFBEditor GDIP Clock\0", !"Profile loaded.\r\n" & *mProfileName)
 		End If
 		mTextClock.TextAlpha(mTextAlpha1, mTextAlpha2)
 		If mRectMain.Right And mRectMain.Bottom Then Move(mRectMain.Left, mRectMain.Top, mRectMain.Right, mRectMain.Bottom)
@@ -4330,6 +4340,9 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	ProfileInitial()
 	SpeechInit()
 	
+	midiOutOpen(@mMidiOut, mMidiID, NULL, NULL, NULL)
+	If mMidiOut Then SendProgramChange(mMidiOut, 0, 14)
+	
 	ProfileFrmClock(mKeyValDef())
 	
 	ScreenInfo(mScreenWidth, mScreenHeight)
@@ -4361,21 +4374,7 @@ Private Sub frmClockType.Form_Create(ByRef Sender As Control)
 	End With
 	Shell_NotifyIcon(NIM_ADD, @SystrayIcon)
 	
-	With SystrayIcon
-		.uFlags =  NIF_INFO
-		.szInfo = !"\0"
-		.szInfoTitle = !"\0"
-	End With
-	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
-	
-	With SystrayIcon
-		.uFlags =  NIF_INFO
-		.szInfo = !"GDIP Clock\0"
-		.szInfoTitle = !"VisualFBEditor\0"
-		.uTimeout = 1
-		.dwInfoFlags = 1
-	End With
-	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	Notify(!"VisualFBEditor\0", !"Welcome to use GDIP Clock!\0")
 	
 	WLet(mProfileName, ProfileDefLoad())
 	If ProfileLoad(*mProfileName, mKeyValue()) Then
@@ -4402,6 +4401,25 @@ Private Sub frmClockType.Form_Show(ByRef Sender As Form)
 	TimerComponent1.Enabled = True
 End Sub
 
+Private Sub frmClockType.Notify(Title As WString, Info As WString)
+	
+	With SystrayIcon
+		.uFlags =  NIF_INFO
+		.szInfo = !"\0"
+		.szInfoTitle = !"\0"
+	End With
+	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	
+	With SystrayIcon
+		.uFlags =  NIF_INFO
+		.szInfo = Info
+		.szInfoTitle = Title
+		.uTimeout = 1
+		.dwInfoFlags = 1
+	End With
+	Shell_NotifyIcon(NIM_MODIFY, @SystrayIcon)
+	
+End Sub
 Private Sub frmClockType.Transparent(v As Boolean)
 	Form_Resize(This, Width, Height)
 	frmTrans.Enabled = v
@@ -4471,6 +4489,8 @@ Private Sub frmClockType.Form_Close(ByRef Sender As Form, ByRef Action As Intege
 	If mnuProfileSaveOnExit.Checked Then ProfileSave(*mProfileName, mKeyValue())
 	ProfileRelease()
 	
+	If mMidiOut Then midiOutClose(mMidiOut)
+	
 	Shell_NotifyIcon(NIM_DELETE, @SystrayIcon)
 End Sub
 
@@ -4497,22 +4517,48 @@ Private Sub frmClockType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	
 	Static sNow As Double
 	Dim dNow As Double = Now()
-	If sNow = dNow Then Exit Sub
 	
-	'1/4,1/2, 整点报时
+	If sNow = dNow Then Exit Sub
 	sNow = dNow
 	If mnuAnnounce0.Checked Then Exit Sub
-	If Second(dNow) <> 0 Then Exit Sub
-	Dim m As Integer = Minute(dNow)
-	Dim h As Integer = Hour(dNow)
-	If mnuAnnounce1.Checked Then
-		If m = 0 Then SpeechNow(dNow, mLanguage)
+	
+	Dim m As Integer
+	Dim h As Integer
+	
+	'midi报时
+	If Second(dNow) = 0 Then
+		m = Minute(dNow)
+		h = Hour(dNow)
+		If mnuAnnounce1.Checked Then
+			If m = 0 Then
+				If mMidiOut Then SendNoteOn(mMidiOut, 0, 61, 255)
+			End If
+		End If
+		If mnuAnnounce2.Checked Then
+			If m = 0 Or m = 30 Then
+				If mMidiOut Then SendNoteOn(mMidiOut, 0, 61, 255)
+			End If
+		End If
+		If mnuAnnounce3.Checked Then
+			If m = 0 Or m = 15 Or m = 30 Or m = 45 Then
+				If mMidiOut Then SendNoteOn(mMidiOut, 0, 61, 255)
+			End If
+		End If
 	End If
-	If mnuAnnounce2.Checked Then
-		If m = 0 Or m = 30 Then SpeechNow(dNow, mLanguage)
-	End If
-	If mnuAnnounce3.Checked Then
-		If m = 0 Or m = 15 Or m = 30 Or m = 45 Then SpeechNow(dNow, mLanguage)
+	
+	'1/4,1/2,整点报时
+	If Second(dNow) = 1 Then
+		m = Minute(dNow)
+		h = Hour(dNow)
+		If mnuAnnounce1.Checked Then
+			If m = 0 Then SpeechNow(dNow, mLanguage)
+		End If
+		If mnuAnnounce2.Checked Then
+			If m = 0 Or m = 30 Then SpeechNow(dNow, mLanguage)
+		End If
+		If mnuAnnounce3.Checked Then
+			If m = 0 Or m = 15 Or m = 30 Or m = 45 Then SpeechNow(dNow, mLanguage)
+		End If
 	End If
 End Sub
 
@@ -4534,7 +4580,7 @@ Private Sub frmClockType.Form_MouseMove(ByRef Sender As Control, MouseButton As 
 End Sub
 
 Private Sub frmClockType.Form_Click(ByRef Sender As Control)
-	
+	If mMidiOut Then SendNoteOn(mMidiOut, 0, 61, 255)
 End Sub
 
 Private Sub frmClockType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)

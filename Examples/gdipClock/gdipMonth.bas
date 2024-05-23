@@ -129,7 +129,7 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 	If mShowWeeks Then
 		'绘制周次文字
 		sClr = mForeAlpha(MonthWeek) + mForeColor(MonthWeek)
-		sTxt = "周次"
+		sTxt = "周"
 		sGdipTxt.TextOut(sTmpBitmap.Graphics, sTxt, (mCellWidth - sGdipTxt.TextWidth(sTxt)) / 2, mControlHeight + (mCellHeight - sGdipTxt.TextHeight(sTxt)) / 2, sClr)
 		For i = 1 To mLineCount - 1
 			sTxt = "" & DatePart("ww", DateAdd("d", (i - 1) * 7, mDayStart))
@@ -141,6 +141,7 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 	sClr = mForeAlpha(MonthWeek) + mForeColor(MonthWeek)
 	For i = 0 To 6
 		sTxt = mCalendar.WeekName(i + 1)
+		'sTxt = Format(DateAdd("d", i - mWeekStart - 1, mDayStart), "ddd")
 		sGdipTxt.TextOut(sTmpBitmap.Graphics, sTxt, mWeeksWidth + i * mCellWidth + (mCellWidth - sGdipTxt.TextWidth(sTxt)) / 2, mControlHeight + (mCellHeight - sGdipTxt.TextHeight(sTxt)) / 2, sClr)
 	Next
 	
