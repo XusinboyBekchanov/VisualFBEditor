@@ -2910,8 +2910,9 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 End Sub
 
 Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	If Sender.Parent = 0 Then Exit Sub
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
+	'If Sender.Parent = 0 Then Exit Sub
+	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	Var ii = Sender.ItemIndex
 	If ii = -1 Then Exit Sub
@@ -2934,18 +2935,18 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 		If tb->Des = 0 Then Exit Sub
 		Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
 		If st AndAlso st->ReadPropertyFunc <> 0 Then
-			#ifdef __USE_GTK__
-				'tb->Des->SelectedControl = Ctrl
-				'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
-			#else
+			'#ifdef __USE_GTK__
+			'	'tb->Des->SelectedControl = Ctrl
+			'	'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
+			'#else
 				Dim iParentCtrl As Any Ptr = tb->Des->GetParentControl(Ctrl)
 				If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
-				Dim As HWND Ptr hw = st->ReadPropertyFunc(Ctrl, "Handle")
+				Dim As Any Ptr hw = st->ReadPropertyFunc(Ctrl, "Handle")
 				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False)
 				DesignerChangeSelection *tb->Des, Ctrl
-			#endif
+			'#endif
 		End If
 	End If
 End Sub
@@ -3373,8 +3374,9 @@ End Sub
 
 Sub cboFunction_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	If bNotFunctionChange Then Exit Sub
-	If Sender.Parent = 0 Then Exit Sub
-	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
+	'If Sender.Parent = 0 Then Exit Sub
+	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
+	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	'If frmMain.ActiveControl AndAlso frmMain.ActiveControl->ClassName = "EditControl" Then Exit Sub
 	Dim frmName As String
@@ -10112,7 +10114,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 End Sub
 
 Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton)
-	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent->Parent)
+	'Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent->Parent->Parent)
+	Var tb = Cast(TabWindow Ptr, Cast(ToolButton Ptr, @Button)->Ctrl->Parent)
 	If tb = 0 Then Exit Sub
 	With *tb
 		Select Case Button.Name
@@ -10484,15 +10487,15 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		pnlTop.Height = 25
 	#endif
-	pnlTop.Align = DockStyle.alTop
-	#ifdef __USE_GTK__
-		pnlTopCombo.Height = 33
-	#else
-		pnlTopCombo.Height = 25
-	#endif
+	'pnlTop.Align = DockStyle.alTop
+	'#ifdef __USE_GTK__
+	'	pnlTopCombo.Height = 33
+	'#else
+	'	pnlTopCombo.Height = 25
+	'#endif
 	txtCode.ContextMenu = @mnuCode
-	pnlTopCombo.Align = DockStyle.alClient
-	pnlTopCombo.Width = 101
+	'pnlTopCombo.Align = DockStyle.alClient
+	'pnlTopCombo.Width = 101
 	pnlForm.Name = "Designer"
 	pnlForm.Width = 360
 	pnlForm.Align = DockStyle.alRight
@@ -10515,55 +10518,65 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'cboClass.ItemIndex = 0
 	'cboClass.SetBounds 0, 2, 60, 20
 	tbrTop.ImagesList = pimgList
-	#ifdef __USE_GTK__
-		tbrTop.Width = 150
-		pnlToolbar.Width = 150
-	#else
-		tbrTop.Width = 75
-		pnlToolbar.Width = 75
-	#endif
-	tbrTop.Align = DockStyle.alRight
+	'#ifdef __USE_GTK__
+	'	tbrTop.Width = 150
+	'	pnlToolbar.Width = 150
+	'#else
+	'	tbrTop.Width = 75
+	'	pnlToolbar.Width = 75
+	'#endif
+	'tbrTop.Align = DockStyle.alRight
+	tbrTop.Align = DockStyle.alTop
+	Var btnClass = tbrTop.Buttons.Add(tbsCustom)
+	btnClass->Child = @cboClass
+	btnClass->Expand = True
+	tbrTop.Buttons.Add tbsSeparator
+	Var btnFunction = tbrTop.Buttons.Add(tbsCustom)
+	btnFunction->Child = @cboFunction
+	btnFunction->Expand = True
 	tbrTop.Buttons.Add tbsSeparator
 	tbrTop.Buttons.Add tbsCheckGroup, "Code", , , "Code", , ML("Show Code"), True ' Show the toollips
 	tbrTop.Buttons.Add tbsCheckGroup, "Form", , , "Form", , ML("Show Form"), True ' Show the toollips
 	tbrTop.Buttons.Add tbsCheckGroup, "CodeAndForm", , , "CodeAndForm", , ML("Show Code And Form"), True '
 	tbrTop.OnButtonClick = @tbrTop_ButtonClick
 	tbrTop.Flat = True
-	pnlToolbar.Align = DockStyle.alRight
-	cboClass.Width = 50
+	'pnlToolbar.Align = DockStyle.alRight
+	'cboClass.Width = 50
 	#ifdef __USE_GTK__
-		cboClass.Top = 0
+		'cboClass.Top = 0
 		#ifdef __USE_GTK3__
 			cboClass.Height = 20
 		#else
 			cboClass.Height = 30
 		#endif
 	#else
-		cboClass.Top = 1
-		cboClass.Height = 30 * 22
+		'cboClass.Top = 1
+		'cboClass.Height = 30 * 22
 		cboClass.DropDownCount = 30
 	#endif
-	cboClass.Anchor.Left = asAnchor
-	cboClass.Anchor.Right = asAnchorProportional
+	'cboClass.Anchor.Left = asAnchor
+	'cboClass.Anchor.Right = asAnchorProportional
 	cboClass.OnSelected = @cboClass_Change
 	cboClass.ImagesList = pimgListTools
+	cboClass.Tag = @This
 	cboFunction.ImagesList = pimgList
-	cboFunction.Left = 50 + 0 + 1
-	cboFunction.Width = 50
+	cboFunction.Tag = @This
+	'cboFunction.Left = 50 + 0 + 1
+	'cboFunction.Width = 50
 	#ifdef __USE_GTK__
-		cboFunction.Top = 0
+	'	cboFunction.Top = 0
 		#ifdef __USE_GTK3__
 			cboFunction.Height = 20
 		#else
 			cboFunction.Height = 30
 		#endif
 	#else
-		cboFunction.Top = 1
+	'	cboFunction.Top = 1
 		cboFunction.Height = 30 * 22
 		cboFunction.DropDownCount = 30
 	#endif
-	cboFunction.Anchor.Left = asAnchorProportional
-	cboFunction.Anchor.Right = asAnchor
+	'cboFunction.Anchor.Left = asAnchorProportional
+	'cboFunction.Anchor.Right = asAnchor
 	cboFunction.OnSelected = @cboFunction_Change
 	'cboFunction.Sort = True
 	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
@@ -10571,11 +10584,11 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Visible = False
 	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
-	pnlToolbar.Add @tbrTop
-	pnlTop.Add @pnlToolbar
-	pnlTop.Add @pnlTopCombo
-	pnlTopCombo.Add @cboClass
-	pnlTopCombo.Add @cboFunction
+	'pnlToolbar.Add @tbrTop
+	'pnlTop.Add @pnlToolbar
+	'pnlTop.Add @pnlTopCombo
+	'pnlTopCombo.Add @cboClass
+	'pnlTopCombo.Add @cboFunction
 	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
 		If bNew Then
 			If TreeN > 0 Then FileName = TreeN->Text
@@ -10608,7 +10621,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		pnlForm.Style = pnlForm.Style Or WS_HSCROLL Or WS_VSCROLL
 	#endif
 	pnlCode.Add @txtCode
-	This.Add @pnlTop
+	'This.Add @pnlTop
+	This.Add @tbrTop
 	This.Add @pnlForm
 	This.Add @splForm
 	This.Add @pnlCode
