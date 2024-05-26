@@ -567,6 +567,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			miGotoCodeForm->Enabled = True
 			tb->tbrTop.Buttons.Item("Form")->Enabled = True
 			tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = True
+			tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
 			'tpProperties->SelectTab
 		End If
 		TabCtl.MoveCloseButtons ptabCode
@@ -1861,13 +1862,15 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		Next
 		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlNames
 		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlNames
-		'#ifdef __USE_WINAPI__
+		#ifdef __USE_WINAPI__
+			SendMessage(tbProperties.Handle, WM_SIZE, 0, 0)
+			SendMessage(tbEvents.Handle, WM_SIZE, 0, 0)
 		'	Dim As ..Size sz
 		'	SendMessage(tbProperties.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
 		'	tbProperties.Width = tb->UnScaleX(sz.cx)
 		'	SendMessage(tbEvents.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
 		'	tbEvents.Width = tb->UnScaleX(sz.cx)
-		'#endif
+		#endif
 	End If
 	tb->FillAllProperties
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
@@ -2940,7 +2943,9 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 			'	'tb->Des->MoveDots(tb->Des->ReadPropertyFunc(Ctrl, "Widget"))
 			'#else
 				Dim iParentCtrl As Any Ptr = tb->Des->GetParentControl(Ctrl)
-				If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
+				#ifdef __USE_WINAPI__
+					If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
+				#endif
 				tb->Des->SelectedControls.Clear
 				tb->Des->SelectedControl = Ctrl
 				Dim As Any Ptr hw = st->ReadPropertyFunc(Ctrl, "Handle")
@@ -10188,9 +10193,11 @@ End Sub
 Sub TabWindow_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
-	If tb->pnlForm.Visible AndAlso tb->pnlForm.Align = 2 AndAlso tb->pnlForm.Width > tb->Width Then
-		tb->pnlForm.Width = tb->Width - tb->splForm.Width
-	End If
+	#ifndef __USE_GTK__
+		If tb->pnlForm.Visible AndAlso tb->pnlForm.Align = 2 AndAlso tb->pnlForm.Width > tb->Width Then
+			tb->pnlForm.Width = tb->Width - tb->splForm.Width
+		End If
+	#endif
 End Sub
 
 'mnuCode.ImagesList = pimgList '<m>
