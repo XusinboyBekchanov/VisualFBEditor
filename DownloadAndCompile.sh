@@ -1,6 +1,22 @@
-sudo apt install libgtk-3-dev
-sudo apt install git
-sudo apt-get install wget
+if command -v apt &> /dev/null; then
+    echo "Debian-based system"
+    sudo apt install libgtk-3-dev
+    sudo apt install git
+    sudo apt-get install wget
+elif command -v pacman &> /dev/null; then
+    echo "Arch-based system"
+    if ! pacman -Q gtk3 &> /dev/null; then
+        sudo pacman -S gtk3
+    fi
+    if ! pacman -Q git &> /dev/null; then
+        sudo pacman -S git
+    fi
+    if ! pacman -Q wget &> /dev/null; then
+        sudo pacman -S wget
+    fi
+    if ! pacman -Q ncurses5-compat-libs  &> /dev/null; then
+        sudo pacman -S ncurses5-compat-libs
+    fi
 rm -r VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/VisualFBEditor
 cd VisualFBEditor/Controls
@@ -19,3 +35,4 @@ cd Controls/MyFbFramework/mff
 cd ..
 cd ..
 cd ..
+fi
