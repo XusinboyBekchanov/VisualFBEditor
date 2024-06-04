@@ -932,7 +932,7 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	btnReplaceShow.Hint = IIf(mFormFind, ML("Expand to Replace Mode"), ML("Narrowdown to Find mode"))
 	btnReplace.Enabled = IIf(mFormFind, False, True)
 	btnReplaceAll.Enabled = IIf(mFormFind, False, True)
-	Height = IIf(mFormFind, 52, 82)
+	This.Size = Type<My.Sys.Drawing.Size>(433, IIf(mFormFind, 52, 82))
 	btnFind.SetFocus
 End Sub
 
