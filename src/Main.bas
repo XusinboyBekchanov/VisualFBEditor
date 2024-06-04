@@ -938,8 +938,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Dim sa As SECURITY_ATTRIBUTES
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
-				Dim sBuffer As ZString * BufferSize
-				Dim sOutput As UString
+				Dim sBufferRead As ZString * BufferSize
+				Dim sBuffer As WString * BufferSize
+				Dim sOutput As WString * BufferSize
 				Dim bytesRead As DWORD
 				Dim result_ As Integer
 				
@@ -948,7 +949,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				sa.bInheritHandle = True
 				
 				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
-					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
+					ShowMessages(ML("Error: Couldn't Create Pipe") & ": " & CurrentCompiler, False)
 					CompileResult = 0
 					Continue For
 				End If
@@ -966,25 +967,22 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				
 				CloseHandle hWritePipe
-				
-				Dim As Integer Pos1, FirstErrFlag
+				Dim As Integer Pos1
+				Dim res() As WString Ptr
 				Do
-					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-					sBuffer = Left(sBuffer, bytesRead)
-					Pos1 = InStrRev(sBuffer, Chr(10))
+					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
+					sBufferRead = Left(sBufferRead, bytesRead)
+					MultiByteToWideChar(CP_ACP, 0, StrPtr(sBufferRead), -1, sBuffer, bytesRead * 2)
+					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(10)) Else Continue Do
 					If Pos1 > 0 Then
-						Dim res() As WString Ptr
-						sOutput += Left(sBuffer, Pos1 - 1)
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
-							sOutput = Replace(sOutput, Chr(13, 10), " ")
+							sOutput += Replace(sBuffer, Chr(13, 10), " ")
 							ERRGoRc = True
-						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
-							sOutput = Replace(sOutput, Chr(13, 10), " ")
+						ElseIf InStr(sBuffer, "of Resource Script ") > 0 Then
+							sOutput += Replace(sBuffer, Chr(13, 10), " ")
+						Else
+							sOutput += sBuffer
 						End If
-						Dim As String buffer = Str(sOutput)
-						Dim As Integer wideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, NULL, 0)
-						sOutput.Resize wideCharsNeeded
-						MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
 							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
@@ -993,7 +991,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
 								OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
-								ShowMessages(*res(i), False)
+								'ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 								If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
 									If bFlagErr = 2 Then
@@ -1003,9 +1001,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									Else
 										NumberInfo += 1
 									End If
-								
+								Else
+									ShowMessages(*res(i), False)
 								End If
-								If 	bFlagErr >= 0 Then
+								If 	bFlagErr >= 0 AndAlso iLine > 0 Then
 									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
@@ -1058,17 +1057,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							sOutput = ""
 						Next i
 						Erase res
-						sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
-						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
-							sOutput +=  Chr(10) + sBuffer
-							FirstErrFlag +=1
-						Else
-							sOutput += sBuffer
-						End If
+						sOutput += sBuffer
 					End If
+					sBuffer = "": sBufferRead = ""
 				Loop While result_
-				
 				CloseHandle pi.hProcess
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
