@@ -967,12 +967,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				
 				CloseHandle hWritePipe
-				Dim As Integer Pos1
+				Dim As Integer Pos1, FirstErrFlag
 				Dim res() As WString Ptr
 				Do
 					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
 					sBufferRead = Left(sBufferRead, bytesRead)
-					MultiByteToWideChar(CP_ACP, 0, StrPtr(sBufferRead), -1, sBuffer, bytesRead * 2)
+					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
 					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(10)) Else Continue Do
 					If Pos1 > 0 Then
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
@@ -1058,7 +1058,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Next i
 						Erase res
 					Else
-						sOutput += sBuffer
+						If FirstErrFlag < 2 Then
+							sOutput +=  Chr(10) + sBuffer
+							FirstErrFlag += 1
+						Else
+							sOutput += sBuffer
+						End If
 					End If
 					sBuffer = "": sBufferRead = ""
 				Loop While result_
