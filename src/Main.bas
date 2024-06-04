@@ -1058,7 +1058,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Next i
 						Erase res
 					Else
-						If FirstErrFlag < 2 Then
+						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
 							sOutput +=  Chr(10) + sBuffer
 							FirstErrFlag += 1
 						Else
