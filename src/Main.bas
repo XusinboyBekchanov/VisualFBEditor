@@ -971,6 +971,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Dim res() As WString Ptr
 				Do
 					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
+					If bytesRead = 0 Then sOutput = "" : Exit Do 
 					sBufferRead = Left(sBufferRead, bytesRead)
 					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
 					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(10)) Else Continue Do
@@ -1132,6 +1133,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Yaratilmadi Or Band Then
 			ThreadsEnter()
 			If Parameter <> "Check" Then
+				'Sometimes information is missed when compiling too quickly in less than 1 second. 
+				If lvProblems.ListItems.Count < 1 Then ShowMessages(Str(Time) & ": " & MS("Found $1.",  ML("Errors") & " (1) " & ML("Pos")), False) 
 				ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 				If (Not Log2_) AndAlso lvProblems.ListItems.Count <> 0 Then tpProblems->SelectTab
 			ElseIf lvProblems.ListItems.Count <> 0 Then
