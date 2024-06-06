@@ -939,8 +939,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
 				Dim sBufferRead As ZString * BufferSize
-				Dim sBuffer As WString * BufferSize
-				Dim sOutput As WString * BufferSize
+				Dim As WString * BufferSize sBuffer, TmpStr, sOutput
+								
 				Dim bytesRead As DWORD
 				Dim result_ As Integer
 				
@@ -960,7 +960,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.hStdError = hWritePipe
 				si.wShowWindow = 0
 				
-				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
+				If CreateProcessW(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
 					CompileResult = 0
 					Continue For
@@ -972,8 +972,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Do
 					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
 					If bytesRead = 0 Then sOutput = "" : Exit Do 
-					sBufferRead = Left(sBufferRead, bytesRead)
-					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
+					sBuffer = Left(sBufferRead, bytesRead)
+					'MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
 					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(10)) Else Continue Do
 					If Pos1 > 0 Then
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
@@ -1012,7 +1012,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 								End If
 							Else
-								Dim As UString TmpStr
 								Dim As Integer nPos = InStr(*res(i), ":")
 								If nPos < 1 Then nPos = InStr(*res(i), " ")
 								If nPos < 1 Then
