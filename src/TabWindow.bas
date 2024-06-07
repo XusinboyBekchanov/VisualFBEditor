@@ -10986,6 +10986,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	WLet(ErrTitle, sLine)
 	ErrorLine = 0
 	Pos1 = InStr(LCase(sLine), ") error ")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), ") warning ")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "ld.exe:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error!")
@@ -11023,14 +11024,15 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		'If ErrorLine = 0 Then Return 0
 		WLet(ErrFileName, Left(sLine, Pos2 - 1))
 	End If
-	If StartsWith(*ErrFileName, "In file included from ") Then
-		WLet(ErrTitle, Left(sLine, 22))
+	If StartsWith(*ErrFileName, "In file included from") Then
+		WLet(ErrTitle, MLCompilerFun(Trim(Left(sLine, 22))))
 		WLetEx(ErrFileName, Mid(*ErrFileName, 23), True)
 	Else
 		Pos3 = InStr(Pos1, sLine, ":")
 		If Pos3 > 0 Then
 			Dim As String Dots = IIf(bFlagErr = "", "", ": ")
-			Pos2 = InStrRev(sLine, ",")
+			Pos2 = InStr(Pos3, sLine, ",")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, " in ")
 			If Pos2 < 1 Then
 				Pos2 = Len(sLine)
 			ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
@@ -11039,6 +11041,8 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 			End If
 			If InStr(Mid(sLine, Pos2),", found") = 1 Then
 				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
+			ElseIf InStr(Mid(sLine, Pos2), " in ") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(" in "))))
 			ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
 				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
 			ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then
@@ -11050,6 +11054,13 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 				'at parameter
 			Else
 				If Pos2 > Pos3 Then
+					''Error! Line 13 of Resource Script (frm1.RC):- Invalid preprocessor directive:- #defin
+					Dim As Integer PosStart = InStr(sLine, " of Resource Script ")
+					If PosStart > 0 Then
+						Pos3 = InStr(PosStart, sLine, ":-") + 2
+						Pos2 = InStr(Pos3 + 2, sLine, ":-") - 1
+						If Pos2 < Pos3 Then Pos3 = PosStart + 20: Pos2 = Len(sLine)
+					End If
 					Dim As WString * 250 tStr = Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3))
 					If Right(tStr, 1) = "," Then tStr = Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1)) 'Strange. Sometime got letter ","
 					WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(tStr) & IIf(Mid(sLine, Pos2 + 1) <> "", ", " + (Mid(sLine, Pos2 + 2)), "")) '& Mid(sLine, Pos2+1)

@@ -19,7 +19,7 @@
 		#if _MAIN_FILE_ = __FILE__
 			With App
 				.CurLanguagePath = ExePath & "/Languages/"
-				.CurLanguage = .Language
+				.CurLanguage = My.Sys.Language
 			End With
 		#endif
 		' Form1
