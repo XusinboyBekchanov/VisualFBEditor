@@ -478,16 +478,22 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 						bChanged = False
 						If CreateFormTypesWithoutTypeWord Then
 							If LineTrim = "Type Form1Type Extends Form" Then
-								.txtCode.ReplaceLine(i, LeftSpace & "Type Form1 Extends Form")
+								.txtCode.ReplaceLine(i, LeftSpace & "Type " & NewFormName & " Extends Form")
+								bChanged = True
+							ElseIf LineTrim = "Constructor Form1Type" Then
+								.txtCode.ReplaceLine(i, LeftSpace & "Constructor " & NewFormName)
 								bChanged = True
 							ElseIf LineTrim = "Class Form1Type Extends Form" Then
-								.txtCode.ReplaceLine(i, LeftSpace & "Class Form1 Extends Form")
+								.txtCode.ReplaceLine(i, LeftSpace & "Class " & NewFormName & " Extends Form")
 								bChanged = True
 							ElseIf LineTrim = "Dim Shared Form1 As Form1Type" Then
-								.txtCode.ReplaceLine(i, LeftSpace & "Dim Shared fForm1 As Form1")
+								.txtCode.ReplaceLine(i, LeftSpace & "Dim Shared f" & NewFormName & " As Form1")
 								bChanged = True
 							ElseIf LineTrim = "Form1.Show" Then
-								.txtCode.ReplaceLine(i, LeftSpace & "fForm1.Show")
+								.txtCode.ReplaceLine(i, LeftSpace & "f" & NewFormName & ".Show")
+								bChanged = True
+							ElseIf LineTrim = "Form1.MainForm = True" Then
+								.txtCode.ReplaceLine(i, LeftSpace & "f" & NewFormName & ".MainForm = True")
 								bChanged = True
 							End If
 							If bChanged Then LineTrim = .txtCode.Lines(i)
