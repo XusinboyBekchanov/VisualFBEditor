@@ -10986,6 +10986,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	WLet(ErrTitle, sLine)
 	ErrorLine = 0
 	Pos1 = InStr(LCase(sLine), ") error ")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), ") warning ")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "ld.exe:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error!")
@@ -11030,7 +11031,8 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Pos3 = InStr(Pos1, sLine, ":")
 		If Pos3 > 0 Then
 			Dim As String Dots = IIf(bFlagErr = "", "", ": ")
-			Pos2 = InStrRev(sLine, ",")
+			Pos2 = InStr(Pos3, sLine, ",")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, " in ")
 			If Pos2 < 1 Then
 				Pos2 = Len(sLine)
 			ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
@@ -11039,6 +11041,8 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 			End If
 			If InStr(Mid(sLine, Pos2),", found") = 1 Then
 				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(", found"))))
+			ElseIf InStr(Mid(sLine, Pos2), " in ") = 1 Then
+				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("found") + (Mid(sLine, Pos2 + Len(" in "))))
 			ElseIf InStr(Mid(sLine, Pos2),", before") = 1 Then
 				WLet(ErrTitle, ML(bFlagErr) + Dots + MLCompilerFun(Trim(Mid(sLine, Pos3 + 1, Pos2 - Pos3 - 1))) + ", " + ML("before") + (Mid(sLine, Pos2 + Len(", before"))))
 			ElseIf InStr(Mid(sLine, Pos2),", after") = 1 Then

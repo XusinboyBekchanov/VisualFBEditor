@@ -932,14 +932,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				CloseFile_(Fn)
 			#else
-				#define BufferSize 2048
+				Dim As Integer  BufferSize = 64
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
 				Dim sa As SECURITY_ATTRIBUTES
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
-				Dim sBufferRead As ZString * BufferSize
-				Dim As WString * BufferSize sBuffer, TmpStr, sOutput
+				Dim sBufferRead As ZString * 2048
+				Dim As WString * 2048 sBuffer, TmpStr, sOutput
 								
 				Dim bytesRead As DWORD
 				Dim result_ As Integer
@@ -948,7 +948,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				sa.lpSecurityDescriptor = NULL
 				sa.bInheritHandle = True
 				
-				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, ByVal 0) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Pipe") & ": " & CurrentCompiler, False)
 					CompileResult = 0
 					Continue For
@@ -958,23 +958,24 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
 				si.hStdOutput = hWritePipe
 				si.hStdError = hWritePipe
-				si.wShowWindow = 0
+				si.hStdInput = hReadPipe
+				si.wShowWindow = SW_HIDE
 				
-				If CreateProcessW(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
+				If CreateProcessW(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, ByVal 0, ByVal 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
 					CompileResult = 0
 					Continue For
 				End If
 				
 				CloseHandle hWritePipe
-				Dim As Integer Pos1, FirstErrFlag
+				Dim As Integer Pos1, FirstErrFlag = 0
 				Dim res() As WString Ptr
 				Do
 					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
-					If bytesRead = 0 Then sOutput = "" : Exit Do 
-					sBuffer = Left(sBufferRead, bytesRead)
-					'MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
-					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(10)) Else Continue Do
+					If bytesRead = 0 Then sOutput = "" : Exit Do
+					sBufferRead = Left(sBufferRead, bytesRead)
+					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
+					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(13, 10)) Else Continue Do
 					If Pos1 > 0 Then
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput += Replace(sBuffer, Chr(13, 10), " ")
@@ -982,12 +983,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						ElseIf InStr(sBuffer, "of Resource Script ") > 0 Then
 							sOutput += Replace(sBuffer, Chr(13, 10), " ")
 						Else
-							sOutput += sBuffer
+							sOutput += Left(sBuffer, Pos1)
 						End If
-						Split sOutput, Chr(10), res()
+						Split sOutput, Chr(13, 10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
-							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+							*res(i) = Trim(*res(i), Any !"\t\n\r ")
+							If *res(i) = "" OrElse StartsWith(*res(i), "|") Then Continue For
 							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
@@ -1016,11 +1017,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								If nPos < 1 Then nPos = InStr(*res(i), " ")
 								If nPos < 1 Then
 									nPos = Len(*res(i)) + 1
-									TmpStr = Trim(*res(i))
+									TmpStr = *res(i)
 								Else
 									TmpStr = Trim(Left(*res(i), nPos - 1))
 								End If
-								If StartsWith(TmpStr, "FreeBASIC") Then 
+								If StartsWith(TmpStr, "FreeBASIC") Then
 									nPos = Len(*res(i)) + 1
 									TmpStr = Replace(Replace(*res(i), "FreeBASIC Compiler", ML("FreeBASIC Compiler")), "Version", ML("Version"))
 									Var Pos1 = InStr(TmpStr, "built for ")
@@ -1054,12 +1055,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								ThreadsLeave()
 							End If
 							_Deallocate(res(i)): res(i) = 0
-							sOutput = ""
 						Next i
 						Erase res
+						sOutput = Mid(sBuffer, Pos1 + 2)
 					Else
-						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
-							sOutput +=  Chr(10) + sBuffer
+						If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse InStr(LCase(sOutput), "assembling") OrElse result_ = False) Then
+							sOutput +=  Chr(13, 10) + sBuffer
+							BufferSize = 2048
 							FirstErrFlag += 1
 						Else
 							sOutput += sBuffer
