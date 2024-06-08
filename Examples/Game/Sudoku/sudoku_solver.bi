@@ -6,7 +6,7 @@
 '############################################################################################
 
 ''清空x,y点行列宫范围内的候选数
-Sub Clear_Point(sudo() As Integer, ByVal tryNum As Integer, ByVal x As Integer, ByVal y As Integer)
+Sub Clear_Point(sudo(Any, Any, Any) As Integer, ByVal tryNum As Integer, ByVal x As Integer, ByVal y As Integer)
 	For v As Integer = 0 To 8
 		sudo(tryNum, v, y) = 0
 		sudo(tryNum, x, v) = 0
@@ -19,7 +19,7 @@ Sub Clear_Point(sudo() As Integer, ByVal tryNum As Integer, ByVal x As Integer, 
 End Sub
 
 ''完全清空候选数数组
-Sub Clear_Bits(Save() As Integer)
+Sub Clear_Bits(Save(Any, Any, Any) As Integer)
 	For i As Integer = 0 To 8
 		For j As Integer = 0 To 8
 			For p As Integer = 1 To 9
@@ -30,7 +30,7 @@ Sub Clear_Bits(Save() As Integer)
 End Sub
 
 ''判断两个数独否完全一致
-Function IsTheSame(Sudo() As Integer, SudoExt() As Integer) As Boolean
+Function IsTheSame(Sudo(Any, Any) As Integer, SudoExt(Any, Any) As Integer) As Boolean
 	For i As Integer = 0 To 8
 		For k As Integer = 0 To 8
 			If Sudo(i, k) <> SudoExt(i, k) Then
@@ -42,7 +42,7 @@ Function IsTheSame(Sudo() As Integer, SudoExt() As Integer) As Boolean
 End Function
 
 ''复制数独
-Sub CopySudo(Sudo() As Integer, SudoExt() As Integer)
+Sub CopySudo(Sudo(Any, Any) As Integer, SudoExt(Any, Any) As Integer)
 	Dim As Integer  i, k
 	For i = 0 To 8
 		For k = 0 To 8
@@ -51,8 +51,18 @@ Sub CopySudo(Sudo() As Integer, SudoExt() As Integer)
 	Next i
 End Sub
 
+Sub CopySudoMix(Sudo(Any, Any, Any) As Integer, SudoExt(Any, Any) As Integer)
+	Dim As Integer i, k, p
+	For i = 0 To 8
+		For k = 0 To 8
+			Sudo(0, i, k) = SudoExt(i, k)
+		Next k
+	Next i
+End Sub
+
+
 ''候选数模式复制数独 Sudo(0 To 9, 0 To 8, 0 To 8)
-Sub BitCopySudo(Sudo() As Integer, SudoExt() As Integer)
+Sub BitCopySudo(Sudo(Any, Any, Any) As Integer, SudoExt(Any, Any, Any) As Integer)
 	Dim As Integer i, k, p
 	For p = 0 To 9
 		For i = 0 To 8
@@ -64,27 +74,27 @@ Sub BitCopySudo(Sudo() As Integer, SudoExt() As Integer)
 End Sub
 
 ' 判断是否允许填入(x,y)点的z值
-Function CanPutIn(Sudo() As Integer, ByVal x As Integer, ByVal y As Integer, ByVal z As Integer) As Boolean
-	If Sudo(x, y) <> 0 Then
+Function CanPutIn(Sudo(Any, Any, Any) As Integer, ByVal x As Integer, ByVal y As Integer, ByVal z As Integer) As Boolean
+	If Sudo(0, x, y) <> 0 Then
 		Return False
 	End If
 	Dim As Integer a, b
 	
 	For a = 0 To 8
-		If Sudo(a, y) = z Then
+		If Sudo(0, a, y) = z Then
 			Return False
 		End If
 	Next a
 	
 	For b = 0 To 8
-		If Sudo(x, b) = z Then
+		If Sudo(0, x, b) = z Then
 			Return False
 		End If
 	Next b
 	
 	For a = (x \ 3) * 3 To (x \ 3) * 3 + 2
 		For b = (y \ 3) * 3 To (y \ 3) * 3 + 2
-			If Sudo(a, b) = z Then
+			If Sudo(0, a, b) = z Then
 				Return False
 			End If
 		Next b
@@ -93,7 +103,7 @@ Function CanPutIn(Sudo() As Integer, ByVal x As Integer, ByVal y As Integer, ByV
 End Function
 
 ' 求和  lay(0 To 8, 0 To 8)
-Function SumLay(lay() As Integer, ByVal q As Integer, ByVal p As Integer) As Integer
+Function SumLay(lay(Any, Any) As Integer, ByVal q As Integer, ByVal p As Integer) As Integer
 	Dim As Integer  x, y
 	For x = q * 3 To q * 3 + 2
 		For y = p * 3 To p * 3 + 2
@@ -106,11 +116,11 @@ Function SumLay(lay() As Integer, ByVal q As Integer, ByVal p As Integer) As Int
 End Function
 
 ' 判断是否在(x,y)所在九宫格内存在z值
-Function IsExist(Sudo() As Integer, ByVal x As Integer, ByVal y As Integer, ByVal z As Integer) As Boolean
+Function IsExist(Sudo(Any, Any, Any) As Integer, ByVal x As Integer, ByVal y As Integer, ByVal z As Integer) As Boolean
 	Dim As Integer a, b
 	For a = (x \ 3) * 3 To (x \ 3) * 3 + 2
 		For b = (y \ 3) * 3 To (y \ 3) * 3 + 2
-			If Sudo(a, b) = z Then
+			If Sudo(0, a, b) = z Then
 				Return True
 			End If
 		Next b
@@ -119,7 +129,7 @@ Function IsExist(Sudo() As Integer, ByVal x As Integer, ByVal y As Integer, ByVa
 End Function
 
 ' 构建候选数全图，无自动更新   sudo(0 To 9, 0 To 8, 0 To 8)
-Sub Low_Build_Bit(Sudo() As Integer)
+Sub Low_Build_Bit(Sudo(Any, Any, Any) As Integer)
 	Dim As Integer i, k, f
 	For f = 1 To 9
 		For i = 0 To 8
@@ -135,7 +145,7 @@ Sub Low_Build_Bit(Sudo() As Integer)
 End Sub
 
 ' 点排除模式刷新数独   sudo(0 To 9, 0 To 8, 0 To 8)
-Function Change_Bit(Sudo() As Integer) As Integer
+Function Change_Bit(Sudo(Any, Any, Any) As Integer) As Integer
 	Dim As Integer con, py, l, v, i, k
 	Dim As Boolean al = 0
 	For i = 0 To 8
@@ -170,7 +180,7 @@ Function Change_Bit(Sudo() As Integer) As Integer
 End Function
 
 ' 宫排除模式刷新数独
-Function Square_Bit(Sudo() As Integer) As Boolean
+Function Square_Bit(Sudo(Any, Any, Any) As Integer) As Boolean
 	Dim As Integer p, a, b, i, k, r, u, v, block(0 To 9)
 	Dim As Boolean label
 	For a = 0 To 2
@@ -213,7 +223,7 @@ Function Square_Bit(Sudo() As Integer) As Boolean
 End Function
 
 ' 行排除刷新数独
-Function Row_Bit(Sudo() As Integer) As Boolean
+Function Row_Bit(Sudo(Any, Any, Any) As Integer) As Boolean
 	Dim As Boolean ChangeOr = False
 	Dim As Integer i, k, p, u, v, r
 	Dim row(1 To 10) As Integer
@@ -255,7 +265,7 @@ Function Row_Bit(Sudo() As Integer) As Boolean
 End Function
 
 ' 列排除模式刷新数独
-Function Col_Bit(Sudo() As Integer) As Boolean
+Function Col_Bit(Sudo(Any, Any, Any) As Integer) As Boolean
 	Dim As Boolean changeor
 	Dim As Integer Col(11), Colnum(11)
 	For k As Integer = 0 To 8
@@ -286,7 +296,7 @@ Function Col_Bit(Sudo() As Integer) As Boolean
 End Function
 
 ' 综合使用行列宫点排除进行快速刷新候选数图
-Function PreSolveSudo(Sudo() As Integer) As Boolean
+Function PreSolveSudo(Sudo(Any, Any, Any) As Integer) As Boolean
 	Dim lok As Boolean
 	Do While Square_Bit(Sudo()) Or Row_Bit(Sudo()) Or Col_Bit(Sudo())
 		Change_Bit(Sudo())
@@ -296,7 +306,7 @@ Function PreSolveSudo(Sudo() As Integer) As Boolean
 End Function
 
 ' 构建基础候选数图并且加入自动快速更新
-Sub Build_Bit(Sudo() As Integer)
+Sub Build_Bit(Sudo(Any, Any, Any) As Integer)
 	Dim As Integer i, k, f
 	For f = 1 To 9
 		For i = 0 To 8
@@ -313,20 +323,18 @@ Sub Build_Bit(Sudo() As Integer)
 End Sub
 
 ' 从字符串构建基础候选数图并且加入自动快速更新
-Sub Build_Bit_FromStr(Sudo() As Integer, SudoStr As String)
+Sub Build_Bit_FromStr(Sudo(Any, Any, Any) As Integer, SudoStr As String)
 	Dim As Integer i, k, f
-	Dim SudoIn(0 To 8, 0 To 8) As Integer
 	If Len(SudoStr) = 81 Then
 		For i As Integer = 0 To 80
-			Sudo(0, i Mod 9, i \ 9) = SudoStr[i] - Asc("0")
-			SudoIn(i Mod 9, i \ 9) = Sudo(0, i Mod 9, i \ 9)
+			Sudo(0, i Mod 9, i \ 9) = SudoStr[i] - 48 'Asc("0")
 		Next i
 	End If
 	For f = 1 To 9
 		For i = 0 To 8
 			For k = 0 To 8
 				If Sudo(0, i, k) = 0 Then
-					If CanPutIn(SudoIn(), i, k, f) Then
+					If CanPutIn(Sudo(), i, k, f) Then
 						Sudo(f, i, k) = 1
 					End If
 				End If
@@ -337,7 +345,7 @@ Sub Build_Bit_FromStr(Sudo() As Integer, SudoStr As String)
 End Sub
 
 ' 判断当前数独是否存在无解矛盾  TempSudo(0 To 9, 0 To 8, 0 To 8)
-Function LineCheck(TempSudo() As Integer) As Boolean
+Function LineCheck(TempSudo(Any, Any, Any) As Integer) As Boolean
 	Dim As Integer i, k, p
 	' 检查行、列、宫是否符合逻辑
 	For p = 1 To 9
@@ -386,10 +394,10 @@ Function LineCheck(TempSudo() As Integer) As Boolean
 End Function
 
 ' 数独是否存在空置?
-Function IsVacant(Sudo() As Integer) As Boolean
+Function IsVacant(Sudo(Any, Any, Any) As Integer) As Boolean
 	For i As Integer = 0 To 8
 		For k As Integer = 0 To 8
-			If Sudo(i, k) = 0 Then
+			If Sudo(0, i, k) = 0 Then
 				Return True
 			End If
 		Next k
@@ -398,14 +406,14 @@ Function IsVacant(Sudo() As Integer) As Boolean
 End Function
 
 ' 数独是否求解完毕?
-Function IsOK(Sudo() As Integer) As Boolean
+Function IsOK(Sudo(Any, Any, Any) As Integer) As Boolean
 	Dim As Integer i, k, mul, sum
 	sum = 0 : mul = 1
 	For i = 0 To 8
 		sum = 0 : mul = 1
 		For k = 0 To 8
-			sum += Sudo(i, k)
-			mul *= Sudo(i, k)
+			sum += Sudo(0, i, k)
+			mul *= Sudo(0, i, k)
 		Next k
 		If sum <> 45 Or mul <> 362880 Then
 			Return False
@@ -415,8 +423,8 @@ Function IsOK(Sudo() As Integer) As Boolean
 	For k = 0 To 8
 		sum = 0 : mul = 1
 		For i = 0 To 8
-			sum += Sudo(i, k)
-			mul *= Sudo(i, k)
+			sum += Sudo(0, i, k)
+			mul *= Sudo(0, i, k)
 		Next i
 		If sum <> 45 Or mul <> 362880 Then
 			Return False
@@ -426,11 +434,11 @@ Function IsOK(Sudo() As Integer) As Boolean
 End Function
 
 ' 检测两个数独是否一样
-Function Check(Sudo() As Integer, SudoExt() As Integer) As Boolean
+Function Check(Sudo(Any, Any, Any) As Integer, SudoExt(Any, Any) As Integer) As Boolean
 	For i As Integer = 0 To 8
 		For k As Integer = 0 To 8
 			If SudoExt(i, k) <> 0 Then
-				If Sudo(i, k) <> SudoExt(i, k) Then
+				If Sudo(0, i, k) <> SudoExt(i, k) Then
 					Return False
 				End If
 			End If
@@ -440,20 +448,20 @@ Function Check(Sudo() As Integer, SudoExt() As Integer) As Boolean
 End Function
 
 ''随机快速求解数独
-Sub SolveSudo(Sudo() As Integer, SudoExt() As Integer)
+Sub SolveSudo(Sudo(Any, Any, Any) As Integer, SudoExt(Any, Any) As Integer)
 	Dim As Integer rng, x, y, q, p, tryNum
 	Dim Lay(0 To 8, 0 To 8) As Integer
 	Dim As Integer backer, dt
 	
 	Dim SudoP(0 To 9, 0 To 8, 0 To 8) As Integer
-	CopySudo(SudoP(), SudoExt())
+	CopySudoMix(SudoP(), SudoExt())
 	''建立基础候选数图
 	Build_Bit(SudoP())
 	
 	If Not IsVacant(SudoP()) Then
 		''90%以上的数独时最简单的，连一次刷新都挺不过就求解完毕了
 		''可以直接返回
-		CopySudo(Sudo(), SudoP())
+		BitCopySudo(Sudo(), SudoP())
 		Exit Sub
 	End If
 	''记录已访问
@@ -461,6 +469,7 @@ Sub SolveSudo(Sudo() As Integer, SudoExt() As Integer)
 	'For i As Integer = 0 To 9
 	'	havetry(i) = 0
 	'Next i
+	
 	Do
 		dt = 0
 		backer = 0
@@ -541,7 +550,7 @@ Sub SolveSudo(Sudo() As Integer, SudoExt() As Integer)
 End Sub
 
 ' 打印数独 SudoKu(0 To 8, 0 To 8)
-Sub Print_a_Sudoku(SudoKu() As Integer)
+Sub Print_a_Sudoku(SudoKu(Any, Any, Any) As Integer)
 	Print "  -- -- --   -- -- --   -- -- --"
 	For i As Integer = 0 To 8
 		Print "| ";
@@ -555,7 +564,7 @@ Sub Print_a_Sudoku(SudoKu() As Integer)
 End Sub
 
 ' 对话框数独验证  SudoKu(0 To 8, 0 To 8)
-Function Dialog_SudoKu(SudoKu() As Integer) As Boolean
+Function Dialog_SudoKu(SudoKu(Any, Any) As Integer) As Boolean
 	Dim hp(0 To 9) As Integer
 	For i As Integer = 0 To 8
 		hp(SudoKu(i, i)) += 1

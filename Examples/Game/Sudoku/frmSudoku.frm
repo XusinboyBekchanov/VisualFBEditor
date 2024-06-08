@@ -22,13 +22,14 @@
 	#include once "mff/ComboBoxEdit.bi"
 	
 	Using My.Sys.Forms
-	Dim Shared  As Integer SudoCellFontSize = 24, SudoCellSize = 64, SudoCellTop = 20, SudoCellLeft = 120, SudoCellGaps = 3
+	Dim Shared  As Integer SudoCellFontSize = 24, SudoCellSize = 64, SudoCellTop = 20, SudoCellLeft = 120, SudoCellGaps = 2
 	Dim Shared  As Integer SudoCellColorBK, SudoCellColorBKDefault, SudoCellColorBKSelect, SudoCellColorFore, SudoCellColorForeSelect, SudoCellColorHover
 	Dim Shared  As Integer SudoCellChildFontSize = 10, SudoCellChildSize = 20, SudoCellChildTop = 2, SudoCellChildLeft = 2
 	Dim Shared  As Integer SudoCellChildColorBK, SudoCellChildColorFore, SudoCellChildColorHover
 	Dim Shared  As Integer SudoCellCurr, SudoCellChildCurr, SudoCellLast, SudoCellChildLast, mTabIndex = 81
 	Dim Shared As Point MsCell, MsCellChild                  ' 记录鼠标按下时的坐标
-	Dim Shared  As Boolean GameOver
+	Dim Shared  As Boolean GameOver, bCustomize, bDrawing
+	Dim Shared As My.Sys.Drawing.BitmapType ScreenShotBitm
 	Dim Shared  As Integer SudoKu(0 To 9, 0 To 8, 0 To 8), SudoAns(0 To 9, 0 To 8, 0 To 8), SudoIn(0 To 8, 0 To 8)
 	
 	Type Form1Type Extends Form
@@ -49,14 +50,20 @@
 		Declare Sub cmdSolveSudo_Click(ByRef Sender As Control)
 		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		
+		Declare Sub cmdCustomize_Click(ByRef Sender As Control)
+		Declare Sub cmdRandomized_Click(ByRef Sender As Control)
+		Declare Sub Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub pnlBack_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Declare Sub cmdDrawing_Click(ByRef Sender As Control)
 		Declare Constructor
-		Declare Sub UpdateShow(ByRef CurrentValue As String)
+		Declare Sub UpdateShow(ByRef CurrentValue As String = "")
 		
 		Dim As Panel pnlSudoCell(80), pnlBack
+		'Dim As Picture pnlBack
 		' 9 * (i + j * 9) + 8
 		Dim As Label lblSudoCellChild(728)
 		Dim As LinkLabel lblInfo
-		Dim As CommandButton cmdFromClipBoard, cmdSolveSudo
+		Dim As CommandButton cmdFromClipBoard, cmdSolveSudo, cmdCustomize, cmdRandomized, cmdDrawing
 		Dim As ComboBoxEdit cboFromClipBoard
 	End Type
 	
@@ -75,6 +82,7 @@
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.DoubleBuffered = True
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Form_Paint)
 			.SetBounds 0, -206, 740, 670
 		End With
 		
@@ -84,8 +92,9 @@
 			.Text = "pnlBack"
 			.TabIndex = 1
 			.BackColor = 12615935
-			.SetBounds SudoCellLeft, SudoCellTop, SudoCellSize* 9 + 2, SudoCellSize* 9 + 2
+			.SetBounds 0, 0, 100, 20
 			.Designer = @This
+			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @pnlBack_Paint)
 			.Parent = @This
 		End With
 		
@@ -150,7 +159,7 @@
 			"<a href=""https://github.com/XusinboyBekchanov/VisualFBEditor"">@VisualFBEditor</a>"
 			.TabIndex = 2
 			.Font.Size=10
-			.SetBounds 10, 20, 100, 340
+			.SetBounds 10, 20, 100, 380
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -159,7 +168,7 @@
 			.Name = "cmdFromClipBoard"
 			.Text = ML("From ClipBoard")
 			.TabIndex = 10
-			.SetBounds 10, 580, 80, 20
+			.SetBounds 10, 580, 100, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdFromClipBoard_Click)
 			.Parent = @This
@@ -182,12 +191,45 @@
 			.Text = ML("Solve Sudo")
 			.TabIndex = 4
 			.ControlIndex = 0
-			.SetBounds 10, 580, 80, 20
+			.SetBounds 10, 580, 100, 20
+			.Enabled = False
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdSolveSudo_Click)
 			.Parent = @This
 		End With
 		
+		' cmdCustomize
+		With cmdCustomize
+			.Name = "cmdCustomize"
+			.Text = ML("Customize")
+			.TabIndex = 5
+			.SetBounds 12, 406, 100, 22
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdCustomize_Click)
+			.Parent = @This
+		End With
+		' cmdRandomized
+		With cmdRandomized
+			.Name = "cmdRandomized"
+			.Text = ML("Randomized")
+			.TabIndex = 6
+			.ControlIndex = 5
+			.SetBounds 13, 437, 100, 22
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRandomized_Click)
+			.Parent = @This
+		End With
+		' cmdDrawing
+		With cmdDrawing
+			.Name = "cmdDrawing"
+			.Text = ML("Drawing")
+			.TabIndex = 7
+			.ControlIndex = 6
+			.SetBounds 13, 467, 100, 22
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdDrawing_Click)
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared Form1 As Form1Type
@@ -211,11 +253,9 @@ Private Sub Form1Type.Form_Show(ByRef Sender As Form)
 	SudoCellColorBKSelect = clYellowGreen
 	SudoCellColorForeSelect = SudoCellChildColorFore
 	SudoCellColorBKDefault = SudoCellChildColorBK
-	
+	pnlBack.Canvas.Cls
 	cboFromClipBoard.LoadFromFile(ExePath & "/Sudoku.txt")
 	cboFromClipBoard.ItemIndex = cboFromClipBoard.ItemCount - 1
-	cmdFromClipBoard_Click(Sender)
-	
 	
 End Sub
 
@@ -288,6 +328,7 @@ Private Sub Form1Type.cmdFromClipBoard_Click(ByRef Sender As Control)
 			End With
 		Next
 	Next
+	cmdSolveSudo.Enabled = True
 	'For i As Integer = 0 To 80
 	'	SudoIn(i \ 9, i Mod 9) = SudoString[i] - Asc("0")
 	'Print SudoIn(i \ 9, i Mod 9);
@@ -297,7 +338,7 @@ Private Sub Form1Type.cmdFromClipBoard_Click(ByRef Sender As Control)
 	UpdateShow("")
 End Sub
 
-Private Sub Form1Type.UpdateShow(ByRef CurrentValue As String)
+Private Sub Form1Type.UpdateShow(ByRef CurrentValue As String = "")
 	For j As Integer = 0 To 8
 		For i As Integer = 0 To 8
 			With pnlSudoCell(i + j * 9)
@@ -314,7 +355,7 @@ Private Sub Form1Type.UpdateShow(ByRef CurrentValue As String)
 			
 			For k As Integer = 0 To 8
 				With lblSudoCellChild(9 * (i + j * 9) + k)
-					.Visible= IIf(pnlSudoCell(i + j * 9).ShowCaption, False, IIf(SudoKu(k + 1, i, j) > 0, True, False))
+					.Visible= IIf(pnlSudoCell(i + j * 9).ShowCaption OrElse SudoKu(k + 1, i, j) = 0, False, IIf(SudoKu(k + 1, i, j) > 0, True, False))
 					.ForeColor = SudoCellChildColorFore
 					.BackColor = IIf(.Visible AndAlso .Text = CurrentValue, SudoCellColorHover, SudoCellChildColorBK)
 				End With
@@ -380,13 +421,19 @@ Private Sub Form1Type.lblSudoCellChild_MouseDown(ByRef Sender As Control, MouseB
 		pnlSudoCell(IndexCell).BackColor = SudoCellColorBKSelect
 		pnlSudoCell(IndexCell).Text = Sender.Text
 		pnlSudoCell(IndexCell).ShowCaption = True
-		SudoKu(Val(Sender.Text), IndexCell \ 9, IndexCell Mod 9) = 1
-		'SudoKu(0, IndexCell \ 9, IndexCell Mod 9) = Val(Sender.Text)
+		If bCustomize Then
+			SudoKu(0, IndexCell Mod 9, IndexCell \ 9) = Val(Sender.Text)
+			'PreSolveSudo(SudoKu())
+			UpdateShow(Sender.Text)
+		Else
+			SudoKu(Val(Sender.Text), IndexCell Mod 9, IndexCell \ 9) = 1
+		End If
 		For k As Integer = 0 To 8
 			With lblSudoCellChild(IndexCell * 9 + k)
 				.Visible= False
 			End With
 		Next
+		
 	ElseIf MouseButton = 0 Then
 		UpdateShow(Sender.Text)
 	End If
@@ -404,17 +451,20 @@ Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, 
 	SudoCellChildSize= (SudoCellSize - 9) / 3
 	Dim As Integer tFontSize= (SudoCellSize - 6) * 72 / 96 - 2
 	pnlSudoCell(0).Font.Size= tFontSize
-	pnlBack.SetBounds SudoCellLeft, SudoCellTop, SudoCellSize * 9 + SudoCellGaps * 5, SudoCellSize * 9 + SudoCellGaps * 6 + 2
+	pnlBack.SetBounds SudoCellLeft, SudoCellTop, SudoCellSize * 9 + SudoCellGaps * 8, SudoCellSize * 9 + SudoCellGaps * 8
 	Dim As My.Sys.Drawing.Point  tCurrent = Type<My.Sys.Drawing.Point>((SudoCellSize - pnlSudoCell(0).Canvas.TextWidth("A")) / 2, (SudoCellSize - pnlSudoCell(0).Canvas.TextHeight("A")) / 2)
-	Dim As Integer SudoCellGapsX = SudoCellGaps, SudoCellGapsY = SudoCellGaps
+	Dim As Integer SudoCellLeftX
+	Dim As Integer SudoCellTopY = SudoCellGaps - SudoCellSize
 	For j As Integer = 0 To 8
-		If j = 3 OrElse j = 6 Then SudoCellGapsY += SudoCellGaps : SudoCellGapsX = SudoCellGaps
+		SudoCellLeftX = SudoCellGaps - SudoCellSize
+		SudoCellTopY = IIf(j = 3 OrElse j = 6, SudoCellTopY + SudoCellGaps + SudoCellSize , SudoCellTopY + SudoCellGaps / 2 + SudoCellSize)
+		
 		For i As Integer = 0 To 8
-			If i = 3 OrElse i = 6 Then SudoCellGapsX += SudoCellGaps Else SudoCellGapsX = SudoCellGaps
+			SudoCellLeftX = IIf(i = 3 OrElse i = 6, SudoCellLeftX + SudoCellGaps + SudoCellSize , SudoCellLeftX + SudoCellGaps / 2 + SudoCellSize)
 			With pnlSudoCell(i + j * 9)
 				.Canvas.Font.Size= tFontSize
 				.Current = tCurrent
-				.SetBounds SudoCellGapsX + SudoCellSize * i + i + 1, SudoCellGapsY + SudoCellSize * j + j, SudoCellSize, SudoCellSize
+				.SetBounds SudoCellLeftX, SudoCellTopY, SudoCellSize, SudoCellSize
 			End With
 			
 			For k As Integer = 0 To 8
@@ -429,4 +479,95 @@ Private Sub Form1Type.Form_Resize(ByRef Sender As Control, NewWidth As Integer, 
 	cmdFromClipBoard.Top = cboFromClipBoard.Top
 	cmdSolveSudo.Top = cboFromClipBoard.Top - cmdSolveSudo.Height - 3
 	
+End Sub
+
+Private Sub Form1Type.cmdCustomize_Click(ByRef Sender As Control)
+	bCustomize = Not bCustomize
+	cmdCustomize.Text = IIf(bCustomize, ML("Stop Customize"), ML("Customize"))
+	cmdSolveSudo.Enabled = IIf(bCustomize, False, True)
+	cmdFromClipBoard.Enabled = IIf(bCustomize, False, True)
+	cmdRandomized.Enabled = IIf(bCustomize, False, True)
+	If bCustomize Then
+		Dim As String SudoString = String(81, 48)
+		Erase SudoKu  'Clear_Bits(SudoKu())
+		Erase SudoAns
+		Erase SudoIn
+		GameOver = False
+		Build_Bit_FromStr(SudoKu(), SudoString)
+		For j As Integer = 0 To 8
+			For i As Integer = 0 To 8
+				With pnlSudoCell(i + j * 9)
+					.Text = Str(SudoKu(0, i, j))
+					.ShowCaption = IIf(SudoKu(0, i, j) > 0, True , False)
+				End With
+			Next
+		Next
+		UpdateShow("")
+	Else
+		Dim As String SudoString
+		For j As Integer = 0 To 8
+			For i As Integer = 0 To 8
+				If SudoKu(0, i, j) > 0 Then
+					SudoString += Str(SudoKu(0, i, j))
+				Else
+					SudoString += "0"
+				End If
+			Next
+		Next
+		cboFromClipBoard.AddItem SudoString
+		cboFromClipBoard.Text = SudoString
+		cmdFromClipBoard_Click(Sender)
+	End If
+End Sub
+
+Private Sub Form1Type.cmdRandomized_Click(ByRef Sender As Control)
+	cboFromClipBoard.ItemIndex = Int(Rnd * cboFromClipBoard.ItemCount)
+	cmdFromClipBoard_Click(Sender)
+End Sub
+
+Private Sub Form1Type.Form_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	'Canvas.(X1, y1, x2, y2)
+End Sub
+
+Private Sub Form1Type.pnlBack_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	If bDrawing Then
+		Canvas.Line(pnlSudoCell(0).Left + SudoCellSize/ 2, pnlSudoCell(0).Top + SudoCellSize/ 2, pnlSudoCell(80).Left + SudoCellSize/ 2, pnlSudoCell(80).Top + SudoCellSize/ 2, clRed)
+	Else
+		Canvas.Line(pnlSudoCell(0).Left + SudoCellSize/ 2, pnlSudoCell(0).Top + SudoCellSize/ 2, pnlSudoCell(80).Left + SudoCellSize/ 2, pnlSudoCell(80).Top + SudoCellSize/ 2, clRed)
+	End If
+End Sub
+
+Private Sub Form1Type.cmdDrawing_Click(ByRef Sender As Control)
+	bDrawing = Not bDrawing
+	cmdDrawing.Text = IIf(bDrawing, ML("Stop Draw"), ML("Drawing"))
+	cmdCustomize.Enabled = IIf(bDrawing, False, True)
+	cmdSolveSudo.Enabled = IIf(bDrawing, False, True)
+	cmdFromClipBoard.Enabled = IIf(bDrawing, False, True)
+	cmdRandomized.Enabled = IIf(bDrawing, False, True)
+	If bDrawing Then
+		Dim As Rect ScreenshotRect
+		GetWindowRect(pnlBack.Handle, @ScreenshotRect)
+		'拷贝屏幕图像bi于背景，控件不能点选
+		pnlBack.Graphic.Bitmap.LoadFromScreen(ScreenshotRect.Left, ScreenshotRect.Top, ScreenshotRect.Right, ScreenshotRect.Bottom) 'LoadFromScreen(ScreenshotRect.Left, ScreenshotRect.Top, (ScreenshotRect.Right - ScreenshotRect.Left), (ScreenshotRect.Bottom - ScreenshotRect.Top))
+		'隐藏控件
+		For j As Integer = 0 To 8
+			For i As Integer = 0 To 8
+				With pnlSudoCell(i + j * 9)
+					.Visible = False
+				End With
+			Next
+		Next
+		'Canvas.DrawWidth = 2
+		'Canvas.DrawColor = clBlue
+	Else
+		pnlBack.Canvas.Cls
+		'显示控件
+		For j As Integer = 0 To 8
+			For i As Integer = 0 To 8
+				With pnlSudoCell(i + j * 9)
+					.Visible = True
+				End With
+			Next
+		Next
+	End If
 End Sub
