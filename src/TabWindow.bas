@@ -10986,17 +10986,19 @@ Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As 
 End Sub
 
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
-	Dim As Integer Pos1, Pos2, Pos3 'David Change for ML
+	Dim As Integer Pos0, Pos1, Pos2, Pos3 'David Change for ML
 	Dim As WString * 50 bFlagErr = ""
 	WLet(ErrFileName, "")
 	WLet(ErrTitle, sLine)
 	ErrorLine = 0
 	Pos1 = InStr(LCase(sLine), ") error ")
-	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), ") warning ")
+	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), ") warning "): Pos0 = Pos1
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "ld.exe:")
 	If Pos1 = 0 Then Pos1 = InStr(LCase(sLine), "error!")
-	If Pos1 = 0 Then
+	If Pos0 > 0 Then
+		bFlagErr = "Warning"
+	ElseIf Pos1 = 0 Then
 		Pos1 = InStr(LCase(sLine), " warning")
 		If Pos1 > 0 Then bFlagErr = "Warning"
 	Else
