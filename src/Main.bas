@@ -993,7 +993,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
 								OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
-								'ShowMessages(*res(i), False)
+								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 								If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
 									If bFlagErr = 2 Then
@@ -1003,8 +1003,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									Else
 										NumberInfo += 1
 									End If
-								Else
-									ShowMessages(*res(i), False)
+								'Else
+								'	ShowMessages(*res(i), False)
 								End If
 								If 	bFlagErr >= 0 AndAlso iLine > 0 Then
 									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
