@@ -932,15 +932,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				CloseFile_(Fn)
 			#else
-				Dim As Integer  BufferSize = 64
+				#define BufferSize 2048
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
 				Dim sa As SECURITY_ATTRIBUTES
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
-				Dim sBufferRead As ZString * 2048
-				Dim As WString * 2048 sBuffer, TmpStr, sOutput
-								
+				Dim sBuffer As ZString * BufferSize
+				Dim sOutput As UString
 				Dim bytesRead As DWORD
 				Dim result_ As Integer
 				
@@ -948,8 +947,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				sa.lpSecurityDescriptor = NULL
 				sa.bInheritHandle = True
 				
-				If CreatePipe(@hReadPipe, @hWritePipe, @sa, ByVal 0) = 0 Then
-					ShowMessages(ML("Error: Couldn't Create Pipe") & ": " & CurrentCompiler, False)
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
 					CompileResult = 0
 					Continue For
 				End If
@@ -958,37 +957,38 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
 				si.hStdOutput = hWritePipe
 				si.hStdError = hWritePipe
-				si.hStdInput = hReadPipe
-				si.wShowWindow = SW_HIDE
+				si.wShowWindow = 0
 				
-				If CreateProcessW(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, ByVal 0, ByVal 0, @si, @pi) = 0 Then
+				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process"), False)
 					CompileResult = 0
 					Continue For
 				End If
 				
 				CloseHandle hWritePipe
-				Dim As Integer Pos1, FirstErrFlag = 0
-				Dim res() As WString Ptr
+				
+				Dim As Integer Pos1, FirstErrFlag
 				Do
-					result_ = ReadFile(hReadPipe, @sBufferRead, BufferSize, @bytesRead, ByVal 0)
-					If bytesRead = 0 Then sOutput = "" : Exit Do
-					sBufferRead = Left(sBufferRead, bytesRead)
-					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
-					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(13)) Else Continue Do
+					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
+					sBuffer = Left(sBuffer, bytesRead)
+					Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
+						Dim res() As WString Ptr
+						sOutput += Left(sBuffer, Pos1 - 1)
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
-							sOutput += Replace(sBuffer, Chr(13, 10), " ")
+							sOutput = Replace(sOutput, Chr(13, 10), " ")
 							ERRGoRc = True
-						ElseIf InStr(sBuffer, "of Resource Script ") > 0 Then
-							sOutput += Replace(sBuffer, Chr(13, 10), " ")
-						Else
-							sOutput += Left(sBuffer, Pos1)
+						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
+							sOutput = Replace(sOutput, Chr(13, 10), " ")
 						End If
+						Dim As String buffer = Str(sOutput)
+						Dim As Integer wideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, NULL, 0)
+						sOutput.Resize wideCharsNeeded
+						MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
-							'*res(i) = Trim(*res(i), Any !"\t\n\r ")
-							If *res(i) = "" OrElse StartsWith(*res(i), "|") Then Continue For
+							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
 							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
@@ -1003,25 +1003,25 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									Else
 										NumberInfo += 1
 									End If
-								'Else
-								'	ShowMessages(*res(i), False)
+								
 								End If
-								If 	bFlagErr >= 0 AndAlso iLine > 0 Then
+								If 	bFlagErr >= 0 Then
 									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 								End If
 							Else
+								Dim As UString TmpStr
 								Dim As Integer nPos = InStr(*res(i), ":")
 								If nPos < 1 Then nPos = InStr(*res(i), " ")
 								If nPos < 1 Then
 									nPos = Len(*res(i)) + 1
-									TmpStr = *res(i)
+									TmpStr = Trim(*res(i))
 								Else
 									TmpStr = Trim(Left(*res(i), nPos - 1))
 								End If
-								If StartsWith(TmpStr, "FreeBASIC") Then
+								If StartsWith(TmpStr, "FreeBASIC") Then 
 									nPos = Len(*res(i)) + 1
 									TmpStr = Replace(Replace(*res(i), "FreeBASIC Compiler", ML("FreeBASIC Compiler")), "Version", ML("Version"))
 									Var Pos1 = InStr(TmpStr, "built for ")
@@ -1055,20 +1055,20 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								ThreadsLeave()
 							End If
 							_Deallocate(res(i)): res(i) = 0
+							sOutput = ""
 						Next i
 						Erase res
-						sOutput = Mid(sBuffer, Pos1 + 2)
+						sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
-						If FirstErrFlag < 1 AndAlso (InStr(LCase(sOutput), "compiling") OrElse InStr(LCase(sOutput), "assembling") OrElse result_ = False) Then
-							sOutput +=  Chr(13, 10) + sBuffer
-							BufferSize = 2048
-							FirstErrFlag += 1
+						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
+							sOutput +=  Chr(10) + sBuffer
+							FirstErrFlag +=1
 						Else
 							sOutput += sBuffer
 						End If
 					End If
-					sBuffer = "": sBufferRead = ""
 				Loop While result_
+				
 				CloseHandle pi.hProcess
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
