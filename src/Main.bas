@@ -975,7 +975,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					If bytesRead = 0 Then sOutput = "" : Exit Do
 					sBufferRead = Left(sBufferRead, bytesRead)
 					MultiByteToWideChar(CP_ACP, 0, @sBufferRead, -1, sBuffer, bytesRead * 2)
-					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(13, 10)) Else Continue Do
+					If Trim(sBuffer, Any !"\t\n\r ") <> "" Then Pos1 = InStrRev(sBuffer, Chr(13)) Else Continue Do
 					If Pos1 > 0 Then
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput += Replace(sBuffer, Chr(13, 10), " ")
@@ -985,9 +985,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Else
 							sOutput += Left(sBuffer, Pos1)
 						End If
-						Split sOutput, Chr(13, 10), res()
+						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
-							*res(i) = Trim(*res(i), Any !"\t\n\r ")
+							'*res(i) = Trim(*res(i), Any !"\t\n\r ")
 							If *res(i) = "" OrElse StartsWith(*res(i), "|") Then Continue For
 							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
