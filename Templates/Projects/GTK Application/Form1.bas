@@ -1,5 +1,4 @@
-﻿#define __USE_GTK3__
-#include once "gtk/gtk.bi"
+﻿#include once "gtk/gtk.bi"
 
 Sub on_button_clicked cdecl(ByVal widget As GtkWidget Ptr, ByVal data1 As gpointer)
     Print "Hello, World!"
@@ -16,7 +15,11 @@ gtk_window_set_title(GTK_WINDOW(win), "Hello World")
 gtk_window_set_default_size(GTK_WINDOW(win), 200, 200)
 gtk_container_set_border_width(GTK_CONTAINER(win), 10)
 
-box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5)
+#ifdef __USE_GTK3__
+	box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 5)
+#else
+	box = gtk_vbox_new(False, 5)
+#endif
 gtk_container_add(GTK_CONTAINER(win), box)
 
 button = gtk_button_new_with_label("Click Me")
