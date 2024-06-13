@@ -1,14 +1,14 @@
 ﻿#ifdef __FB_WIN32__
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x "../AddIns/MyAddin (x64).dll" "MyAddin.rc"
+		'#Compile -dll -x "../../AddIns/MyAddin (x64).dll" "MyAddin.rc"
 	#else
-		'#Compile -dll -x "../AddIns/MyAddin (x32).dll" "MyAddin.rc"
+		'#Compile -dll -x "../../AddIns/MyAddin (x32).dll" "MyAddin.rc"
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x "../AddIns/MyAddinx64.so"
+		'#Compile -dll -x "../../AddIns/MyAddinx64.so"
 	#else
-		'#Compile -dll -x "../AddIns/MyAddinx32.so"
+		'#Compile -dll -x "../../AddIns/MyAddinx32.so"
 	#endif
 #endif
 
