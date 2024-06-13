@@ -960,7 +960,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.wShowWindow = 0
 				
 				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
-					ShowMessages(ML("Error: Couldn't Create Process"), False)
+					ShowMessages(ML("Error: Couldn't Create Process") & ": " & GetErrorString(GetLastError), False)
 					CompileResult = 0
 					Continue For
 				End If
