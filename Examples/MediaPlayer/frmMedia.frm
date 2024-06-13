@@ -173,6 +173,7 @@
 		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_Message(ByRef Sender As Control, ByRef Msg As Message)
 		Declare Sub mnu_Click(ByRef Sender As MenuItem)
+		Declare Sub mnuMain_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2
@@ -185,8 +186,10 @@
 		Dim As TimerComponent TimerComponent1
 		Dim As ImageList ImageList1
 		Dim As ComboBoxEx ComboBoxEx1
+		Dim As MainMenu MainMenu1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem mnuFull, mnu12scale, mnu11scale, mnu14scale, mnuBar5, mnuCapture, mnuBar4, mnuFaster, mnuSlower, mnuNormal, mnuBar3, mnuLoop, mnuBar2, mnuBar6, mnuExit, mnuDark, mnuClose, mnuPlay, mnuOpen, mnuFile, mnuPause, mnuBar1, mnuScale, mnuMonitor, mnuNotDesktop
+		Dim As MenuItem mnuFull, mnu11scale, mnu12scale, mnu13scale, mnu14scale, mnuBar5, mnuCapture, mnuBar4, mnuFaster, mnuSlower, mnuNormal, mnuBar3, mnuLoop, mnuBar2, mnuBar6, mnuExit, mnuDark, mnuClose, mnuPlay, mnuOpen, mnuFile, mnuPause, mnuBar1, mnuScale, mnuMonitor, mnuNotDesktop
+		Dim As MenuItem MenuItem1, mnuMainFile, MenuItem3, mnuMainOpen, mnuMainPlay, mnuMainPause, mnuMainClose, MenuItem8, mnuMainLoop, mnuMainDark, MenuItem11, mnuMainSlower, mnuMainNormal, mnuMainFaster, MenuItem15, mnuMainNone, mnuMainCapture, MenuItem18, mnuMainExit, MenuItem2, mnuMain14scale, mnuMain12scale, mnuMain11scale, mnuMainFull, mnuMain13scale
 	End Type
 	
 	Constructor frmMediaType
@@ -214,7 +217,8 @@
 			.OnMessage = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message), @Form_Message)
 			.ContextMenu = @PopupMenu1
 			.BackColor = 8421504
-			.SetBounds 0, 0, 700, 500
+			.Menu = @MainMenu1
+			.SetBounds 0, 0, 700, 519
 		End With
 		' Panel1
 		With Panel1
@@ -249,17 +253,6 @@
 			.SetBounds 0, 221, 454, 60
 			.Parent = @This
 		End With
-		' cmdOpen
-		With cmdOpen
-			.Name = "cmdOpen"
-			.Text = "Open"
-			.TabIndex = 4
-			.Caption = "Open"
-			.SetBounds 10, 10, 50, 22
-			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
-			.Parent = @Panel1
-		End With
 		' cmdPlay
 		With cmdPlay
 			.Name = "cmdPlay"
@@ -268,6 +261,17 @@
 			.Caption = "Play"
 			.Enabled = False
 			.SetBounds 60, 10, 50, 22
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
+			.Parent = @Panel1
+		End With
+		' cmdOpen
+		With cmdOpen
+			.Name = "cmdOpen"
+			.Text = "Open"
+			.TabIndex = 4
+			.Caption = "Open"
+			.SetBounds 10, 10, 50, 22
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdBtn_Click)
 			.Parent = @Panel1
@@ -397,7 +401,6 @@
 			.Name = "lblPosition"
 			.Text = "Position: "
 			.TabIndex = 14
-			.Enabled = False
 			.Size = Type<My.Sys.Drawing.Size>(160, 16)
 			.SetBounds 230, 5, 160, 16
 			.Parent = @Panel2
@@ -476,7 +479,7 @@
 		With mnuFile
 			.Name = "mnuFile"
 			.Designer = @This
-			.Caption = "File..."
+			.Caption = !"&File...\tCtrl+F"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -491,7 +494,7 @@
 		With mnuOpen
 			.Name = "mnuOpen"
 			.Designer = @This
-			.Caption = "Open"
+			.Caption = !"&Open\tCtrl+O"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -499,7 +502,7 @@
 		With mnuPlay
 			.Name = "mnuPlay"
 			.Designer = @This
-			.Caption = "Play"
+			.Caption = !"&Play\tCtrl+P"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -508,7 +511,7 @@
 		With mnuPause
 			.Name = "mnuPause"
 			.Designer = @This
-			.Caption = "Pause"
+			.Caption = !"Pa&use\tCtrl+U"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -517,7 +520,7 @@
 		With mnuClose
 			.Name = "mnuClose"
 			.Designer = @This
-			.Caption = "Close"
+			.Caption = !"&Close\tCtrl+C"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -533,7 +536,7 @@
 		With mnuLoop
 			.Name = "mnuLoop"
 			.Designer = @This
-			.Caption = "Loop"
+			.Caption = !"&Loop\tCtrl+L"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -541,8 +544,9 @@
 		With mnuDark
 			.Name = "mnuDark"
 			.Designer = @This
-			.Caption = "Dark"
+			.Caption = !"&Dark\tCtrl+D"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Checked = True
 			.Parent = @PopupMenu1
 		End With
 		' mnuBar3
@@ -556,7 +560,7 @@
 		With mnuSlower
 			.Name = "mnuSlower"
 			.Designer = @This
-			.Caption = "Slower"
+			.Caption = !"&Slower\tCtrl+S"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -565,7 +569,7 @@
 		With mnuNormal
 			.Name = "mnuNormal"
 			.Designer = @This
-			.Caption = "Normal"
+			.Caption = !"&Normal\tCtrl+N"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -574,7 +578,7 @@
 		With mnuFaster
 			.Name = "mnuFaster"
 			.Designer = @This
-			.Caption = "Faster"
+			.Caption = !"Fas&ter\tCtrl+T"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -594,6 +598,15 @@
 			.Enabled = False
 			.Parent = @PopupMenu1
 		End With
+		' mnuNotDesktop
+		With mnuNotDesktop
+			.Name = "mnuNotDesktop"
+			.Designer = @This
+			.Caption = !"Non&e\tCtrl+E"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Checked = True
+			.Parent = @mnuMonitor
+		End With
 		' mnuScale
 		With mnuScale
 			.Name = "mnuScale"
@@ -606,7 +619,16 @@
 		With mnu14scale
 			.Name = "mnu14scale"
 			.Designer = @This
-			.Caption = "1/4"
+			.Caption = !"1/&4\tCtrl+4"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
+			.Parent = @mnuScale
+		End With
+		' mnu13scale
+		With mnu13scale
+			.Name = "mnu13scale"
+			.Designer = @This
+			.Caption = !"1/&3\tCtrl+3"
+			.Checked = False
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @mnuScale
 		End With
@@ -614,7 +636,7 @@
 		With mnu12scale
 			.Name = "mnu12scale"
 			.Designer = @This
-			.Caption = "1/2"
+			.Caption = !"1/&2\tCtrl+2"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @mnuScale
 		End With
@@ -622,7 +644,7 @@
 		With mnu11scale
 			.Name = "mnu11scale"
 			.Designer = @This
-			.Caption = "1/1"
+			.Caption = !"1/&1\tCtrl+1"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @mnuScale
 		End With
@@ -630,7 +652,7 @@
 		With mnuFull
 			.Name = "mnuFull"
 			.Designer = @This
-			.Caption = "Full screen"
+			.Caption = !"Full sc&reen\tCtrl+R"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @mnuScale
 		End With
@@ -645,7 +667,7 @@
 		With mnuCapture
 			.Name = "mnuCapture"
 			.Designer = @This
-			.Caption = "Capture"
+			.Caption = !"C&apture\tCtrl+A"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Enabled = False
 			.Parent = @PopupMenu1
@@ -661,25 +683,220 @@
 		With mnuExit
 			.Name = "mnuExit"
 			.Designer = @This
-			.Caption = "Exit"
+			.Caption = !"E&xit\tCtrl+X"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
 			.Parent = @PopupMenu1
 		End With
-		' mnuNotDesktop
-		With mnuNotDesktop
-			.Name = "mnuNotDesktop"
+		' MainMenu1
+		With MainMenu1
+			.Name = "MainMenu1"
+			.SetBounds 80, 0, 16, 16
 			.Designer = @This
-			.Caption = "None"
-			.Checked = True
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnu_Click)
-			.Parent = @mnuMonitor
+			.Parent = @This
+		End With
+		' MenuItem1
+		With MenuItem1
+			.Name = "MenuItem1"
+			.Designer = @This
+			.Caption = "File"
+			.Visible = False
+			.Parent = @MainMenu1
+		End With
+		' mnuMainFile
+		With mnuMainFile
+			.Name = "mnuMainFile"
+			.Designer = @This
+			.Caption = !"File...\tCtrl+F"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' MenuItem3
+		With MenuItem3
+			.Name = "MenuItem3"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @MenuItem1
+		End With
+		' mnuMainOpen
+		With mnuMainOpen
+			.Name = "mnuMainOpen"
+			.Designer = @This
+			.Caption = !"Open\tCtrl+O"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainPlay
+		With mnuMainPlay
+			.Name = "mnuMainPlay"
+			.Designer = @This
+			.Caption = !"Play\tCtrl+P"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainPause
+		With mnuMainPause
+			.Name = "mnuMainPause"
+			.Designer = @This
+			.Caption = !"Pause\tCtrl+U"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainClose
+		With mnuMainClose
+			.Name = "mnuMainClose"
+			.Designer = @This
+			.Caption = !"Close\tCtrl+C"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' MenuItem8
+		With MenuItem8
+			.Name = "MenuItem8"
+			.Designer = @This
+			.Caption = "-"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainLoop
+		With mnuMainLoop
+			.Name = "mnuMainLoop"
+			.Designer = @This
+			.Caption = !"Loop\tCtrl+L"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainDark
+		With mnuMainDark
+			.Name = "mnuMainDark"
+			.Designer = @This
+			.Caption = !"Dark\tCtrl+D"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' MenuItem11
+		With MenuItem11
+			.Name = "MenuItem11"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @MenuItem1
+		End With
+		' mnuMainSlower
+		With mnuMainSlower
+			.Name = "mnuMainSlower"
+			.Designer = @This
+			.Caption = !"Slower\tCtrl+S"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainNormal
+		With mnuMainNormal
+			.Name = "mnuMainNormal"
+			.Designer = @This
+			.Caption = !"Normal\tCtrl+N"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainFaster
+		With mnuMainFaster
+			.Name = "mnuMainFaster"
+			.Designer = @This
+			.Caption = !"Faster\tCtrl+T"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' MenuItem2
+		With MenuItem2
+			.Name = "MenuItem2"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @MenuItem1
+		End With
+		' mnuMain14scale
+		With mnuMain14scale
+			.Name = "mnuMain14scale"
+			.Designer = @This
+			.Caption = !"1/4\tCtrl+4"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMain13scale
+		With mnuMain13scale
+			.Name = "mnuMain13scale"
+			.Designer = @This
+			.Caption = !"1/3\tCtrl+3"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMain12scale
+		With mnuMain12scale
+			.Name = "mnuMain12scale"
+			.Designer = @This
+			.Caption = !"1/2\tCtrl+2"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMain11scale
+		With mnuMain11scale
+			.Name = "mnuMain11scale"
+			.Designer = @This
+			.Caption = !"1/1\tCtrl+1"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainFull
+		With mnuMainFull
+			.Name = "mnuMainFull"
+			.Designer = @This
+			.Caption = !"Full screen\tCtrl+R"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Checked = false
+			.Parent = @MenuItem1
+		End With
+		' MenuItem15
+		With MenuItem15
+			.Name = "MenuItem15"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @MenuItem1
+		End With
+		' mnuMainNone
+		With mnuMainNone
+			.Name = "mnuMainNone"
+			.Designer = @This
+			.Caption = !"None\tCtrl+E"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' mnuMainCapture
+		With mnuMainCapture
+			.Name = "mnuMainCapture"
+			.Designer = @This
+			.Caption = !"Capture\tCtrl+A"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
+		End With
+		' MenuItem18
+		With MenuItem18
+			.Name = "MenuItem18"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @MenuItem1
+		End With
+		' mnuMainExit
+		With mnuMainExit
+			.Name = "mnuMainExit"
+			.Designer = @This
+			.Caption = !"Exit\tCtrl+X"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMain_Click)
+			.Parent = @MenuItem1
 		End With
 	End Constructor
 	
 	Dim Shared frmMedia As frmMediaType
 	
 	#if __MAIN_FILE__ = __FILE__
-		'App.DarkMode = True
+		App.DarkMode = True
+		frmMedia.MainForm = True
 		frmMedia.Show
 		App.Run
 	#endif
@@ -969,11 +1186,11 @@ Private Property frmMediaType.WithPosition(val As Double)
 		lblLength.Text = "Length: " & Format(val, "#,#0.000")
 	Else
 		lblLength.Text = "Length: NA"
-		lblPosition.Text = "Position: Na"
+		lblPosition.Text = "Position: NA"
 	End If
 	tbPosition.Position = 0
 	
-	lblPosition.Enabled = mWithPosition
+	'lblPosition.Enabled = mWithPosition
 	lblLength.Enabled = mWithPosition
 	tbPosition.Enabled = mWithPosition
 	mnuNormal.Enabled = mWithPosition
@@ -1173,7 +1390,10 @@ Private Sub frmMediaType.cmdBtn_Click(ByRef Sender As Control)
 	Case "cmdClose"
 		DSCtrl(DSStatus.DS_Close)
 	Case "cmdBrowse"
-		OpenFileDialog1.FileName = TextBox1.Text
+		If Dir(TextBox1.Text)="" Then
+		Else
+			OpenFileDialog1.FileName = TextBox1.Text
+		End If
 		If OpenFileDialog1.Execute() Then
 			TextBox1.Text = OpenFileDialog1.FileName
 		End If
@@ -1239,10 +1459,6 @@ Private Sub frmMediaType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 				tbPosition.Position = CInt(d)
 			End If
 			lblPosition.Text = "Position: " & Format(d, "#,#0.000")
-		Else
-			lblPosition.Text = "Position: " & Format(d, "#,#0.000")
-			tbPosition.Position = CInt(d)
-			TimerComponent1.Enabled = False
 		End If
 	End Select
 End Sub
@@ -1302,10 +1518,13 @@ Private Sub frmMediaType.mnu_Click(ByRef Sender As MenuItem)
 	Case "mnuOpen"
 		DSCtrl(DSStatus.DS_Open)
 	Case "mnuPlay"
+		If Sender.Enabled = False Then Exit Sub
 		DSCtrl(DSStatus.DS_Play)
 	Case "mnuPause"
+		If Sender.Enabled = False Then Exit Sub
 		DSCtrl(DSStatus.DS_Pause)
 	Case "mnuClose"
+		If Sender.Enabled = False Then Exit Sub
 		DSCtrl(DSStatus.DS_Close)
 	Case "mnuLoop"
 		Sender.Checked = Not Sender.Checked
@@ -1314,39 +1533,53 @@ Private Sub frmMediaType.mnu_Click(ByRef Sender As MenuItem)
 		App.DarkMode= Sender.Checked
 		InvalidateRect(0, 0, True)
 	Case "mnuFaster"
+		If Sender.Enabled = False Then Exit Sub
 		If pIMediaPosition = False Then Exit Sub
 		pIMediaPosition->lpVtbl->get_Rate(pIMediaPosition, @dRate)
 		dRate = dRate + 0.5
 		pIMediaPosition->lpVtbl->put_Rate(pIMediaPosition, dRate)
 	Case "mnuNormal"
+		If Sender.Enabled = False Then Exit Sub
 		If pIMediaPosition = False Then Exit Sub
 		pIMediaPosition->lpVtbl->get_Rate(pIMediaPosition, @dRate)
 		dRate = 1
 		pIMediaPosition->lpVtbl->put_Rate(pIMediaPosition, dRate)
 	Case "mnuSlower"
+		If Sender.Enabled = False Then Exit Sub
 		If pIMediaPosition = False Then Exit Sub
 		pIMediaPosition->lpVtbl->get_Rate(pIMediaPosition, @dRate)
 		dRate = dRate - 0.1
 		pIMediaPosition->lpVtbl->put_Rate(pIMediaPosition, dRate)
 	Case "mnu14scale"
+		If mnuScale.Enabled = False Then Exit Sub
 		If pIBasicVideo = NULL Then Exit Sub
 		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
 		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
 		This.Width = vWidth / 4 + aWidth
 		This.Height = vHeight / 4 + aHeight
+	Case "mnu13scale"
+		If mnuScale.Enabled = False Then Exit Sub
+		If pIBasicVideo = NULL Then Exit Sub
+		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
+		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
+		This.Width = vWidth / 3 + aWidth
+		This.Height = vHeight / 3 + aHeight
 	Case "mnu12scale"
+		If mnuScale.Enabled = False Then Exit Sub
 		If pIBasicVideo = NULL Then Exit Sub
 		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
 		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
 		This.Width = vWidth / 2 + aWidth
 		This.Height = vHeight / 2 + aHeight
 	Case "mnu11scale"
+		If mnuScale.Enabled = False Then Exit Sub
 		If pIBasicVideo = NULL Then Exit Sub
 		pIBasicVideo->lpVtbl->get_VideoWidth(pIBasicVideo, @vWidth)
 		pIBasicVideo->lpVtbl->get_VideoHeight(pIBasicVideo, @vHeight)
 		This.Width = vWidth + aWidth
 		This.Height = vHeight + aHeight
 	Case "mnuFull"
+		If mnuScale.Enabled = False Then Exit Sub
 		If pIVideoWindow = NULL Then Exit Sub
 		Dim lMode As Long
 		pIVideoWindow->lpVtbl->get_FullScreenMode(pIVideoWindow, @lMode)
@@ -1357,11 +1590,13 @@ Private Sub frmMediaType.mnu_Click(ByRef Sender As MenuItem)
 		End If
 		pIVideoWindow->lpVtbl->put_FullScreenMode(pIVideoWindow, lMode)
 	Case "mnuCapture"
+		If Sender.Enabled = False Then Exit Sub
 		*mfilename = "MediaPlayer_" & Format(Now(), "yyyymmdd_hhmmss") & ".bmp"
 		CaptureBmp(mfilename, pIMediaControl, pIBasicVideo2)
 	Case "mnuExit"
 		CloseForm()
 	Case "mnuNotDesktop"
+		If mnuMonitor.Enabled = False Then Exit Sub
 		For i = 1 To mMenuMtrCount
 			mMenuMtr(i)->Checked = False
 		Next
@@ -1512,4 +1747,45 @@ Private Sub frmMediaType.DesktopLoad(v As Boolean)
 		
 		hwndDesktop = NULL
 	End If
+End Sub
+
+Private Sub frmMediaType.mnuMain_Click(ByRef Sender As MenuItem)
+	Select Case Sender.Name
+	Case "mnuMainFile"
+		mnu_Click mnuFile
+	Case "mnuMainOpen"
+		mnu_Click mnuOpen
+	Case "mnuMainPlay"
+		mnu_Click mnuPlay
+	Case "mnuMainPause"
+		mnu_Click mnuPause
+	Case "mnuMainClose"
+		mnu_Click mnuClose
+	Case "mnuMainLoop"
+		mnu_Click mnuLoop
+	Case "mnuMainDark"
+		mnu_Click mnuDark
+	Case "mnuMainSlower"
+		mnu_Click mnuSlower
+	Case "mnuMainNormal"
+		mnu_Click mnuNormal
+	Case "mnuMainFaster"
+		mnu_Click mnuFaster
+	Case "mnuMain14scale"
+		mnu_Click mnu14scale
+	Case "mnuMain13scale"
+		mnu_Click mnu13scale
+	Case "mnuMain12scale"
+		mnu_Click mnu12scale
+	Case "mnuMain11scale"
+		mnu_Click mnu11scale
+	Case "mnuMainFull"
+		mnu_Click mnuFull
+	Case "mnuMainNone"
+		mnu_Click mnuNotDesktop
+	Case "mnuMainCapture"
+		mnu_Click mnuCapture
+	Case "mnuMainExit"
+		mnu_Click mnuExit
+	End Select
 End Sub
