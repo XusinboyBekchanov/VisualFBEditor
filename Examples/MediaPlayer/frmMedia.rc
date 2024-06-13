@@ -12,8 +12,8 @@ CAN RCDATA ".\res\CAN.gif"
 #define APP_TITLE_STR               "MediaPlayer\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,517
-#define VER_FILEVERSION_STR         "0.0.0.517\0"
+#define VER_FILEVERSION             0,0,0,591
+#define VER_FILEVERSION_STR         "0.0.0.591\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
