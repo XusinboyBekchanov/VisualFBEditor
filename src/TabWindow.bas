@@ -11039,8 +11039,18 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 		Pos3 = InStr(Pos1, sLine, ":")
 		If Pos3 > 0 Then
 			Dim As String Dots = IIf(bFlagErr = "", "", ": ")
-			Pos2 = InStr(Pos3, sLine, ",")
-			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, " in ")
+			Pos2 = InStr(Pos3, sLine, ", found")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, ", before")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, ", after")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, ", exiting")
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, ", at parameter")
+			If Pos2 < 1 Then 
+				Pos2 = InStr(Pos3, sLine, " in ")
+				Pos1 = InStr(Pos3, sLine, ", ")
+				If Pos1 < Pos2 And Pos1 > 0 Then Pos2 = Pos1
+			End If
+			If Pos2 < 1 Then Pos2 = InStr(Pos3, sLine, ", ")
+			
 			If Pos2 < 1 Then
 				Pos2 = Len(sLine)
 			ElseIf Mid(sLine, Pos2 - 1, 3) = "','" Then
