@@ -2624,6 +2624,7 @@ Want to save the file = 想要保存文件
 Want to save the project = 想要保存工程
 Warning: enabling the following optimizatons will help reduce unused code = 警告：启用以下优化将有助于减少未使用的代码
 Warning: Identifier not used = 警告：未使用标识符
+Warning = 警告
 Warnings = 警告
 Watch Window = 监视窗口
 Watched variables = 监视变量

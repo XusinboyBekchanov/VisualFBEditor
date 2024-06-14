@@ -522,7 +522,7 @@ End Function
 
 Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	On Error Goto ErrorHandler
-	Dim As WString Ptr MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeApplicationName, PipeCommand
+	Dim As WString Ptr MainFileNameOnly, MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeApplicationName, PipeCommand, fbcCommand1, PipeCommand1
 	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine, ProjectPath
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
 	Dim As UString CompileLine
@@ -633,6 +633,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(CompileWith, CompilerTool->GetCommand(, True))
 		End If
 		WAdd(CompileWith, " " & *FirstLine)
+		WLet(MainFileNameOnly, GetFileName(*MainFile))
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 		Dim As Boolean UseWasm = InStr(*FirstLine & CompileLine, "__USE_WASM__") > 0
 		'If UseWasm Then
@@ -697,13 +698,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If CInt(ProjectNode <> 0) AndAlso CInt(Project <> 0) AndAlso CInt(Project->PassAllModuleFilesToCompiler) Then
 			For i As Integer = 0 To ProjectNode->Nodes.Count - 1
 				If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
-					If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
+					If LCase(*MainFileNameOnly) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
 						OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 					End If
 				Else
 					For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
 						If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
-							If LCase(GetFileName(*MainFile)) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
+							If LCase(*MainFileNameOnly) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
 								OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 							End If
 						End If
@@ -712,9 +713,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Next
 		End If
 		If InStr(*CompileWith, "{S}") > 0 Then
-			WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & GetFileName(*MainFile) & """" & OtherModuleFiles))
+			WLet(fbcCommand, Replace(*CompileWith, "{S}", """" & *MainFileNameOnly & """" & OtherModuleFiles))
 		Else
-			WLet(fbcCommand, """" & GetFileName(*MainFile) & """" & OtherModuleFiles & " " & *CompileWith)
+			WLet(fbcCommand, """" & *MainFileNameOnly & """" & OtherModuleFiles & " " & *CompileWith)
 		End If
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
@@ -826,21 +827,20 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 		End If
 		Dim As Dictionary CompileCommands
-		Dim MainFileName As UString = GetFileName(*MainFile)
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
-			Var Pos1 = InStrRev(MainFileName, ".")
+			Var Pos1 = InStrRev(*MainFileNameOnly, ".")
 			If Pos1 > 0 Then
-				MainFileName = Left(MainFileName, Pos1 - 1)
+				*MainFileNameOnly = Left(*MainFileNameOnly, Pos1 - 1)
 			End If
 			CompileCommands.Add "", *PipeCommand
-			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & MainFileName & ".c"" -o """ & MainFileName & ".o"""
-			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
+			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD'"
 			For i As Integer = 0 To Globals.Functions.Count - 1
 				
 			Next
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & MainFileName & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & MainFileName & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
@@ -851,7 +851,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If cc > 0 Then
 				If UseWasm AndAlso CBool(cc = 1) Then
 					'Var Fn = FreeFile_
-					'If Open(MainFileName & ".c" For Input As #Fn) = 0 Then
+					'If Open(*MainFileNameOnly & ".c" For Input As #Fn) = 0 Then
 					'	Dim As String Buffer
 					'	Dim As WStringList Lines
 					'	Lines.Add "typedef void fn(void); fn *volatile fp;"
@@ -870,7 +870,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					'	Loop
 					'	Close #Fn
 					'	Fn = FreeFile_
-					'	Open MainFileName & ".c" For Output As #Fn
+					'	Open *MainFileNameOnly & ".c" For Output As #Fn
 					'	For ii As Integer = 0 To Lines.Count - 1
 					'		Print #Fn, Lines.Item(ii)
 					'	Next
@@ -967,7 +967,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				
 				CloseHandle hWritePipe
 				
-				Dim As Integer Pos1, FirstErrFlag
+				Dim As Integer Pos1, PosFirstErr, FirstErrFlag
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
 					sBuffer = Left(sBuffer, bytesRead)
@@ -987,8 +987,15 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, sOutput.m_Data, wideCharsNeeded)
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
-							If Len(Trim(*res(i))) <= 1 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-							If InStr(*res(i), Chr(13)) > 0 Then *res(i) = Left(*res(i), Len(*res(i)) - 1)
+							*res(i) = Trim(*res(i), Any !"\t\n\r ")
+							If *res(i) = "" OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+							If FirstErrFlag < 1 Then
+								PosFirstErr = InStr(*res(i), *MainFileNameOnly & *MainFileNameOnly)
+								If PosFirstErr > 0 Then 
+									sOutput = Mid(*res(i), PosFirstErr + Len(*MainFileNameOnly))
+									*res(i) = Mid(*res(i), 1, PosFirstErr + Len(*MainFileNameOnly) - 1)
+								End If
+							End If
 							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
@@ -1010,6 +1017,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
+									FirstErrFlag += 1
 								End If
 							Else
 								Dim As UString TmpStr
@@ -1054,18 +1062,19 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 								ThreadsLeave()
 							End If
-							_Deallocate(res(i)): res(i) = 0
+							If PosFirstErr > 0 Then 
+								*res(i) = sOutput
+								i -= 1
+							Else
+								_Deallocate(res(i)): res(i) = 0
+							End If
+							PosFirstErr = 0
 							sOutput = ""
 						Next i
 						Erase res
 						sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
-						If FirstErrFlag < 3 AndAlso (InStr(LCase(sOutput), "compiling") OrElse result_  = False) Then
-							sOutput +=  Chr(10) + sBuffer
-							FirstErrFlag +=1
-						Else
-							sOutput += sBuffer
-						End If
+						sOutput += sBuffer
 					End If
 				Loop While result_
 				
@@ -1180,6 +1189,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	WDeAllocate(LogFileName2)
 	WDeAllocate(BatFileName)
 	WDeAllocate(MainFile)
+	WDeAllocate(MainFileNameOnly)
 	WDeAllocate(ProjectPath)
 	Return CompileResult
 	Exit Function
