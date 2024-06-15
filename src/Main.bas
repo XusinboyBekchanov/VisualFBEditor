@@ -593,16 +593,27 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Continue For
 			End If
 		End If
-		Dim As UserToolType Ptr Tool
-		For i As Integer = 0 To Tools.Count - 1
-			Tool = Tools.Item(i)
-			If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
-		Next
 		Dim As Integer iLine
 		WLet(MFFPathC, *MFFPath)
 		If CInt(InStr(*MFFPathC, ":") = 0) AndAlso CInt(Not StartsWith(*MFFPathC, "/")) Then WLet(MFFPathC, ExePath & "/" & *MFFPath)
 		WLet(BatFileName, ExePath + "/debug.bat")
 		Dim As Boolean Band, Yaratilmadi
+		Dim As UserToolType Ptr Tool
+		For i As Integer = 0 To Tools.Count - 1
+			Tool = Tools.Item(i)
+			If Tool->LoadType = LoadTypes.BeforeCompile Then Tool->Execute
+		Next
+		Dim As Any Ptr AddInDll
+		Dim As Sub(VisualFBEditorApp As Any Ptr, ByRef CompilingProgramPath As WString) OnBeforeCompile
+		For i As Integer = 0 To AddIns.Count - 1
+			AddInDll = AddIns.Object(i)
+			If AddInDll <> 0 Then
+				OnBeforeCompile = DyLibSymbol(AddInDll, "OnBeforeCompile")
+				If OnBeforeCompile Then
+					OnBeforeCompile(@VisualFBEditorApp, *ExeName)
+				End If
+			End If
+		Next
 		ChDir(GetFolderName(*MainFile))
 		If Parameter = "Check" Then
 			WLet(ExeName, "chk.dll")
