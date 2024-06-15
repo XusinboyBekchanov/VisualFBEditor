@@ -1,5 +1,5 @@
 ﻿#include once "inc/SimpleVariantPlus.bi"
-Type Object_Msxml2
+Type Object_Word
 	V As tagVARIANT
 	Declare Constructor()
 	Declare Destructor()
@@ -51,26 +51,33 @@ Type Object_Msxml2
 	Declare Operator Let(RHS As tagVARIANT)
 	Declare Operator Cast()  As tagVARIANT
 	
-	Declare Constructor (RHS As Object_Msxml2)
-	Declare Operator Let(RHS As Object_Msxml2)
+	Declare Constructor (RHS As Object_Word)
+	Declare Operator Let(RHS As Object_Word)
 	
 	#ifdef __FB_64BIT__
-		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Msxml2
-		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Msxml2
+		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Word
+		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Word
 		Declare Sub       Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
 		'Declare Sub       Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
 	#else
-		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Msxml2
-		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Msxml2
+		Declare Function Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Word
+		Declare Function  Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Word
 		Declare Sub       Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
 		'Declare Sub       Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
 	#endif
-	Declare Function  vbV() As Object_Msxml2
+	Declare Function  vbV() As Object_Word
 
 ' 添加声明在以下位置 09:11:08, 06-15-2024
-	Declare Function Open(ByRef Param1 As Object_Msxml2, ByRef Param2 As Object_Msxml2, ByRef Param3 As Object_Msxml2) As Object_Msxml2
-	Declare Function send As Object_Msxml2
-	Declare Function responseText As Object_Msxml2
+	Declare Property Visible As Object_Word
+	Declare Property Visible(ByRef Param1 As Object_Word)
+	Declare Function ADD As Object_Word
+	Declare Function Documents As Object_Word
+	Declare Property Text As Object_Word
+	Declare Property Text(ByRef Param1 As Object_Word)
+	Declare Function Content As Object_Word
+	Declare Function SaveAs(ByRef Param1 As Object_Word) As Object_Word
+	Declare Function Close As Object_Word
+	Declare Function Quit As Object_Word
 
 	'_Com_Declares
 
@@ -78,37 +85,58 @@ Type Object_Msxml2
 End Type
 
 ' 在以下位置添加函数 09:11:08, 06-15-2024
-Function Object_Msxml2.Open(ByRef Param1 As Object_Msxml2, ByRef Param2 As Object_Msxml2, ByRef Param3 As Object_Msxml2) As Object_Msxml2
-	Return This.Get("Open", "vvv", @Param1, @Param2, @Param3)
+Property Object_Word.Visible As Object_Word
+	Return This.Get("Visible")
+End Property
+Property Object_Word.Visible(ByRef Param1 As Object_Word)
+	This.Put("Visible", "v", @Param1)
+End Property
+Function Object_Word.ADD As Object_Word
+	Return This.Get("ADD")
 End Function
-Function Object_Msxml2.send As Object_Msxml2
-	Return This.Get("send")
+Function Object_Word.Documents As Object_Word
+	Return This.Get("Documents")
 End Function
-Function Object_Msxml2.responseText As Object_Msxml2
-	Return This.Get("responseText")
+Property Object_Word.Text As Object_Word
+	Return This.Get("Text")
+End Property
+Property Object_Word.Text(ByRef Param1 As Object_Word)
+	This.Put("Text", "v", @Param1)
+End Property
+Function Object_Word.Content As Object_Word
+	Return This.Get("Content")
+End Function
+Function Object_Word.SaveAs(ByRef Param1 As Object_Word) As Object_Word
+	Return This.Get("SaveAs", "v", @Param1)
+End Function
+Function Object_Word.Close As Object_Word
+	Return This.Get("Close")
+End Function
+Function Object_Word.Quit As Object_Word
+	Return This.Get("Quit")
 End Function
 
 '_Com_Functions
 
 
-Function Object_Msxml2.vbV() As Object_Msxml2
+Function Object_Word.vbV() As Object_Word
 	Return This
 End Function
-Constructor Object_Msxml2()
+Constructor Object_Word()
 	'we dont't do anything here in the base constructor currently
 End Constructor
-Destructor Object_Msxml2()
+Destructor Object_Word()
 	'MsgBox "Destructor of: " & TypeName
 	If V.vt Then VariantClear @V
 End Destructor
-Sub Object_Msxml2.Clear() 'usable on the Outside, e.g. to dereference an Object "early"
+Sub Object_Word.Clear() 'usable on the Outside, e.g. to dereference an Object "early"
 	If V.vt Then VariantClear @V: VariantInit @V
 End Sub
 
-Function Object_Msxml2.VarType() As vbVarType
+Function Object_Word.VarType() As vbVarType
 	Return V.vt
 End Function
-Function Object_Msxml2.TypeName() As String
+Function Object_Word.TypeName() As String
 	Dim T As String
 	Select Case V.vt And Not (vbArray Or vbByRef)
 	Case vbVarType.vbEmpty:    T = "Empty"
@@ -131,25 +159,25 @@ Function Object_Msxml2.TypeName() As String
 	If V.vt And vbArray Then Return T & "()"
 	Return T
 End Function
-Function Object_Msxml2.IsEmpty() As Boolean
+Function Object_Word.IsEmpty() As Boolean
 	Return V.vt = vbEmpty
 End Function
-Function Object_Msxml2.IsArray() As Boolean
+Function Object_Word.IsArray() As Boolean
 	If V.vt And vbArray Then Return True
 End Function
-Function Object_Msxml2.IsObject() As Boolean
+Function Object_Word.IsObject() As Boolean
 	Return V.vt = vbObject
 End Function
 
 
-Constructor Object_Msxml2(ByVal RHS As Boolean)
+Constructor Object_Word(ByVal RHS As Boolean)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Boolean)
+Operator Object_Word.Let(ByVal RHS As Boolean)
 	If V.vt <> vbBoolean  And V.vt <> vbEmpty Then VariantClear @V
 	V.vt =  vbBoolean: V.boolVal = CShort(RHS)
 End Operator
-Operator Object_Msxml2.Cast() As Boolean
+Operator Object_Word.Cast() As Boolean
 	If V.vt = vbBoolean Then
 		Return CBool(V.boolVal)
 	Else
@@ -160,14 +188,14 @@ Operator Object_Msxml2.Cast() As Boolean
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As UByte)
+Constructor Object_Word(ByVal RHS As UByte)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As UByte)
+Operator Object_Word.Let(ByVal RHS As UByte)
 	If V.vt <> vbByte  And V.vt <> vbEmpty Then VariantClear @V
 	V.vt =  vbByte: V.bVal = RHS
 End Operator
-Operator Object_Msxml2.Cast() As UByte
+Operator Object_Word.Cast() As UByte
 	If V.vt = vbByte Then
 		Return V.bVal
 	Else
@@ -178,14 +206,14 @@ Operator Object_Msxml2.Cast() As UByte
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As Short)
+Constructor Object_Word(ByVal RHS As Short)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Short)
+Operator Object_Word.Let(ByVal RHS As Short)
 	If V.vt <> vbInteger  And V.vt <> vbEmpty Then VariantClear @V
 	V.vt =  vbInteger: V.iVal = RHS
 End Operator
-Operator Object_Msxml2.Cast() As Short
+Operator Object_Word.Cast() As Short
 	If V.vt = vbInteger Then
 		Return V.iVal
 	Else
@@ -196,14 +224,14 @@ Operator Object_Msxml2.Cast() As Short
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As Long)
+Constructor Object_Word(ByVal RHS As Long)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Long)
+Operator Object_Word.Let(ByVal RHS As Long)
 	If V.VT <> vbLong  And V.VT <> vbEmpty Then VariantClear @V
 	V.VT =  vbLong: V.lVal = RHS
 End Operator
-Operator Object_Msxml2.Cast() As Long
+Operator Object_Word.Cast() As Long
 	If V.VT = vbLong Then
 		Return V.lVal
 	Else
@@ -214,14 +242,14 @@ Operator Object_Msxml2.Cast() As Long
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As LongInt)
+Constructor Object_Word(ByVal RHS As LongInt)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As LongInt)
+Operator Object_Word.Let(ByVal RHS As LongInt)
 	If V.VT <> vbCurrency  And V.VT <> vbEmpty Then VariantClear @V
 	V.VT =  vbCurrency: V.llVal = RHS * 10000
 End Operator
-Operator Object_Msxml2.Cast() As LongInt
+Operator Object_Word.Cast() As LongInt
 	If V.VT = vbCurrency Then
 		Return V.llVal / 10000
 	Else
@@ -232,14 +260,14 @@ Operator Object_Msxml2.Cast() As LongInt
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As Single)
+Constructor Object_Word(ByVal RHS As Single)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Single)
+Operator Object_Word.Let(ByVal RHS As Single)
 	If V.VT <> vbSingle  And V.VT <> vbEmpty Then VariantClear @V
 	V.VT =  vbSingle: V.fltVal = RHS
 End Operator
-Operator Object_Msxml2.Cast() As Single
+Operator Object_Word.Cast() As Single
 	If V.VT = vbSingle Then
 		Return V.fltVal
 	Else
@@ -250,14 +278,14 @@ Operator Object_Msxml2.Cast() As Single
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As Double)
+Constructor Object_Word(ByVal RHS As Double)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Double)
+Operator Object_Word.Let(ByVal RHS As Double)
 	If V.VT <> vbDouble  And V.VT <> vbEmpty Then VariantClear @V
 	V.VT =  vbDouble: V.dblVal = RHS
 End Operator
-Operator Object_Msxml2.Cast() As Double
+Operator Object_Word.Cast() As Double
 	If V.VT = vbDouble Then
 		Return V.dblVal
 	Else
@@ -268,14 +296,14 @@ Operator Object_Msxml2.Cast() As Double
 End Operator
 
 
-Constructor Object_Msxml2(RHS As String)
+Constructor Object_Word(RHS As String)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(RHS As String)
+Operator Object_Word.Let(RHS As String)
 	If V.VT Then VariantClear @V
 	V.VT = vbString: V.bstrVal = S2BSTR(RHS)
 End Operator
-Operator Object_Msxml2.Cast() As String
+Operator Object_Word.Cast() As String
 	If V.VT = vbString Then
 		Return BSTR2S(V.bstrVal)
 	Else
@@ -293,14 +321,14 @@ Operator Object_Msxml2.Cast() As String
 End Operator
 
 
-Constructor Object_Msxml2(ByVal RHS As Const WString Ptr)
+Constructor Object_Word(ByVal RHS As Const WString Ptr)
 	This = RHS
 End Constructor
-Operator Object_Msxml2.Let(ByVal RHS As Const WString Ptr)
+Operator Object_Word.Let(ByVal RHS As Const WString Ptr)
 	If V.VT Then VariantClear @V
 	V.VT = vbString: V.bstrVal = W2BSTR(RHS)
 End Operator
-Operator Object_Msxml2.Cast() As WString Ptr
+Operator Object_Word.Cast() As WString Ptr
 	If V.VT = vbString Then
 		Return WCacheValue(V.bstrVal)
 	Else
@@ -312,62 +340,62 @@ Operator Object_Msxml2.Cast() As WString Ptr
 End Operator
 
 
-Constructor Object_Msxml2(RHS As tagVariant)
+Constructor Object_Word(RHS As tagVariant)
 	If @This = @RHS Then Exit Constructor
 	If V.VT Then VariantClear @V
 	V=RHS '<- we go with a shallow copy here (to not mess-up RefCounts - e.g. when normal tagVariants come in from Function-Results)
 End Constructor
-Operator Object_Msxml2.Let(RHS As tagVariant)
+Operator Object_Word.Let(RHS As tagVariant)
 	If @This = @RHS Then Exit Operator
 	If V.VT Then VariantClear @V
 	VariantCopy @V, @RHS
 End Operator
-Operator Object_Msxml2.Cast() As tagVariant
+Operator Object_Word.Cast() As tagVariant
 	Dim Dst As tagVariant
 	VariantCopy @Dst, @V
 	Return Dst
 End Operator
 
 
-Constructor Object_Msxml2(RHS As Object_Msxml2)
+Constructor Object_Word(RHS As Object_Word)
 	If @This = @RHS Then Exit Constructor
 	If V.VT Then VariantClear @V
 	VariantCopy @V, @RHS.V
 End Constructor
-Operator Object_Msxml2.Let(RHS As Object_Msxml2)
+Operator Object_Word.Let(RHS As Object_Word)
 	If @This = @RHS Then Exit Operator
 	If V.VT Then VariantClear @V
 	VariantCopy @V, @RHS.V
 End Operator
 
 #ifdef __FB_64BIT__
-	Function Object_Msxml2.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Msxml2
+	Function Object_Word.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Word
 		Dim tv As tagVariant
 		tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
 		Function = tv
 	End Function
-	Function Object_Msxml2.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Msxml2
+	Function Object_Word.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0) As Object_Word
 		Return CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
 	End Function
-	Sub Object_Msxml2.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+	Sub Object_Word.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
 		CallByName(V, MethodName, DISPATCH_PROPERTYPUT, TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
 	End Sub
-	'Sub Object_Msxml2.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
+	'Sub Object_Word.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ByVal Arg0 As Any Ptr = 0, ByVal Arg1 As Any Ptr = 0, ByVal Arg2 As Any Ptr = 0, ByVal Arg3 As Any Ptr = 0, ByVal Arg4 As Any Ptr = 0, ByVal Arg5 As Any Ptr = 0, ByVal Arg6 As Any Ptr = 0, ByVal Arg7 As Any Ptr = 0, ByVal Arg8 As Any Ptr = 0, ByVal Arg9 As Any Ptr = 0, ByVal Arg10 As Any Ptr = 0, ByVal Arg11 As Any Ptr = 0, ByVal Arg12 As Any Ptr = 0, ByVal Arg13 As Any Ptr = 0, ByVal Arg14 As Any Ptr = 0, ByVal Arg15 As Any Ptr = 0, ByVal Arg16 As Any Ptr = 0, ByVal Arg17 As Any Ptr = 0, ByVal Arg18 As Any Ptr = 0, ByVal Arg19 As Any Ptr = 0, ByVal Arg20 As Any Ptr = 0, ByVal Arg21 As Any Ptr = 0, ByVal Arg22 As Any Ptr = 0, ByVal Arg23 As Any Ptr = 0, ByVal Arg24 As Any Ptr = 0, ByVal Arg25 As Any Ptr = 0, ByVal Arg26 As Any Ptr = 0, ByVal Arg27 As Any Ptr = 0, ByVal Arg28 As Any Ptr = 0, ByVal Arg29 As Any Ptr = 0, ByVal Arg30 As Any Ptr = 0, ByVal Arg31 As Any Ptr = 0)
 	'	CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, Arg0, Arg1, Arg2, Arg3, Arg4, Arg5, Arg6, Arg7, Arg8, Arg9, Arg10, Arg11, Arg12, Arg13, Arg14, Arg15, Arg16, Arg17, Arg18, Arg19, Arg20, Arg21, Arg22, Arg23, Arg24, Arg25, Arg26, Arg27, Arg28, Arg29, Arg30, Arg31)
 	'End Sub
 #else
-	Function Object_Msxml2.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Msxml2
+	Function Object_Word.Call cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Word
 		Dim tv As tagVARIANT
 		tv = CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
 		Function = tv
 	End Function
-	Function Object_Msxml2.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Msxml2
+	Function Object_Word.Get cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...) As Object_Word
 		Return CallByName(V, MethodName, DISPATCH_METHOD Or DISPATCH_PROPERTYGET, TypeChars, va_first)
 	End Function
-	Sub Object_Msxml2.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+	Sub Object_Word.Put cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
 		CallByName(V, MethodName, DISPATCH_PROPERTYPUT, TypeChars, va_first)
 	End Sub
-	'Sub Object_Msxml2.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
+	'Sub Object_Word.Set cdecl (ByVal MethodName As LPOLESTR, TypeChars As String = "", ...)
 	'	CallByName(V, MethodName, DISPATCH_PROPERTYPUTREF,  TypeChars, va_first)
 	'End Sub
 #endif

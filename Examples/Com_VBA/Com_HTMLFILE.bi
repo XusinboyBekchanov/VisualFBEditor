@@ -67,7 +67,7 @@ Type Object_HTMLFILE
 	#endif
 	Declare Function  vbV() As Object_HTMLFILE
 
-' 添加声明在以下位置 15:20:51, 03-14-2024
+' 添加声明在以下位置 09:11:08, 06-15-2024
 	Declare Function parentWindow As Object_HTMLFILE
 	Declare Function execScript(ByRef Param1 As Object_HTMLFILE) As Object_HTMLFILE
 	Declare Function eval(ByRef Param1 As Object_HTMLFILE) As Object_HTMLFILE
@@ -77,7 +77,7 @@ Type Object_HTMLFILE
 	
 End Type
 
-' 在以下位置添加函数 15:20:51, 03-14-2024
+' 在以下位置添加函数 09:11:08, 06-15-2024
 Function Object_HTMLFILE.parentWindow As Object_HTMLFILE
 	Return This.Get("parentWindow")
 End Function
