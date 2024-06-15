@@ -1,14 +1,14 @@
 ﻿#ifdef __FB_WIN32__
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x "../../AddIns/MyAddin (x64).dll" "MyAddin.rc"
+		'#Compile -dll -x "../../AddIns/My Add-In (x64).dll" "My Add-In.rc"
 	#else
-		'#Compile -dll -x "../../AddIns/MyAddin (x32).dll" "MyAddin.rc"
+		'#Compile -dll -x "../../AddIns/My Add-In (x32).dll" "My Add-In.rc"
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		'#Compile -dll -x "../../AddIns/MyAddinx64.so"
+		'#Compile -dll -x "../../AddIns/MyAddInx64.so"
 	#else
-		'#Compile -dll -x "../../AddIns/MyAddinx32.so"
+		'#Compile -dll -x "../../AddIns/MyAddInx32.so"
 	#endif
 #endif
 
@@ -47,6 +47,7 @@ Type MFFLib
 	ToolBarRemoveButton As Sub(tb As Any Ptr, Index As Integer)
 	ToolBarIndexOfButton As Function(tb As Any Ptr, btn As Any Ptr) As Integer
 	MenuItemAdd As Function(ParentMenuItem As Any Ptr, ByRef sCaption As WString, ByRef sImageKey As WString, sKey As String = "", eClick As Any Ptr = 0, Index As Integer = -1) As Any Ptr
+	MenuItemIndexOfKey As Function(ParentMenuItem As Any Ptr, ByRef Key As WString) As Integer
 	MenuItemRemove As Sub(ParentMenuItem As Any Ptr, PMenuItem As Any Ptr)
 	MenuFindByName As Function(PMenu As Any Ptr, ByRef FName As WString) As Any Ptr
 	ObjectDelete As Function(Obj As Any Ptr) As Boolean
@@ -65,12 +66,13 @@ Sub LoadMFFProcs()
 	mff.ToolBarRemoveButton = DyLibSymbol(VFBEditorLib, "ToolBarRemoveButton")
 	mff.ToolBarIndexOfButton = DyLibSymbol(VFBEditorLib, "ToolBarIndexOfButton")
 	mff.MenuItemAdd = DyLibSymbol(VFBEditorLib, "MenuItemAdd")
+	mff.MenuItemIndexOfKey = DyLibSymbol(VFBEditorLib, "MenuItemIndexOfKey")
 	mff.MenuItemRemove = DyLibSymbol(VFBEditorLib, "MenuItemRemove")
 	mff.MenuFindByName = DyLibSymbol(VFBEditorLib, "MenuFindByName")
 	mff.ObjectDelete = DyLibSymbol(VFBEditorLib, "ObjectDelete")
 End Sub
 
-Dim Shared As Any Ptr MainForm
+Dim Shared As Any Ptr MainForm, MainReBar
 Dim Shared As Any Ptr tbStandard, tbMyAddin, tbMyAddinSeparator
 Dim Shared As Any Ptr mnuService, mnuMyAddin, mnuMyAddinSeparator
 
@@ -89,7 +91,7 @@ End Function
 
 Sub OnMyAddinButtonClick(ByRef Sender As Object)
 	If mff.MsgBox <> 0 Then
-		mff.MsgBox("MyAddin Click", "MyAddin")
+		mff.MsgBox("My Add-In")
 	End If
 End Sub
 
@@ -98,12 +100,12 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
 	
 	#ifdef __FB_WIN32__
 		#ifdef __FB_64BIT__
-			VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff64.dll")
+			VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/Controls/MyFbFramework/mff64.dll")
 		#else
-			VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/mff32.dll")
+			VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/Controls/MyFbFramework/mff32.dll")
 		#endif
 	#else
-		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
+		VFBEditorLib = DyLibLoad(GetFolderPath(AppPath) & "/Controls/MyFbFramework/libmff" & Right(AppPath, 7) & ".so")
 	#endif
 	If s <> 0 Then Deallocate s
 	
@@ -115,18 +117,22 @@ Sub OnConnection Alias "OnConnection"(VisualFBEditorApp As Any Ptr, ByRef AppPat
 		MainForm = mff.ApplicationMainForm(VisualFBEditorApp)
 		If MainForm <> 0 Then
 			If mff.ControlByName <> 0 Then
-				tbStandard = mff.ControlByName(MainForm, "Standard")
-				If tbStandard <> 0 AndAlso mff.ToolBarAddButtonWithImageKey <> 0 Then
-					tbMyAddinSeparator = mff.ToolBarAddButtonWithImageKey(tbStandard, 1, "MyAddinSeparator")
-					tbMyAddin = mff.ToolBarAddButtonWithImageKey(tbStandard, , "Info", , @OnMyAddinButtonClick, "MyAddin", , "My Addin Hint", True)
+				MainReBar = mff.ControlByName(MainForm, "MainReBar")
+				If MainReBar <> 0 Then
+					tbStandard = mff.ControlByName(MainReBar, "Standard")
+					If tbStandard <> 0 AndAlso mff.ToolBarAddButtonWithImageKey <> 0 Then
+						tbMyAddinSeparator = mff.ToolBarAddButtonWithImageKey(tbStandard, 1, "MyAddinSeparator")
+						tbMyAddin = mff.ToolBarAddButtonWithImageKey(tbStandard, , "About", , @OnMyAddinButtonClick, "MyAddin", , "My Add-In", True)
+					End If
 				End If
 			End If
 			If mff.ReadProperty <> 0 AndAlso mff.MenuFindByName <> 0 Then
 				Dim As Any Ptr mnuMenu = mff.ReadProperty(MainForm, "Menu")
 				mnuService = mff.MenuFindByName(mnuMenu, "Service")
 				If mnuService <> 0 AndAlso mff.MenuItemAdd <> 0 Then
-					mnuMyAddinSeparator = mff.MenuItemAdd(mnuService, "-", "", "", , 1)
-					mnuMyAddin = mff.MenuItemAdd(mnuService, "My Addin", "Info", , @OnMyAddinButtonClick, 2)
+					Var IndexOfKey = mff.MenuItemIndexOfKey(mnuService, "AddIns")
+					mnuMyAddinSeparator = mff.MenuItemAdd(mnuService, "-", "", "", , IndexOfKey + 1)
+					mnuMyAddin = mff.MenuItemAdd(mnuService, "My Add-In", "About", , @OnMyAddinButtonClick, IndexOfKey + 2)
 				End If
 			End If
 		End If
