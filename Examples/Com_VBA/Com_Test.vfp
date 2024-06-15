@@ -1,4 +1,4 @@
-﻿*File=Com_HtmlFile.frm
+﻿*File=Com_Test.frm
 File=Com_HtmlFile2.frm
 ProjectType=0
 Subsystem=2
@@ -10,7 +10,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=67
+BuildVersion=72
 AutoIncrementVersion=false
 ApplicationTitle="Form1"
 ApplicationIcon=""
