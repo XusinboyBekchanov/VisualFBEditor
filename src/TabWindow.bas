@@ -9903,10 +9903,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Dim As SymbolsType Ptr st = Des->Symbols(Ctrl)
 								If p1 Then
 									PropertyName = Trim(Mid(*FLine, p + 1, p1 - p - 1), Any !"\t ")
-									FLin = Mid(b, p1 + 1)
+									FLin = Mid(*FLine, p1 + 1)
 									FLin = Trim(FLin, Any !"\t ")
 									If Len(FLin) <> 0 Then
-										WLet(FLine2, Trim(Mid(b, p1 + 1), Any !"\t "))
+										WLet(FLine2, Trim(Mid(*FLine, p1 + 1), Any !"\t "))
 										'If StartsWith(*FLine2, "@") Then WLet(FLine3, Trim(Mid(*FLine2, 2), Any !"\t ")): WLet(FLine2, *FLine3)
 										Dim As Boolean Result
 										Result = WriteObjProperty(Ctrl, PropertyName, *FLine2, True)
