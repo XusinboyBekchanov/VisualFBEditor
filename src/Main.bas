@@ -943,7 +943,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				CloseFile_(Fn)
 			#else
-				#define BufferSize 2048
+				#define BufferSize 4096
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
 				Dim sa As SECURITY_ATTRIBUTES
@@ -979,25 +979,18 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				
 				CloseHandle hWritePipe
 				
-				Dim As Integer Pos1, FirstErrFlag
+				Dim As Integer Pos1, PosFirstErr, FirstErrFlag
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-					FirstErrFlag += 1
 					sBuffer = Left(sBuffer, bytesRead)
-					'debug.print "**** " & sBuffer
+					If CBool(FirstErrFlag < 2) AndAlso CBool(InStr(sBuffer, "compiling:")) Then sBuffer += Chr(10) : FirstErrFlag += 1
 					Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
-						If FirstErrFlag > 2 Then
 							sOutput += Left(sBuffer, Pos1 - 1)
-						Else
-							sOutput = sBuffer : sBuffer = ""
-						End If
 						Dim res() As WString Ptr
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
 							ERRGoRc = True
-						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
-							sOutput = Replace(sOutput, Chr(13, 10), " ")
 						End If
 						Dim As String buffer = Str(sOutput)
 						Dim As Integer wideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, NULL, 0)
