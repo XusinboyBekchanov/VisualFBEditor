@@ -943,7 +943,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				CloseFile_(Fn)
 			#else
-				#define BufferSize 2048
+				#define BufferSize 4096
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
 				Dim sa As SECURITY_ATTRIBUTES
@@ -958,7 +958,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				sa.lpSecurityDescriptor = NULL
 				sa.bInheritHandle = True
 				
-				If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then
+				If CreatePipe(@hReadPipe, @hWritePipe, @sa, ByVal 0) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Pipe"), False)
 					CompileResult = 0
 					Continue For
@@ -968,9 +968,10 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
 				si.hStdOutput = hWritePipe
 				si.hStdError = hWritePipe
+				si.hStdInput  = hReadPipe
 				si.wShowWindow = 0
 				
-				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, 0, 0, @si, @pi) = 0 Then
+				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, ByVal 0, ByVal 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process") & ": " & GetErrorString(GetLastError), False)
 					CompileResult = 0
 					Continue For
@@ -982,15 +983,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
 					sBuffer = Left(sBuffer, bytesRead)
+					If CBool(FirstErrFlag < 2) AndAlso CBool(InStr(sBuffer, "compiling:")) Then sBuffer += Chr(10) : FirstErrFlag += 1
 					Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
+							sOutput += Left(sBuffer, Pos1 - 1)
 						Dim res() As WString Ptr
-						sOutput += Left(sBuffer, Pos1 - 1)
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
 							ERRGoRc = True
-						ElseIf InStr(sOutput, "of Resource Script ") > 0 Then
-							sOutput = Replace(sOutput, Chr(13, 10), " ")
 						End If
 						Dim As String buffer = Str(sOutput)
 						Dim As Integer wideCharsNeeded = MultiByteToWideChar(CP_ACP, 0, StrPtr(buffer), -1, NULL, 0)
@@ -1000,13 +1000,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						For i As Integer = 0 To UBound(res) 'Copyright
 							*res(i) = Trim(*res(i), Any !"\t\n\r ")
 							If *res(i) = "" OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-							If FirstErrFlag < 1 Then
-								PosFirstErr = InStr(*res(i), *MainFileNameOnly & *MainFileNameOnly)
-								If PosFirstErr > 0 Then 
-									sOutput = Mid(*res(i), PosFirstErr + Len(*MainFileNameOnly))
-									*res(i) = Mid(*res(i), 1, PosFirstErr + Len(*MainFileNameOnly) - 1)
-								End If
-							End If
 							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
 								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
 								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
@@ -1073,17 +1066,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(*res(i), nPos))
 								ThreadsLeave()
 							End If
-							If PosFirstErr > 0 Then 
-								*res(i) = sOutput
-								i -= 1
-							Else
-								_Deallocate(res(i)): res(i) = 0
-							End If
-							PosFirstErr = 0
+							_Deallocate(res(i)): res(i) = 0
 							sOutput = ""
 						Next i
 						Erase res
-						sOutput = Mid(sBuffer, Pos1 + 1)
+						If sBuffer <> "" Then sOutput = Mid(sBuffer, Pos1 + 1)
 					Else
 						sOutput += sBuffer
 					End If
