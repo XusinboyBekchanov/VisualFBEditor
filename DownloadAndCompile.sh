@@ -17,6 +17,7 @@ elif command -v pacman &> /dev/null; then
     if ! pacman -Q ncurses5-compat-libs  &> /dev/null; then
         sudo pacman -S ncurses5-compat-libs
     fi
+fi
 rm -r VisualFBEditor
 git clone https://github.com/XusinboyBekchanov/VisualFBEditor
 cd VisualFBEditor/Controls
@@ -35,4 +36,4 @@ cd Controls/MyFbFramework/mff
 cd ..
 cd ..
 cd ..
-fi
+
