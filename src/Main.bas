@@ -943,13 +943,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				CloseFile_(Fn)
 			#else
-				#define BufferSize 4096
+				Dim As Integer BufferSize = 128
 				Dim si As STARTUPINFO
 				Dim pi As PROCESS_INFORMATION
 				Dim sa As SECURITY_ATTRIBUTES
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
-				Dim sBuffer As ZString * BufferSize
+				Dim sBuffer As ZString * 2048
 				Dim sOutput As UString
 				Dim bytesRead As DWORD
 				Dim result_ As Integer
@@ -983,7 +983,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
 					sBuffer = Left(sBuffer, bytesRead)
-					If CBool(FirstErrFlag < 2) AndAlso CBool(InStr(sBuffer, "compiling:")) Then sBuffer += Chr(10) : FirstErrFlag += 1
+					If CBool(FirstErrFlag < 2) AndAlso CBool(InStr(sBuffer, "compiling:")) Then sBuffer += Chr(10) : FirstErrFlag += 1: BufferSize = 2048
 					Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
 							sOutput += Left(sBuffer, Pos1 - 1)
@@ -1016,12 +1016,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									End If
 								
 								End If
-								If 	bFlagErr >= 0 Then
-									If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+								If bFlagErr >= 0 AndAlso *ErrFileName <> "" AndAlso iLine> 0 Then
+									If InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 									FirstErrFlag += 1
+								Else
+									ShowMessages(*res(i), False)
 								End If
 							Else
 								Dim As UString TmpStr
