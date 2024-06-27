@@ -2725,7 +2725,7 @@ Sub AddFromTemplate(ByRef Template As WString)
 		ptn = GetParentNode(tnSelecte)
 		If ptn->ImageKey = "Project" OrElse ptn->ImageKey = "Opened" Then
 			If ptn->ImageKey = "Opened" Then
-				Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @File @Opened"
+				Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @Opened "
 				If InStr(tmpKeyStr, " @" & tnSelecte->ImageKey & " ") Then
 					tn1 = IIf(tnSelecte->ParentNode->ImageKey = tnSelecte->ImageKey, tnSelecte->ParentNode->ParentNode , tnSelecte->ParentNode)
 				Else
