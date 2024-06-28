@@ -892,7 +892,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
 				ThreadsLeave()
 			End If
-			Dim As String TmpStrKey = " @freebasic compiler @copyright @standalone @target @backend @compiling rc failed @compiling C @assembling @linking @obj @creating @restarting @creating import library @archiving "
+			Dim As String TmpStrKey = "@freebasic compiler@copyright@standalone@target@backend@compiling@compiling rc@compiling rc failed@compiling c@assembling@linking@obj@creating@restarting@creating import library@archiving@""
 			Dim As WString * 2048 TmpStr
 			#ifdef __USE_GTK__
 				Dim As Integer Fn = FreeFile_
@@ -908,7 +908,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Else
 							TmpStr = Trim(Left(Buff, nPos - 1))
 						End If
-						Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr)) OrElse InStr(LCase(Buff), "ld.exe") > 0
+						Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr) & "@") OrElse InStr(LCase(Buff), "ld.exe") > 0
 						If Not bErrorInfo Then
 							ThreadsEnter()
 							ShowMessages(Buff, False)
@@ -1005,7 +1005,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							Else
 								TmpStr = Trim(Left(*res(i), nPos - 1))
 							End If
-							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), " @" & LCase(TmpStr)) OrElse InStr(LCase(*res(i)), "ld.exe") > 0
+							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr) & "@") OrElse InStr(LCase(*res(i)), "ld.exe") > 0
 							If Not bErrorInfo Then
 								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
