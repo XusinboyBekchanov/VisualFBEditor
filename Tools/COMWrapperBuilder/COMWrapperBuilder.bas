@@ -566,22 +566,26 @@ Private Sub frmCOMWrapperBuilder.cmdRun_Click(ByRef Sender As Control)
 			Next
 			For i As Integer = 0 To Functions.Count - 1
 				m = Functions.Object(i)
+				Dim As WString * 256 mNameNoSuffix = Trim(m->Name)
+				If Mid(mNameNoSuffix, 1, 1) = "_" Then mNameNoSuffix = Mid(mNameNoSuffix, 2, Len(mNameNoSuffix) - 1)
+				If Right(mNameNoSuffix, 1) = "_" Then mNameNoSuffix = Mid(mNameNoSuffix, 1, Len(mNameNoSuffix) - 1)
+				
 				If m->MethodType = IsFunction AndAlso Properties.Contains(m->Name) Then m->MethodType = IsProperty
 				If m->MethodType = IsProperty Then
 					TmpStr = !"\r\n\tDeclare Property " & m->Name & IIf(m->ParamsText = "", "", "(" & m->ParamsText & ")") & " As " & "Object_" & comName & _
 					!"\r\n\tDeclare Property " & m->Name & "(" & m->ParamsText & IIf(m->ParamsText = "", "", ", ") & "ByRef Param" & Trim(WStr(m->ParamsCount + 1)) & " As " & "Object_" & comName & ")"
 					TmpStr1 = !"\r\nProperty " & "Object_" & comName & "." & m->Name & IIf(m->ParamsText = "", "", "(" & m->ParamsText & ")") & " As " & "Object_" & comName & _
-					!"\r\n\tReturn This.Get(""" & m->Name & """" & IIf(m->ParamsCount = 0, "", ", " & GetParamsByCount(m->ParamsCount)) & !")\r\n" & _
+					!"\r\n\tReturn This.Get(""" & mNameNoSuffix & """" & IIf(m->ParamsCount = 0, "", ", " & GetParamsByCount(m->ParamsCount)) & !")\r\n" & _
 					!"End Property\r\n" & _
 					"Property " & "Object_" & comName & "." & m->Name & "(" & m->ParamsText & IIf(m->ParamsText = "", "", ", ") & "ByRef Param" & Trim(WStr(m->ParamsCount + 1)) & " As " & "Object_" & comName & ")" & _
-					!"\r\n\tThis.Put(""" & m->Name & """, " & GetParamsByCount(m->ParamsCount + 1) & !")\r\n" & _
+					!"\r\n\tThis.Put(""" & mNameNoSuffix & """, " & GetParamsByCount(m->ParamsCount + 1) & !")\r\n" & _
 					"End Property"
 					If InStr(*DeclaresTextAll, TmpStr) < 1 Then WAdd(DeclaresText, TmpStr)
 					If InStr(*FunctionsTextAll, TmpStr1) < 1 Then WAdd(FunctionsText, TmpStr1)
 				Else
 					TmpStr = !"\r\n\tDeclare Function " & Functions.Item(i) & " As " & "Object_" & comName
 					TmpStr1 = !"\r\nFunction " & "Object_" & comName & "." & Functions.Item(i) & " As " & "Object_" & comName & _
-					!"\r\n\tReturn This.Get(""" & m->Name & """" & IIf(m->ParamsCount = 0, "", ", " & GetParamsByCount(m->ParamsCount)) & !")\r\n" & _
+					!"\r\n\tReturn This.Get(""" & mNameNoSuffix & """" & IIf(m->ParamsCount = 0, "", ", " & GetParamsByCount(m->ParamsCount)) & !")\r\n" & _
 					"End Function"
 					If InStr(*DeclaresTextAll, TmpStr) < 1 Then WAdd(DeclaresText, TmpStr)
 					If InStr(*FunctionsTextAll, TmpStr1) < 1 Then WAdd(FunctionsText, TmpStr1)

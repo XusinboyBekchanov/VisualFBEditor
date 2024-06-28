@@ -892,18 +892,25 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
 				ThreadsLeave()
 			End If
+			Dim As String TmpStrKey = " @freebasic compiler @copyright @standalone @target @backend @compiling rc failed @compiling C @assembling @linking @obj @creating @restarting @creating import library @archiving "
+			Dim As WString * 2048 TmpStr
 			#ifdef __USE_GTK__
 				Dim As Integer Fn = FreeFile_
 				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
 						If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
-						
-						If Not (StartsWith(Buff, "FreeBASIC Compiler") OrElse StartsWith(Buff, "Copyright ") OrElse StartsWith(Buff, "standalone") OrElse StartsWith(Buff, "target:") _
-							OrElse StartsWith(Buff, "compiling:") OrElse StartsWith(Buff, "compiling C:") OrElse StartsWith(Buff, "assembling:") OrElse StartsWith(Buff, "compiling rc:") _
-							OrElse StartsWith(Buff, "linking:") OrElse StartsWith(Buff, "OBJ file not made") OrElse StartsWith(Buff, "compiling rc failed:") _
-							OrElse StartsWith(Buff, "creating import library:") OrElse StartsWith(Buff, "backend:") OrElse StartsWith(Buff, "Restarting fbc") OrElse StartsWith(Buff, "archiving:") OrElse StartsWith(Buff, "creating:")) Then
-								ThreadsEnter()
+						Dim As Integer nPos = InStr(Buff, ":")
+						If nPos < 1 Then nPos = InStr(Buff, " ")
+						If nPos < 1 Then
+							nPos = Len(Buff) + 1
+							TmpStr = Trim(Buff)
+						Else
+							TmpStr = Trim(Left(Buff, nPos - 1))
+						End If
+						Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr)) OrElse InStr(LCase(Buff), "ld.exe") > 0
+						If Not bErrorInfo Then
+							ThreadsEnter()
 							ShowMessages(Buff, False)
 								ThreadsLeave()
 							bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
@@ -926,15 +933,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 								ThreadsLeave()
 							End If
 						Else
-							Dim As String TmpStr
-							Var nPos = InStr(Buff, ":")
-							If nPos < 1 Then nPos = InStr(Buff, " ")
-							If nPos < 1 Then
-								nPos = Len(Buff) + 1
-								TmpStr = Trim(Buff)
-							Else
-								TmpStr = Trim(Left(Buff, nPos - 1))
-							End If
 							ThreadsEnter()
 							ShowMessages Str(Time) & ": " & ML(TmpStr) & " " & Trim(Mid(Buff, nPos))
 							ThreadsLeave()
@@ -978,7 +976,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 				
 				CloseHandle hWritePipe
-				
 				Dim As Integer Pos1, PosFirstErr, FirstErrFlag
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
@@ -999,11 +996,17 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						Split sOutput, Chr(10), res()
 						For i As Integer = 0 To UBound(res) 'Copyright
 							*res(i) = Trim(*res(i), Any !"\t\n\r ")
-							If *res(i) = "" OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
-							If Not (StartsWith(*res(i), "FreeBASIC Compiler") OrElse StartsWith(*res(i), "Copyright ") OrElse StartsWith(*res(i), "standalone") OrElse StartsWith(*res(i), "target:") _
-								OrElse StartsWith(*res(i), "backend:") OrElse StartsWith(*res(i), "compiling:") OrElse StartsWith(*res(i), "compiling C:") OrElse StartsWith(*res(i), "assembling:") _
-								OrElse StartsWith(*res(i), "compiling rc:") OrElse StartsWith(*res(i), "linking:") OrElse StartsWith(*res(i), "OBJ file not made") OrElse StartsWith(*res(i), Space(14)) _
-								OrElse StartsWith(*res(i), "creating import library:") OrElse StartsWith(*res(i), "compiling rc failed:") OrElse StartsWith(*res(i), "Restarting fbc") OrElse StartsWith(*res(i), "creating:") OrElse StartsWith(*res(i), "archiving:") OrElse InStr(*res(i), "ld.exe") > 0) Then
+							If Len(*res(i)) < 10 OrElse StartsWith(Trim(*res(i)), "|") Then Continue For
+							Dim As Integer nPos = InStr(*res(i), ":")
+							If nPos < 1 Then nPos = InStr(*res(i), " ")
+							If nPos < 1 Then
+								nPos = Len(*res(i)) + 1
+								TmpStr = Trim(*res(i))
+							Else
+								TmpStr = Trim(Left(*res(i), nPos - 1))
+							End If
+							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), " @" & LCase(TmpStr)) OrElse InStr(LCase(*res(i)), "ld.exe") > 0
+							If Not bErrorInfo Then
 								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 								If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
@@ -1026,16 +1029,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									ShowMessages(*res(i), False)
 								End If
 							Else
-								Dim As UString TmpStr
-								Dim As Integer nPos = InStr(*res(i), ":")
-								If nPos < 1 Then nPos = InStr(*res(i), " ")
-								If nPos < 1 Then
-									nPos = Len(*res(i)) + 1
-									TmpStr = Trim(*res(i))
-								Else
-									TmpStr = Trim(Left(*res(i), nPos - 1))
-								End If
-								If StartsWith(TmpStr, "FreeBASIC") Then 
+								If StartsWith(TmpStr, "FreeBASIC") Then
 									nPos = Len(*res(i)) + 1
 									TmpStr = Replace(Replace(*res(i), "FreeBASIC Compiler", ML("FreeBASIC Compiler")), "Version", ML("Version"))
 									Var Pos1 = InStr(TmpStr, "built for ")
@@ -1574,7 +1568,7 @@ Function AddFolder(ByRef FolderName As WString) As TreeNode Ptr
 		Next
 		Dim As String IconName
 		If FileExists(FolderName & Slash & GetFileName(FolderName) & ".vfp") Then
-			IconName = "Project"
+			IconName = "Opened"
 			tn = tvExplorer.Nodes.Add(GetFileName(FolderName), , FolderName, IconName, IconName)
 			AddProject FolderName & Slash & GetFileName(FolderName) & ".vfp", , tn
 			WLet(Cast(ExplorerElement Ptr, tn->Tag)->FileName, FolderName)
@@ -1637,7 +1631,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 			If Result = 0 Then
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
-					If Buff = "OpenProjectAsFolder=true" Then
+					If InStr(LCase(Buff), "openprojectasfolder") > 0 AndAlso InStr(LCase(Buff), "true") > 0 Then
 						Return AddFolder(GetFolderName(FileName, False))
 					End If
 				Loop
@@ -2099,6 +2093,7 @@ Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 End Function
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
+	If Trim(FolderName)="" Then Return False
 	Dim AttrTester As Integer, DirString As String
 	DirString = Dir(FolderName, fbDirectory, AttrTester)
 	Return AttrTester = fbDirectory
@@ -2724,11 +2719,22 @@ Function ContainsFileName(tn As TreeNode Ptr, ByRef FileName As WString) As Bool
 End Function
 
 Sub AddFromTemplate(ByRef Template As WString)
-	Dim As TreeNode Ptr ptn, tn1, tn3
-	If tvExplorer.SelectedNode <> 0 Then
-		ptn = GetParentNode(tvExplorer.SelectedNode)
-		If ptn->ImageKey = "Project" Then
-			tn1 = GetTreeNodeChild(ptn, Template)
+	Dim As TreeNode Ptr ptn, tn1, tn3, tnSelecte
+	tnSelecte = tvExplorer.SelectedNode
+	If tnSelecte <> 0 Then
+		ptn = GetParentNode(tnSelecte)
+		If ptn->ImageKey = "Project" OrElse ptn->ImageKey = "Opened" Then
+			If ptn->ImageKey = "Opened" Then
+				Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @Opened "
+				If InStr(tmpKeyStr, " @" & tnSelecte->ImageKey & " ") Then
+					tn1 = IIf(tnSelecte->ParentNode->ImageKey = tnSelecte->ImageKey, tnSelecte->ParentNode->ParentNode , tnSelecte->ParentNode)
+				Else
+					tn1 = tnSelecte
+				End If
+				If tnSelecte->ImageKey <> "Opened" Then tn1 = tn1->ParentNode
+			Else
+				tn1 = GetTreeNodeChild(ptn, Template)
+			End If
 			Dim As String IconName = GetIconName(Template)
 			Dim As UString FileName = Replace(GetFileName(Template), " ", "")
 			Dim As UString FileExt
@@ -2813,7 +2819,19 @@ Sub RemoveFileFromProject
 	Dim tn As TreeNode Ptr = tvExplorer.SelectedNode
 	Dim As TreeNode Ptr ptn
 	ptn = GetParentNode(tn)
-	If ptn->ImageKey <> "Project" Then ptn = 0
+	If ptn->ImageKey <> "Project" Then
+		If ptn->ImageKey = "Opened" AndAlso tn->Tag > 0 Then
+			Dim As ExplorerElement Ptr ee
+			ee = New ExplorerElement
+			ee = tn->Tag
+			If ee->FileName> 0 AndAlso Dir(*ee->FileName) <> "" Then 
+				'Move the file to temp folds.
+				FileCopy(*ee->FileName, ExePath + "/Temp/" + GetFileName(*ee->FileName))
+				Kill *ee->FileName
+			End If
+		End If
+		ptn = 0
+	End If
 	Dim tb As TabWindow Ptr
 	For j As Integer = 0 To TabPanels.Count - 1
 		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
@@ -7748,13 +7766,18 @@ End Sub
 
 Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
-	Dim tn As TreeNode Ptr = tvExplorer.DraggedNode
+	Dim As TreeNode Ptr ptn, tn = tvExplorer.DraggedNode
 	If tn = 0 Then
 		tn = tvExplorer.SelectedNode
 	Else
 		tvExplorer.SelectedNode = tn
 	End If
 	If tn <> 0 AndAlso tn->ParentNode <> 0 Then
+		ptn = GetParentNode(tn)
+		If ptn->ImageKey <> "Project" Then
+			miProjectProperties->Enabled = False
+			miCloseProject->Enabled = False
+		End If
 		miSetAsMain->Caption = ML("Set as Main")
 		If tn->ImageKey = "Opened" Then
 			miSetAsMain->Enabled = False
@@ -7762,7 +7785,8 @@ Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 	Else
 		miSetAsMain->Caption = ML("Set as Start Up")
 	End If
-	If CInt(tn = 0) OrElse CInt(tn <> 0 AndAlso tn->ImageKey = "Opened") Then
+	Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @Opened "
+	If CInt(tn = 0) OrElse CInt(tn <> 0 AndAlso InStr(tmpKeyStr, " @" & tn->ImageKey & " ")) Then
 		miSetAsMain->Enabled = False
 		miRemoveFiles->Enabled = False
 		miRemoveFiles->Caption = ML("Remove")
@@ -7777,7 +7801,7 @@ tvExplorer.Images = @imgList
 tvExplorer.SelectedImages = @imgList
 tvExplorer.Align = DockStyle.alClient
 tvExplorer.HideSelection = False
-'tvExplorer.Sorted = True
+'tvExplorer.EditLabels = True
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
 tvExplorer.OnNodeActivate = @tvExplorer_NodeActivate
 tvExplorer.OnNodeExpanding = @tvExplorer_NodeExpanding
@@ -8134,9 +8158,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 			For i As Integer = 0 To tbi->Elements.Count - 1
 				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
-			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+			If Val(Item->Text(1)) >= 0 AndAlso Val(Trim(Item->Text(1))) <= tbi->Elements.Count - 1 Then
 				bNotChange = True
-				cboPropertyValue.ItemIndex = Val(Item->Text(1))
+				cboPropertyValue.ItemIndex = Val(Trim(Item->Text(1)))
 			End If
 		End If
 	ElseIf GetTypeIsPointer(te) AndAlso IsBase(te->TypeName, "My.Sys.Object") Then
@@ -8175,9 +8199,9 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 			For i As Integer = 0 To tbi->Elements.Count - 1
 				cboPropertyValue.AddItem " " & i & " - " & MP(tbi->Elements.Item(i))
 			Next i
-			If Val(Item->Text(1)) >= 0 AndAlso Val(Item->Text(1)) <= tbi->Elements.Count - 1 Then
+			If Val(Trim(Item->Text(1))) >= 0 AndAlso Val(Trim(Item->Text(1))) <= tbi->Elements.Count - 1 Then
 				bNotChange = True
-				cboPropertyValue.ItemIndex = Val(Item->Text(1))
+				cboPropertyValue.ItemIndex = Val(Trim(Item->Text(1)))
 			End If
 		Else
 			'CtrlEdit = @txtPropertyValue
@@ -8198,7 +8222,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		If teTypeName = "font" Then
 			txtPropertyValue.Tag = st->ReadPropertyFunc(tb->Des->SelectedControl, te->Name)
 		ElseIf EndsWith(LCase(PropertyName), "color") Then
-			pnlColor.BackColor = Val(Item->Text(1))
+			pnlColor.BackColor = Val(Trim(Item->Text(1)))
 			pnlColor.Visible = True
 			txtPropertyValue.LeftMargin = 16
 		End If
