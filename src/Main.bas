@@ -892,7 +892,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
 				ThreadsLeave()
 			End If
-			Dim As String TmpStrKey = " @freebasic compiler @copyright @standalone @target @backend @compiling rc failed @compiling C @assembling @linking @obj @creating @restarting @creating import library @archiving"
+			Dim As String TmpStrKey = " @freebasic compiler @copyright @standalone @target @backend @compiling rc failed @compiling C @assembling @linking @obj @creating @restarting @creating import library @archiving "
 			Dim As WString * 2048 TmpStr
 			#ifdef __USE_GTK__
 				Dim As Integer Fn = FreeFile_
@@ -1005,7 +1005,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							Else
 								TmpStr = Trim(Left(*res(i), nPos - 1))
 							End If
-							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr)) OrElse InStr(LCase(*res(i)), "ld.exe") > 0
+							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), " @" & LCase(TmpStr)) OrElse InStr(LCase(*res(i)), "ld.exe") > 0
 							If Not bErrorInfo Then
 								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
@@ -2830,6 +2830,7 @@ Sub RemoveFileFromProject
 				Kill *ee->FileName
 			End If
 		End If
+		ptn = 0
 	End If
 	Dim tb As TabWindow Ptr
 	For j As Integer = 0 To TabPanels.Count - 1
@@ -7784,7 +7785,7 @@ Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 	Else
 		miSetAsMain->Caption = ML("Set as Start Up")
 	End If
-	Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @File @Opened "
+	Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @Opened "
 	If CInt(tn = 0) OrElse CInt(tn <> 0 AndAlso InStr(tmpKeyStr, " @" & tn->ImageKey & " ")) Then
 		miSetAsMain->Enabled = False
 		miRemoveFiles->Enabled = False
