@@ -892,7 +892,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
 				ThreadsLeave()
 			End If
-			Dim As String TmpStrKey = "@freebasic compiler@copyright@standalone@target@backend@compiling@compiling rc@compiling rc failed@compiling c@assembling@linking@obj@creating@restarting@creating import library@archiving@""
+			Dim As String TmpStrKey = "@freebasic compiler@copyright@standalone@target@backend@compiling@compiling rc@compiling rc failed@compiling c@assembling@linking@obj@creating@restarting@creating import library@archiving@"
 			Dim As WString * 2048 TmpStr
 			#ifdef __USE_GTK__
 				Dim As Integer Fn = FreeFile_
