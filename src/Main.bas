@@ -7787,7 +7787,7 @@ Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 	End If
 	Dim As String tmpKeyStr = " @Sub @StandartTypes @Property @Enum @EnumItem @Type @Function @Opened "
 	If CInt(tn = 0) OrElse CInt(tn <> 0 AndAlso InStr(tmpKeyStr, " @" & tn->ImageKey & " ")) Then
-		miSetAsMain->Enabled = False
+		miSetAsMain->Enabled = IIf(tn <> 0 AndAlso tn->ParentNode <> 0, False, True)
 		miRemoveFiles->Enabled = False
 		miRemoveFiles->Caption = ML("Remove")
 	Else
