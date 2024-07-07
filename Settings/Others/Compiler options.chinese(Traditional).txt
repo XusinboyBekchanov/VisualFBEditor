@@ -1,0 +1,96 @@
+﻿@<file>                          從檔中讀取更多命令列參數
+-a <file>                         將檔視為 .o/.a 輸入檔
+-arch <type>                 設置目標架構（預設值：686）
+-asm att|intel                  設置 asm 格式（僅限 -gen gcc|llvm、x86 或 x86_64）
+-b <file>                         將檔視為 .bas 輸入檔
+-buildprefix <name>    指定工具名稱的首碼（as、ar、ld）
+-c                                    只編譯，不連結
+-C                                   保留臨時 .o 文件
+-d <name>[=<val>]     添加全域 #define
+-dll                                 與 -dylib 相同，創建 DLL(win32) 或共用庫 （*nix/*BSD）
+-dylib                             創建 DLL(win32) 或共用庫 （*nix/*BSD）
+-e                                   啟用執行階段錯誤檢查
+-earray                          啟用陣列邊界檢查
+-eassert                        啟用 assert()和 assertwarn()檢查
+-edebug                       啟用__FB_DEBUG__
+-edebuginfo                 添加調試信息
+-elocation                     啟用錯誤位置報告
+-enullptr                        啟用空指針檢查
+-eunwind                       啟用調用堆疊展開資訊
+-entry <name>            從 main（） 更改程式的入口點
+-ex                                -e選項的升級，加上 RESUME 支持
+-exx                              -ex選項的升級，加上陣列邊界/空指標檢查
+-export                           用於動態連結的匯出符號
+-fbgfx                             連結到相應的 libfbgfx 變體（通常為自動）
+-forcelang <name>       覆蓋原始程式碼中的 #lang 語句
+-fpmode fast|precise     選擇浮點數學精度/速度
+-fpu x87|sse|neon          設置目標 FPUautomatic）
+-g                                   添加調試信息、啟用__FB_DEBUG__和啟用 assert（）
+-gen gas                        選擇 GNU gas 32 位彙編器後端
+-gen gas64                    選擇 GNU gas 64 位彙編器後端
+-gen gcc                        選擇 GNU gcc C 後端
+-gen llvm                       選擇 LLVM 後端
+-gen clang                     選擇 clang C 後端
+[-]-help                           顯示此説明輸出;使用“-help -v”顯示詳細説明
+-i                                     <path> 添加包含檔搜索路徑
+-include <file>               為每個輸入 .bas 預 #include 一個檔
+-l <name>                      庫中的連結
+-lang <name>                選擇 FB 方言：fb、deprecated、fblite、qb
+-lib                                  創建靜態程式庫
+-m <name>                   指定主模組（預設，如果不是 -c：第一個輸入 .bas）
+-map <file>                   將連結地圖保存到檔
+-maxerr <n>                  僅顯示<n>錯誤
+-mt                                 使用執行緒安全的 FB 運行時
+-nodeflibs                       連結時不包括預設庫
+-noerrline                      不要在錯誤消息中顯示源上下文
+-nolib <a,b,c>             連結時不要包含指定的庫
+-noobjinfo                     不要從/寫 .o 和 .a 檔讀取/寫入編譯時資訊
+-nostrip                         不從輸出檔中剝離符號資訊
+-o <file>                        設置上一個/下一個輸入檔的 .o（或 -pp .bas）檔案名
+-O <value>                   優化級別（默認：0）
+-p <path>                     添加庫搜索路徑
+-pic                                生成與系統無關的代碼（非 x86 Unix 共用庫）
+-pp                                僅寫出預處理的輸入檔 （.pp.bas）
+-prefix <path>              設置編譯器首碼路徑
+-print host|target          顯示主機/目標系統名稱
+-print fblibdir                 顯示編譯器的 lib/ 路徑
+-print x                          顯示輸出二進位檔案/庫檔案名（如果已知）
+-profile                          啟用函數分析
+-r                                   僅輸出 .asm/.c/.ll （-gen gas/gcc/llvm）
+-rr                                  僅輸出最終的 .asm
+-R                                  保留臨時 .asm/.c/.ll/.def 文件
+-RR                                保留最終的 .asm 文件
+-s console|gui               選擇 win32 子系統
+-showincludes              顯示 #included 檔的檔案名樹
+-static                            連結時優先靜態程式庫而不是動態庫
+-strip                             省略輸出檔中的所有符號資訊
+-sysroot <path>          連結器 sysroot路徑，一些交叉編譯工具鏈如安卓編譯需要
+-print sha-1                  顯示編譯器的原始程式碼提交 sha-1（如果已知）
+-t <value>                    設置.exe堆疊大小（以 KB 為單位），預設值：1024 （win32/dos）
+-target <name>           設置交叉編譯目標
+-title <name>               設置顯示標題 （xbox）
+-v                                  顯示編譯器版本資訊
+-vec <n>                      自動向量化級別（預設值：0）
+  [-]-version                  顯示編譯器版本
+-w all|pedantic|<n>     設置最小警告級別：全部、或更多值
+-w all                            啟用所有警告
+-w none                       禁用所有警告
+-w param                     啟用參數警告
+-w escape                    啟用字串轉義序列警告
+-w next                        啟用 next 語句警告
+-w signedness             啟用類型簽名警告
+-w constness               啟用 const 類型警告
+-w suffix                      啟用無效尾碼警告
+-w error                       將警告報告為錯誤
+-w upcast                    在向上投射丟棄初始值設定項時啟用警告
+-Wa <a,b,c>                 將選項傳遞給“as”
+-Wc <a,b,c>                 將選項傳遞給 'gcc' (-gen gcc) 或 'llc'(-gen llvm)
+-Wl <a,b,c>                  將選項傳遞給“ld”
+-x <file>                       設置輸出可執行檔/庫檔案名
+-z fbrt                          使用“fbrt”而不是“fb”運行時庫進行連結
+-z gosub-setjmp         使用 setjmp/longjmp 實現 GOSUB
+-z no-thiscall               不要使用“__thiscall”調用約定
+-z no-fastcall               不要使用“__fastcall”調用約定
+-z nocmdline               禁用 #cmdline 源指令
+-z retinflts                   允許在浮點寄存器中返回某些類型
+-z valist-as-ptr            使用指標運算式實現 CVA_*（） 宏
