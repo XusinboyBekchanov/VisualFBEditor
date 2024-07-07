@@ -1012,6 +1012,7 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	End If
 	btnReplaceShow_Click(Sender)
 	txtFind.SetFocus
+	This.BringToFront
 End Sub
 
 Private Sub frmFind.TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
