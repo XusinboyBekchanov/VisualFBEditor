@@ -2855,9 +2855,10 @@ Sub RemoveFileFromProject
 End Sub
 
 Sub OpenProjectFolder
-	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
-	If ptn = 0 Then Exit Sub
-	ptn = GetParentNode(ptn)
+	Dim As TreeNode Ptr ptn, tn = tvExplorer.SelectedNode
+	If tn = 0 Then Exit Sub
+	ptn = GetParentNode(tn)
+	If ptn->ImageKey = "Opened" Then ptn = tn
 	Dim As ExplorerElement Ptr ee = ptn->Tag
 	If ee = 0 Then Exit Sub
 	If WGet(ee->FileName) <> "" Then
