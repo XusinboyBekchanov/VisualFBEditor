@@ -68,7 +68,7 @@
 			.Name = "lvTemplates"
 			.Text = "ListView1"
 			.View = ViewStyle.vsIcon
-			.Images = @imgList
+			.Images = @imgList32
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Right = 10
@@ -408,7 +408,7 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
-			lvTemplates.ListItems.Add ML(TemplateName), "Project"
+			lvTemplates.ListItems.Add ML(TemplateName), "App" +..Left(TemplateName, IfNegative(InStr(TemplateName, " ") - 1, Len(TemplateName)))
 			If FileExists(ExePath & "/Templates/Projects/" & TemplateName & "/" & f) Then
 				Templates.Add "Projects" & Slash & f, lvTemplates.ListItems.Item(lvTemplates.ListItems.Count - 1)
 			Else

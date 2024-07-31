@@ -98,7 +98,7 @@ Dim Shared As TextBox txtPropertyValue
 Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
-Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates
+Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
@@ -6727,6 +6727,19 @@ Sub CreateMenusAndToolBars
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
 	'imgListD.Add "EndD", "EndProgram"
+	imgList32.Name = "imgList32"
+	imgList32.ImageWidth = 32
+	imgList32.ImageHeight = 32
+	imgList32.Add "AppWindows", "AppWindows"
+	imgList32.Add "AppAndroid", "AppAndroid"
+	imgList32.Add "AppAddin", "AppAddin"
+	imgList32.Add "AppControl", "AppControl"
+	imgList32.Add "AppConsole", "AppConsole"
+	imgList32.Add "AppGUI", "AppGUI"
+	imgList32.Add "AppDynamic", "AppDynamic"
+	imgList32.Add "AppStatic", "AppStatic"
+	imgList32.Add "AppGTK", "AppGTK"
+	imgList32.Add "AppEmpty", "AppEmpty"
 	
 	'mnuMain.ImagesList = @imgList
 	
