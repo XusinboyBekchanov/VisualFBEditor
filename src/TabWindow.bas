@@ -10500,6 +10500,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#else
 		pnlTop.Height = 25
 	#endif
+	pnlTop.Width = This.Width
+	tbrTop.Width = This.Width
 	'pnlTop.Align = DockStyle.alTop
 	'#ifdef __USE_GTK__
 	'	pnlTopCombo.Height = 33
@@ -10531,22 +10533,46 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'cboClass.ItemIndex = 0
 	'cboClass.SetBounds 0, 2, 60, 20
 	tbrTop.ImagesList = pimgList
-	'#ifdef __USE_GTK__
-	'	tbrTop.Width = 150
-	'	pnlToolbar.Width = 150
-	'#else
-	'	tbrTop.Width = 75
-	'	pnlToolbar.Width = 75
-	'#endif
-	'tbrTop.Align = DockStyle.alRight
+	'cboClass.Width = tbrTop.Width *.4
+	#ifdef __USE_GTK__
+		'cboClass.Top = 0
+		#ifdef __USE_GTK3__
+			cboClass.Height = 20
+			cboFunction.Height = 20
+		#else
+			cboClass.Height = 30
+			cboFunction.Height = 30
+		#endif
+	#else
+		'cboClass.Top = 1
+		'cboClass.Height = 30 * 22
+		cboClass.DropDownCount = 30
+		cboFunction.DropDownCount = 30
+	#endif
+	cboClass.Anchor.Left = asAnchor
+	cboClass.OnSelected = @cboClass_Change
+	cboClass.ImagesList = pimgListTools
+	cboClass.Tag = @This
+	
+	cboFunction.ImagesList = pimgList
+	cboFunction.Tag = @This
+	cboFunction.OnSelected = @cboFunction_Change
+	'cboFunction.Width = cboClass.Width
+	'cboFunction.Sort = True
+	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
+	cboFunction.ItemIndex = 0
+	
 	tbrTop.Align = DockStyle.alTop
 	Var btnClass = tbrTop.Buttons.Add(tbsCustom)
 	btnClass->Child = @cboClass
 	btnClass->Expand = True
+	'btnClass->Width = tbrTop.Width *.4
 	tbrTop.Buttons.Add tbsSeparator
 	Var btnFunction = tbrTop.Buttons.Add(tbsCustom)
 	btnFunction->Child = @cboFunction
 	btnFunction->Expand = True
+	'btnFunction->Width = btnClass->Width 
+	'btnFunction->Left + btnFunction->Width + 1
 	tbrTop.Buttons.Add tbsSeparator
 	tbrTop.Buttons.Add tbsCheckGroup, "Code", , , "Code", , ML("Show Code"), True ' Show the toollips
 	tbrTop.Buttons.Add tbsCheckGroup, "Form", , , "Form", , ML("Show Form"), True ' Show the toollips
@@ -10554,54 +10580,11 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	tbrTop.OnButtonClick = @tbrTop_ButtonClick
 	tbrTop.Flat = True
 	'pnlToolbar.Align = DockStyle.alRight
-	'cboClass.Width = 50
-	#ifdef __USE_GTK__
-		'cboClass.Top = 0
-		#ifdef __USE_GTK3__
-			cboClass.Height = 20
-		#else
-			cboClass.Height = 30
-		#endif
-	#else
-		'cboClass.Top = 1
-		'cboClass.Height = 30 * 22
-		cboClass.DropDownCount = 30
-	#endif
-	'cboClass.Anchor.Left = asAnchor
-	'cboClass.Anchor.Right = asAnchorProportional
-	cboClass.OnSelected = @cboClass_Change
-	cboClass.ImagesList = pimgListTools
-	cboClass.Tag = @This
-	cboFunction.ImagesList = pimgList
-	cboFunction.Tag = @This
-	'cboFunction.Left = 50 + 0 + 1
-	'cboFunction.Width = 50
-	#ifdef __USE_GTK__
-	'	cboFunction.Top = 0
-		#ifdef __USE_GTK3__
-			cboFunction.Height = 20
-		#else
-			cboFunction.Height = 30
-		#endif
-	#else
-	'	cboFunction.Top = 1
-		cboFunction.Height = 30 * 22
-		cboFunction.DropDownCount = 30
-	#endif
-	'cboFunction.Anchor.Left = asAnchorProportional
-	'cboFunction.Anchor.Right = asAnchor
-	cboFunction.OnSelected = @cboFunction_Change
-	'cboFunction.Sort = True
-	cboFunction.Items.Add WStr("(") & ML("Declarations") & ")" & WChr(0), , "Sub", "Sub"
-	cboFunction.ItemIndex = 0
+	
+
 	pnlForm.Visible = False
 	pnlForm.OnMessage = @pnlForm_Message
 	splForm.Visible = False
-	'pnlToolbar.Add @tbrTop
-	'pnlTop.Add @pnlToolbar
-	'pnlTop.Add @pnlTopCombo
-	'pnlTopCombo.Add @cboClass
-	'pnlTopCombo.Add @cboFunction
 	If CInt(wFileName <> "") And CInt(bNew = False OrElse TreeN <> 0) Then
 		If bNew Then
 			If TreeN > 0 Then FileName = TreeN->Text
