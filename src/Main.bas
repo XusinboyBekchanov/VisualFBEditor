@@ -6740,6 +6740,14 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "AppStatic", "AppStatic"
 	imgList32.Add "AppGTK", "AppGTK"
 	imgList32.Add "AppEmpty", "AppEmpty"
+	imgList32.Add "File32", "File32"
+	imgList32.Add "Resource32", "Resource32"
+	imgList32.Add "Module32", "Module32"
+	imgList32.Add "UserControl32", "UserControl32"
+	imgList32.Add "Form32", "Form32"
+	imgList32.Add "Form3D32", "Form3D32"
+	imgList32.Add "FormRC", "FormRC"
+	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList
 	
@@ -6870,7 +6878,7 @@ Sub CreateMenusAndToolBars
 	miFormatProject = miEdit->Add(ML("&Format Project") & HK("FormatProject"), "", "FormatProject", @mClick, , , False)
 	miUnformatProject = miEdit->Add(ML("&Unformat Project") & HK("UnformatProject"), "", "UnformatProject", @mClick, , , False)
 	miAddSpaces = miEdit->Add(ML("Add &Spaces") & HK("AddSpaces"), "", "AddSpaces", @mClick, , , False)
-	miDeleteBlankLines = miEdit->Add(ML("Delete blank Lines"), "", "DeleteBlankLines", @mClick)
+	miDeleteBlankLines = miEdit->Add(ML("Merge Multiple Blank Lines"), "", "DeleteBlankLines", @mClick)
 	miEdit->Add("-")
 	miSuggestions = miEdit->Add(ML("Suggestions") & HK("Suggestions"), "Suggestions", "Suggestions", @mClick, , , False)
 	miCompleteWord = miEdit->Add(ML("Complete Word") & HK("CompleteWord", "Ctrl+Space"), "CompleteWord", "CompleteWord", @mClick, , , False)
@@ -7627,8 +7635,8 @@ Sub tvExplorer_NodeActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 			Dim As String extStr = LCase(Right(*ee->FileName, 4))
 			If CBool(extStr = ".exe" OrElse extStr = ".dll"  OrElse extStr = ".png" OrElse extStr = ".jpg" OrElse extStr = ".bmp" OrElse extStr = ".ico" OrElse extStr = ".cur" OrElse extStr = ".gif" OrElse extStr = ".avi" OrElse _
 				extStr = ".chm" OrElse extStr = ".zip" OrElse extStr = ".rar") OrElse EndsWith(LCase(*ee->FileName), ".dll.a") OrElse EndsWith(LCase(*ee->FileName), ".so") OrElse EndsWith(LCase(*ee->FileName), ".7z") Then
-				'Shell *ee->FileName
-				PipeCmd "", *ee->FileName
+				Shell *ee->FileName
+				'PipeCmd "", *ee->FileName
 				Exit Sub
 			ElseIf extStr = ".vfp" Then
 				AddProject *ee->FileName
