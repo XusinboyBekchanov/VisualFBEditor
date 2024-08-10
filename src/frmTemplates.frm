@@ -44,7 +44,7 @@
 		With tpNew
 			.Name = "tpNew"
 			.TabIndex = 1
-			.SetBounds 2, 22, 615, 326
+			.SetBounds 0, 22, 618, 329
 			.Text = ML("New")
 			.UseVisualStyleBackColor = True
 			.Parent = @TabControl1
@@ -55,10 +55,11 @@
 			.Text = "TreeView1"
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Top = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Bottom = 10
 			.TabIndex = 2
-			.SetBounds 10, 10, 180, 306
+			.ExtraMargins.Right = 10
+			.SetBounds 0, 10, 120, 315
 			.Designer = @This
 			.OnSelChanged = @tvTemplates_SelChanged_
 			.Parent = @tpNew
@@ -71,11 +72,11 @@
 			.Images = @imgList32
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 10
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Bottom = 10
 			.TabIndex = 3
-			.SetBounds 200, 10, 405, 306
+			.SetBounds 126, 10, 490, 314
 			.Designer = @This
 			.Columns.Add ML("Template"), , 500, cfLeft
 			.OnItemActivate = @lvTemplates_ItemActivate_
@@ -91,7 +92,7 @@
 			.ExtraMargins.Top = 0
 			.ExtraMargins.Right = 10
 			.TabIndex = 18
-			.SetBounds 543, 0, 88, 20
+			.SetBounds 527, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
 			.Parent = @pnlBottom
@@ -105,7 +106,7 @@
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
 			.TabIndex = 16
-			.SetBounds 445, 0, 88, 20
+			.SetBounds 430, 0, 88, 20
 			'.Caption = ML("OK")
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
@@ -126,7 +127,7 @@
 			.Text = ML("Recent")
 			.TabIndex = 6
 			.UseVisualStyleBackColor = True
-			.SetBounds 2, 22, 615, 326
+			.SetBounds 0, 22, 618, 329
 			.Parent = @TabControl1
 		End With
 		' lvRecent
@@ -136,12 +137,12 @@
 			.TabIndex = 8
 			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 10
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Right = 0
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Bottom = 10
 			.Images = @imgList
 			.SmallImages = @imgList
-			.SetBounds 130, 10, 475, 306
+			.SetBounds 126, 10, 491, 313
 			.Parent = @tpRecent
 			.Columns.Add ML("File"), , 150
 			.Designer = @This
@@ -177,10 +178,11 @@
 			.TabIndex = 7
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Top = 10
-			.ExtraMargins.Left = 10
+			.ExtraMargins.Left = 0
 			.ExtraMargins.Bottom = 10
 			.HideSelection = False
-			.SetBounds 10, 10, 110, 306
+			.ExtraMargins.Right = 10
+			.SetBounds 0, 10, 120, 313
 			.Parent = @tpRecent
 			.Nodes.Add ML("Sessions")
 			.Nodes.Add ML("Folders")
@@ -243,7 +245,7 @@
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 0, 0, 88, 20
+			.SetBounds 2, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdAdd_Click_
 			.Parent = @pnlRecent
@@ -256,7 +258,7 @@
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 98, 0, 88, 20
+			.SetBounds 100, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdChange_Click_
 			.Parent = @pnlRecent
@@ -269,7 +271,7 @@
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 196, 0, 88, 20
+			.SetBounds 198, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdRemove_Click_
 			.Parent = @pnlRecent
@@ -282,7 +284,7 @@
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 294, 0, 88, 20
+			.SetBounds 296, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdClear_Click_
 			.Parent = @pnlRecent
@@ -403,12 +405,15 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 	If FormClosing Then Exit Sub
 	lvTemplates.ListItems.Clear
 	Templates.Clear
-	Dim As String f, TemplateName
+	Dim As String f, TemplateName, ImageName
 	If Item.Name = "Projects" Then
 		f = Dir(ExePath & "/Templates/Projects/*.vfp")
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
-			lvTemplates.ListItems.Add ML(TemplateName), "App" +..Left(TemplateName, IfNegative(InStr(TemplateName, " ") - 1, Len(TemplateName)))
+			ImageName = "App" +..Left(TemplateName, IfNegative(InStr(TemplateName, " ") - 1, Len(TemplateName)))
+			'Debug.Print " ImageName= " & ImageName & " " & imgList32.IndexOf(ImageName) 
+			If imgList32.IndexOf(ImageName) < 0 Then ImageName = "AppGUI"
+			lvTemplates.ListItems.Add ML(TemplateName), ImageName
 			If FileExists(ExePath & "/Templates/Projects/" & TemplateName & "/" & f) Then
 				Templates.Add "Projects" & Slash & f, lvTemplates.ListItems.Item(lvTemplates.ListItems.Count - 1)
 			Else
@@ -422,16 +427,19 @@ Private Sub frmTemplates.tvTemplates_SelChanged(ByRef Sender As TreeView, ByRef 
 		While f <> ""
 			TemplateName = ..Left(f, IfNegative(InStr(f, ".") - 1, Len(f)))
 			If EndsWith(LCase(f), ".frm") Then
-				IconName = "Form"
+				IconName = IIf(InStr(TemplateName, "3D") > 0, "Form3D32", "Form32")
 			ElseIf f = "User Control.bas" Then
-				IconName = "UserControl"
+				IconName = "UserControl32"
 			ElseIf EndsWith(LCase(f), ".bas") Then
-				IconName = "Module"
+				IconName = "Module32"
 			ElseIf EndsWith(LCase(f), ".rc") Then
-				IconName = "Resource"
+				IconName = "Resource32"
+			ElseIf EndsWith(LCase(f), ".xml") Then
+				IconName = "Manifest32"
 			Else
-				IconName = "File"
+				IconName = "File32"
 			End If
+			If imgList32.IndexOf(IconName) < 0 Then IconName = "AppGUI"
 			lvTemplates.ListItems.Add ML(TemplateName), IconName
 			Templates.Add "Files" & Slash & f
 			f = Dir()
