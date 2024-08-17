@@ -2280,10 +2280,11 @@ End Function
 Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 	If tnP = 0 Then MsgBox(ML("Project not selected!")): Return True
 	Dim As TreeNode Ptr tnPr = GetParentNode(tnP)
+	If tnPr = 0 Then Return True
 	Dim As ExplorerElement Ptr ee
 	Dim As ProjectElement Ptr ppe
 	ppe = tnPr->Tag
-	If tnPr->ImageKey <> "Project" Then MsgBox(ML("Project not selected!")): Return True
+	If tnPr->ImageKey <> "Project" AndAlso tnPr->ImageKey <> "Opened" Then MsgBox(ML("Project not selected!")): Return True
 	If CInt(ppe = 0) OrElse CInt(InStr(WGet(ppe->FileName), "\") = 0 AndAlso InStr(WGet(ppe->FileName), "/") = 0) OrElse CInt(bWithQuestion) Then
 		SaveD.Caption = ML("Save Project As")
 		SaveD.InitialDir = GetFullPath(*ProjectsPath)
@@ -7731,7 +7732,7 @@ Sub tvExplorer_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeVi
 	Dim As TreeNode Ptr ptn = tvExplorer.SelectedNode
 	If ptn = 0 Then Exit Sub 'David Change For Safty
 	ptn = GetParentNode(ptn)
-	If OldParentNode <> ptn Then
+	If ptn > 0 AndAlso OldParentNode <> ptn Then
 		OldParentNode = ptn
 		'If MainNode <> 0 Then MainNode->Bold = False
 		'MainNode = ptn
