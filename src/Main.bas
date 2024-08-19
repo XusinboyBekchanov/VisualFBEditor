@@ -360,10 +360,12 @@ Sub cboPropertyValue_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 	If Trim(cboPropertyValue.Text) = "" Then
 		Exit Sub
 	End If
-	If bNotChange Then
-		bNotChange = False
-		Exit Sub
-	End If
+	#ifdef __USE_GTK__
+		If bNotChange Then
+			bNotChange = False
+			Exit Sub
+		End If
+	#endif
 	PropertyChanged Sender, cboPropertyValue.Text, True
 End Sub
 
@@ -1007,7 +1009,6 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							End If
 							Dim As Boolean bErrorInfo = InStr(LCase(TmpStrKey), "@" & LCase(TmpStr) & "@") OrElse InStr(LCase(*res(i)), "ld.exe") > 0
 							If Not bErrorInfo Then
-								ShowMessages(*res(i), False)
 								bFlagErr = SplitError(*res(i), ErrFileName, ErrTitle, iLine)
 								If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
 									If bFlagErr = 2 Then
@@ -1025,8 +1026,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
 									FirstErrFlag += 1
-								Else
 									ShowMessages(*res(i), False)
+								Else
+									ShowMessages(Str(Time) & ": " & *res(i), False)
 								End If
 							Else
 								If StartsWith(TmpStr, "FreeBASIC") Then
@@ -9505,7 +9507,7 @@ pnlBottomPin.Parent = @pnlBottom
 
 #ifdef __USE_WINAPI__
 	Dim Shared As Integer iLine, iChar, CanvasHeight, CanvasWidth
-	Sub Document_PrintPage(ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
+	Sub Document_PrintPage(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Return
 		Canvas.Font = tb->txtCode.Font
