@@ -1,6 +1,6 @@
 ﻿#pragma once
 'playcap摄像设备预览和截图
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "crt/stdio.bi"

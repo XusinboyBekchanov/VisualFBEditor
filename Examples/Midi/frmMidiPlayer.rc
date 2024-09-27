@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "MidiPlayer\0"
 #define VER_FILEDESCRIPTION_STR     "MidiPlayer\0"
 
-#define VER_FILEVERSION             0,0,0,921
-#define VER_FILEVERSION_STR         "0.0.0.921\0"
+#define VER_FILEVERSION             0,0,0,1040
+#define VER_FILEVERSION_STR         "0.0.0.1040\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

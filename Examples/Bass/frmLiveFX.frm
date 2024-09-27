@@ -290,11 +290,10 @@
 	
 	Dim Shared frmLiveFX As frmLiveFXType
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		#define _NOT_AUTORUN_FORMS_
-		
+	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
+		frmLiveFX.MainForm = true 
 		frmLiveFX.Show
-		
 		App.Run
 	#endif
 '#End Region

@@ -263,7 +263,7 @@
 			.Text = "Panel1"
 			.TabIndex = 13
 			.Align = DockStyle.alBottom
-			.SetBounds 65190, 131, 694, 100
+			.SetBounds 0, 131, 694, 100
 			.Designer = @This
 			.OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @Panel1_Paint)
 			.OnMouseMove = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer), @Panel1_MouseMove)

@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿'sysenum枚举系统设备
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__

@@ -39,13 +39,13 @@ Private Function SerialPort.Enumerate(ByVal PortMaxNumber As Long = 255) As Inte
 	
 	Debug.Clear
 	For i = 1 To PortMaxNumber
-		WStr2Ptr("\\.\COM" & Format(i), t)
+		WLet(t, "\\.\COM" & Format(i))
 		nHand = CreateFile(t, GENERIC_WRITE Or GENERIC_READ, 0 , NULL, OPEN_EXISTING, FILE_FLAG_OVERLAPPED, @mOverlapped)
 		If nHand = INVALID_HANDLE_VALUE Then
 		Else
 			mCount += 1
 			ReDim Preserve mName(mCount)
-			WStr2Ptr(*t, mName(mCount))
+			WLet(mName(mCount), *t)
 		End If
 		CloseHandle(nHand)
 	Next

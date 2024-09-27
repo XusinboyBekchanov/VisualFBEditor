@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿' MDINotepad frmHash.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -25,11 +29,12 @@
 		Dim timr As TimeMeter
 		Declare Sub HashFile()
 		Declare Sub HashText()
-	
+		
 		Declare Sub cmdFile_Click(ByRef Sender As Control)
 		Declare Sub cmdHash_Click(ByRef Sender As Control)
-		Declare Sub lvFiles_DropFile(ByRef Sender As Control, ByRef FileName As WString)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub lvFiles_DropFile(ByRef Sender As Control, ByRef FileName As WString)
 		Declare Constructor
 		
 		Dim As TabControl TabControl1
@@ -69,6 +74,7 @@
 			.MaximizeBox = True
 			.MinimizeBox = False
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.SetBounds 0, 0, 640, 480
 		End With
 		' TabControl1
@@ -195,7 +201,8 @@
 			.ScrollBars = ScrollBarsType.Both
 			.Align = DockStyle.alClient
 			.HideSelection = False
-			.SetBounds 0, 40, 592, 126
+			.MaxLength = -1
+			.SetBounds 0, 40, 602, 126
 			.Designer = @This
 			.Parent = @tabText
 		End With
@@ -292,7 +299,8 @@
 			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
-			.SetBounds 0, 30, 594, 140
+			.MaxLength = -1
+			.SetBounds 10, 40, 604, 160
 			.Designer = @This
 			.Parent = @Panel3
 		End With
@@ -371,9 +379,9 @@
 	Dim Shared frmHash As frmHashType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
 		frmHash.MainForm = True
 		frmHash.Show
-		
 		App.Run
 	#endif
 '#End Region
@@ -456,7 +464,7 @@ Private Sub frmHashType.HashFile()
 	ReDim a(j) As WString Ptr 'for filename
 	ReDim b(j + 1) As WString Ptr
 	For i = 0 To j
-		WStr2Ptr(lvFiles.ListItems.Item(i)->Text(0), a(i))
+		WLet(a(i), lvFiles.ListItems.Item(i)->Text(0))
 	Next
 	
 	For i = 0 To 5
@@ -473,17 +481,17 @@ Private Sub frmHashType.HashFile()
 	For i = 0 To j
 		k = 0
 		If PathFileExists(a(i)) Then
-			s = GetFileData(*a(i), m)
+			s = FileDataGet(*a(i), m)
 			te = timr.Passed
-			WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
+			WLet(d(k), *a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.")
 			ts = te
-			Dim l As Long
-			For l = 0 To 5
+			Dim l As HashAlgorithms
+			For l = MD2 To SHA512
 				If chk(l) Then
 					k += 1
-					WStr2Ptr(GetHash(m, s, l), c)
+					WLet(c, GetHash(m, s, l))
 					te = timr.Passed
-					WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
+					WLet(d(k), AlgorithmWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.")
 					ts = te
 				End If
 			Next
@@ -491,8 +499,8 @@ Private Sub frmHashType.HashFile()
 		End If
 		App.DoEvents()
 	Next i
-
-	WStr2Ptr("Total Take=" & Format(te - ta, "#,#0.000") & " sec.", b(j + 1))
+	
+	WLet(b(j + 1), "Total Take=" & Format(te - ta, "#,#0.000") & " sec.")
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c
@@ -531,7 +539,7 @@ Private Sub frmHashType.HashText()
 	Else
 		j = 0
 		ReDim a(j)
-		WStr2Ptr(txtText.Text, a(0))
+		WLet(a(0), txtText.Text)
 	End If
 	ReDim b(j + 1)
 	
@@ -543,41 +551,44 @@ Private Sub frmHashType.HashText()
 	Dim ta As Double
 	Dim ts As Double
 	Dim te As Double
-
+	
 	ta = timr.Passed
 	ts = ta
 	For i = 0 To j
 		k = 0
-		Dim tmp As String = TextUnicode2Ansi(*a(i))
-		m = StrPtr(tmp)
-		s = Len(tmp)
+		TextToAnsi(*a(i), Cast(ZString Ptr, m))
+		s = Len(*CPtr(ZString Ptr, m))
 		te = timr.Passed
-		WStr2Ptr(*a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
+		WLet(d(k), *a(i) & "; Size=" & Format(s, "#,#0") & "; Take=" & Format(te - ts, "#,#0.000") & " sec.")
 		ts = te
-		Dim l As Long
-		For l = 0 To 5
+		Dim l As HashAlgorithms
+		For l = MD2 To SHA512
 			If chk(l) Then
 				k += 1
-				WStr2Ptr(GetHash(m, s, l), c)
+				WLet(c, GetHash(m, s, l))
 				te = timr.Passed
-				WStr2Ptr(AlgWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.", d(k))
+				WLet(d(k), AlgorithmWStr(l) & "=" & *c & "; ; Take=" & Format(te - ts, "#,#0.000") & " sec.")
 				ts = te
 			End If
 		Next
 		JoinWStr(d(), vbCrLf, b(i))
 		App.DoEvents()
 	Next i
-
-	WStr2Ptr("Total Take=" & Format(te - ta, "#,#0.000") & " sec.", b(j + 1))
+	
+	WLet(b(j + 1), "Total Take=" & Format(te - ta, "#,#0.000") & " sec.")
 	JoinWStr(b(), vbCrLf, c)
 	i = txtHash.SelStart
 	txtHash.SelText = *c
 	txtHash.SelStart = i
 	txtHash.SelLength = Len(*c)
-
+	
 	ArrayDeallocate(b())
 	ArrayDeallocate(a())
 	ArrayDeallocate(d())
 	If c Then Deallocate(c)
+	If m Then Deallocate(m)
 End Sub
 
+Private Sub frmHashType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	lvFiles.Columns.Column(0)->Width = lvFiles.Width - 3
+End Sub

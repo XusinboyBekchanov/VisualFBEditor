@@ -1,3 +1,7 @@
+'dsbase ds基础库
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
 #pragma once
 #include once "dsbase.bi"
 

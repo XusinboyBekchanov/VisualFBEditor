@@ -6,8 +6,8 @@
 
 Private Constructor TextClock
 	WLet(mBackFile, "")
-	WLet(mFontName, "Arial")
-	WLet(mColon, ":")
+	WLet(mFontName, WStr("Arial"))
+	WLet(mColon, WStr(":"))
 	mTxt.mFontStyle = mFontStyle
 End Constructor
 
@@ -132,19 +132,20 @@ Private Sub TextClock.CalculateSize()
 		End If
 	End If
 	mTxt.SetFont(*mFontName, mFontSize, mFontStyle)
-	mW(1) = mTxt.TextWidth("00")        '时宽度
-	mW(2) = 0 'mTxt.TextWidth(*mColon) / 6 '冒号宽度, 不知道为啥一个冒号的宽度这么宽
-	mH(0) = mTxt.TextHeight("00")       '整体高度
-	mW(3) = mW(1)                       '分宽度
+	mW(1) = mTxt.TextWidth(WStr("00"))      '时宽度
+	mW(2) = 0
+	'mW(2) = mTxt.TextWidth(*mColon)        '冒号宽度, 不知道为啥一个冒号的宽度这么宽
+	mH(0) = mTxt.TextHeight(WStr("00"))     '整体高度
+	mW(3) = mW(1)                           '分宽度
 	
 	If mShowSecond Then
-		mFontSize2 = mFontSize / 2.5    '秒字体大小
+		mFontSize2 = mFontSize / 2.5        '秒字体大小
 		mTxt.SetFont(*mFontName, mFontSize2, mFontStyle)
-		mW(4) = mTxt.TextWidth("IM")    '秒宽度
-		mH(1) = mTxt.TextHeight("IM")   '秒高度
+		mW(4) = mTxt.TextWidth(WStr("IM"))  '秒宽度
+		mH(1) = mTxt.TextHeight(("IM"))     '秒高度
 		mW(0) = mW(1) + mW(2) + mW(3) + mW(4)   '整体宽度
 	Else
-		mW(0) = mW(1) + mW(2) + mW(3)   '整体宽度
+		mW(0) = mW(1) + mW(2) + mW(3)       '整体宽度
 	End If
 	
 	mClockWidth = mW(0)
@@ -219,6 +220,10 @@ Private Function TextClock.DrawClock(ByVal pColon As Boolean = True) As GpImage 
 	End If
 	
 	GdipDeleteBrush(sBrush)
+	
+	'GdipCreateSolidFill(mBorderAlpha Shl 24 Or mBorderColor, @sBrush)
+	'GdipFillRectangle(sBitmap.Graphics, sBrush, 0, 0, mWidth, mH(0))
+	'GdipDeleteBrush(sBrush)
 	
 	Return sBitmap.Image
 End Function

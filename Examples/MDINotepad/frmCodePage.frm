@@ -1,8 +1,12 @@
-﻿'#Region "Form"
+﻿' MDINotepad frmCodePage.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDINotepad.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -14,33 +18,19 @@
 	#include once "mff/ComboBoxEdit.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/Label.bi"
+	#include once "mff/Dialogs.bi"
+	#include once "mff/Splitter.bi"
+	#include once "mff/StatusBar.bi"
 	
 	Using My.Sys.Forms
 	
 	Type frmCodePageType Extends Form
-		Dim CodePage As Integer = -1
-		Declare Sub SetMode(ModeNo As Integer)
-		Declare Sub SetCodePage(CP As Integer)
-		
-		Declare Sub cmdOK_Click(ByRef Sender As Control)
-		Declare Sub lstCodePage_Click(ByRef Sender As Control)
-		Declare Sub cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-		Declare Sub chkSystemCP_Click(ByRef Sender As CheckBox)
-		Declare Sub Form_Show(ByRef Sender As Form)
-		Declare Sub chkPreview_Click(ByRef Sender As CheckBox)
-		Declare Constructor
-		
-		Dim As ListControl lstCodePage
-		Dim As CheckBox chkPreview, chkSystemCP, chkDontShow
-		Dim As TextBox txtPreview
-		Dim As Panel Panel2
-		Dim As ComboBoxEdit cobEncod
-		Dim As CommandButton cmdOK
-		
+		ShowMode As Integer = 0
+		CodePage As Integer = -1
 		'https://docs.microsoft.com/en-us/windows/win32/intl/code-page-identifiers
 		
 		Const CodePageCount As Long = 152
-		Dim CodePageNum(CodePageCount) As Integer => { _
+		CodePageNum(CodePageCount) As Integer => { _
 		37, _
 		437, _
 		500, _
@@ -194,7 +184,7 @@
 		65000, _
 		65001}
 		
-		Dim CodePageStr(CodePageCount) As String = { _
+		CodePageStr(CodePageCount) As String = { _
 		"037 - IBM037 - IBM EBCDIC US-Canada", _
 		"437 - IBM437 - OEM United States", _
 		"500 - IBM500 - IBM EBCDIC International", _
@@ -348,32 +338,66 @@
 		"65000 - utf-7 - Unicode (UTF-7)", _
 		"65001 - utf-8 - Unicode (UTF-8)" }
 		
-		Dim As Label lblFile
+		Declare Sub SetMode(ModeNo As Integer)
+		Declare Sub SetCodePage(CP As Integer)
+		
+		Declare Sub chkPreview_Click(ByRef Sender As CheckBox)
+		Declare Sub chkSystemCP_Click(ByRef Sender As CheckBox)
+		Declare Sub cmdOK_Click(ByRef Sender As Control)
+		Declare Sub cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+		Declare Sub Form_Show(ByRef Sender As Form)
+		Declare Sub lstCodePage_Click(ByRef Sender As Control)
+		Declare Sub Form_Destroy(ByRef Sender As Control)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Constructor
+		
+		Dim As ListControl lstCodePage
+		Dim As CheckBox chkPreview, chkSystemCP
+		Dim As TextBox txtPreview, txtPreviewSize
+		Dim As ComboBoxEdit cobEncod
+		Dim As CommandButton cmdOK, cmdSelect
+		Dim As OpenFileDialog OpenFileDialog1
+		Dim As Panel Panel1, Panel2
+		Dim As Splitter Splitter1
+		Dim As StatusBar StatusBar1
+		Dim As StatusPanel spCodePage, spFileName
 	End Type
 	
 	Constructor frmCodePageType
 		' frmCodePage
 		With This
 			.Name = "frmCodePage"
-			.Text = "Code Page"
+			.Text = "Select Code Page"
 			.Designer = @This
-			.Caption = "Code Page"
-			.BorderStyle = FormBorderStyle.FixedDialog
-			.MaximizeBox = False
+			.Caption = "Select Code Page"
+			.BorderStyle = FormBorderStyle.Sizable
+			.MaximizeBox = True
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Show)
+			.OnDestroy = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Destroy)
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.SetBounds 0, 0, 660, 460
+		End With
+		' Panel1
+		With Panel1
+			.Name = "Panel1"
+			.Text = "Panel1"
+			.TabIndex = 9
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 654, 40
+			.Designer = @This
+			.Parent = @This
 		End With
 		' cobEncod
 		With cobEncod
 			.Name = "cobEncod"
 			.Text = "ComboBoxEdit1"
 			.TabIndex = 0
-			.SetBounds 10, 10, 160, 21
+			.SetBounds 10, 10, 150, 21
 			.Designer = @This
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cobEncod_Selected)
-			.Parent = @This
+			.Parent = @Panel1
 			.AddItem("Plain Text")
 			.AddItem("Utf8")
 			.AddItem("Utf8 (BOM)")
@@ -384,39 +408,21 @@
 		' chkSystemCP
 		With chkSystemCP
 			.Name = "chkSystemCP"
-			.Text = "System Code Page"
+			.Text = "System"
 			.TabIndex = 1
 			.ControlIndex = 0
-			.Caption = "System Code Page"
+			.Caption = "System"
 			.Checked = True
-			.SetBounds 184, 10, 110, 20
+			.SetBounds 174, 10, 80, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkSystemCP_Click)
-			.Parent = @This
-		End With
-		' lstCodePage
-		With lstCodePage
-			.Name = "lstCodePage"
-			.Text = "ListControl1"
-			.TabIndex = 2
-			.ExtraMargins.Top = 0
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
-			.ExtraMargins.Bottom = 10
-			.SetBounds 10, 40, 634, 160
-			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lstCodePage_Click)
-			.Parent = @This
-			Dim i As Integer
-			For i = 0 To CodePageCount
-				.AddItem(CodePageStr(i), Cast(Any Ptr, CodePageNum(i)))
-			Next
+			.Parent = @Panel1
 		End With
 		' chkPreview
 		With chkPreview
 			.Name = "chkPreview"
 			.Text = "Preview"
-			.TabIndex = 3
+			.TabIndex = 2
 			.Caption = "Preview"
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
@@ -424,18 +430,80 @@
 			.ExtraMargins.Bottom = 10
 			.ControlIndex = 0
 			.Checked = True
-			.SetBounds 14, 200, 70, 20
+			.SetBounds 264, 10, 80, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkPreview_Click)
+			.Parent = @Panel1
+		End With
+		' txtPreviewSize
+		With txtPreviewSize
+			.Name = "txtPreviewSize"
+			.Text = "1000"
+			.TabIndex = 3
+			.Hint = "Preview file size"
+			.SetBounds 350, 10, 80, 20
+			.Designer = @This
+			.Parent = @Panel1
+		End With
+		' cmdSelect
+		With cmdSelect
+			.Name = "cmdSelect"
+			.Text = "Select file"
+			.TabIndex = 4
+			.Caption = "Select file"
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 470, 10, 80, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
+			.Parent = @Panel1
+		End With
+		' cmdOK
+		With cmdOK
+			.Name = "cmdOK"
+			.Text = "OK"
+			.TabIndex = 5
+			.Caption = "OK"
+			.ControlIndex = 8
+			.Default = True
+			.Anchor.Right = AnchorStyle.asAnchor
+			.SetBounds 554, 10, 80, 21
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
+			.Parent = @Panel1
+		End With
+		' Panel2
+		With Panel2
+			.Name = "Panel2"
+			.Text = "Panel2"
+			.TabIndex = 10
+			.Align = DockStyle.alTop
+			.SetBounds 0, 40, 644, 190
+			.Designer = @This
 			.Parent = @This
 		End With
-		' lblFile
-		With lblFile
-			.Name = "lblFile"
-			.Text = ""
-			.TabIndex = 4
-			.Caption = ""
-			.SetBounds 90, 203, 550, 20
+		' lstCodePage
+		With lstCodePage
+			.Name = "lstCodePage"
+			.Text = "ListControl1"
+			.TabIndex = 6
+			.Align = DockStyle.alClient
+			Dim As Integer i
+			For i = 0 To CodePageCount
+				.AddItem(CodePageStr(i), Cast(Any Ptr, CodePageNum(i)))
+			Next
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.SetBounds 10, 0, 624, 186
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @lstCodePage_Click)
+			.Parent = @Panel2
+		End With
+		' Splitter1
+		With Splitter1
+			.Name = "Splitter1"
+			.Text = "Splitter1"
+			.Align = SplitterAlignmentConstants.alTop
+			.SetBounds 0, 230, 644, 5
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -443,50 +511,47 @@
 		With txtPreview
 			.Name = "txtPreview"
 			.Text = ""
-			.TabIndex = 5
+			.TabIndex = 8
+			.Align = DockStyle.alClient
 			.Multiline = True
 			.HideSelection = False
 			.ScrollBars = ScrollBarsType.Both
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Left = 10
-			.ExtraMargins.Bottom = 10
-			.SetBounds 10, 227, 634, 160
+			.SetBounds 10, 240, 624, 160
 			.Designer = @This
 			.Parent = @This
 		End With
-		' Panel2
-		With Panel2
-			.Name = "Panel2"
-			.Text = "Panel2"
-			.TabIndex = 6
+		' StatusBar1
+		With StatusBar1
+			.Name = "StatusBar1"
+			.Text = "StatusBar1"
 			.Align = DockStyle.alBottom
-			.SetBounds 0, 231, 424, 30
+			.ExtraMargins.Top = 10
+			.SetBounds 0, 399, 644, 22
 			.Designer = @This
 			.Parent = @This
 		End With
-		' chkDontShow
-		With chkDontShow
-			.Name = "chkDontShow"
-			.Text = "Don't show again when open plain text"
-			.TabIndex = 7
-			.Caption = "Don't show again when open plain text"
-			.SetBounds 10, -1, 210, 20
+		' spCodePage
+		With spCodePage
+			.Name = "spCodePage"
 			.Designer = @This
-			.Parent = @Panel2
+			.Width = 200
+			.Parent = @StatusBar1
 		End With
-		' cmdOK
-		With cmdOK
-			.Name = "cmdOK"
-			.Text = "OK"
-			.TabIndex = 8
-			.Align = DockStyle.alRight
-			.ExtraMargins.Bottom = 10
-			.ExtraMargins.Right = 10
-			.Caption = "OK"
-			.SetBounds 314, 0, 100, 20
+		' spFileName
+		With spFileName
+			.Name = "spFileName"
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
-			.Parent = @Panel2
+			.Parent = @StatusBar1
+		End With
+		' OpenFileDialog1
+		With OpenFileDialog1
+			.Name = "OpenFileDialog1"
+			.Filter = "All files(*.*)|*.*"
+			.SetBounds 200, 20, 16, 16
+			.Designer = @This
+			.Parent = @This
 		End With
 	End Constructor
 	
@@ -501,20 +566,38 @@
 '#End Region
 
 Private Sub frmCodePageType.cmdOK_Click(ByRef Sender As Control)
-	ModalResult = ModalResults.OK
-	CloseForm
+	Select Case Sender.Name
+	Case "cmdOK"
+		ModalResult = ModalResults.OK
+		CloseForm
+	Case "cmdSelect"
+		OpenFileDialog1.FileName = spFileName.Caption
+		If OpenFileDialog1.Execute() Then
+			spFileName.Caption = OpenFileDialog1.FileName
+			chkSystemCP_Click(chkSystemCP)
+		End If
+	End Select
 End Sub
 
 Private Sub frmCodePageType.lstCodePage_Click(ByRef Sender As Control)
 	CodePage = Cast(Integer, lstCodePage.ItemData(lstCodePage.ItemIndex))
+	spCodePage.Caption = "Select Code Page: " & CodePage
+	Caption = spCodePage.Caption
 	chkPreview_Click(chkPreview)
 End Sub
 
 Private Sub frmCodePageType.cobEncod_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
-	Dim b As Boolean = IIf(cobEncod.ItemIndex = 0, True, False)
+	Dim As Boolean b = IIf(cobEncod.ItemIndex = 0, True, False)
 	
 	chkSystemCP.Enabled = b
-	lstCodePage.Enabled = b
+	If b Then
+		chkSystemCP_Click(chkSystemCP)
+		lstCodePage_Click(lstCodePage)
+	Else
+		lstCodePage.Enabled = b
+		spCodePage.Caption = "Select Encoding: " & cobEncod.Item(cobEncod.ItemIndex)
+		Caption = spCodePage.Caption
+	End If
 	chkPreview_Click(chkPreview)
 End Sub
 
@@ -530,21 +613,55 @@ End Sub
 
 Private Sub frmCodePageType.Form_Show(ByRef Sender As Form)
 	ModalResult = ModalResults.Cancel
+	cmdSelect.Visible = False
+	Select Case ShowMode
+	Case 0
+		chkPreview.Checked = True
+		txtPreviewSize.Visible= True
+	Case 1
+		chkPreview.Checked = False
+		chkPreview.Visible= False
+		txtPreviewSize.Visible= False
+	Case Else
+		cmdSelect.Visible = True
+		cmdOK.Caption = "Close"
+	End Select
 	SetCodePage(CodePage)
 	chkPreview_Click(chkPreview)
 End Sub
 
 Private Sub frmCodePageType.chkPreview_Click(ByRef Sender As CheckBox)
-	If Visible = False Or Handle = NULL Then Exit Sub 
-	Dim NewLine As NewLineTypes = -1
-	Dim Encode As FileEncodings = cobEncod.ItemIndex
-	If chkPreview.Checked = False Then Exit Sub
-	txtPreview.Text = TextFromFile(lblFile.Text, Encode, NewLine, CodePage)
+	If Visible = False Or Handle = NULL Then Exit Sub
+	
+	If Splitter1.Visible <> chkPreview.Checked Then
+		txtPreviewSize.Enabled = chkPreview.Checked
+		txtPreview.Visible = chkPreview.Checked
+		'StatusBar1.Visible = chkPreview.Checked
+		Splitter1.Visible = chkPreview.Checked
+		If chkPreview.Checked = False Then
+			Form_Resize(This, 0, 0)
+			Exit Sub
+		Else
+			Panel2.Height = Panel2.Height / 2
+			Splitter1.Top = Panel2.Top + Panel2.Height
+			StatusBar1.Top = ClientHeight - StatusBar1.Height
+			txtPreview.Move txtPreview.Left, Splitter1.Top + Splitter1.Height, txtPreview.Width, ClientHeight - StatusBar1.Height - StatusBar1.ExtraMargins.Top - Splitter1.Top - Splitter1.Height
+		End If
+	End If
+	
+	Dim As NewLineTypes NewLine = -1
+	Dim As FileEncodings Encode = cobEncod.ItemIndex
+	Dim As WString Ptr p
+	TextFromFile(spFileName.Caption, p, Encode, NewLine, CodePage, CLng(txtPreviewSize.Text))
+	txtPreview.Text = *p
+	If p Then Deallocate(p)
 End Sub
 
 Private Sub frmCodePageType.SetCodePage(CP As Integer)
 	CodePage = IIf(CP < 0, GetACP(), CP)
-	Dim i As Integer
+	spCodePage.Caption = "Select Code Page: " & CodePage
+	Caption = spCodePage.Caption
+	Dim As Integer i
 	For i = 0 To lstCodePage.ItemCount - 1
 		If lstCodePage.ItemData(i) = CodePage Then
 			lstCodePage.ItemIndex = i
@@ -553,19 +670,35 @@ Private Sub frmCodePageType.SetCodePage(CP As Integer)
 	Next
 End Sub
 
-Private Sub frmCodePageType.SetMode(ModeNo As Integer)
-	Dim b As Boolean
-	Select Case ModeNo
-	Case 0
-		b = True
-		Height = 460
-	Case 1
-		b = False
-		Height = 260
-		lblFile.Text = ""
-	End Select
-	txtPreview.Text =""
-	chkPreview.Visible = b
-	txtPreview.Visible = b
+Private Sub frmCodePageType.Form_Destroy(ByRef Sender As Control)
+	'Debug.Print "Form_Destroy"
+	txtPreview.Text = ""
 End Sub
 
+Private Sub frmCodePageType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	If chkPreview.Checked Then Exit Sub
+	Panel2.Height = ClientHeight - Panel2.Top - StatusBar1.Height - StatusBar1.ExtraMargins.Top
+End Sub
+
+Private Function SelectCodePage(ByRef sFileName As WString, ByRef sEncode As FileEncodings = -1, ByRef sCodePage As NewLineTypes = -1, ByVal sShowMode As Integer = 0) As Boolean
+	Dim As Boolean rtn
+	Dim As frmCodePageType Ptr frmCodePage
+	If frmCodePage = NULL Then frmCodePage = New frmCodePageType
+	frmCodePage->ShowMode = sShowMode
+	frmCodePage->cobEncod.ItemIndex = 0
+	frmCodePage->cobEncod_Selected(frmCodePage->cobEncod, 0)
+	frmCodePage->chkSystemCP_Click(frmCodePage->chkSystemCP)
+	frmCodePage->SetCodePage(-1)
+	frmCodePage->spFileName.Caption = sFileName
+	
+	frmCodePage->ShowModal(MDIMain)
+	If frmCodePage->ModalResult = ModalResults.OK Then
+		sEncode = frmCodePage->cobEncod.ItemIndex
+		sCodePage = Cast(Integer, frmCodePage->lstCodePage.ItemData(frmCodePage->lstCodePage.ItemIndex))
+		rtn = True
+	End If
+	
+	Delete frmCodePage
+	frmCodePage = NULL
+	Return rtn
+End Function

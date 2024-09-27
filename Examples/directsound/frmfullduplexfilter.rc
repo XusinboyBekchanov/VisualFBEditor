@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "fullduplexfilter\0"
 #define VER_FILEDESCRIPTION_STR     "fullduplexfilter\0"
 
-#define VER_FILEVERSION             0,0,0,386
-#define VER_FILEVERSION_STR         "0.0.0.386\0"
+#define VER_FILEVERSION             0,0,0,482
+#define VER_FILEVERSION_STR         "0.0.0.482\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

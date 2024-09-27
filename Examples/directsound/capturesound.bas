@@ -1,6 +1,6 @@
 ﻿#pragma once
 'capturesound声音捕捉
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "capturesound.bi"
@@ -177,7 +177,7 @@ Private Function RecordStart() As HRESULT
 	
 	hr = g_pDSBCapture->lpVtbl->Start(g_pDSBCapture, DSCBSTART_LOOPING)
 	DXTRACE_MSG("RecordStart()g_pDSBCapture->lpVtbl->Start", hr)
-	
+
 	Return hr
 End Function
 

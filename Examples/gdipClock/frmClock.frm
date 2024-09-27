@@ -94,9 +94,7 @@
 		mnuProfileList(Any) As MenuItem Ptr
 		mProfileName As WString Ptr
 		mProfileExt As WString Ptr = @WStr(".prf")
-		Declare Function FileNameFull(sFileName As WString) ByRef As WString    '全路径文件名
-		Declare Function FileNameOnly(sFileName As WString) ByRef As WString    '无路径文件名
-		Declare Function ProfileDefLoad() ByRef As WString  '获得默认Profile
+		Declare Function ProfileDefLoad() As UString  '获得默认Profile
 		Declare Function ProfileIdx(ByVal fDefNum As Integer = -1) As Integer   '索引+1
 		Declare Function ProfileLoad(sFileName As WString, sKeyValue() As WString Ptr) As Boolean   '加载Profile
 		Declare Sub Clock2Interface()   '将时钟参数显示在界面上
@@ -293,7 +291,7 @@
 		With mnuAnalogEnabled
 			.Name = "mnuAnalogEnabled"
 			.Designer = @This
-			.Caption = "Analog"
+			.Caption = !"Analog\tCtrl+A"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -775,9 +773,9 @@
 		With mnuTextEnabled
 			.Name = "mnuTextEnabled"
 			.Designer = @This
-			.Caption = "Text"
+			.Caption = !"Text\tCtrl+E"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Checked = true
+			.Checked = True
 			.Parent = @PopupMenu1
 		End With
 		' mnuTextSetting
@@ -1212,7 +1210,7 @@
 		With mnuDayEnabled
 			.Name = "mnuDayEnabled"
 			.Designer = @This
-			.Caption = "Day"
+			.Caption = !"Day\tCtrl+D"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -1235,7 +1233,7 @@
 		With mnuMonthEnabled
 			.Name = "mnuMonthEnabled"
 			.Designer = @This
-			.Caption = "Month"
+			.Caption = !"Month\tCtrl+M"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -1266,7 +1264,7 @@
 		With mnuTransparent
 			.Name = "mnuTransparent"
 			.Designer = @This
-			.Caption = "Transparent"
+			.Caption = !"Transparent\tCtrl+T"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -1274,7 +1272,7 @@
 		With mnuOpacityValue
 			.Name = "mnuOpacityValue"
 			.Designer = @This
-			.Caption = "Opacity"
+			.Caption = !"Opacity\tCtrl+O"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @PopupMenu1
 		End With
@@ -1337,6 +1335,7 @@
 			.Name = "mnuAnnounce0"
 			.Designer = @This
 			.Caption = "None"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce1
@@ -1344,6 +1343,7 @@
 			.Name = "mnuAnnounce1"
 			.Designer = @This
 			.Caption = "Hourly"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce2
@@ -1351,6 +1351,7 @@
 			.Name = "mnuAnnounce2"
 			.Designer = @This
 			.Caption = "Half hour"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuAnnounce3
@@ -1359,6 +1360,7 @@
 			.Designer = @This
 			.Caption = "Quarter hour"
 			.Checked = True
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
 			.Parent = @mnuAnnounce
 		End With
 		' mnuBar5
@@ -1382,7 +1384,7 @@
 			.Designer = @This
 			.Caption = "Save on exit"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuMenu_Click)
-			.Checked = true
+			.Checked = True
 			.Parent = @PopupMenu1
 		End With
 		' mnuProfileResetDefault
@@ -2425,52 +2427,24 @@ Private Sub frmClockType.Clock2Interface()
 	mnuMonthWeek.Checked = frmMonth.mMonth.mShowWeeks
 End Sub
 
-Private Function frmClockType.ProfileDefLoad() ByRef As WString
-	Static sProfile As WString Ptr
-	WLet(sProfile, TextFromFile(FileNameFull("gdipClock.ini")))
-	If *sProfile = "" Then
-		Return FileNameFull("gdipClock.prf")
+Private Function frmClockType.ProfileDefLoad() As UString
+	Dim sProfile As WString Ptr
+	TextFromFile(FullNameFromFile("gdipClock.ini"), sProfile)
+	Dim As UString rtn = *sProfile
+	Deallocate(sProfile)
+	If rtn = "" Then
+		Return FullNameFromFile("gdipClock.prf")
 	Else
-		Return FileNameFull(*sProfile)
+		Return FullNameFromFile(rtn)
 	End If
-End Function
-
-Private Function frmClockType.FileNameOnly(sFileName As WString) ByRef As WString
-	Static sRtn As WString Ptr
-	Dim sSLen As Integer = Len(sFileName)
-	Dim sPLen As Integer = Len(*mAppPath)
-	Dim sPLoc As Integer = InStr(sFileName, *mAppPath)
-	If sSLen Then
-		If sPLoc Then
-			WLet(sRtn, Mid(sFileName, sPLoc + sPLen, sSLen - sPLen - sPLoc + 1))
-		Else
-			WLet(sRtn, sFileName)
-		End If
-	Else
-		WLet(sRtn, "")
-	End If
-	Return *sRtn
-End Function
-
-Private Function frmClockType.FileNameFull(sFileName As WString) ByRef As WString
-	Static sRtn As WString Ptr
-	If Len(sFileName) Then
-		If InStr(sFileName, "\") Then
-			WLet(sRtn, sFileName)
-		Else
-			WLet(sRtn, *mAppPath & sFileName)
-		End If
-	Else
-		WLet(sRtn, "")
-	End If
-	Return *sRtn
 End Function
 
 Private Sub frmClockType.ProfileDefSave()
-	TextToFile(FileNameFull("gdipClock.ini"), FileNameOnly(*mProfileName))
+	TextToFile(FullNameFromFile("gdipClock.ini"), FullName2File(*mProfileName))
 End Sub
+
 Private Sub frmClockType.ProfileInitial()
-	WLet(mAppPath, FullName2Path(App.FileName) & "\")
+	WLet(mAppPath, ExePath & "\")
 	ReDim mKeyName(mKeyCount)
 	ReDim mKeyValDef(mKeyCount)
 	ReDim mKeyValue(mKeyCount)
@@ -2705,7 +2679,7 @@ Private Sub frmClockType.Profile2Clock(sKeyValue() As WString Ptr)
 	'End With
 	ProfileIdx(mSetAnalogStart)
 	mAnalogClock.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
-	mAnalogClock.FileName = FileNameFull(*sKeyValue(ProfileIdx()))
+	mAnalogClock.FileName = FullNameFromFile(*sKeyValue(ProfileIdx()))
 	mAnalogClock.mBackAlpha = CSng(*sKeyValue(ProfileIdx()))
 	mAnalogClock.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
 	mAnalogClock.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
@@ -2763,7 +2737,7 @@ Private Sub frmClockType.Profile2Clock(sKeyValue() As WString Ptr)
 	mTextClock.mBlinkColon = CBool(*sKeyValue(ProfileIdx()))
 	mTextClock.mShadowEnabled = CBool(*sKeyValue(ProfileIdx()))
 	mTextClock.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
-	mTextClock.FileName = FileNameFull(*sKeyValue(ProfileIdx()))
+	mTextClock.FileName = FullNameFromFile(*sKeyValue(ProfileIdx()))
 	mTextClock.mBackAlpha = CULng(*sKeyValue(ProfileIdx()))
 	mTextClock.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
 	mTextClock.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
@@ -2816,7 +2790,7 @@ Private Sub frmClockType.Profile2Clock(sKeyValue() As WString Ptr)
 		frmDay.mDay.mBackAlpha(DayDay) = CULng(*sKeyValue(ProfileIdx()))
 		frmDay.mDay.mBackAlpha(DayWeek) = CULng(*sKeyValue(ProfileIdx()))
 		frmDay.mDay.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
-		frmDay.mDay.mBackImage.ImageFile = FileNameFull(*sKeyValue(ProfileIdx()))
+		frmDay.mDay.mBackImage.ImageFile = FullNameFromFile(*sKeyValue(ProfileIdx()))
 		frmDay.mDay.mBackAlpha(DayImageFile) = CULng(*sKeyValue(ProfileIdx()))
 		frmDay.mDay.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
 		frmDay.mDay.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
@@ -2857,7 +2831,7 @@ Private Sub frmClockType.Profile2Clock(sKeyValue() As WString Ptr)
 		frmMonth.mMonth.mForeColor(MonthToday) = CULng(*sKeyValue(ProfileIdx()))
 		frmMonth.mMonth.mForeColor(MonthHoliday) = CULng(*sKeyValue(ProfileIdx()))
 		frmMonth.mMonth.mBackEnabled = CBool(*sKeyValue(ProfileIdx()))
-		frmMonth.mMonth.mBackImage.ImageFile = FileNameFull(*sKeyValue(ProfileIdx()))
+		frmMonth.mMonth.mBackImage.ImageFile = FullNameFromFile(*sKeyValue(ProfileIdx()))
 		frmMonth.mMonth.mBackAlpha(MonthImageFile) = CULng(*sKeyValue(ProfileIdx()))
 		frmMonth.mMonth.mBackBlur = CInt(*sKeyValue(ProfileIdx()))
 		frmMonth.mMonth.mPanelEnabled = CBool(*sKeyValue(ProfileIdx()))
@@ -2895,7 +2869,7 @@ Private Sub frmClockType.ProfileFrmClock(sKeyValue() As WString Ptr)
 	
 	ProfileIdx(mSetAnalogStart)
 	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackEnabled)
-	WLet(sKeyValue(ProfileIdx()), FileNameOnly(mAnalogClock.FileName))
+	WLet(sKeyValue(ProfileIdx()), FullName2File(mAnalogClock.FileName))
 	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackAlpha)
 	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mBackBlur)
 	WLet(sKeyValue(ProfileIdx()), "" & mAnalogClock.mPanelEnabled)
@@ -2947,7 +2921,7 @@ Private Sub frmClockType.ProfileFrmClock(sKeyValue() As WString Ptr)
 	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBlinkColon)
 	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mShadowEnabled)
 	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackEnabled)
-	WLet(sKeyValue(ProfileIdx()), FileNameOnly(mTextClock.FileName))
+	WLet(sKeyValue(ProfileIdx()), FullName2File(mTextClock.FileName))
 	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackAlpha)
 	WLet(sKeyValue(ProfileIdx()), ""& mTextClock.mBackBlur)
 	WLet(sKeyValue(ProfileIdx()), "" & mTextClock.mPanelEnabled)
@@ -2996,7 +2970,7 @@ Private Sub frmClockType.ProfileFrmClock(sKeyValue() As WString Ptr)
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayDay))
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayWeek))
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackEnabled)
-	WLet(sKeyValue(ProfileIdx()), FileNameOnly(frmDay.mDay.mBackImage.ImageFile))
+	WLet(sKeyValue(ProfileIdx()), FullName2File(frmDay.mDay.mBackImage.ImageFile))
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackAlpha(DayImageFile))
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mBackBlur)
 	WLet(sKeyValue(ProfileIdx()), "" & frmDay.mDay.mPanelEnabled)
@@ -3026,13 +3000,13 @@ Private Sub frmClockType.ProfileFrmClock(sKeyValue() As WString Ptr)
 	WLet(sKeyValue(ProfileIdx()), *frmMonth.mMonth.mFontName)
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthFocus))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthControl))
-	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mforeColor(MonthWeek))
+	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthWeek))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthDay))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthSelect))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthToday))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mForeColor(MonthHoliday))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackEnabled)
-	WLet(sKeyValue(ProfileIdx()), FileNameOnly(frmMonth.mMonth.mBackImage.ImageFile))
+	WLet(sKeyValue(ProfileIdx()), FullName2File(frmMonth.mMonth.mBackImage.ImageFile))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackAlpha(MonthImageFile))
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mBackBlur)
 	WLet(sKeyValue(ProfileIdx()), "" & frmMonth.mMonth.mPanelEnabled)
@@ -3053,7 +3027,8 @@ Private Function frmClockType.ProfileLoad(sFileName As WString, sKeyValue() As W
 	If Dir(sFileName) = "" Then Return False
 	Dim s As WString Ptr
 	
-	WLet(s, TextFromFile(sFileName))
+	'WLet(s, TextFromFile(sFileName))
+	TextFromFile(sFileName,s)
 	
 	Dim ss() As WString Ptr
 	Dim i As Integer
@@ -3331,6 +3306,10 @@ Private Property frmClockType.IndexOfGradientMode() As Integer
 End Property
 
 Private Property frmClockType.IndexOfAnnouce(v As Integer)
+	mnuAnnounce0.Checked = False
+	mnuAnnounce1.Checked = False
+	mnuAnnounce2.Checked = False
+	mnuAnnounce3.Checked = False
 	Select Case v
 	Case 0
 		mnuAnnounce0.Checked = True

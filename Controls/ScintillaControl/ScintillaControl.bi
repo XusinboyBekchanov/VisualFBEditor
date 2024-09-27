@@ -56,7 +56,7 @@ Public:
 	Declare Function Find(ByRef FindData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False, ByVal FindWarp As Boolean = True, ByVal FindBack As Boolean = False, ByVal MoveNext As Boolean = False, ByVal FindForce As Boolean = False) As Integer
 	Declare Function ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
 	
-	'Indicator
+	'indicator
 	Declare Sub IndicatorClear()
 	Declare Sub IndicatorSet(IndiPoses(Any) As Integer, ByVal IndiLength As Integer)
 	Declare Property IndicatorSel As Integer
@@ -69,8 +69,8 @@ Public:
 	Declare Property CodePage(ByVal val As Integer)
 	Declare Property CharSet(ByVal sty As Integer) As Integer
 	Declare Property CharSet(ByVal sty As Integer, val As Integer)
-	Declare Property WordWrap As Integer
-	Declare Property WordWrap(ByVal val As Integer)
+	Declare Property WordWraps As Integer
+	Declare Property WordWraps(ByVal val As Integer)
 	
 	Declare Property BackColor(ByVal sty As Integer) As Integer
 	Declare Property BackColor(ByVal sty As Integer, ByVal val As Integer)
@@ -96,7 +96,7 @@ Public:
 	Declare Property CaretLineBackColor As Integer
 	Declare Property CaretLineBackColor(ByVal val As Integer)
 	
-	'Tabs and Indentation
+	'tab and indentation
 	Declare Property UseTabs As Boolean
 	Declare Property UseTabs (uTabs As Boolean)
 	Declare Property TabWidth As Integer
@@ -105,6 +105,10 @@ Public:
 	Declare Property IndentSize (iSize As Integer)
 	Declare Property TabIndents As Boolean
 	Declare Property TabIndents (tIndents As Boolean)
+	Declare Property TabIndex As Integer
+	Declare Property TabIndex(Value As Integer)
+	Declare Property TabStop As Boolean
+	Declare Property TabStop(Value As Boolean)
 	
 	'text
 	Declare Property LineCount As Integer
@@ -138,6 +142,8 @@ Public:
 	Declare Property ViewLineNo(ByVal val As Integer)
 	Declare Property ViewFold As Integer
 	Declare Property ViewFold(ByVal val As Integer)
+	
+	'margin
 	Declare Property MarginWidth(margin As Integer) As Integer
 	Declare Property MarginWidth(margin As Integer, Val As Integer)
 	Declare Sub MarginColor(ByVal margin As Integer = 0, ByVal fore As Integer = -1, ByVal back As Integer = -1)
@@ -148,19 +154,16 @@ Public:
 	Declare Property SelAlpha(Val As Integer)
 	Declare Property SelLayer As Integer
 	Declare Property SelLayer(Val As Integer)
-	
-	Declare Function GetPosX(ByVal oPos As Integer = -1) As Integer
-	Declare Function GetPosY(ByVal oPos As Integer = -1) As Integer
 	Declare Property SelStart As Integer
 	Declare Property SelStart(ByVal val As Integer)
 	Declare Property SelEnd As Integer
 	Declare Property SelEnd(ByVal val As Integer)
 	Declare Property SelLength As Integer
 	Declare Property SelLength(ByVal val As Integer)
-	Declare Property TabIndex As Integer
-	Declare Property TabIndex(Value As Integer)
-	Declare Property TabStop As Boolean
-	Declare Property TabStop(Value As Boolean)
+	
+	'position
+	Declare Function GetPosX(ByVal oPos As Integer = -1) As Integer
+	Declare Function GetPosY(ByVal oPos As Integer = -1) As Integer
 	Declare Property Pos(ByVal val As Integer)
 	Declare Property Pos As Integer
 	Declare Property PosX As Integer

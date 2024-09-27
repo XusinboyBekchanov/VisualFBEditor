@@ -1,8 +1,12 @@
-﻿'#Region "Form"
+﻿' MDINotepad frmFindReplace.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDINotepad.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -10,17 +14,22 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/CheckBox.bi"
+	#include once "mff/Label.bi"
 	
 	Using My.Sys.Forms
 	
 	Type frmFindReplaceType Extends Form
-		Declare Sub btnFindReplace_Click(ByRef Sender As Control)
-		Declare Sub chkFindReplace_Click(ByRef Sender As CheckBox)
+		Declare Sub cmd_Click(ByRef Sender As Control)
+		Declare Sub chk_Click(ByRef Sender As CheckBox)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub Form_Show(ByRef Sender As Form)
+		Declare Sub txtFind_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
 		Dim As TextBox txtFind, txtReplace
-		Dim As CommandButton btnFindNext, btnFindBack, btnShowHide, btnReplace, btnReplaceAll
+		Dim As CommandButton cmdFindNext, cmdFindBack, cmdShowHide, cmdReplace, cmdReplaceAll
 		Dim As CheckBox chkCase, chkWarp
+		Dim As Label lblStatus
 	End Type
 	
 	Constructor frmFindReplaceType
@@ -34,110 +43,124 @@
 			.MaximizeBox = False
 			.MinimizeBox = False
 			.StartPosition = FormStartPosition.CenterParent
-			.SetBounds 0, 0, 386, 200
+			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
+			.SetBounds 0, 0, 386, 220
+		End With
+		' lblStatus
+		With lblStatus
+			.Name = "lblStatus"
+			.Text = ""
+			.TabIndex = 0
+			.Caption = ""
+			.SetBounds 10, 10, 360, 16
+			.Designer = @This
+			.Parent = @This
 		End With
 		' txtFind
 		With txtFind
 			.Name = "txtFind"
 			.Text = ""
-			.TabIndex = 0
+			.TabIndex = 1
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
-			.HideSelection = True
-			.ID = 1009
-			.SetBounds 10, 10, 260, 60
+			.HideSelection = False
+			.MaxLength = -1
+			.SetBounds 10, 30, 260, 60
 			.Designer = @This
+			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox), @txtFind_Change)
 			.Parent = @This
 		End With
 		' chkCase
 		With chkCase
 			.Name = "chkCase"
 			.Text = "Case sensitive"
-			.TabIndex = 1
+			.TabIndex = 2
 			.Caption = "Case sensitive"
-			.SetBounds 10, 70, 90, 20
+			.SetBounds 10, 90, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chk_Click)
 			.Parent = @This
 		End With
 		' chkWarp
 		With chkWarp
 			.Name = "chkWarp"
 			.Text = "Wrap around"
-			.TabIndex = 2
+			.TabIndex = 3
 			.Caption = "Wrap around"
 			.Checked = True
-			.SetBounds 110, 70, 90, 20
+			.SetBounds 110, 90, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chkFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @chk_Click)
 			.Parent = @This
 		End With
 		' txtReplace
 		With txtReplace
 			.Name = "txtReplace"
 			.Text = ""
-			.TabIndex = 3
+			.TabIndex = 4
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
-			.ID = 1008
-			.HideSelection = True
-			.SetBounds 10, 100, 260, 60
+			.HideSelection = False
+			.MaxLength = -1
+			.SetBounds 10, 120, 260, 60
 			.Designer = @This
 			.Parent = @This
 		End With
-		' btnFindNext
-		With btnFindNext
-			.Name = "btnFindNext"
+		' cmdFindNext
+		With cmdFindNext
+			.Name = "cmdFindNext"
 			.Text = "Find Next"
-			.TabIndex = 4
-			.Caption = "Find Next"
-			.SetBounds 280, 10, 90, 20
-			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
-			.Parent = @This
-		End With
-		' btnFindBack
-		With btnFindBack
-			.Name = "btnFindBack"
-			.Text = "Find Back"
 			.TabIndex = 5
-			.Caption = "Find Back"
+			.Caption = "Find Next"
+			.Default = True
 			.SetBounds 280, 30, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmd_Click)
 			.Parent = @This
 		End With
-		' btnShowHide
-		With btnShowHide
-			.Name = "btnShowHide"
-			.Text = "Hide Replace"
+		' cmdFindBack
+		With cmdFindBack
+			.Name = "cmdFindBack"
+			.Text = "Find Back"
 			.TabIndex = 6
-			.Caption = "Hide Replace"
-			.SetBounds 280, 70, 90, 20
+			.Caption = "Find Back"
+			.SetBounds 280, 50, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmd_Click)
 			.Parent = @This
 		End With
-		' btnReplace
-		With btnReplace
-			.Name = "btnReplace"
-			.Text = "Replace"
+		' cmdShowHide
+		With cmdShowHide
+			.Name = "cmdShowHide"
+			.Text = "Hide Replace"
 			.TabIndex = 7
-			.Caption = "Replace"
-			.SetBounds 280, 120, 90, 20
+			.Caption = "Hide Replace"
+			.SetBounds 280, 90, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmd_Click)
 			.Parent = @This
 		End With
-		' btnReplaceAll
-		With btnReplaceAll
-			.Name = "btnReplaceAll"
-			.Text = "Replace All"
+		' cmdReplace
+		With cmdReplace
+			.Name = "cmdReplace"
+			.Text = "Replace"
 			.TabIndex = 8
-			.Caption = "Replace All"
+			.Caption = "Replace"
 			.SetBounds 280, 140, 90, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFindReplace_Click)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmd_Click)
+			.Parent = @This
+		End With
+		' cmdReplaceAll
+		With cmdReplaceAll
+			.Name = "cmdReplaceAll"
+			.Text = "Replace All"
+			.TabIndex = 9
+			.Caption = "Replace All"
+			.SetBounds 280, 160, 90, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmd_Click)
 			.Parent = @This
 		End With
 	End Constructor
@@ -152,36 +175,61 @@
 	#endif
 '#End Region
 
-Private Sub frmFindReplaceType.btnFindReplace_Click(ByRef Sender As Control)
+Private Sub frmFindReplaceType.cmd_Click(ByRef Sender As Control)
 	Select Case Sender.Name
-	Case "btnFindNext"
+	Case "cmdFindNext"
+		cmdFindNext.Default = True
+		cmdFindBack.Default = False
 		MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, False)
-	Case "btnFindBack"
+	Case "cmdFindBack"
+		cmdFindNext.Default = False
+		cmdFindBack.Default = True
 		MDIMain.Find(txtFind.Text, chkCase.Checked, chkWarp.Checked, True)
-	Case "btnShowHide"
-		If txtReplace.Visible= True Then
-			Sender.Text = "Show Replace"
-			Height = 130
-			txtReplace.Visible= False 
-			btnReplace.Visible= False 
-			btnReplaceAll.Visible= False 
+	Case "cmdShowHide"
+		If txtReplace.Visible = True Then
+			cmdShowHide.Text = "Show Replace"
+			txtReplace.Visible = False
+			cmdReplace.Visible = False
+			cmdReplaceAll.Visible = False
 		Else
-			Sender.Text = "Hide Replace"
-			Height = 200
-			txtReplace.Visible= True
-			btnReplace.Visible= True
-			btnReplaceAll.Visible= True
+			cmdShowHide.Text = "Hide Replace"
+			txtReplace.Visible = True
+			cmdReplace.Visible = True
+			cmdReplaceAll.Visible = True
 		End If
-	Case "btnReplace"
+		Form_Resize(Me, 0, 0)
+	Case "cmdReplace"
 		MDIMain.Replace(txtFind.Text, txtReplace.Text, chkCase.Checked, chkWarp.Checked)
-	Case "btnReplaceAll"
+	Case "cmdReplaceAll"
 		MDIMain.ReplaceAll(txtFind.Text, txtReplace.Text, chkCase.Checked)
 	End Select
 End Sub
 
-Private Sub frmFindReplaceType.chkFindReplace_Click(ByRef Sender As CheckBox)
+Private Sub frmFindReplaceType.chk_Click(ByRef Sender As CheckBox)
 	Select Case Sender.Name
 	Case "chkCase"
+		txtFind_Change(txtFind)
 	Case "chkWarp"
 	End Select
+End Sub
+
+Private Sub frmFindReplaceType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	If txtReplace.Visible= True Then
+		Height = txtReplace.Top + txtReplace.Height + lblStatus.Top + Height - ClientHeight
+	Else
+		Height = txtReplace.Top + Height - ClientHeight
+	End If
+End Sub
+
+Private Sub frmFindReplaceType.Form_Show(ByRef Sender As Form)
+	If MDIMain.mFindCount < 0 Or MDIMain.mFindIndex < 0 Then
+		lblStatus.Text = "Find..."
+	Else
+		lblStatus.Text = "Find: " & Format(MDIMain.mFindIndex + 1, "#,#0") & " of " & Format(MDIMain.mFindCount, "#,#0")
+	End If
+End Sub
+
+Private Sub frmFindReplaceType.txtFind_Change(ByRef Sender As TextBox)
+	MDIMain.mFindLength = -1
+	Form_Show(Me)
 End Sub

@@ -737,6 +737,7 @@
 	Dim Shared frmSerialPort As frmSerialPortType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
 		frmSerialPort.MainForm = True
 		frmSerialPort.Show
 		App.Run
@@ -792,11 +793,11 @@ Private Sub frmSerialPortType.CommandButton_Click(ByRef Sender As Control)
 	Case "Clear"
 		txtRec.Clear
 	Case "Send"
-		'ncom.Write(@txtSend.Text, Len(txtSend.Text))
-		
 		Dim i As Integer = -1
-		Dim s As String = TextUnicode2Ansi(txtSend.Text,i)
-		ncom.Write(StrPtr(s), Len(s))
+		Dim s As ZString Ptr
+		TextToAnsi(txtSend.Text, s, i)
+		ncom.Write(s, Len(*s))
+		Deallocate(s)
 	End Select
 End Sub
 

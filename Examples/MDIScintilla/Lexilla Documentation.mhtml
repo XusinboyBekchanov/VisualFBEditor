@@ -1,16 +1,16 @@
 From: <Saved by Blink>
 Snapshot-Content-Location: https://www.scintilla.org/LexillaDoc.html
 Subject: Lexilla Documentation
-Date: Tue, 27 Sep 2022 00:33:40 -0000
+Date: Tue, 9 Apr 2024 11:43:28 +0800
 MIME-Version: 1.0
 Content-Type: multipart/related;
 	type="text/html";
-	boundary="----MultipartBoundary--8bioPyasbfYzD10NSnZ6Fl70LY39myRL5BQrxZqndu----"
+	boundary="----MultipartBoundary--0l4rQ4useVt6FN72GSeFI0eioqkrzPSnMLDoz4xq1s----"
 
 
-------MultipartBoundary--8bioPyasbfYzD10NSnZ6Fl70LY39myRL5BQrxZqndu----
+------MultipartBoundary--0l4rQ4useVt6FN72GSeFI0eioqkrzPSnMLDoz4xq1s----
 Content-Type: text/html
-Content-ID: <frame-38ECA553041EF9AF8EAD39AE1DEDBE63@mhtml.blink>
+Content-ID: <frame-5AE6D638C6CB22A9A08635B303CF5982@mhtml.blink>
 Content-Transfer-Encoding: quoted-printable
 Content-Location: https://www.scintilla.org/LexillaDoc.html
 
@@ -18,7 +18,7 @@ Content-Location: https://www.scintilla.org/LexillaDoc.html
 ansitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><=
 html xmlns=3D"http://www.w3.org/1999/xhtml"><head><meta http-equiv=3D"Conte=
 nt-Type" content=3D"text/html; charset=3Dwindows-1252"><link rel=3D"stylesh=
-eet" type=3D"text/css" href=3D"cid:css-f7e16218-f4f8-45f1-8a4c-514b40fbb6c8=
+eet" type=3D"text/css" href=3D"cid:css-a3707c98-a8e9-4e74-8318-bda964127968=
 @mhtml.blink" />
     <meta name=3D"generator" content=3D"HTML Tidy for Windows (vers 1st Aug=
 ust 2002), see www.w3.org">
@@ -89,7 +89,7 @@ ifier)</code><br>
 ey, const char *value)</code><br>
     <code>const char *<span class=3D"name">GetNameSpace</span>()</code>
     </p>
- =20
+
     <p><span class=3D"name">ILexer5</span> is defined by Scintilla in inclu=
 de/ILexer.h as the interface provided by lexers which is called by Scintill=
 a.
@@ -107,20 +107,20 @@ span> *:
     </p>
 
     <p>The Lexilla protocol is a superset of the earlier external lexer pro=
-tocol that defined the first 3 functions=20
+tocol that defined the first 3 functions
     (<span class=3D"name">GetLexerCount</span>, <span class=3D"name">GetLex=
 erName</span>, <span class=3D"name">GetLexerFactory</span>)
     so Lexilla can be loaded by applications that support that protocol.
     <span class=3D"name">GetLexerFactory</span> will rarely be used now as =
 it is easier to call <span class=3D"name">CreateLexer</span>.
     </p>
- =20
+
     <p><span class=3D"name">CreateLexer</span> is the main call that will c=
 reate a lexer for a particular language. The returned lexer can then be
     set as the current lexer in Scintilla by calling
     <a class=3D"seealso" href=3D"https://www.scintilla.org/ScintillaDoc.htm=
 l#SCI_SETILEXER">SCI_SETILEXER</a>.</p>
- =20
+
     <p><span class=3D"name">LexerNameFromID</span> is an optional function =
 that returns the name for a lexer identifier.
     <code>LexerNameFromID(SCLEX_CPP) &#8594; "cpp"</code>.
@@ -129,7 +129,7 @@ s to using Lexilla.
     Applications should move to using lexer names instead of IDs.
     This function is deprecated, showing warnings with some compilers, and =
 will be removed in a future version of Lexilla.</p>
- =20
+
     <p><span class=3D"name">SetLibraryProperty</span> and <span class=3D"na=
 me">GetLibraryPropertyNames</span>
     are optional functions that can be
@@ -145,7 +145,7 @@ et of valid property names with
     GetLibraryPropertyNames that can then be used by the application to def=
 ine configuration file property
     names or user interface elements for options dialogs.</p>
- =20
+
     <p><span class=3D"name">GetNameSpace</span> is an optional function tha=
 t returns a namespace string
     that can be used to disambiguate lexers with the same name from differe=
@@ -153,7 +153,7 @@ nt providers.
     If Lexilla and XMLLexers both provide a "cpp" lexer than a request for =
 "cpp" may be satisfied by either but "xmllexers.cpp"
     unambiguously refers to the "cpp" lexer from XMLLexers.</p>
- =20
+
     <h2>Building Lexilla</h2>
 
     <p>Before using Lexilla it must be built or downloaded.</p>
@@ -180,7 +180,7 @@ ll display a diagnostic, commonly showing
     a difference between the actual and expected result:<br>
     <code>C:\u\hg\lexilla\test\examples\python\x.py:1: is different</code>
     </div>
-   =20
+
     <p>There are also RunTest.sh / RunTest.bat scripts in the scripts direc=
 tory to build Lexilla and then build and run the tests.
     These both use gcc/clang, not MSVC.</p>
@@ -193,7 +193,7 @@ deproj.
 +.</p>
 
     <h2>Using Lexilla</h2>
-   =20
+
     <p>Definitions for using Lexilla from C and C++ are included in lexilla=
 /include/Lexilla.h.
     For C++, scintilla/include/ILexer.h should be included before Lexilla.h=
@@ -273,7 +273,7 @@ sted in its user interface
     and configuration files.</p>
 
     <h2>Modifying or adding lexers</h2>
-=20
+
     <p>Lexilla can be modified or a new library created that can be used to=
  replace or augment Lexilla.</p>
 
@@ -312,10 +312,10 @@ a</a> against it with
 
 
 </body></html>
-------MultipartBoundary--8bioPyasbfYzD10NSnZ6Fl70LY39myRL5BQrxZqndu----
+------MultipartBoundary--0l4rQ4useVt6FN72GSeFI0eioqkrzPSnMLDoz4xq1s----
 Content-Type: text/css
 Content-Transfer-Encoding: quoted-printable
-Content-Location: cid:css-f7e16218-f4f8-45f1-8a4c-514b40fbb6c8@mhtml.blink
+Content-Location: cid:css-a3707c98-a8e9-4e74-8318-bda964127968@mhtml.blink
 
 @charset "windows-1252";
 
@@ -354,7 +354,7 @@ d: rgb(247, 252, 247); border: 1px solid rgb(192, 215, 192); margin: 0.1em =
 0em; padding: 0.1em 0.3em; }
 
 .name { color: rgb(176, 128, 0); }
-------MultipartBoundary--8bioPyasbfYzD10NSnZ6Fl70LY39myRL5BQrxZqndu----
+------MultipartBoundary--0l4rQ4useVt6FN72GSeFI0eioqkrzPSnMLDoz4xq1s----
 Content-Type: image/png
 Content-Transfer-Encoding: base64
 Content-Location: https://www.scintilla.org/SciTEIco.png
@@ -531,4 +531,4 @@ no0H/AWDKR2DBb3CoobBY/FEAonyt5CjHxhGDBTj5z++/SeGb/817Af+i9j/wPVv3qPGQZsi0/gK
 PJtseJ+dRKYCJXB4IugvTDXowywcEUCi9UOigmd/+v33z9/iTUYxMP4AwzB+Szas/4HhT0is/wt9
 ihARJbO1TwAAAABJRU5ErkJggg==
 
-------MultipartBoundary--8bioPyasbfYzD10NSnZ6Fl70LY39myRL5BQrxZqndu------
+------MultipartBoundary--0l4rQ4useVt6FN72GSeFI0eioqkrzPSnMLDoz4xq1s------

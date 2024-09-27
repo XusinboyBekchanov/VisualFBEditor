@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' Download 下载
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "Download.bi"
@@ -33,11 +33,18 @@ Destructor Download()
 	If hLib Then DyLibFree(hLib)
 End Destructor
 
-Sub Download.DownloadUrl(ByVal Owner As Any Ptr, ByRef Url As Const WString, ByRef FileName As Const WString)
+Sub Download.DownloadUrl(ByVal Owner As Any Ptr, Url As WString, LocalPath As WString, FileName As WString)
 	mBSC->pOwner = Owner
 	mOwner = Owner
-	WStr2Ptr(Url, mUrl)
-	WStr2Ptr(FileName, mFileName)
+
+	If mFileName Then Deallocate mFileName
+	If mLocalPath Then Deallocate mLocalPath
+	mFileName= NULL
+	mLocalPath = NULL
+
+	WLet(mUrl, Url)
+	If LocalPath <> "" Then WLet(mLocalPath, LocalPath)
+	If FileName <> "" Then WLet(mFileName, FileName)
 	mDone = False
 	Cancel = False
 	mTimeStart = False
@@ -60,11 +67,14 @@ Private Function Download.DownloadThread(ByVal pParam As LPVOID) As DWORD
 End Function
 
 Private Sub Download.DownloadDoing()
-	If URLDownloadToFile_Cm(0, mUrl, mFileName, 0, mBSC) Then
+	Dim mTmp As WString Ptr
+	WLet(mTmp, *mLocalPath & "\" & *mFileName)
+	If URLDownloadToFile_Cm(0, mUrl, mTmp, 0, mBSC) Then
 		
 	Else
 		
 	End If
+	Deallocate(mTmp)
 	Done = True
 End Sub
 

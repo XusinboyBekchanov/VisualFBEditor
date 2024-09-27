@@ -236,15 +236,14 @@ End Function
 Private Sub Form1Type.CaptureSound()
 	nLength = 0
 	Dim hr As HRESULT
+	Dim filename As ZString Ptr
+	TextToAnsi(TextBox1.Text, filename)
 	
-	Dim filename As String = TextToAnsi(TextBox1.Text)
-	
-	WaveFileCreate(Cast(ZString Ptr, StrPtr(filename)), CLng(ComboBoxEdit2.Items.Item(ComboBoxEdit2.ItemIndex)), CLng(ComboBoxEdit3.Items.Item(ComboBoxEdit3.ItemIndex)), CLng(ComboBoxEdit4.Items.Item(ComboBoxEdit4.ItemIndex)))
+	WaveFileCreate(filename, CLng(ComboBoxEdit2.Items.Item(ComboBoxEdit2.ItemIndex)), CLng(ComboBoxEdit3.Items.Item(ComboBoxEdit3.ItemIndex)), CLng(ComboBoxEdit4.Items.Item(ComboBoxEdit4.ItemIndex)))
 	
 	hr = InitDirectSound(Handle, Cast(GUID Ptr, ComboBoxEdit1.ItemData(ComboBoxEdit1.ItemIndex)))
 	WaveFormatSet(CInt(ComboBoxEdit2.ItemData(ComboBoxEdit2.ItemIndex)), CInt(ComboBoxEdit3.ItemData(ComboBoxEdit3.ItemIndex)), CInt(ComboBoxEdit4.ItemData(ComboBoxEdit4.ItemIndex)), @g_wfxInput)
 	hr = CreateCaptureBuffer(@g_wfxInput)
-	'hr = OnSaveSoundFile(Cast(LPTSTR, StrPtr(filename)))
 	hr = InitNotifications()
 	hr = RecordStart()
 	
@@ -263,7 +262,7 @@ Private Sub Form1Type.CaptureSound()
 			'a piece of the buffer, so we need to fill the circular
 			'buffer with new sound from the wav file
 			
-			nLength += RecordCapturedData(Cast(ZString Ptr, StrPtr(filename)))
+			nLength += RecordCapturedData(filename)
 			DXTRACE_MSG("==RecordCapturedData==", hr)
 		Case WAIT_OBJECT_0 + 1
 			DXTRACE_MSG("Windows messages are available", 0)
@@ -273,13 +272,12 @@ Private Sub Form1Type.CaptureSound()
 	DXTRACE_MSG("While(bStarting)=false", 0)
 	
 	hr = RecordStop()
-	nLength += RecordCapturedData(Cast(ZString Ptr, StrPtr(filename)))
+	nLength += RecordCapturedData(filename)
 	
-	WaveFileClose(Cast(ZString Ptr, StrPtr(filename)))
-	
+	WaveFileClose(filename)
 	FreeDirectSound()
-	
 	CtlEnabled(True)
+	Deallocate(filename)
 End Sub
 
 Private Sub Form1Type.CtlEnabled(b As Boolean)

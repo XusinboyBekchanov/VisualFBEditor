@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "gdipGoldFish\0"
 #define VER_FILEDESCRIPTION_STR     "gdipGoldFish\0"
 
-#define VER_FILEVERSION             0,0,0,258
-#define VER_FILEVERSION_STR         "0.0.0.258\0"
+#define VER_FILEVERSION             0,0,0,367
+#define VER_FILEVERSION_STR         "0.0.0.367\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm Wang\0"
 

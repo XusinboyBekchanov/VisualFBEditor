@@ -81,7 +81,7 @@
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
-			.Interval = 50
+			.Interval = 1
 			.Enabled = True
 			.SetBounds 0, 10, 16, 16
 			.Designer = @This
@@ -395,17 +395,17 @@ Private Sub frmAnimateType.MenuItem_Click(ByRef Sender As MenuItem)
 		If InStr(Sender.Name, "mnuImage") Then
 			Select Case Sender.Name
 			Case "mnuImage1"
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption, 199, 302, 10)
+				OpenFile(ExePath & "\" & Sender.Caption, 199, 302, 10)
 			Case "mnuImage2"
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption, 84, 84)
+				OpenFile(ExePath & "\" & Sender.Caption, 84, 84)
 			Case "mnuImage3"
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption, 184, 325)
+				OpenFile(ExePath & "\" & Sender.Caption, 184, 325)
 			Case "mnuImage4"
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption, 192, 192, 14)
+				OpenFile(ExePath & "\" & Sender.Caption, 192, 192, 14)
 			Case "mnuImage5"
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption, 123, 105)
+				OpenFile(ExePath & "\" & Sender.Caption, 123, 105)
 			Case Else
-				OpenFile(FullName2Path(App.FileName) & "\" & Sender.Caption)
+				OpenFile(ExePath & "\" & Sender.Caption)
 			End Select
 			Sender.Checked = True
 		End If

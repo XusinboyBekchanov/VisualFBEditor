@@ -1,4 +1,7 @@
-﻿'#Region "Form"
+﻿' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -142,6 +145,9 @@
 			.AddItem "https://t1.daumcdn.net/potplayer/PotPlayer/Version/Latest/PotPlayerSetup64.exe"
 			.AddItem "http://www.foobar2000.org/files/foobar2000_v1.6.13.exe"
 			.AddItem "https://github.com/git-for-windows/git/releases/download/v2.38.1.windows.1/PortableGit-2.38.1-64-bit.7z.exe"
+			.AddItem "https://users.freebasic-portal.de/stw/builds"
+			.AddItem "https://users.freebasic-portal.de/stw/builds/win32"
+			.AddItem "https://users.freebasic-portal.de/stw/builds/win64"
 		End With
 		' txtTargetPath
 		With txtTargetPath
@@ -299,6 +305,7 @@
 	Dim Shared frmDownload As frmDownloadType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
 		frmDownload.MainForm = True
 		frmDownload.Show
 		App.Run
@@ -317,7 +324,7 @@ Private Sub frmDownloadType.cmdButton_Click(ByRef Sender As Control)
 		Debug.Clear
 		CtlEnabled(False)
 		dl.DeleteCacheEntry = chkDelCache.Checked
-		dl.DownloadUrl(@This, cmbSourceURL.Text, txtTargetPath.Text & "\" & txtTargetFile.Text)
+		dl.DownloadUrl(@This, cmbSourceURL.Text, txtTargetPath.Text, txtTargetFile.Text)
 	Case "cmdCancel"
 		dl.Cancel = True
 	Case "cmdSelect"
@@ -362,13 +369,13 @@ Private Sub frmDownloadType.cmbSourceURL_Change(ByRef Sender As ComboBoxEdit)
 	
 	Dim t As WString Ptr = NULL
 	If i < 1 Then
-		WStr2Ptr(cmbSourceURL.Text, t)
+		WLet(t, cmbSourceURL.Text)
 		i = InStrRev(*t, "/", -1)
 		If i < 0 Then Exit Sub
 		j = Len(*t)
 		txtTargetFile.Text = Mid(*t, i + 1, j - i)
 	Else
-		WStr2Ptr(Mid(cmbSourceURL.Text, 1, i - 1), t)
+		WLet(t, Mid(cmbSourceURL.Text, 1, i - 1))
 		i = InStrRev(*t, "/", -1)
 		If i < 0 Then Exit Sub
 		j = Len(*t)
@@ -392,10 +399,10 @@ Private Sub frmDownloadType.Form_Create(ByRef Sender As Control)
 	Dim t As WString Ptr
 	Dim s As WString Ptr
 	Dim ss(Any) As WString Ptr
-	ReplaceWStr(App.FileName, ".exe", ".ini", t)
+	WLet(t, Replace(App.FileName, ".exe", ".ini"))
 	txtMsg.AddLine "Load URL list from " & *t
 	If Dir(*t) <> "" Then
-		WStr2Ptr(TextFromFile(*t, -1, -1, -1), s)
+		TextFromFile(*t, s, -1, -1, -1)
 		txtMsg.AddLine *s
 		Dim j As Integer = SplitWStr(*s, WStr(vbCrLf), ss())
 		If j > -1 Then cmbSourceURL.Clear
@@ -431,16 +438,17 @@ Private Sub frmDownloadType.CtlEnabled(e As Boolean)
 		ProgressBar1.Marquee = False
 		ProgressBar1.Visible = True
 		TimerComponent1_Timer(TimerComponent1)
+		itl.SetState(TBPF_NOPROGRESS)
 		If dl.Cancel Then
 			txtMsg.AddLine "Download Cancel."
 			itl.SetState(TBPF_PAUSED)
 		Else
 			If dl.Status Then
 				txtMsg.AddLine "Download Passed."
-			itl.SetState(TBPF_NORMAL)
+				itl.SetState(TBPF_NORMAL)
 			Else
 				txtMsg.AddLine "Download Failed."
-			itl.SetState(TBPF_ERROR)
+				itl.SetState(TBPF_ERROR)
 			End If
 		End If
 	Else
@@ -467,13 +475,13 @@ Private Sub frmDownloadType.TimerComponent1_Timer(ByRef Sender As TimerComponent
 		ProgressBar1.Marquee = False
 		ProgressBar1.Visible = True
 		ProgressBar1.Position = dl.DonePercent
-		lblDownloadSize.Text = "Download Size " & Format(dl.DownloadSize, "#,#0") & " (" & Number2Str(dl.DownloadSize) & ") " & Format(dl.DonePercent, "0.00") & "%"
+		lblDownloadSize.Text = "Download Size " & Format(dl.DownloadSize, "#,#0") & " (" & Bytes2Str(dl.DownloadSize) & ") " & Format(dl.DonePercent, "0.00") & "%"
 	Else
-		lblDownloadSize.Text = "Download Size " & Format(dl.DownloadSize, "#,#0") & " (" & Number2Str(dl.DownloadSize) & ")"
+		lblDownloadSize.Text = "Download Size " & Format(dl.DownloadSize, "#,#0") & " (" & Bytes2Str(dl.DownloadSize) & ")"
 	End If
-	lblSpeed.Text = "Speed " & Format(dl.DownloadSpeed, "#,#0") & " (" & Number2Str(dl.DownloadSpeed) & ") /Sec."
+	lblSpeed.Text = "Speed " & Format(dl.DownloadSpeed, "#,#0") & " (" & Bytes2Str(dl.DownloadSpeed) & ") /Sec."
 	If dl.SourceSize Then
-		lblSourceSize.Text = "Source Size " & Format(dl.SourceSize, "#,#0") & " (" & Number2Str(dl.SourceSize) & ")"
+		lblSourceSize.Text = "Source Size " & Format(dl.SourceSize, "#,#0") & " (" & Bytes2Str(dl.SourceSize) & ")"
 	Else
 		lblSourceSize.Text = "Source Size Unknow"
 	End If

@@ -81,6 +81,11 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 	sGdipTxt.Initial(mWidth, mHeight)
 	sGdipTxt.SetFont(*mFontName, mFontSize, FontStyleBold)
 	
+	If mPanelEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		GdipGraphicsClear(sTmpBitmap.Graphics, mBackAlpha(MonthPanel) + mBackColor(MonthPanel))
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
+	End If
 	
 	If mTrayEnabled Then
 		sTmpBitmap.Initial(mWidth, mHeight)
@@ -99,12 +104,6 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 		GdipCreateSolidFill(mBackAlpha(MonthDay) + mBackColor(MonthDay), @sBrush)
 		GdipFillRectangle(sTmpBitmap.Graphics, sBrush, 0, mCellHeight + mControlHeight, mWidth, mHeight - mCellHeight - mControlHeight)
 		GdipDeleteBrush(sBrush)
-		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
-	End If
-	
-	If mPanelEnabled Then
-		sTmpBitmap.Initial(mWidth, mHeight)
-		GdipGraphicsClear(sTmpBitmap.Graphics, mBackAlpha(MonthPanel) + mBackColor(MonthPanel))
 		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
 	
@@ -146,7 +145,7 @@ Private Sub gdipMonth.Background(pWidth As Single, pHeight As Single, pSelectDat
 	Next
 	
 	mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
-
+	
 	If mBackEnabled Then
 		sTmpBitmap.Initial(mWidth, mHeight)
 		sTmpBitmap.DrawScaleImage(mBackImage.Image)

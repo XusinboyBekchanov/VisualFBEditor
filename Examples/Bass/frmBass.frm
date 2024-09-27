@@ -6,7 +6,7 @@
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
-	#ifdef __FB_64BIT__ '...'
+	#ifdef __FB_64BIT__
 		#libpath "./lib/win64"
 	#else
 		#libpath "./lib/win32"
@@ -153,6 +153,8 @@
 			.Designer = @This
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.MaximizeBox = False
+			.BorderStyle = FormBorderStyle.FixedDialog
 			.SetBounds 0, 0, 880, 720
 		End With
 		' GroupBox1
@@ -841,6 +843,7 @@
 			.Text = "Dark Mode"
 			.TabIndex = 61
 			.Caption = "Dark Mode"
+			.Checked = True
 			.SetBounds 10, 260, 80, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
@@ -3266,13 +3269,11 @@
 	
 	Dim Shared frmBass As frmBassType
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		#define _NOT_AUTORUN_FORMS_
-		
+	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True 
+		frmBass.MainForm = True 
 		frmBass.Show
-		
 		App.Run
-		
 	#endif
 '#End Region
 

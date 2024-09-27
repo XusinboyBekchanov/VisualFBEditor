@@ -1,8 +1,12 @@
-﻿'#Region "Form"
+﻿' MDINotepad MDIList.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDINotepad.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -65,7 +69,7 @@ Private Sub MDIListType.Form_Create(ByRef Sender As Control)
 	ListControl1.Clear
 	With MDIMain
 		If .lstMdiChild.Count < 1 Then Exit Sub
-		Dim i As Integer
+		Dim As Integer i
 		For i = 0 To .lstMdiChild.Count - 1
 			ListControl1.AddItem (Cast(MDIChildType Ptr, .lstMdiChild.Item(i))->Text)
 			If .actMdiChild = .lstMdiChild.Item(i) Then ListControl1.ItemIndex = i

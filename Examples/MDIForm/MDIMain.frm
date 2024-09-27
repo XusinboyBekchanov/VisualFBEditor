@@ -78,7 +78,7 @@
 			.Menu = @MainMenu1
 			.FormStyle = FormStyles.fsMDIForm
 			#ifdef __USE_GTK__
-				This.Icon.LoadFromFile(ExePath & "VisualFBEditor.ico")
+				This.Icon.LoadFromFile(ExePath & ".\Resources\VisualFBEditor.ico")
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
@@ -509,7 +509,7 @@
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
-			.Interval = 500
+			.Interval = 200
 			.SetBounds 90, 30, 16, 16
 			.Designer = @This
 			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
@@ -604,10 +604,11 @@ Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	Case "mnuWindowClose"
 		If actMdiChild Then Cast(MDIChildType Ptr, actMdiChild)->CloseForm
 	Case "mnuWindowCloseAll"
-		Do While actMdiChild
-			mnuWindow_Click(mnuWindowClose)
-			App.DoEvents()
-		Loop
+		Dim a As MDIChildType Ptr
+		For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
+			a = lstMdiChild.Item(i)
+			a->CloseForm
+		Next
 	Case "mnuWindowCascade"
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDICASCADE, 0, 0
@@ -828,7 +829,10 @@ Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		End If
 	Next
 	If b Then MDIChildMenuUpdate()
-	If lstMdiChild.Count > 0 Then Exit Sub
-	MDIChildActivate(NULL)
+	If lstMdiChild.Count > 0 Then
+		MDIChildActivate(actMdiChild)
+	Else
+		MDIChildActivate(NULL)
+	End If
 End Sub
 

@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿' MDINotepad frmFileSearch.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -16,39 +20,42 @@
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/StatusBar.bi"
 	#include once "mff/Label.bi"
+	#include once "mff/Splitter.bi"
 	
 	#include once "TimeMeter.bi"
-	#include once "FileAct.bi"
+	#include once "FileSearch.bi"
 	#include once "ITL3.bi"
 	#include once "Text.bi"
 	
 	Using My.Sys.Forms
 	
 	Type frmFileSearchType Extends Form
-		Dim timr As TimeMeter
-		Dim ffs As FilesFind
+		Dim ffs As FilesSearch
 		Dim it3 As ITL3
+		Dim tmrFind As TimeMeter
+		Dim tmrSearch As TimeMeter
+		Dim tmrOther As TimeMeter
 		
 		Declare Function zFile2ComboEx Overload (ByRef Sender As ComboBoxEx, Path As Const WString, File As Const WString) As Integer
 		Declare Function zFile2ComboEx Overload (ByRef Sender As ComboBoxEx, Path As Const WString) As Integer
-		Declare Static Sub zOnFindDone(Owner As Any Ptr, ByRef PathCount As Integer, ByRef FileCount As Integer, ByRef FileSize As LongInt)
+		Declare Sub zOnFindDone(Owner As Any Ptr)
 		
-		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub cmbexPath_DblClick(ByRef Sender As Control)
-		Declare Sub cmdSearch_Click(ByRef Sender As Control)
 		Declare Sub cmdFile_Click(ByRef Sender As Control)
-		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
-		Declare Sub txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
-		Declare Sub txtFile_Click(ByRef Sender As Control)
-		Declare Sub txtSearch_Change(ByRef Sender As TextBox)
-		Declare Sub txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-		Declare Sub txtFile_DblClick(ByRef Sender As Control)
+		Declare Sub cmdSearch_Click(ByRef Sender As Control)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Destroy(ByRef Sender As Control)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
+		Declare Sub txtFile_Click(ByRef Sender As Control)
+		Declare Sub txtFile_DblClick(ByRef Sender As Control)
+		Declare Sub txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+		Declare Sub txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
+		Declare Sub txtSearch_Change(ByRef Sender As TextBox)
 		Declare Constructor
 		
-		Dim As Panel Panel1, Panel3, Panel5, Panel2, Panel4
+		Dim As Panel Panel1, Panel3, Panel5, Panel4
 		Dim As CommandButton cmdSearch, cmdFileOpen, cmdFileFolder, cmdFileNotepad, cmdFileDelete
 		#ifdef __MDI__
 			Dim As CommandButton cmdFileNew, cmdFileInstAll, cmdFileInstSel, cmdFileInstrCur
@@ -61,6 +68,7 @@
 		Dim As ImageList ImageList1
 		Dim As TimerComponent TimerComponent1, TimerComponent2
 		Dim As OpenFileDialog OpenFileDialog1
+		Dim As Splitter Splitter1
 	End Type
 	
 	Constructor frmFileSearchType
@@ -70,7 +78,7 @@
 			.Text = "File Search"
 			.Designer = @This
 			#ifdef __USE_GTK__
-				This.Icon.LoadFromFile(ExePath & "FileSearch.ico")
+				This.Icon.LoadFromFile(ExePath & "\FileSearch.ico")
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
@@ -122,7 +130,8 @@
 			.ExtraMargins.Left = 10
 			.Style = ComboBoxEditStyle.cbDropDown
 			.ImagesList = @ImageList1
-			.SetBounds 110, 0, 244, 22
+			.ControlIndex = 1
+			.SetBounds 110, 0, 354, 22
 			.Designer = @This
 			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmbexPath_DblClick)
 			.Parent = @Panel1
@@ -135,49 +144,49 @@
 			.Align = DockStyle.alRight
 			.Style = ComboBoxEditStyle.cbDropDown
 			.ImagesList = @ImageList1
-			.SetBounds 364, 0, 130, 22
+			.ControlIndex = 2
+			.SetBounds 474, 0, 130, 22
 			.Designer = @This
 			.Parent = @Panel1
-		End With
-		' Panel2
-		With Panel2
-			.Name = "Panel2"
-			.Text = "Panel2"
-			.TabIndex = 4
-			.Align = DockStyle.alClient
-			.ExtraMargins.Top = 10
-			.ExtraMargins.Right = 10
-			.ExtraMargins.Left = 10
-			.SetBounds 0, 42, 504, 139
-			.Designer = @This
-			.Parent = @This
 		End With
 		' txtFile
 		With txtFile
 			.Name = "txtFile"
 			.Text = ""
 			.TabIndex = 6
-			.Align = DockStyle.alClient
+			.Align = DockStyle.alTop
 			.Multiline = True
-			.ID = 1003
 			.ScrollBars = ScrollBarsType.Both
 			.HideSelection = False
-			.ControlIndex = 0
+			.ControlIndex = 3
 			.AllowDrop = True
-			.SetBounds 0, 0, 604, 169
+			.MaxLength = -1
+			.ExtraMargins.Top = 10
+			.ExtraMargins.Right = 10
+			.ExtraMargins.Left = 10
+			.SetBounds 10, 42, 604, 166
 			.Designer = @This
 			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @txtFile_KeyUp)
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtFile_Click)
 			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @txtFile_DropFile)
 			.OnDblClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtFile_DblClick)
-			.Parent = @Panel2
+			.Parent = @This
+		End With
+		' Splitter1
+		With Splitter1
+			.Name = "Splitter1"
+			.Text = "Splitter1"
+			.Align = SplitterAlignmentConstants.alTop
+			.SetBounds 0, 32, 624, 3
+			.Designer = @This
+			.Parent = @This
 		End With
 		' Panel3
 		With Panel3
 			.Name = "Panel3"
 			.Text = "Panel3"
 			.TabIndex = 7
-			.Align = DockStyle.alBottom
+			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 10
 			.SetBounds 0, 221, 624, 220
 			.Designer = @This
@@ -214,7 +223,6 @@
 			.TabIndex = 8
 			.Align = DockStyle.alClient
 			.Multiline = True
-			.ID = 1002
 			.ScrollBars = ScrollBarsType.Both
 			.HideSelection = False
 			.ExtraMargins.Right = 10
@@ -222,8 +230,11 @@
 			.ExtraMargins.Bottom = 10
 			.ControlIndex = 1
 			.ExtraMargins.Top = 10
-			.SetBounds 10, 20, 500, 168
+			.MaxLength = -1
+			.SetBounds 10, 30, 494, 158
 			.Designer = @This
+			.OnKeyUp = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer), @txtFile_KeyUp)
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @txtFile_Click)
 			.Parent = @Panel4
 		End With
 		' Panel5
@@ -350,21 +361,21 @@
 		' FolderBrowserDialog1
 		With FolderBrowserDialog1
 			.Name = "FolderBrowserDialog1"
-			.SetBounds 70, 0, 16, 16
+			.SetBounds 40, 0, 16, 16
 			.Designer = @This
 			.Parent = @Panel1
 		End With
 		' ImageList1
 		With ImageList1
 			.Name = "ImageList1"
-			.SetBounds 100, 0, 16, 16
+			.SetBounds 60, 0, 16, 16
 			.Designer = @This
 			.Parent = @Panel1
 		End With
 		' TimerComponent1
 		With TimerComponent1
 			.Name = "TimerComponent1"
-			.Interval = 1000
+			.Interval = 999
 			.SetBounds 0, 0, 16, 16
 			.Designer = @This
 			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
@@ -374,7 +385,7 @@
 		With TimerComponent2
 			.Name = "TimerComponent2"
 			.Interval = 999
-			.SetBounds 20, 9, 16, 16
+			.SetBounds 0, 0, 16, 16
 			.Designer = @This
 			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @Panel4
@@ -392,9 +403,9 @@
 	Dim Shared frmFileSearch As frmFileSearchType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
 		frmFileSearch.MainForm = True
 		frmFileSearch.Show
-		
 		App.Run
 	#endif
 '#End Region
@@ -425,14 +436,14 @@ Private Function frmFileSearchType.zFile2ComboEx(ByRef Sender As ComboBoxEx, Pat
 	Return i
 End Function
 
-Private Sub frmFileSearchType.zOnFindDone(Owner As Any Ptr, ByRef PathCount As Integer, ByRef FileCount As Integer, ByRef FileSize As LongInt)
-	Dim a As frmFileSearchType Ptr = Cast(frmFileSearchType Ptr, Owner)
-	a->txtFile.Text = a->ffs.Files(vbCrLf)
-	a->it3.SetState(TBPF_NOPROGRESS)
-	a->TimerComponent1.Enabled = False
-	a->cmdSearch.Text = "Search"
+Private Sub frmFileSearchType.zOnFindDone(Owner As Any Ptr)
+	txtFile.Text = ffs.Files(vbCrLf)
+	it3.SetState(TBPF_NOPROGRESS)
+	TimerComponent1.Enabled = False
+	cmdSearch.Text = "Search"
 	
-	a->TimerComponent1_Timer(a->TimerComponent1)
+	TimerComponent1_Timer(TimerComponent1)
+	TimerComponent1_Timer(TimerComponent2)
 End Sub
 
 Private Sub frmFileSearchType.Form_Create(ByRef Sender As Control)
@@ -466,12 +477,12 @@ Private Sub frmFileSearchType.Form_Create(ByRef Sender As Control)
 	Dim aa() As WString Ptr
 	ReDim aa(cmbexPath.ItemCount - 1)
 	For i = 0 To cmbexPath.ItemCount - 1
-		WStr2Ptr(cmbexPath.Item(i), aa(i))
+		WLet(aa(i), cmbexPath.Item(i))
 	Next
 	Dim p As WString Ptr
 	JoinWStr(aa(), ";", p)
 	zFile2ComboEx(cmbexPath, *p)
-	zFile2ComboEx(cmbexPath, FullName2Path(App.FileName))
+	zFile2ComboEx(cmbexPath, ExePath)
 	cmbexPath.ItemIndex = cmbexPath.ItemCount - 1
 	
 	cmbexExt.Clear
@@ -482,6 +493,7 @@ Private Sub frmFileSearchType.Form_Create(ByRef Sender As Control)
 	Next
 	cmbexExt.ItemIndex = j
 	ArrayDeallocate(aa())
+	If p Then Deallocate(p)
 	StatusPanel1.Caption = Format(Now(), "yyyy/mm/dd hh:mm:ss")
 End Sub
 
@@ -489,50 +501,64 @@ Private Sub frmFileSearchType.TimerComponent1_Timer(ByRef Sender As TimerCompone
 	Dim st As String
 	Select Case Sender.Name
 	Case "TimerComponent1"
-		st = "File count " & Format(ffs.FileCount, "#,#0") & ", File size " & Number2Str(ffs.FileSize) & " (" & Format(ffs.FileSize, "#,#0") & "), Take (" & Format(timr.Passed, "#,#0.000") & " sec.) " & Sec2Time(timr.Passed, , , "#00.000")
+		st = "File count " & Format(ffs.FileCount + 1, "#,#0") & ", File size " & Bytes2Str(ffs.FileSize) & " (" & Format(ffs.FileSize, "#,#0") & ")"
+		StatusPanel1.Caption = st & ", Take (" & Format(tmrSearch.Passed, "#,#0.000") & " sec.) " & Sec2Time(tmrSearch.Passed, , , "#00.000")
 	Case "TimerComponent2"
+		tmrFind.Start
 		TimerComponent2.Enabled = False
+		If txtSearch.Text = "" Then Exit Sub
 		Dim srs As WString Ptr
-		Dim As Integer fc = FindLinesWStr(txtFile.Text, txtSearch.Text, srs)
-		If fc Then
-			txtSelect.Text = *srs
-			st = "[" & txtSearch.Text & "] Found: " & fc
-		Else
+		Dim As Integer fc = FindLinesWStr(txtFile.Text, txtSearch.Text, srs, False)
+		If fc < 0 Then
 			txtSelect.Text = ""
 			st = "[" & txtSearch.Text & "] Not found."
+		Else
+			txtSelect.Text = *srs
+			st = "[" & txtSearch.Text & "] Found: " & fc + 1 & " of " & txtFile.LinesCount
 		End If
+		Deallocate(srs)
+		StatusPanel1.Caption = st & ", Take (" & Format(tmrFind.Passed, "#,#0.000") & " sec.) " & Sec2Time(tmrFind.Passed, , , "#00.000")
 	End Select
-	StatusPanel1.Caption = st
 End Sub
 
 Private Sub frmFileSearchType.cmdSearch_Click(ByRef Sender As Control)
 	Select Case Sender.Text
 	Case "Search"
-		timr.Start
-		ffs.OnFindDone = Cast(Any Ptr, @zOnFindDone)
+		tmrSearch.Start
 		it3.SetState(TBPF_INDETERMINATE)
 		Dim a As WString Ptr
-		ReplaceWStr(cmbexExt.Text, ".", "*.", a)
+		'ReplaceWStr(cmbexExt.Text, a, ".", "*.")
+		
+		WLet(a, .Replace(cmbexExt.Text, ".", "*."))
 		TimerComponent1.Enabled = True
+		ffs.OnFindDone = Cast(Sub(Owner As Any Ptr), @zOnFindDone)
 		ffs.FindFile(@This, cmbexPath.Text, *a, True)
 		If a Then Deallocate(a)
 		Sender.Text = "Cancel"
 	Case "Cancel"
 		ffs.Cancel = True
-		Sender.Text = "Search"
 	End Select
 End Sub
 
 Private Sub frmFileSearchType.cmbexPath_DblClick(ByRef Sender As Control)
+	Dim p As WString Ptr
+	Dim i As Integer
+	
 	If FolderBrowserDialog1.Execute Then
-		Dim i As Integer = zFile2ComboEx(cmbexPath, FolderBrowserDialog1.Directory)
+		WLet(p, FolderBrowserDialog1.Directory)
+		If ..Mid(*p, Len(*p), 1) = WStr("\") Then
+			i = zFile2ComboEx(cmbexPath, ..Left(*p, Len(*p) - 1))
+		Else
+			i = zFile2ComboEx(cmbexPath, *p)
+		End If
 		cmbexPath.ItemIndex = i
+		Deallocate(p)
 	End If
 End Sub
 
 Private Sub frmFileSearchType.cmdFile_Click(ByRef Sender As Control)
 	
-	timr.Start
+	tmrOther.Start
 	Dim As Integer sx, sy, ex, ey
 	txtSelect.GetSel(sy, sx, ey, ex)
 	
@@ -587,7 +613,7 @@ Private Sub frmFileSearchType.cmdFile_Click(ByRef Sender As Control)
 			End If
 		#endif
 	End Select
-	StatusPanel1.Caption = st
+	StatusPanel1.Caption = st  & ", Take (" & Format(tmrOther.Passed, "#,#0.000") & " sec.) " & Sec2Time(tmrOther.Passed, , , "#00.000")
 End Sub
 
 Private Sub frmFileSearchType.txtFile_KeyUp(ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -595,8 +621,9 @@ Private Sub frmFileSearchType.txtFile_KeyUp(ByRef Sender As Control, Key As Inte
 	Dim As Integer s, e
 	Dim As String st
 	
-	txtFile.GetSel(sy, sx, ey, ex)
-	txtFile.GetSel(s, e)
+	Dim txtbox As TextBox Ptr = Cast(TextBox Ptr, VarPtr(Sender))
+	txtbox->GetSel(sy, sx, ey, ex)
+	txtbox->GetSel(s, e)
 	
 	If s <> e Then
 		Dim i As Integer
@@ -605,16 +632,16 @@ Private Sub frmFileSearchType.txtFile_KeyUp(ByRef Sender As Control, Key As Inte
 		Dim j As Integer = ey - sy
 		ReDim a(j)
 		For i = sy To ey
-			WStr2Ptr(txtFile.Lines(i), a(i - sy))
+			WLet(a(i - sy), txtbox->Lines(i))
 		Next
 		JoinWStr(a(), vbCrLf, c)
-		txtSelect.Text = *c
+		If txtbox->Name = "txtFile" Then txtSelect.Text = *c
 		ArrayDeallocate(a())
 		If c Then Deallocate(c)
-		st = "Lines: " & ey - sy
+		st = "Selected lines: " & ey - sy + 1 & " of " & txtbox->LinesCount
 	Else
-		txtSelect.Text = txtFile.Lines(sy)
-		st = "File: " & txtFile.Lines(sy)
+		If txtbox->Name = "txtFile" Then txtSelect.Text = txtbox->Lines(sy)
+		st = "Selected file: " & txtbox->Lines(sy) & ", " & sy + 1 & " of " & txtbox->LinesCount
 	End If
 	StatusPanel1.Caption = st
 End Sub
@@ -631,7 +658,10 @@ End Sub
 
 Private Sub frmFileSearchType.txtFile_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 	Dim As Integer fe= -1, nl = -1, cp = -1
-	txtFile.Text = TextFromFile(Filename, fe, nl, cp)
+	Dim p As WString Ptr
+	TextFromFile(Filename, p, fe, nl, cp)
+	txtFile.Text = *p
+	If p Then Deallocate(p)
 	StatusPanel1.Caption = Filename & ", Encode: " & fe & ", EOL: " & nl & ", CP: " & cp
 End Sub
 
@@ -648,4 +678,7 @@ End Sub
 Private Sub frmFileSearchType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	txtFile.Text = ""
 	txtSelect.Text = ""
+	If ffs.mDone Or ffs.mThread = NULL Then Exit Sub
+	ffs.Cancel = True
+	Action = False
 End Sub

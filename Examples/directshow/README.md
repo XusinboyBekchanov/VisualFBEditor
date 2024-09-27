@@ -1,6 +1,9 @@
 # directshow
 
 directshow example for VisualFBEditor
+
+## <a href="https://github.com/XusinboyBekchanov/VisualFBEditor/tree/master/Examples/MediaPlayer">MediaPlayer</a>
+
 ## amcap
 
 IBasicVideo::GetCurrentImage

@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' ITL3 ITaskbarList3
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 Type ITL3

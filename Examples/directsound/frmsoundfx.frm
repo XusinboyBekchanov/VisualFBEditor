@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿'soundfx声音效果器
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -307,13 +311,13 @@ End Sub
 
 Private Sub Form1Type.Form_Create(ByRef Sender As Control)
 	'Initialize COM
-	CoInitialize(NULL)
+	'CoInitialize(NULL)
 End Sub
 
 Private Sub Form1Type.Form_Destroy(ByRef Sender As Control)
 	'Uninitialize COM
 	MusicStop()
-	CoUninitialize()
+	'CoUninitialize()
 End Sub
 
 Private Sub Form1Type.TrackBar_Change(ByRef Sender As TrackBar, Position As Integer)

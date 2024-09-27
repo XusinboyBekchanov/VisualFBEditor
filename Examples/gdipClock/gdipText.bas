@@ -22,6 +22,7 @@ Private Sub gdipText.Initial(ByVal pWidth As Single = 400, ByVal pHeight As Sing
 	mFontStyle = FontStyleRegular
 	mFontSize = 24
 	mStringAlignment = StringAlignmentNear
+	mStringTrimming = StringTrimmingNone
 	mFillMode = FillModeAlternate
 	mBordyGradientMode = LinearGradientModeHorizontal
 	mBordyWrapMode = WrapModeTile
@@ -100,26 +101,27 @@ Private Sub gdipText.MeasureString(ByRef pText As WString)
 	sTmpBitmap.Initial(mWidth, mHeight)
 	
 	If mStringFormat = NULL Then FontCreate()
-	Dim sBoundingBox As RectF
-	With sBoundingBox
-		.X = 0
-		.Y = 0
-		.Width = 0
-		.Height = 0
-	End With
-	
-	Dim sTextDRectF As GpRectF
-	With sTextDRectF
+
+	Dim layoutRect As RectF
+	With layoutRect 
 		.X = 0
 		.Y = 0
 		.Width = mWidth
 		.Height = mHeight
 	End With
-	Dim As INT_ sWidth, sHeight
+	Dim As INT_ codepointsFitted, linesFilled
+
+	Dim boundingBox As RectF
+	With boundingBox
+		.X = 0
+		.Y = 0
+		.Width = 0
+		.Height = 0
+	End With
 	'GetTextExtentPoint32
-	GdipMeasureString(sTmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @sTextDRectF, mStringFormat, @sBoundingBox, @sWidth, @sHeight)
-	mTextWidth = sBoundingBox.Width - sBoundingBox.X
-	mTextHeight = sBoundingBox.Height - sBoundingBox.Y
+	GdipMeasureString(sTmpBitmap.Graphics, @pText, Len(pText), mFontHandle, @layoutRect, mStringFormat, @boundingBox, @codepointsFitted, @linesFilled)
+	mTextWidth = boundingBox.Width - boundingBox.X
+	mTextHeight = boundingBox.Height - boundingBox.Y
 End Sub
 
 Private Sub gdipText.SetFont(pFontName As WString, pFontSize As REAL, pFontStyle As FontStyle)

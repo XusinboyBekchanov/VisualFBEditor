@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' Download 下载
-' Copyright (c) 2022 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "win/wininet.bi"
@@ -28,6 +28,7 @@ Private:
 	mThread As Any Ptr = NULL
 	mUrl As WString Ptr = NULL
 	mFileName As WString Ptr = NULL
+	mLocalPath As WString Ptr = NULL
 	
 	mDone As Boolean = False
 	TiMtr As TimeMeter
@@ -75,7 +76,7 @@ Public:
 	Declare Property Done() As Integer
 	Declare Property Done(ByVal nVal As Integer)
 	Declare Property ElapsedTime() As Double
-	Declare Sub DownloadUrl(ByVal Owner As Any Ptr, ByRef Url As Const WString, ByRef FileName As Const WString)
+	Declare Sub DownloadUrl(ByVal Owner As Any Ptr, Url As WString, LocalPath As WString, FileName As WString)
 End Type
 
 #ifndef __USE_MAKE__

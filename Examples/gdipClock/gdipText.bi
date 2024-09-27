@@ -12,6 +12,7 @@ Type gdipText
 
 	mStringFormat As GpStringFormat Ptr
 	mStringAlignment As StringAlignment
+	mStringTrimming As StringTrimming
 	mFontFamily As GpFontFamily Ptr
 	mFontHandle As GpFont Ptr
 	mUnitPixel As Unit = UnitPixel

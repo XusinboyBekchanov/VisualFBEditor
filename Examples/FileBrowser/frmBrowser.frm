@@ -24,17 +24,16 @@
 	Using My.Sys.Forms
 	
 	Type frmBrowserType Extends Form
-		mRootNode As TreeNode Ptr
-		mSelectPath As WString Ptr
 		mClosing As Boolean
 		mListing As Boolean
+		mRootNode As TreeNode Ptr
+		mSelectPath As WString Ptr
 		
-		Declare Function Path2ComboEx Overload (ByRef Sender As ComboBoxEx, Path As Const WString) As Integer
-		
-		Declare Function RootInit() As PTreeNode
-		Declare Sub RootList()
 		Declare Function FindNode(Path As WString) As TreeNode Ptr
+		Declare Function Path2ComboEx(ByRef Sender As ComboBoxEx, Path As Const WString) As Integer
+		Declare Function RootInit() As PTreeNode
 		Declare Sub FileList(ByRef Item As TreeNode, ByVal LV As Boolean = True)
+		Declare Sub RootList()
 		
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Sub Form_Show(ByRef Sender As Form)
@@ -62,7 +61,7 @@
 		Dim As TreeView TreeView1
 		Dim As ListView ListView1
 		Dim As PopupMenu PopupMenu1
-		Dim As MenuItem MenuItem1, MenuItem2, MenuItem3, MenuItem4, MenuItem5, MenuItem6, MenuOpen, MenuBrowser, MenuItem9, MenuNotepad
+		Dim As MenuItem MenuItem1, MenuItem2, MenuItem3, MenuItem4, MenuItem5, MenuItem6, MenuOpen, MenuBrowser, MenuItem9, MenuNotepad, MenuItem7, MenuItem8
 		Dim As StatusBar StatusBar1
 		Dim As StatusPanel StatusPanel1
 		Dim As Splitter Splitter1
@@ -143,6 +142,7 @@
 			.ExtraMargins.Bottom = 5
 			.Images = @ImageList1
 			.SelectedImages = @ImageList1
+			.ContextMenu = @PopupMenu1
 			.SetBounds 5, 35, 200, 599
 			.Designer = @This
 			'.OnNodeClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode), @TreeView1_NodeClick)
@@ -265,7 +265,7 @@
 		With MenuItem3
 			.Name = "MenuItem3"
 			.Designer = @This
-			.Caption = "Small Icon"
+			.Caption = ML("Small Icon")
 			.Tag = @"2"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
 			.Parent = @PopupMenu1
@@ -295,6 +295,22 @@
 			.Caption = ML("Max")
 			.Tag = @"5"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
+			.Parent = @PopupMenu1
+		End With
+		' MenuItem7
+		With MenuItem7
+			.Name = "MenuItem7"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @PopupMenu1
+		End With
+		' MenuItem8
+		With MenuItem8
+			.Name = "MenuItem8"
+			.Designer = @This
+			.Caption = ML("Dark mode")
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @MenuView_Click)
+			.Checked = true
 			.Parent = @PopupMenu1
 		End With
 		' ImageList1
@@ -442,7 +458,7 @@ End Function
 
 Private Sub frmBrowserType.RootList()
 	'Debug.Print "RootList"
-	'desktop,document,video,music
+	'desktop,documents,pictures,videos,music
 	Dim pFileInfo As SHFILEINFO
 	Dim pIIDL As ITEMIDLIST Ptr
 	Dim pPath As WString * MAX_PATH
@@ -556,15 +572,15 @@ Private Sub frmBrowserType.FileList(ByRef Item As TreeNode, ByVal LV As Boolean 
 				If LV Then
 					ListView1.ListItems.Add(pWFD.cFileName, pFileInfo.iIcon)
 					i = ListView1.ListItems.Count - 1
-					ListView1.ListItems.Item(i)->Text(1) = Format(WFD2Size(@pWFD), "#,#")
-					ListView1.ListItems.Item(i)->Text(2) = WFD2TimeStr(pWFD.ftLastWriteTime)
-					ListView1.ListItems.Item(i)->Text(3) = WFD2TimeStr(pWFD.ftCreationTime)
-					ListView1.ListItems.Item(i)->Text(4) = WFD2TimeStr(pWFD.ftLastAccessTime)
+					ListView1.ListItems.Item(i)->Text(1) = Format(WFD2Bytes(@pWFD), "#,#")
+					ListView1.ListItems.Item(i)->Text(2) = WFD2TimeStr(@pWFD.ftLastWriteTime)
+					ListView1.ListItems.Item(i)->Text(3) = WFD2TimeStr(@pWFD.ftCreationTime)
+					ListView1.ListItems.Item(i)->Text(4) = WFD2TimeStr(@pWFD.ftLastAccessTime)
 					If pWFD.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY Then
 						ListView1.ListItems.Item(i)->Text(1) = "<Dir>"
 						pPCount += 1
 					Else
-						ListView1.ListItems.Item(i)->Text(1) = Format(WFD2Size(@pWFD), "#,#")
+						ListView1.ListItems.Item(i)->Text(1) = Format(WFD2Bytes(@pWFD), "#,#")
 						pFCount += 1
 					End If
 				End If
@@ -625,6 +641,12 @@ End Sub
 
 Private Sub frmBrowserType.MenuView_Click(ByRef Sender As MenuItem)
 	'Debug.Print "MenuView_Click"
+	Select Case Sender.Name
+	Case "MenuItem8"
+		Sender.Checked = Not Sender.Checked
+		App.DarkMode= Sender.Checked
+		InvalidateRect(0, 0, True) 
+	Case Else
 	MenuItem1.Checked = False
 	MenuItem1.Checked = False
 	MenuItem2.Checked = False
@@ -634,6 +656,7 @@ Private Sub frmBrowserType.MenuView_Click(ByRef Sender As MenuItem)
 	MenuItem6.Checked = False
 	Sender.Checked = True
 	ListView1.View = Cast(ViewStyle, CLng(*Cast(WString Ptr, Sender.Tag)))
+	End Select
 End Sub
 
 Private Sub frmBrowserType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
@@ -659,7 +682,7 @@ Private Sub frmBrowserType.ListView1_ItemClick(ByRef Sender As ListView, ByVal I
 	If ItemIndex < 0 Then
 		StatusPanel1.Caption = j + 1 & " " & ML("items") & ", " & c & " " & ML("selected None.")
 	Else
-		StatusPanel1.Caption = j + 1 & " " & ML("items") & ", " & c & ", " & ML("selected:") & *mSelectPath & " \ " & ListView1.ListItems.Item(ItemIndex)->Text(0)
+		StatusPanel1.Caption = j + 1 & " " & ML("items") & ", " & c & " " & IIf(c > 1, ML("items"), ML("item")) & ", " & ML("selected:") & " " & *mSelectPath & "\" & ListView1.ListItems.Item(ItemIndex)->Text(0)
 	End If
 End Sub
 

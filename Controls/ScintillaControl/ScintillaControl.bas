@@ -84,78 +84,48 @@ Private Sub ScintillaControl.ProcessMessage(ByRef msg As Message)
 	Base.ProcessMessage(msg)
 End Sub
 
-Private Property ScintillaControl.TabIndex As Integer
-	Return FTabIndex
-End Property
-
-Private Property ScintillaControl.TabIndex(Value As Integer)
-	ChangeTabIndex Value
-End Property
-
-Private Property ScintillaControl.TabStop As Boolean
-	Return FTabStop
-End Property
-
-Private Property ScintillaControl.TabStop(Value As Boolean)
-	ChangeTabStop Value
-End Property
-
 Namespace My.Sys.Forms
 
-Private Function TextFromAnsi(ByRef AnsiStr As Const String, ByVal nCodePage As Integer = -1) ByRef As WString
-	Static UnicodeStr As WString Ptr
+Private Function TextFromAnsi(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1) As Long
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-	
 	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
 	If UnicodeStr Then Deallocate(UnicodeStr)
 	UnicodeStr = CAllocate(nLength * 2 + 2)
-	
-	MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
-	Return *UnicodeStr
+	Return MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
 End Function
 
-Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByVal nCodePage As Integer = -1) ByRef As String
+Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByRef AnsiStr As ZString Ptr, ByVal nCodePage As Integer = -1) As Long
 	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-	
-	Static ansiStr As String
 	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
-	ansiStr = String(nLength+1, 0)
-	Dim DataSize As LongInt = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, StrPtr(ansiStr), nLength, NULL, NULL)
-	Return ansiStr
+	If AnsiStr Then Deallocate(AnsiStr)
+	AnsiStr = CAllocate(nLength * 2 + 2)
+	Return WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, AnsiStr, nLength, NULL, NULL)
 End Function
 
-Private Function TextFromUtf8(ByRef pZString As Const ZString) ByRef As WString
-	Static As WString Ptr buffer
-	Dim m_BufferLen As Integer = Len(pZString) + 1
-	If buffer Then Deallocate(buffer)
-	buffer = CAllocate(m_BufferLen * 2)
-	Return *UTFToWChar(1, StrPtr(pZString), buffer, @m_BufferLen)
+Private Function TextFromUtf8(ByRef pZString As Const ZString, ByRef pText As WString Ptr) As Integer
+	Return TextFromAnsi(pZString, pText, 65001)
 End Function
 
-Private Function TextToUtf8(ByRef nWString As Const WString) ByRef As String
-	Static As String ansiStr
-	Dim As Integer m_BufferLen = Len(nWString)
-	Dim i1 As ULong = m_BufferLen * 5 + 1
-	ansiStr = String(i1, 0)
-	'Return *Cast(String Ptr, WCharToUTF(1, StrPtr(nWString), m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1)))
-	WCharToUTF(1, StrPtr(nWString), m_BufferLen, StrPtr(ansiStr), Cast(Integer Ptr, @i1))
-	Return ansiStr
+Private Function TextToUtf8(ByRef nWString As Const WString, ByRef pUtf8 As ZString Ptr) As Integer
+	Return TextToAnsi(nWString, pUtf8, 65001)
 End Function
 
-Private Function TextFromSciData(ByRef TxtData As Const ZString, ByVal CodePage As Integer = 0) ByRef As WString
+Function TextFromSciData(ByRef txtData As Const ZString, ByRef pText As WString Ptr, ByVal CodePage As Integer = 0) As Integer
 	If CodePage = 65001 Then
-		Return TextFromUtf8(TxtData)
+		TextFromUtf8(txtData, pText)
 	Else
-		Return TextFromAnsi(TxtData)
+		TextFromAnsi(txtData, pText)
 	End If
+	Return 0
 End Function
 
-Private Function TextToSciData(ByRef txtWStr As Const WString, ByVal CodePage As Integer = 0) ByRef As String
+Function TextToSciData(ByRef txtWStr As Const WString, ByRef SciData As ZString Ptr, ByVal CodePage As Integer = 0) As Integer
 	If CodePage = 65001 Then
-		Return TextToUtf8(txtWStr)
+		TextToUtf8(txtWStr, SciData)
 	Else
-		Return TextToAnsi(txtWStr)
+		TextToAnsi(txtWStr, SciData)
 	End If
+	Return 0
 End Function
 
 End Namespace
@@ -222,12 +192,10 @@ Private Sub ScintillaControl.CreateWnd()
 	
 	'set margin 0 as linenumber
 	SendMessage(FHandle, SCI_SETMARGINTYPEN, 0, SC_MARGIN_NUMBER)
-	'SendMessage(FHandle, SCI_SETMARGINMASKN, 0, STYLE_LINENUMBER)
 	MarginWidth(0) = 35
 	
 	'set margin 1 as fold
 	SendMessage(FHandle, SCI_SETMARGINTYPEN, 1, SC_MARGIN_SYMBOL)
-	'SendMessage(FHandle, SCI_SETMARGINMASKN, 1, SC_MASK_FOLDERS)
 	MarginWidth(1) = 0
 	
 	'set when text is pasted any line ends are converted to match the document's end of line mode
@@ -244,12 +212,12 @@ Private Sub ScintillaControl.CreateWnd()
 	SendMessage(FHandle, SCI_INDICSETOUTLINEALPHA, 0, &hff)
 	
 	'set select style
-	SendMessage(Handle, SCI_HIDESELECTION, False, 0)
-	SendMessage(Handle, SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT, 0)
-	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
-	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
-	SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
+	SendMessage(FHandle, SCI_HIDESELECTION, False, 0)
+	SendMessage(FHandle, SCI_SETSELECTIONLAYER, SC_LAYER_UNDER_TEXT, 0)
+	SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_BACK, RGBA(&hff, &h40, &h40, &hff))
+	SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_TEXT, RGBA(&hff, &hff, &hff, &hff))
+	SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_SELECTION_INACTIVE_BACK, RGBA(&h40, &h40, &hff, &hff))
 	
 	'set white space
 	'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h80, &h80, &h80, &h80))
@@ -399,11 +367,11 @@ Private Function ScintillaControl.Find(ByRef toFind As Const ZString Ptr, ByVal 
 End Function
 
 Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr, ByRef ReplaceData As Const ZString Ptr, ByVal RegularExp As Boolean = False, ByVal MatchCase As Boolean = False) As Integer
-	SendMessage(Handle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
+	SendMessage(FHandle, SCI_TARGETWHOLEDOCUMENT, 0, 0)
 	
 	Dim mc As Integer = IIf(MatchCase, SCFIND_MATCHCASE, SCFIND_NONE)
 	mc = IIf(RegularExp, mc Or SCFIND_REGEXP Or SCFIND_POSIX Or SCFIND_CXX11REGEX, mc )
-	SendMessage(Handle, SCI_SETSEARCHFLAGS, mc, 0)
+	SendMessage(FHandle, SCI_SETSEARCHFLAGS, mc, 0)
 	
 	Dim targetstart As Integer = 0
 	Dim targetend As Integer = Length
@@ -412,11 +380,11 @@ Private Function ScintillaControl.ReplaceAll(ByRef FindData As Const ZString Ptr
 	Dim replacecount As Integer = -1
 	Dim findpos As Integer
 	Do
-		SendMessage(Handle, SCI_SETTARGETSTART, targetstart, 0)
-		SendMessage(Handle, SCI_SETTARGETEND, targetend, 0)
-		findpos = SendMessage(Handle, SCI_SEARCHINTARGET, lenSearch, Cast(LPARAM, FindData))
+		SendMessage(FHandle, SCI_SETTARGETSTART, targetstart, 0)
+		SendMessage(FHandle, SCI_SETTARGETEND, targetend, 0)
+		findpos = SendMessage(FHandle, SCI_SEARCHINTARGET, lenSearch, Cast(LPARAM, FindData))
 		If findpos < 0 Then Exit Do
-		SendMessage(Handle, SCI_REPLACETARGET, lenReplace, Cast(LPARAM, ReplaceData))
+		SendMessage(FHandle, SCI_REPLACETARGET, lenReplace, Cast(LPARAM, ReplaceData))
 		replacecount += 1
 		targetstart = findpos + lenReplace
 		targetend = Length
@@ -444,11 +412,11 @@ Private Sub ScintillaControl.IndicatorSet(IndiPoses(Any) As Integer, ByVal IndiL
 	Next
 End Sub
 
-Private Property ScintillaControl.WordWrap As Integer
+Private Property ScintillaControl.WordWraps As Integer
 	Return SendMessage(FHandle, SCI_GETWRAPMODE, 0, 0)
 End Property
 
-Private Property ScintillaControl.WordWrap(val As Integer)
+Private Property ScintillaControl.WordWraps(val As Integer)
 	SendMessage(FHandle, SCI_SETWRAPMODE, val, 0)
 End Property
 
@@ -501,37 +469,25 @@ End Property
 
 Private Property ScintillaControl.FontSize(ByVal sty As Integer, ByVal val As Integer)
 	SendMessage(FHandle, SCI_STYLESETSIZE, sty, val)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.FontName(ByVal sty As Integer) ByRef As WString
-	Static w As WString Ptr
-	If w Then Deallocate(w)
-	
 	Dim iSize As Integer = SendMessage(FHandle, SCI_STYLEGETFONT, sty, 0)
-	w = CAllocate(iSize * 2)
 	Dim a As ZString Ptr
 	a = CAllocate(iSize)
 	SendMessage(FHandle, SCI_STYLEGETFONT, sty, Cast(LPARAM, a))
 	
-	*w = TextFromAnsi(*a)
-	
-	'TextAnsi2Unicode(*a, w)
+	Dim w As UString
+	TextFromAnsi(*a, w)
 	If a Then Deallocate(a)
-	
-	Return *w
+	Return *Cast(WString Ptr,w.vptr)
 End Property
 
 Private Property ScintillaControl.FontName(ByVal sty As Integer, ByRef val As Const WString)
 	Dim a As ZString Ptr
-	Dim iSize As Integer = Len(val)
-	a = CAllocate(iSize)
 	
-	'*a = TextUnicode2Ansi(val)
-	*a = TextToAnsi(val)
-	
+	TextToAnsi(val, a)
 	SendMessage(FHandle, SCI_STYLESETFONT, sty, Cast(LPARAM, a))
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 	
 	If a Then Deallocate(a)
 End Property
@@ -542,7 +498,6 @@ End Property
 
 Private Property ScintillaControl.Bold(ByVal sty As Integer, ByVal val As Integer)
 	SendMessage(FHandle, SCI_STYLESETBOLD, sty, val)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.Italic(ByVal sty As Integer) As Integer
@@ -551,7 +506,6 @@ End Property
 
 Private Property ScintillaControl.Italic(ByVal sty As Integer, ByVal val As Integer)
 	SendMessage(FHandle, SCI_STYLESETITALIC, sty, val)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.Underline(ByVal sty As Integer) As Integer
@@ -560,7 +514,6 @@ End Property
 
 Private Property ScintillaControl.Underline(ByVal sty As Integer, ByVal val As Integer)
 	SendMessage(FHandle, SCI_STYLESETUNDERLINE, sty, val)
-	'SendMessage(FHandle, SCI_STYLECLEARALL, 0, 0)
 End Property
 
 Private Property ScintillaControl.Zoom As Integer
@@ -635,50 +588,49 @@ Private Property ScintillaControl.LineLength(ByVal LineNo As Integer) As Integer
 	Return SendMessage(FHandle, SCI_LINELENGTH, LineNo, 0)
 End Property
 
+Private Property ScintillaControl.Length As Integer
+	Return SendMessage(FHandle, SCI_GETLENGTH, 0, 0)
+End Property
+
 Private Property ScintillaControl.LineText(ByVal LineNo As Integer) ByRef As WString
 	Dim s As Integer = LineLength(LineNo)
 	Dim p As ZString Ptr = CAllocate(s + 1)
 	SendMessage(FHandle, SCI_GETLINE, LineNo, Cast(LPARAM, p))
-	Return TextFromSciData(*p)
-End Property
-
-Private Property ScintillaControl.LineData(ByVal LineNo As Integer) ByRef As Any Ptr
-	Dim s As Integer = LineLength(LineNo)
-	Static p As Any Ptr
-	If p Then Deallocate(p)
-	p = CAllocate(s + 1)
-	SendMessage(FHandle, SCI_GETLINE, LineNo, Cast(LPARAM, p))
-	Return p
-End Property
-
-Private Property ScintillaControl.Length As Integer
-	Return SendMessage(FHandle, SCI_GETLENGTH, 0, 0)
+	Static t As WString Ptr
+	TextFromSciData(*p, t)
+	Return *t
 End Property
 
 Private Property ScintillaControl.Text ByRef As WString
 	Dim s As Integer = Length
 	Dim p As ZString Ptr = CAllocate(s + 1)
 	SendMessage(FHandle, SCI_GETTEXT, s, Cast(LPARAM, p))
-	Return TextFromSciData(*p)
+	Static w As WString Ptr
+	TextFromSciData(*p, w)
+	Return *w
 End Property
 
 Private Property ScintillaControl.Text(ByRef tData As Const WString)
 	Dim p As ZString Ptr
-	p = StrPtr(TextToSciData(tData))
+	TextToSciData(tData, p)
 	SendMessage(FHandle, SCI_SETTEXT, Len(*p), Cast(LPARAM, p))
+	If p Then Deallocate(p)
 End Property
 
 Private Property ScintillaControl.SelText ByRef As WString
 	Dim s As Integer = SelLength
 	Dim p As ZString Ptr = CAllocate(s + 1)
 	SendMessage(FHandle, SCI_GETSELTEXT, s, Cast(LPARAM, p))
-	Return TextFromSciData(*p)
+	Static t As WString Ptr
+	TextFromSciData(*p, t)
+	Return *t
 End Property
 
 Private Property ScintillaControl.SelText(ByRef tData As Const WString)
 	Dim p As ZString Ptr
-	p = StrPtr(TextToSciData(tData))
+	TextToSciData(tData, p)
 	SendMessage(FHandle, SCI_REPLACESEL, Len(*p), Cast(LPARAM, p))
+	If p Then Deallocate(p)
 End Property
 
 Private Property ScintillaControl.TxtData(tSize As Integer) ByRef As Any Ptr
@@ -705,6 +657,15 @@ Private Property ScintillaControl.SelTxtData(tData As Any Ptr)
 	SendMessage(FHandle, SCI_REPLACESEL, 0, Cast(LPARAM, tData))
 End Property
 
+Private Property ScintillaControl.LineData(ByVal LineNo As Integer) ByRef As Any Ptr
+	Dim s As Integer = LineLength(LineNo)
+	Static p As Any Ptr
+	If p Then Deallocate(p)
+	p = CAllocate(s + 1)
+	SendMessage(FHandle, SCI_GETLINE, LineNo, Cast(LPARAM, p))
+	Return p
+End Property
+
 Private Property ScintillaControl.DarkMode As Boolean
 	Return mDarkMode
 End Property
@@ -713,8 +674,8 @@ Private Property ScintillaControl.DarkMode (ByVal bVal As Boolean)
 	mDarkMode = bVal
 	If bVal Then
 		'set white space
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
-		'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, RGBA(&h40, &h40, &h40, &h40))
+		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
+		'SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, RGBA(&h40, &h40, &h40, &h40))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(&ha0, &ha0, &ha0)
 		BackColor(STYLE_DEFAULT) = RGB(0, 0, 0)
@@ -726,8 +687,7 @@ Private Property ScintillaControl.DarkMode (ByVal bVal As Boolean)
 		BackColor(STYLE_LINENUMBER) = RGB(&h20, &h20, &h20)
 	Else
 		'set white space
-		SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
-		'SendMessage(Handle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE_BACK, RGBA(&h40, &h40, &h40, &h40))
+		SendMessage(FHandle, SCI_SETELEMENTCOLOUR, SC_ELEMENT_WHITE_SPACE, RGBA(&h40, &h40, &h40, &hff))
 		
 		ForeColor(STYLE_DEFAULT) = RGB(0, 0, 0)
 		BackColor(STYLE_DEFAULT) = RGB(255, 255, 255)
@@ -770,22 +730,18 @@ End Property
 
 Private Property ScintillaControl.ViewLineNo As Integer
 	Return MarginWidth(0)
-	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 0, 0)
 End Property
 
 Private Property ScintillaControl.ViewLineNo(ByVal iSize As Integer)
 	MarginWidth(0) = iSize
-	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 0, iSize)
 End Property
 
 Private Property ScintillaControl.ViewFold As Integer
 	Return MarginWidth(1)
-	'Return SendMessage(Handle, SCI_GETMARGINWIDTHN, 2, 0)
 End Property
 
 Private Property ScintillaControl.ViewFold(ByVal iSize As Integer)
 	MarginWidth(1) = iSize
-	'SendMessage(Handle, SCI_SETMARGINWIDTHN, 2, iSize)
 End Property
 
 Private Property ScintillaControl.MarginWidth(margin As Integer) As Integer
@@ -888,35 +844,49 @@ Private Property ScintillaControl.PosY(ByVal val As Integer)
 End Property
 
 Private Property ScintillaControl.UseTabs As Boolean
-	Return SendMessage(Handle, SCI_GETUSETABS, 0, 0)
+	Return SendMessage(FHandle, SCI_GETUSETABS, 0, 0)
 End Property
 
 Private Property ScintillaControl.UseTabs (uTabs As Boolean)
-	SendMessage(Handle, SCI_SETUSETABS, uTabs, 0)
+	SendMessage(FHandle, SCI_SETUSETABS, uTabs, 0)
 End Property
 
 Private Property ScintillaControl.TabWidth As Integer
-	Return SendMessage(Handle, SCI_GETTABWIDTH, Pos, 0)
+	Return SendMessage(FHandle, SCI_GETTABWIDTH, Pos, 0)
 End Property
 
 Private Property ScintillaControl.TabWidth (tWidth As Integer)
-	SendMessage(Handle, SCI_SETTABWIDTH, tWidth, 0)
+	SendMessage(FHandle, SCI_SETTABWIDTH, tWidth, 0)
 End Property
 
 Private Property ScintillaControl.IndentSize As Integer
-	Return SendMessage(Handle, SCI_GETINDENT, 0, 0)
+	Return SendMessage(FHandle, SCI_GETINDENT, 0, 0)
 End Property
 
 Private Property ScintillaControl.IndentSize (iSize As Integer)
-	SendMessage(Handle, SCI_SETINDENT, iSize, 0)
+	SendMessage(FHandle, SCI_SETINDENT, iSize, 0)
 End Property
 
 Private Property ScintillaControl.TabIndents As Boolean
-	Return SendMessage(Handle, SCI_GETTABINDENTS, 0, 0)
+	Return SendMessage(FHandle, SCI_GETTABINDENTS, 0, 0)
 End Property
 
 Private Property ScintillaControl.TabIndents (tIndents As Boolean)
-	SendMessage(Handle, SCI_SETTABINDENTS, tIndents, 0)
+	SendMessage(FHandle, SCI_SETTABINDENTS, tIndents, 0)
 End Property
 
+Private Property ScintillaControl.TabIndex As Integer
+	Return FTabIndex
+End Property
 
+Private Property ScintillaControl.TabIndex(Value As Integer)
+	ChangeTabIndex Value
+End Property
+
+Private Property ScintillaControl.TabStop As Boolean
+	Return FTabStop
+End Property
+
+Private Property ScintillaControl.TabStop(Value As Boolean)
+	ChangeTabStop Value
+End Property

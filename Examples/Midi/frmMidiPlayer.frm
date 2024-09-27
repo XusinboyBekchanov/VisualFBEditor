@@ -30,6 +30,11 @@
 	Using My.Sys.Forms
 	
 	Type frmMidiPlayerType Extends Form
+		mFullHeight As Integer
+		mFullWidth As Integer
+		mBorderHeight As Integer
+		mBorderWidth As Integer
+		
 		mFileList As WString Ptr
 		
 		Midi As midiPlayer
@@ -81,7 +86,7 @@
 		Declare Sub TrackBar_MouseUp(ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 		Declare Constructor
 		
-		Dim As CommandButton cmdNext, cmdPrev, cmdStop, cmdPause, cmdContinue
+		Dim As CommandButton cmdNext, cmdPrev, cmdStop, cmdPause, cmdContinue, cmdShow
 		Dim As CheckBox chkReset, chkDark, chkAll
 		Dim As ComboBoxEdit cmbDevice
 		Dim As Label lblVolume, lblSpeed, lblPosition, lblInstruments, lblNote
@@ -252,7 +257,7 @@
 			.Caption = "Volume"
 			.Alignment = AlignmentConstants.taCenter
 			.Hint = "Reset volume"
-			.SetBounds 10, 114, 170, 14
+			.SetBounds 10, 114, 150, 14
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Label_Click)
 			.Parent = @This
@@ -269,20 +274,32 @@
 			.ID = 1026
 			.ThumbLength = 20
 			.PageSize = 1000
-			.SetBounds 10, 130, 170, 20
+			.SetBounds 10, 130, 150, 20
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar_Change)
+			.Parent = @This
+		End With
+		' cmdShow
+		With cmdShow
+			.Name = "cmdShow"
+			.Text = "<"
+			.TabIndex = 14
+			.Caption = "<"
+			.Hint = "Expand or shrink"
+			.SetBounds 170, 130, 30, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @This
 		End With
 		' lblSpeed
 		With lblSpeed
 			.Name = "lblSpeed"
 			.Text = "Speed"
-			.TabIndex = 14
+			.TabIndex = 15
 			.Caption = "Speed"
 			.Alignment = AlignmentConstants.taCenter
 			.Hint = "Reset speed"
-			.SetBounds 190, 114, 170, 14
+			.SetBounds 210, 114, 150, 14
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Label_Click)
 			.Parent = @This
@@ -291,14 +308,14 @@
 		With tbSpeed
 			.Name = "tbSpeed"
 			.Text = "Speed"
-			.TabIndex = 15
+			.TabIndex = 16
 			.MaxValue = 10000
 			.Position = 1000
 			.MinValue = 100
 			.TickStyle = TickStyles.tsNone
 			.ID = 1039
 			.PageSize = 100
-			.SetBounds 190, 130, 170, 20
+			.SetBounds 210, 130, 150, 20
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TrackBar, Position As Integer), @TrackBar_Change)
 			.Parent = @This
@@ -307,7 +324,7 @@
 		With lblPosition
 			.Name = "lblPosition"
 			.Text = "Position"
-			.TabIndex = 16
+			.TabIndex = 17
 			.Caption = "Position"
 			.Alignment = AlignmentConstants.taCenter
 			.SetBounds 20, 164, 330, 14
@@ -318,7 +335,7 @@
 		With tbPosition
 			.Name = "tbPosition"
 			.Text = "Position"
-			.TabIndex = 17
+			.TabIndex = 18
 			.TickStyle = TickStyles.tsNone
 			.ID = 1130
 			.MaxValue = 10000
@@ -334,7 +351,7 @@
 		With ListView1
 			.Name = "ListView1"
 			.Text = "ListView1"
-			.TabIndex = 18
+			.TabIndex = 19
 			.GridLines = False
 			.ColumnHeaderHidden = True
 			.ContextMenu = @PopupMenu1
@@ -351,7 +368,7 @@
 		With chkAll
 			.Name = "chkAll"
 			.Text = "Select All Channel"
-			.TabIndex = 19
+			.TabIndex = 20
 			.BackColor = 16744576
 			.Caption = "Select All Channel"
 			.Checked = True
@@ -366,7 +383,7 @@
 		With lblInstruments
 			.Name = "lblInstruments"
 			.Text = "E"
-			.TabIndex = 20
+			.TabIndex = 21
 			.BackColor = 16744576
 			.Hint = "Switch between English and Chinese for instrument name"
 			.Alignment = AlignmentConstants.taCenter
@@ -382,7 +399,7 @@
 		With lblNote
 			.Name = "lblNote"
 			.Text = "Note"
-			.TabIndex = 21
+			.TabIndex = 22
 			.BackColor = 16744576
 			.ForeColor = 16777215
 			.Font.Bold = True
@@ -520,6 +537,11 @@ Private Sub frmMidiPlayerType.Panel_Paint(ByRef Sender As Control, ByRef Canvas 
 End Sub
 
 Private Sub frmMidiPlayerType.Form_Create(ByRef Sender As Control)
+	mFullHeight = Height
+	mFullWidth = Width
+	mBorderHeight = Height - ClientHeight
+	mBorderWidth = Width - ClientWidth
+	
 	'init notes
 	ReDim NotePad(NoteCount + 1)
 	
@@ -614,7 +636,7 @@ Private Sub frmMidiPlayerType.Form_Create(ByRef Sender As Control)
 	If Dir(*mFileList) = "" Then Exit Sub
 	Dim s() As WString Ptr
 	Dim t As WString Ptr
-	WLet(t, TextFromFile(*mFileList))
+	TextFromFile(*mFileList, t)
 	j = SplitWStr(*t, WStr(vbCrLf), s())
 	For i = 0 To j
 		Form_DropFile(ListView1,*s(i))
@@ -625,10 +647,14 @@ End Sub
 
 Private Sub frmMidiPlayerType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	'stop play
-	If Midi.midiThread Then CommandButton_Click(cmdStop)
+	If Midi.midiThread Then
+		CommandButton_Click(cmdStop)
+		Action = False
+		Exit Sub
+	End If
 	
 	Dim i As Integer
-
+	
 	'release control
 	For i = 0 To MidiChannelCount
 		Remove chkChannel(i)
@@ -685,7 +711,7 @@ End Sub
 'midi play status changes
 Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlayStatus)
 	Dim a As frmMidiPlayerType Ptr = Owner
-	Debug.Print "OnPlayStatus: " & sStatus
+	
 	Select Case sStatus
 	Case MidiPlayStatus.MidiPlaying
 		a->ActiveChannel = -1
@@ -696,7 +722,6 @@ Private Sub frmMidiPlayerType.OnPlayStatus(Owner As Any Ptr, sStatus As MidiPlay
 		a->cmdPause.Enabled = True
 		a->cmdStop.Enabled = True
 		a->cmbDevice.Enabled = False
-		a->tbPosition.Enabled = True
 		a->NoteChannels()
 	Case MidiPlayStatus.MidiBreak
 		a->cmdNext.Enabled = True
@@ -744,7 +769,7 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 	Select Case Sender.Name
 	Case "cmdPrev"
 		If ListView1.ListItems.Count - 1 < 0 Then Exit Sub
-
+		
 		Dim j As Integer
 		Dim k As Integer = -1
 		For i = 0 To ListView1.ListItems.Count - 1
@@ -769,7 +794,7 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
 	Case "cmdNext"
 		If ListView1.ListItems.Count - 1 < 0 Then Exit Sub
-
+		
 		Dim j As Integer
 		Dim k As Integer = -1
 		For i = 0 To ListView1.ListItems.Count - 1
@@ -790,7 +815,8 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 		End If
 		ListView1.ListItems.Item(k)->Selected = True
 		ListView1.EnsureVisible(k)
-		
+		Height
+		ClientHeight
 		ListView1_ItemDblClick(ListView1, ListView1.SelectedItemIndex)
 	Case "cmdContinue"
 		Midi.Resume
@@ -800,6 +826,14 @@ Private Sub frmMidiPlayerType.CommandButton_Click(ByRef Sender As Control)
 		
 	Case "cmdStop"
 		Midi.Stop
+	Case "cmdShow"
+		If Sender.Text = "<" Then
+			Sender.Text = ">"
+			Move Left, Top, mBorderWidth + ListView1.Left, mBorderHeight + chkAll.Top
+		Else
+			Sender.Text = "<"
+			Move Left, Top, mFullWidth, mFullHeight
+		End If
 	End Select
 End Sub
 
@@ -823,7 +857,7 @@ Private Sub frmMidiPlayerType.ListView1_ItemDblClick(ByRef Sender As ListView, B
 		'reset default midi speed
 		Label_Click(lblSpeed)
 	End If
-
+	
 	Caption = "MidiPlayer - " & ListView1.ListItems.Item(ItemIndex)->Text(0)
 	Midi.Play(ListView1.ListItems.Item(ItemIndex)->Text(0))
 End Sub
@@ -854,7 +888,7 @@ Private Sub frmMidiPlayerType.Label_Click(ByRef Sender As Control)
 	End Select
 End Sub
 
-Private Function Sec2Time(Sec As Double, ByVal hfmt As String = "#,#0", ByVal mfmt As String = "00", ByVal sfmt As String = "00") As String
+Private Function Sec2Time(Sec As Double, ByVal hfmt As String = "0", ByVal mfmt As String = "00", ByVal sfmt As String = "00", ByVal msfmt As String = ".00") As String
 	Dim iTtlSec As Integer = Int(Sec)
 	Dim iHour As Integer
 	Dim iMin As Integer
@@ -863,13 +897,13 @@ Private Function Sec2Time(Sec As Double, ByVal hfmt As String = "#,#0", ByVal mf
 	Dim Rtn As String
 	iHour = iTtlSec \ 3600
 	iMin = (iTtlSec - iHour * 3600) \ 60
-	iSec = iTtlSec Mod 60
+	iSec = iTtlSec - (iHour * 3600) - (iMin * 60)
 	Ms = Sec - iTtlSec
 	Rtn = Format(iHour, hfmt) & ":" & Format(iMin, mfmt) & ":" & Format(iSec, sfmt)
-	If Ms Then
-		Rtn += Format(Ms, ".00")
+	If Ms < 0.009 Then
+		Rtn += msfmt
 	Else
-		Rtn += ".00"
+		Rtn += Format(Ms, msfmt)
 	End If
 	Return Rtn
 End Function
@@ -886,8 +920,11 @@ Private Sub frmMidiPlayerType.TrackBar_Change(ByRef Sender As TrackBar, Position
 		Else
 			ps = Format(p, "0.00") & "%"
 		End If
-		lblPosition.Caption = "Position: " & Sec2Time(s) & " / " & Sec2Time(t) & " " & ps
-		
+		Static pWStr As WString Ptr
+		WLet(pWStr, "Position: " & Sec2Time(s) & " / " & Sec2Time(t) & " " & ps)
+		lblPosition.Caption = *pWStr
+		If tbPosition.Enabled Then Exit Sub
+		tbPosition.Enabled = True
 	Case "tbSpeed"
 		Dim s As Double= tbSpeed.Position / 1000
 		Midi.Speed = s

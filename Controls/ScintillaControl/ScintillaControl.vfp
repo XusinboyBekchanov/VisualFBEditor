@@ -1,4 +1,6 @@
-﻿*File=Main.bas
+﻿File=ScintillaControl.bi
+*File=Main.bas
+File=ScintillaControl.bas
 ProjectType=1
 Subsystem=0
 ProjectName="ScintillaControl"
@@ -9,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=138
+BuildVersion=256
 AutoIncrementVersion=false
 ApplicationTitle="ScintillaControl"
 ApplicationIcon=""

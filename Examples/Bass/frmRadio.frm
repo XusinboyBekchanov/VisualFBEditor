@@ -361,11 +361,10 @@
 	
 	Dim Shared frmRadio As frmRadioType
 	
-	#ifndef _NOT_AUTORUN_FORMS_
-		#define _NOT_AUTORUN_FORMS_
-		
+	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
+		frmRadio.MainForm = True 
 		frmRadio.Show
-		
 		App.Run
 	#endif
 '#End Region

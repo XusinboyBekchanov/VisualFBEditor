@@ -1,5 +1,5 @@
 ﻿'fullduplexfilter全双工滤波器
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "fullduplexfilter.bi"

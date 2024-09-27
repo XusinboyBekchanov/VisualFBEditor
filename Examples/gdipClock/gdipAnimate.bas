@@ -47,8 +47,8 @@ Private Sub gdipAnimate.ImageFile(sFileName As WString, ByVal sFrameWidth As Int
 			Select Case mFrameDelays(i)
 			Case Is > 6000
 				mFrameDelays(i) = 60000 ' Max.: 1 min.
-			Case Is < 5
-				mFrameDelays(i) = 50    ' Min.: 0.05 sec.
+			'Case Is < 5
+			'	mFrameDelays(i) = 50    ' Min.: 0.05 sec.
 			Case Else
 				mFrameDelays(i) = mFrameDelays(i) * 10
 			End Select

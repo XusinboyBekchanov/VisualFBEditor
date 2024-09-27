@@ -4,8 +4,8 @@
 #define APP_TITLE_STR               "FileSync\0"
 #define VER_FILEDESCRIPTION_STR     "FileSync\0"
 
-#define VER_FILEVERSION             1,0,0,74
-#define VER_FILEVERSION_STR         "1.0.0.74\0"
+#define VER_FILEVERSION             1,0,0,307
+#define VER_FILEVERSION_STR         "1.0.0.307\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
@@ -28,7 +28,7 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-        	VALUE "ApplicationTitle", APP_TITLE_STR
+            VALUE "ApplicationTitle", APP_TITLE_STR
             VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     VER_INTERNALNAME_STR

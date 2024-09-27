@@ -12,13 +12,13 @@ Record live audio, Record computer playback, Record netradio...
 
 #### Device Select, Spectrum, Ex, Equalizer
 
-![image](https://github.com/chunmingwang/Bass/assets/35757455/005e490c-2412-4a6d-8b33-4f636a61b916)
+![image](https://github.com/chunmingwang/chunmingwang/assets/35757455/32db458a-b096-4f5a-9c2b-baf0db1e3fbd)
 
 # LiveFX
 
-![image](https://github.com/chunmingwang/VisualFBEditor/assets/35757455/8f875677-fb87-4de1-8f1b-1b3b9b22de5b)
+![image](https://github.com/chunmingwang/Bass/assets/35757455/2bf0f78b-309c-435e-b9b1-b1b8db08f8db)
 
 # NetRadio
 
-![image](https://github.com/chunmingwang/VisualFBEditor/assets/35757455/868572c3-2306-487d-acf7-f543c5ceffec)
+![image](https://github.com/chunmingwang/Bass/assets/35757455/f9456af1-fc99-4f07-8996-55a0fec256a1)
 

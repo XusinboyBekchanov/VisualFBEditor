@@ -1,8 +1,7 @@
 ﻿#pragma once
 'capturesound声音捕捉
-' Copyright (c) 2023 CM.Wang
+' Copyright (c) 2024 CM.Wang
 ' Freeware. Use at your own risk.
-
 
 #include once "mff/ComboBoxEdit.bi"
 Using My.Sys.Forms

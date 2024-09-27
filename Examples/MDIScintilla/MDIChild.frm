@@ -1,8 +1,12 @@
-﻿'#Region "Form"
+﻿' MDIScintilla MDIChild.frm
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
-			#cmdline "Form1.rc"
+			#cmdline "MDIScintilla.rc"
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
@@ -11,30 +15,38 @@
 	Using My.Sys.Forms
 	
 	Type MDIChildType Extends Form
-		Dim Sci As Scintilla
+		Editor As Scintilla
+		CodePage As Integer = GetACP()
+		Destroied As Boolean
+		Encode As FileEncodings = FileEncodings.Utf8BOM
+		FileInfo As SHFILEINFO
+		IconHandle As Any Ptr
+		Index As Integer = -1
+		mChanged As Boolean = False
+		mFile As WString Ptr = NULL
+		mTitle As WString Ptr = NULL
+		mTitleTmp As WString Ptr = NULL
 		
-		Dim Index As Integer = -1
-		Dim CodePage As Integer = GetACP()
-		Dim Encode As FileEncodings = -1
-		Dim mFile As WString Ptr = NULL
-		Dim mChanged As Boolean = False
-		
-		Declare Property Changed(Val As Boolean)
-		Declare Property Changed As Boolean
-		Declare Property File(ByRef FileName As Const WString)
-		Declare Property File ByRef As WString
-		Declare Property Title(ByRef TitleName As Const WString)
-		
+		'NewLine As NewLineTypes = NewLineTypes.WindowsCRLF
 		Declare Property NewLine As NewLineTypes
 		Declare Property NewLine(val As NewLineTypes)
 		
-		Declare Sub Form_Destroy(ByRef Sender As Control)
+		Declare Property Changed(Val As Boolean)
+		Declare Property Changed As Boolean
+		Declare Property File(FileName As WString)
+		Declare Property File ByRef As WString
+		Declare Property Title() ByRef As WString
+		Declare Property TitleFileName() ByRef As WString
+		Declare Property TitleFullName() ByRef As WString
+		
 		Declare Sub Form_Activate(ByRef Sender As Form)
-		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Destroy(ByRef Sender As Control)
+		Declare Sub Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+		
 		Declare Sub Form_Create(ByRef Sender As Control)
-		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Sub Form_Message(ByRef Sender As Control, ByRef MSG As Message)
+		Declare Sub Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 		Declare Constructor
 		
 	End Type
@@ -70,44 +82,53 @@
 
 Private Property MDIChildType.Changed(val As Boolean)
 	mChanged = val
-	
-	Dim sHead As WString Ptr
-	If mChanged Then
-		sHead = @WStr("* ")
-	Else
-		sHead = @WStr("")
-	End If
-	If *mFile = "" Then
-		Title = *sHead & WStr("Untitled - ") & Index
-	Else
-		Title = *sHead & FullName2File(*mFile)
-	End If
+	Text = IIf(mChanged, "* " , "" ) & Title
+	MDIMain.MDIChildClick()
 End Property
 
 Private Property MDIChildType.Changed As Boolean
 	Return mChanged
 End Property
 
-Private Property MDIChildType.Title(ByRef TitleName As Const WString)
-	If Text = TitleName Then Exit Property
-	Text = "" + TitleName
-	MDIMain.MDIChildActivate(@This)
-End Property
-
-Private Property MDIChildType.File(ByRef FileName As Const WString)
-	WStr2Ptr(FileName, mFile)
-	Changed = mChanged
-	Dim FileInfo As SHFILEINFO
-	Dim h As Any Ptr = Cast(Any Ptr, SHGetFileInfo(*mFile, 0, @FileInfo, SizeOf(FileInfo), SHGFI_SYSICONINDEX))
-	SendMessage(Handle, WM_SETICON, 0, Cast(LPARAM, ImageList_GetIcon(h, FileInfo.iIcon, 0)))
+Private Property MDIChildType.File(FileName As WString)
+	WLet(mFile, FileName)
+	Text = IIf(mChanged, "* " , "" ) & Title
+	If FileName= "" Then
+	Else
+		IconHandle = Cast(Any Ptr, SHGetFileInfo(*mFile, 0, @FileInfo, SizeOf(FileInfo), SHGFI_SYSICONINDEX))
+		SendMessage(Handle, WM_SETICON, 0, Cast(LPARAM, ImageList_GetIcon(IconHandle, FileInfo.iIcon, 0)))
+	End If
 End Property
 
 Private Property MDIChildType.File ByRef As WString
 	Return *mFile
 End Property
 
+Private Property MDIChildType.Title() ByRef As WString
+	If *mFile = "" Then
+		WLet(mTitle, "Untitled - " & Index)
+	Else
+		WLet(mTitle, FullName2File(*mFile))
+	End If
+	Return *mTitle
+End Property
+
+Private Property MDIChildType.TitleFileName() ByRef As WString
+	WLet(mTitleTmp, IIf(mChanged, "* " , "" ) & Title)
+	Return *mTitleTmp
+End Property
+
+Private Property MDIChildType.TitleFullName() ByRef As WString
+	If *mFile= "" Then
+		WLet(mTitleTmp, IIf(mChanged, "* " , "" ) & Title)
+	Else
+		WLet(mTitleTmp, IIf(mChanged, "* " , "" ) & *mFile)
+	End If
+	Return *mTitleTmp
+End Property
+
 Private Property MDIChildType.NewLine As NewLineTypes
-	Select Case Sci.EOLMode
+	Select Case Editor.EOLMode
 	Case SC_EOL_LF
 		Return NewLineTypes.LinuxLF
 	Case SC_EOL_CR
@@ -120,50 +141,43 @@ End Property
 Private Property MDIChildType.NewLine(val As NewLineTypes)
 	Select Case val
 	Case NewLineTypes.LinuxLF
-		Sci.EOLMode= SC_EOL_LF
+		Editor.EOLMode= SC_EOL_LF
 	Case NewLineTypes.MacOSCR
-		Sci.EOLMode= SC_EOL_CR
+		Editor.EOLMode= SC_EOL_CR
 	Case Else
-		Sci.EOLMode= SC_EOL_CRLF
+		Editor.EOLMode= SC_EOL_CRLF
 	End Select
 End Property
 
-Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
-	MDIMain.MDIChildDestroy(@This)
-End Sub
-
 Private Sub MDIChildType.Form_Activate(ByRef Sender As Form)
-	'If Encode < 0 Then Encode = FileEncodings.Utf8
-	'If NewLine < 0 Then NewLine = NewLineTypes.WindowsCRLF
+	If Encode < 0 Then Encode = FileEncodings.Utf8
+	If NewLine < 0 Then NewLine = NewLineTypes.WindowsCRLF
 	MDIMain.MDIChildActivate(@This)
-End Sub
-
-Private Sub MDIChildType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
-	MDIMain.FileInsert(Filename, @This)
 End Sub
 
 Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	If MDIMain.MDIChildClose(@This) = MessageResult.mrCancel Then
-		Action = False
-	Else
-		If mFile Then Deallocate mFile
-	End If
+	If MDIMain.MDIChildCloseConfirm(@This) = MessageResult.mrCancel Then Action = False
+End Sub
+
+Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
+	If mFile Then Deallocate(mFile)
+	If mTitle Then Deallocate(mTitle)
+	If mTitleTmp Then Deallocate(mTitleTmp)
+	MDIMain.MDIChildDestroy(@This)
+End Sub
+
+Private Sub MDIChildType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	MDIMain.FileInsert(@This, Filename)
 End Sub
 
 Private Sub MDIChildType.Form_Create(ByRef Sender As Control)
-	Sci.Create(Handle)
+	Editor.Create(Handle)
 	
 	' Load the lexer from Lexilla and feed it into Scintilla
 	Dim As Any Ptr pLexer = pfnCreateLexerfn("MDIChild")
-	SendMessage(Sci.Handle, SCI_SETILEXER, 0, Cast(LPARAM, pLexer))
+	SendMessage(Editor.Handle, SCI_SETILEXER, 0, Cast(LPARAM, pLexer))
 	
 	MDIMain.MDIChildActivate(@This)
-End Sub
-
-Private Sub MDIChildType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	Dim rt As Rect
-	GetClientRect(Handle, @rt)
-	MoveWindow(Sci.Handle, 0, 0, rt.Right - rt.Left, rt.Bottom - rt.Top, True)
 End Sub
 
 Private Sub MDIChildType.Form_Message(ByRef Sender As Control, ByRef MSG As Message)
@@ -171,7 +185,7 @@ Private Sub MDIChildType.Form_Message(ByRef Sender As Control, ByRef MSG As Mess
 	Select Case MSG.Msg
 	Case WM_NOTIFY
 		CopyMemory(@scMsg, Cast(Any Ptr, MSG.lParam), Len(scMsg))
-		If (scMsg.hdr.hwndFrom = Sci.Handle) Then
+		If (scMsg.hdr.hwndFrom = Editor.Handle) Then
 			'Scintilla has given some information. Let's see what it is
 			'and route it to the proper place.
 			'Any commented with TODO have not been implimented yet.
@@ -184,21 +198,21 @@ Private Sub MDIChildType.Form_Message(ByRef Sender As Control, ByRef MSG As Mess
 				'Debug.Print "SCN_HOTSPOTCLICK"
 			Case SCN_DOUBLECLICK
 				'Debug.Print "SCN_DOUBLECLICK"
-				MDIMain.MDIChildDoubleClick(@This)
+				'MDIMain.MDIChildDoubleClick(@This)
 			Case SCN_UPDATEUI
 				'Debug.Print "SCN_UPDATEUI"
 				'Debug.Print  "updated=" & scMsg.updated
 				Select Case scMsg.updated
 				Case SC_UPDATE_NONE
 				Case SC_UPDATE_CONTENT
-					MDIMain.MDIChildClick(@This)
+					MDIMain.MDIChildClick()
 				Case SC_UPDATE_SELECTION
-					MDIMain.MDIChildClick(@This)
+					MDIMain.MDIChildClick()
 				Case SC_UPDATE_V_SCROLL
 					'line number margin auto width
-					If Sci.MarginWidth(0) <> 0 Then
-						Dim s As String = Format(SendMessage(Sci.Handle, SCI_GETFIRSTVISIBLELINE, 0, 0) + SendMessage(Sci.Handle, SCI_LINESONSCREEN, 0, 0), "#0")
-						Sci.MarginWidth(0) = SendMessage(Sci.Handle, SCI_TEXTWIDTH, STYLE_DEFAULT, Cast(LPARAM, StrPtr(s))) + 5
+					If Editor.MarginWidth(0) <> 0 Then
+						Dim s As String = Format(SendMessage(Editor.Handle, SCI_GETFIRSTVISIBLELINE, 0, 0) + SendMessage(Editor.Handle, SCI_LINESONSCREEN, 0, 0), "#0")
+						Editor.MarginWidth(0) = SendMessage(Editor.Handle, SCI_TEXTWIDTH, STYLE_DEFAULT, Cast(LPARAM, StrPtr(s))) + 5
 					End If
 				Case SC_UPDATE_H_SCROLL
 				End Select
@@ -212,3 +226,11 @@ Private Sub MDIChildType.Form_Message(ByRef Sender As Control, ByRef MSG As Mess
 		End If
 	End Select
 End Sub
+
+Private Sub MDIChildType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	Dim rt As Rect
+	GetClientRect(Handle, @rt)
+	MoveWindow(Editor.Handle, 0, 0, rt.Right - rt.Left, rt.Bottom - rt.Top, True)
+End Sub
+
+

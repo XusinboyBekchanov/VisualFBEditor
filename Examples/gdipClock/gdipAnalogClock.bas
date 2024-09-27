@@ -251,17 +251,17 @@ Private Sub AnalogClock.Background(ByVal pWidth As Single = 300, ByVal pHeight A
 	
 	mBackBitmap.Initial(mWidth, mHeight)
 	
+	If mPanelEnabled Then
+		sTmpBitmap.Initial(mWidth, mHeight)
+		GdipGraphicsClear(sTmpBitmap.Graphics, mPanelAlpha Shl 24 Or mPanelColor)
+		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
+	End If
+	
 	If mTrayEnabled Then
 		sTmpBitmap.Initial(mWidth, mHeight)
 		sTmpBitmap.DrawScaleImage(DrawTray())
 		If mTrayBlur Then FastBoxBlurHV(sTmpBitmap.Image, mTrayBlur)
 		mBackBitmap.DrawAlphaImage(sTmpBitmap.Image, mTrayAlpha)
-	End If
-	
-	If mPanelEnabled Then
-		sTmpBitmap.Initial(mWidth, mHeight)
-		GdipGraphicsClear(sTmpBitmap.Graphics, mPanelAlpha Shl 24 Or mPanelColor)
-		mBackBitmap.DrawImage(sTmpBitmap.Image, 0, 0)
 	End If
 	
 	If mBackEnabled Then
