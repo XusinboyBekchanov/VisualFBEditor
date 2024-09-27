@@ -361,7 +361,7 @@
 		With mnuEncodingPlainText
 			.Name = "mnuEncodingPlainText"
 			.Designer = @This
-			.Caption = !"Plain Text \t(CP: -1)"
+			.Caption = !"Plain Text (CP: -1)"
 			.RadioItem = True
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFormat_Click)
 			.Parent = @mnuFormat
@@ -409,7 +409,7 @@
 		With mnuEOLCRLF
 			.Name = "mnuEOLCRLF"
 			.Designer = @This
-			.Caption = !"Windows \t(CRLF)"
+			.Caption = !"Windows (CRLF)"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFormat_Click)
 			.Parent = @mnuFormat
 		End With
@@ -417,7 +417,7 @@
 		With mnuEOLLF
 			.Name = "mnuEOLLF"
 			.Designer = @This
-			.Caption = !"Linux \t(LF)"
+			.Caption = !"Linux (LF)"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFormat_Click)
 			.Parent = @mnuFormat
 		End With
@@ -425,7 +425,7 @@
 		With mnuEOLCR
 			.Name = "mnuEOLCR"
 			.Designer = @This
-			.Caption = !"Macintosh \t(CR)"
+			.Caption = !"Macintosh (CR)"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFormat_Click)
 			.Parent = @mnuFormat
 		End With
@@ -2074,7 +2074,7 @@ Private Sub MDIMainType.MDIChildActivate(ByRef Child As Any Ptr)
 	Dim As Integer i
 	If a Then
 		mnuViewWordWarps.Checked = a->Editor.WordWraps
-		mnuEncodingPlainText.Caption = !"Plain Text \t(CP: " & IIf(a->CodePage < 0, GetACP(), a->CodePage) & ")"
+		mnuEncodingPlainText.Caption = !"Plain Text (CP: " & IIf(a->CodePage < 0, GetACP(), a->CodePage) & ")"
 		mnuEncodingPlainText.Checked = IIf(a->Encode = FileEncodings.PlainText, True, False)
 		mnuEncodingUtf8.Checked = IIf(a->Encode = FileEncodings.Utf8, True, False)
 		mnuEncodingUtf8BOM.Checked = IIf(a->Encode = FileEncodings.Utf8BOM, True, False)
