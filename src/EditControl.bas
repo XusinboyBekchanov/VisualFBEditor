@@ -1852,7 +1852,7 @@ Namespace My.Sys.Forms
 					pBuff = 0
 					If OldFileEncoding = FileEncodings.Utf8 Then
 						Line Input #Fn, Buff
-						pBuff = FromUtf8(StrPtr(Buff))
+						pBuff = Cast(WString Ptr, FromUtf8(StrPtr(Buff)))
 					Else
 						LineInputWstr Fn, BuffRead, MaxChars
 						WLet(pBuff, *BuffRead)
