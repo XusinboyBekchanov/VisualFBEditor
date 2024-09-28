@@ -1890,7 +1890,6 @@ Namespace My.Sys.Forms
 		Dim As String FileEncodingText, NewLine, FileEncodingSymbols
 		Dim As Boolean FileSaved
 		If FileEncoding = FileEncodings.Utf8 Then
-		If FileEncoding = FileEncodings.Utf8 Then
 			#ifdef __FB_WIN32__
 				FileEncodingText = "utf-8"
 				FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
