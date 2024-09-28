@@ -1852,7 +1852,7 @@ Namespace My.Sys.Forms
 					pBuff = 0
 					If OldFileEncoding = FileEncodings.Utf8 Then
 						Line Input #Fn, Buff
-						WLet(pBuff, FromUtf8(StrPtr(Buff)))
+						pBuff = FromUtf8(StrPtr(Buff))
 					Else
 						LineInputWstr Fn, BuffRead, MaxChars
 						WLet(pBuff, *BuffRead)
@@ -1890,8 +1890,14 @@ Namespace My.Sys.Forms
 		Dim As String FileEncodingText, NewLine, FileEncodingSymbols
 		Dim As Boolean FileSaved
 		If FileEncoding = FileEncodings.Utf8 Then
-			FileEncodingText = "ascii"
-			FileEncodingSymbols = ""
+		If FileEncoding = FileEncodings.Utf8 Then
+			#ifdef __FB_WIN32__
+				FileEncodingText = "utf-8"
+				FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
+			#else
+				FileEncodingText = "ascii"
+				FileEncodingSymbols = ""
+			#endif
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
 			FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
