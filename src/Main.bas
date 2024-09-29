@@ -110,7 +110,7 @@ Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
-Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True, ManifestIcoCopy ' Add Change Log
+Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True, ManifestIcoCopy
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
 pApp = @VisualFBEditorApp
 pfrmMain = @frmMain
@@ -1139,8 +1139,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Yaratilmadi Or Band Then
 			ThreadsEnter()
 			If Parameter <> "Check" Then
-				'Sometimes information is missed when compiling too quickly in less than 1 second. 
-				If lvProblems.ListItems.Count < 1 Then ShowMessages(Str(Time) & ": " & MS("Found $1.",  ML("Errors") & " (1) " & ML("Pos")), False) 
+				'Sometimes information is missed when compiling too quickly in less than 1 second.
+				If lvProblems.ListItems.Count < 1 Then ShowMessages(Str(Time) & ": " & MS("Found $1.",  ML("Errors") & " (1) " & ML("Pos")), False)
 				ShowMessages(Str(Time) & ": " & ML("Do not build file.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 				If (Not Log2_) AndAlso lvProblems.ListItems.Count <> 0 Then tpProblems->SelectTab
 			ElseIf lvProblems.ListItems.Count <> 0 Then
@@ -1192,9 +1192,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	ErrorHandler:
 	ThreadsEnter()
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	ThreadsLeave()
 End Function
 
@@ -1965,9 +1965,9 @@ Function AddSession(ByRef FileName As WString) As Boolean
 				Pos1 = InStr(Buff, "=")
 				If Pos1 <> 0 Then
 					bMain = StartsWith(Buff, "*")
-					WLet(filn, Mid(Buff, Pos1 + 1))
-					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, "/")) Then
-						WLet(filn, CurrentPath & Replace(*filn, BackSlash, Slash))
+					WLet(filn, Replace(Mid(Buff, Pos1 + 1), BackSlash, Slash))
+					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, Slash)) Then
+						WLet(filn, CurrentPath & *filn)
 						If EndsWith(*filn, Slash) Then WLetEx filn, Left(*filn, Len(*filn) - 1), True
 					End If
 					Dim tn As TreeNode Ptr
@@ -5434,9 +5434,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		iOld = iNew
 	Next i
 	#if 0
+		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Comps.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
@@ -5458,7 +5459,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			FPropertyItems.Sort
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
-				If te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
+				If te = 0 OrElse te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
 				Print #Fn, "<tr class=""property"">"
@@ -5497,7 +5498,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, "<tbody>"
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
-				If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
+				If te = 0 OrElse te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
 				Print #Fn, "<tr class=""method"">"
@@ -5557,7 +5558,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, "<tbody>"
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
-				If te->ElementType <> ElementTypes.E_Event Then Continue For
+				If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
 				Print #Fn, "<tr class=""event"">"
@@ -10383,9 +10384,9 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub ToolBar_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
