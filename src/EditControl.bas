@@ -615,9 +615,9 @@ Namespace My.Sys.Forms
 		Exit Function
 		ErrorHandler:
 		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+		"in line " & Erl() & " " & _
+		"in function " & ZGet(Erfn()) & " " & _
+		"in module " & ZGet(Ermn())
 	End Function
 	
 	Function IsArg(j As Integer) As Boolean
@@ -1588,9 +1588,9 @@ Namespace My.Sys.Forms
 		Exit Sub
 		A:
 		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+		"in function " & ZGet(Erfn()) & " " & _
+		"in module " & ZGet(Ermn())' & " " & _
+		'"in line " & Erl()
 	End Sub
 	
 	Property EditControl.Text ByRef As WString
@@ -1687,102 +1687,195 @@ Namespace My.Sys.Forms
 			Exit Sub
 		End If
 		ModifiedLine = False
-
-		If Open(FileName For Binary Access Read As #Fn) = 0 Then
-			FileSize = LOF(Fn) + 1
-			Buff = String(4, 0)
-			Get #Fn, , Buff
-			If (Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0) OrElse (Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF) Then 'Little Endian, Big Endian
-				FileEncoding = FileEncodings.Utf32BOM
-				EncodingStr = "utf-32"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
-			ElseIf (Buff[0] = &HFF AndAlso Buff[1] = &HFE) OrElse (Buff[0] = &HFE AndAlso Buff[1] = &HFF) Then 'Little Endian, Big Endian
-				FileEncoding = FileEncodings.Utf16BOM
-				EncodingStr = "utf-16"
-				Buff = String(1024, 0)
-				Get #Fn, 0, Buff
-			ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
-				FileEncoding = FileEncodings.Utf8BOM
-				EncodingStr = "utf-8"
-				Buff = String(1024, 0)
+		#ifdef __USE_WINAPI__
+			Buff = FileName
+			If Buff <> FileName Then
+				FileLoaded = True
+				Dim As .HANDLE hFile
+				Dim As DWORD dwBytesToRead, dwBytesRead
+				Dim As String sFileContents
+				Dim As WString Ptr wsFileContents
+				Dim As Integer BOMSymbolsCount
+				hFile = CreateFile(@FileName, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+				If hFile = INVALID_HANDLE_VALUE Then
+					MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
+				Else
+					dwBytesToRead = GetFileSize(hFile, 0)
+					If dwBytesToRead <> 0 Then
+						sFileContents = Space(dwBytesToRead)
+						ReadFile(hFile, @sFileContents[0], dwBytesToRead, @dwBytesRead, 0)
+						Buff = .Left(sFileContents, 4)
+						If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+							FileEncoding = FileEncodings.Utf32BOM
+							BOMSymbolsCount = 4
+						ElseIf Buff[0] = 0 AndAlso Buff[1] = 0 AndAlso Buff[2] = &HFE AndAlso Buff[3] = &HFF Then 'Big Endian
+							FileEncoding = FileEncodings.Utf32BOM
+							BOMSymbolsCount = 4
+						ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+							FileEncoding = FileEncodings.Utf16BOM
+							BOMSymbolsCount = 2
+						ElseIf Buff[0] = &HFE AndAlso Buff[1] = &HFF Then 'Big Endian
+							FileEncoding = FileEncodings.Utf16BOM
+							BOMSymbolsCount = 2
+						ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+							FileEncoding = FileEncodings.Utf8BOM
+							BOMSymbolsCount = 3
+						Else
+							If (CheckUTF8NoBOM(sFileContents)) Then
+								FileEncoding = FileEncodings.Utf8
+								BOMSymbolsCount = 0
+							Else
+								FileEncoding = FileEncodings.PlainText
+								BOMSymbolsCount = 0
+							End If
+						End If
+					End If
+					CloseHandle(hFile)
+					For i As Integer = Content.Lines.Count - 1 To 0 Step -1
+						_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+					Next i
+					Content.Lines.Clear
+					i = 0
+					OldFileEncoding = FileEncoding
+					If FileEncoding = FileEncodings.PlainText Then
+						WLet(wsFileContents, sFileContents)
+					Else
+						If BOMSymbolsCount Then
+							sFileContents = Mid(sFileContents, BOMSymbolsCount + 1)
+						End If
+						WReAllocate(wsFileContents, dwBytesRead)
+						MultiByteToWideChar(CP_UTF8, MB_ERR_INVALID_CHARS, StrPtr(sFileContents), dwBytesRead, wsFileContents, dwBytesRead)
+					End If
+					Dim As WString Ptr FText
+					Dim As EditControlLine Ptr FECLine
+					WLet(FText, "")
+					For j As Integer = 0 To Len(*wsFileContents)
+						WAdd FText, WChr((*wsFileContents)[j])
+						If (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
+							FECLine = _New(EditControlLine)
+							OlddwClientX = 0
+							If FECLine = 0 Then
+								Return
+							End If
+							pBuff = 0
+							WLet(pBuff, Trim(Trim(Mid(*FText, 1, Len(*FText)), Any WChr(10)), Any WChr(13)))
+							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+							iC = FindCommentIndex(*pBuff, OldiC)
+							FECLine->CommentIndex = iC
+							FECLine->InAsm = InAsm
+							Content.Lines.Add(FECLine)
+							ChangeCollapsibility i
+							If FECLine->ConstructionIndex = C_Asm Then
+								InAsm = FECLine->ConstructionPart = 0
+							End If
+							FECLine->InAsm = InAsm
+							OldiC = iC
+							i += 1
+							WLet(FText, "")
+						End If
+					Next
+					CalculateLeftMargin
+					If Not WithoutScroll Then ScrollToCaret
+				End If
+			End If
+		#endif
+		If Not FileLoaded Then
+			If Open(FileName For Binary Access Read As #Fn) = 0 Then
+				FileSize = LOF(Fn) + 1
+				Buff = String(4, 0)
 				Get #Fn, , Buff
-			Else
-				Buff = String(FileSize, 0)
-				Get #Fn, 0, Buff
-				If (CheckUTF8NoBOM(Buff)) Then
-					FileEncoding = FileEncodings.Utf8
-					EncodingStr = "ascii"
+				If Buff[0] = &HFF AndAlso Buff[1] = &HFE AndAlso Buff[2] = 0 AndAlso Buff[3] = 0 Then 'Little Endian
+					FileEncoding = FileEncodings.Utf32BOM
+					EncodingStr = "utf-32"
+					Buff = String(1024, 0)
+					Get #Fn, 0, Buff
+					'ElseIf (Buff[0] = = OxFE && Buff[1] = = 0xFF) 'Big Endian
+				ElseIf Buff[0] = &HFF AndAlso Buff[1] = &HFE Then 'Little Endian
+					FileEncoding = FileEncodings.Utf16BOM
+					EncodingStr = "utf-16"
+					Buff = String(1024, 0)
+					Get #Fn, 0, Buff
+				ElseIf Buff[0] = &HEF AndAlso Buff[1] = &HBB AndAlso Buff[2] = &HBF Then
+					FileEncoding = FileEncodings.Utf8BOM
+					EncodingStr = "utf-8"
+					Buff = String(1024, 0)
+					Get #Fn, , Buff
 				Else
-					FileEncoding = FileEncodings.PlainText
-					EncodingStr = "ascii"
+					Buff = String(FileSize, 0)
+					Get #Fn, 0, Buff
+					If (CheckUTF8NoBOM(Buff)) Then
+						FileEncoding = FileEncodings.Utf8
+						EncodingStr = "ascii"
+					Else
+						FileEncoding = FileEncodings.PlainText
+						EncodingStr = "ascii"
+					End If
 				End If
-			End If
-			If InStr(Buff, Chr(13, 10)) Then
-				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
-			ElseIf InStr(Buff, Chr(10)) Then
-				NewLineType= NewLineTypes.LinuxLF
-				NewLineStr = Chr(10)
-			ElseIf InStr(Buff, Chr(13)) Then
-				NewLineType= NewLineTypes.MacOSCR
-				NewLineStr = Chr(13)
+				If InStr(Buff, Chr(13, 10)) Then
+					NewLineType= NewLineTypes.WindowsCRLF
+					NewLineStr = Chr(10)
+				ElseIf InStr(Buff, Chr(10)) Then
+					NewLineType= NewLineTypes.LinuxLF
+					NewLineStr = Chr(10)
+				ElseIf InStr(Buff, Chr(13)) Then
+					NewLineType= NewLineTypes.MacOSCR
+					NewLineStr = Chr(13)
+				Else
+					NewLineType= NewLineTypes.WindowsCRLF
+					NewLineStr = Chr(10)
+				End If
 			Else
-				NewLineType= NewLineTypes.WindowsCRLF
-				NewLineStr = Chr(10)
+				MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
+				CloseFile_(Fn)
+				Exit Sub
 			End If
-		Else
-			MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
 			CloseFile_(Fn)
-			Exit Sub
+			For i As Integer = Content.Lines.Count - 1 To 0 Step -1
+				_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			Next i
+			Content.Lines.Clear
+			'VisibleLines.Clear
+			i = 0
+			Fn = FreeFile_
+			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
+			If Result = 0 Then
+				OldFileEncoding = FileEncoding
+				Dim As Integer MaxChars = LOF(Fn)
+				WReAllocate(BuffRead, MaxChars)
+				Do Until EOF(Fn)
+					FECLine = _New( EditControlLine)
+					OlddwClientX = 0
+					If FECLine = 0 Then
+						CloseFile_(Fn)
+						Return
+					End If
+					pBuff = 0
+					If OldFileEncoding = FileEncodings.Utf8 Then
+						Line Input #Fn, Buff
+						WLet(pBuff, FromUtf8(StrPtr(Buff)))
+					Else
+						LineInputWstr Fn, BuffRead, MaxChars
+						WLet(pBuff, *BuffRead)
+					End If
+					FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+					iC = FindCommentIndex(*pBuff, OldiC)
+					FECLine->CommentIndex = iC
+					FECLine->InAsm = InAsm
+					Content.Lines.Add(FECLine)
+					ChangeCollapsibility i
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					i += 1
+				Loop
+				CalculateLeftMargin
+				If Not WithoutScroll Then ScrollToCaret
+			End If
+			WDeAllocate(BuffRead)
+			CloseFile_(Fn)
 		End If
-		CloseFile_(Fn)
-		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
-		Next i
-		Content.Lines.Clear
-		'VisibleLines.Clear
-		i = 0
-		Fn = FreeFile_
-		Result = Open(FileName For Input Encoding EncodingStr As #Fn)
-		If Result = 0 Then
-			OldFileEncoding = FileEncoding
-			Dim As Integer MaxChars = LOF(Fn)
-			WReAllocate(BuffRead, MaxChars)
-			Do Until EOF(Fn)
-				FECLine = _New( EditControlLine)
-				OlddwClientX = 0
-				If FECLine = 0 Then
-					CloseFile_(Fn)
-					Return
-				End If
-				pBuff = 0
-				If OldFileEncoding = FileEncodings.Utf8 Then
-					Line Input #Fn, Buff
-					WLet(pBuff, FromUtf8(StrPtr(Buff)))
-				Else
-					LineInputWstr Fn, BuffRead, MaxChars
-					WLet(pBuff, *BuffRead)
-				End If
-				FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
-				iC = FindCommentIndex(*pBuff, OldiC)
-				FECLine->CommentIndex = iC
-				FECLine->InAsm = InAsm
-				Content.Lines.Add(FECLine)
-				ChangeCollapsibility i
-				If FECLine->ConstructionIndex = C_Asm Then
-					InAsm = FECLine->ConstructionPart = 0
-				End If
-				FECLine->InAsm = InAsm
-				OldiC = iC
-				i += 1
-			Loop
-			CalculateLeftMargin
-			If Not WithoutScroll Then ScrollToCaret
-		End If
-		WDeAllocate(BuffRead)
-		CloseFile_(Fn)
-		'End If
 		If Content.Lines.Count = 0 Then
 			FECLine = _New( EditControlLine)
 			OlddwClientX = 0
@@ -1799,19 +1892,23 @@ Namespace My.Sys.Forms
 		If FileEncoding = FileEncodings.Utf8 Then
 			#ifdef __USE_WINAPI__
 				FileEncodingText = "utf-8"
-				FileEncoding = FileEncodings.Utf8BOM
+				FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
 			#else
 				FileEncodingText = "ascii"
+				FileEncodingSymbols = ""
 			#endif
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
 			FileEncodingText = "utf-8"
+			FileEncodingSymbols = Chr(&HEF, &HBB, &HBF)
 		ElseIf FileEncoding = FileEncodings.Utf16BOM Then
 			FileEncodingText = "utf-16"
+			FileEncodingSymbols = Chr(&HFF, &HFE)
 		ElseIf FileEncoding = FileEncodings.Utf32BOM Then
 			FileEncodingText = "utf-32"
+			FileEncodingSymbols = Chr(&HFF, &HFE, 0, 0)
 		Else
 			FileEncodingText = "ascii"
-			FileEncoding = FileEncodings.PlainText
+			FileEncodingSymbols = ""
 		End If
 		If NewLineType = NewLineTypes.LinuxLF Then
 			NewLine = Chr(10)
@@ -1820,39 +1917,53 @@ Namespace My.Sys.Forms
 		Else
 			NewLine = Chr(13, 10)
 		End If
-		If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
-			If FileEncoding = FileEncodings.Utf8 Then
-				If Content.Lines.Count > 1 Then
-					For i As Integer = 0 To Content.Lines.Count - 2
-						Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & NewLine;
-					Next
-					Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(Content.Lines.Count - 1))->Text)
+		#ifdef __USE_WINAPI__
+			Dim Buff As String
+			Buff = FileName
+			If Buff <> FileName Then
+				FileSaved = True
+				Dim As .HANDLE hFile
+				Dim As DWORD dwBytesToWrite, dwBytesWrite
+				Dim As String sFileContents = FileEncodingSymbols
+				hFile = CreateFile(@FileName, GENERIC_WRITE, 0, 0, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0)
+				If hFile = INVALID_HANDLE_VALUE Then
+					MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
 				Else
-					Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(0))->Text)
-				End If
-			ElseIf FileEncoding = FileEncodings.PlainText  Then
-				If Content.Lines.Count > 1 Then
-					For i As Integer = 0 To Content.Lines.Count - 2
-						Print #Fn, Str(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & NewLine;
-					Next
-					Print #Fn, Str(*Cast(EditControlLine Ptr, Content.Lines.Item(Content.Lines.Count - 1))->Text)
-				Else
-					Print #Fn, Str(*Cast(EditControlLine Ptr, Content.Lines.Item(0))->Text)
-				End If
-			Else
-				If Content.Lines.Count > 1 Then
-					For i As Integer = 0 To Content.Lines.Count - 2
-						Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
-					Next
-					Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(Content.Lines.Count - 1))->Text
-				Else
-					Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(0))->Text
+					If FileEncoding = FileEncodings.PlainText  Then
+						For i As Integer = 0 To Content.Lines.Count - 1
+							sFileContents &= *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & IIf(i = Content.Lines.Count - 1, "", WStr(NewLine))
+						Next
+					Else
+						For i As Integer = 0 To Content.Lines.Count - 1
+							sFileContents &= ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & IIf(i = Content.Lines.Count - 1, "", WStr(NewLine))
+						Next
+					End If
+					dwBytesToWrite = Len(sFileContents)
+					WriteFile(hFile, @sFileContents[0], dwBytesToWrite, @dwBytesWrite, NULL)
+  					CloseHandle(hFile)
 				End If
 			End If
-		Else
-			MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
+		#endif
+		If Not FileSaved Then
+			If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
+				If FileEncoding = FileEncodings.Utf8 Then
+					For i As Integer = 0 To Content.Lines.Count - 1
+						Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & NewLine;
+					Next
+				ElseIf FileEncoding = FileEncodings.PlainText  Then
+					For i As Integer = 0 To Content.Lines.Count - 1
+						Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+					Next
+				Else
+					For i As Integer = 0 To Content.Lines.Count - 1
+						Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+					Next
+				End If
+			Else
+				MsgBox ML("Save file failure!") & Chr(13, 10) & FileName
+			End If
+			CloseFile_(Fn)
 		End If
-		CloseFile_(Fn)
 	End Sub
 	
 	Sub EditControl.Clear
