@@ -1596,9 +1596,9 @@ Namespace My.Sys.Forms
 		Exit Function
 		ErrorHandler:
 		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-		"in line " & Erl() & " " & _
-		"in function " & ZGet(Erfn()) & " " & _
-		"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Function
 	
 	#ifdef __USE_GTK__
