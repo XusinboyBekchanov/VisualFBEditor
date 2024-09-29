@@ -1798,10 +1798,10 @@ Namespace My.Sys.Forms
 		Dim As Boolean FileSaved
 		If FileEncoding = FileEncodings.Utf8 Then
 			#ifdef __USE_WINAPI__
-				FileEncodingText = ""
+				FileEncodingText = "ascii"
 				FileEncoding = FileEncodings.Utf8
 			#else
-				FileEncodingText = ""
+				FileEncodingText = "ascii"
 				FileEncoding = FileEncodings.PlainText
 			#endif
 		ElseIf FileEncoding = FileEncodings.Utf8BOM Then
