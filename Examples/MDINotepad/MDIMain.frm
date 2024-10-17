@@ -1991,7 +1991,9 @@ End Sub
 Private Function MDIMainType.MDIChildCloseConfirm(ByRef Child As Any Ptr) As MessageResult
 	Dim As MDIChildType Ptr a = Child
 	Dim As MessageResult msr = mrYes
+	
 	If a->Changed Then
+		CloseResult = ModalResults.OK
 		msr = MsgBox(!"Do you want to save the changes to?\r\n" & a->Text, "Confirm Close", mtQuestion, btYesNoCancel)
 		Select Case msr
 		Case mrYes
@@ -2370,13 +2372,13 @@ Private Function MDIMainType.FileSave(ByRef Child As Any Ptr) As MessageResult
 	Dim As MDIChildType Ptr a = Child
 	If a->File = "" Then
 		msr = FileSaveAs(a)
+		If msr = MessageResult.mrCancel Then CloseResult = ModalResults.Cancel Else CloseResult = ModalResults.OK
 	Else
 		timr.Start
 		TextToFile(a->File, a->Editor.Text, a->Encode, a->NewLine, a->CodePage)
 		a->Changed = False
 		spSpeed.Caption = "Save " & Format(timr.Passed, "#,#0.000") & " sec."
 	End If
-	If msr = MessageResult.mrCancel Then CloseResult = ModalResults.Cancel
 	Return msr
 End Function
 
