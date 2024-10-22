@@ -538,10 +538,11 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Else
 				#ifdef __FB_WIN32__
 					tb->NewLineType = NewLineTypes.WindowsCRLF
+					tb->FileEncoding = FileEncodings.Utf8BOM
 				#else
 					tb->NewLineType = NewLineTypes.LinuxLF
+					tb->FileEncoding = FileEncodings.Utf8
 				#endif
-				tb->FileEncoding = FileEncodings.Utf8
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
@@ -587,9 +588,9 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	Exit Function
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
 Sub m(ByRef MSG As WString, InDebug As Boolean = False)
@@ -1136,7 +1137,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		#ifndef __USE_GTK__
-			_Delete(tb)
+			If ptabCode->TabCount > 1 Then _Delete(tb)
 		#endif
 		TabWindowRemovedCheck(pParentTabCode)
 		Return True
@@ -1416,9 +1417,9 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 	Exit Function
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
 Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
@@ -1515,9 +1516,9 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef Propert
 	Exit Function
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
 Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, ByRef Value As WString, FromText As Boolean = False, Cpnt As Any Ptr = 0) As Boolean
@@ -2472,9 +2473,9 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	Exit Function
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Function
 
 Sub TabWindow.CheckExtension(ByRef sFileName As WString)
@@ -2877,9 +2878,9 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub DesignerInsertComponent(ByRef Sender As Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
@@ -3378,9 +3379,9 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub cboFunction_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
@@ -10119,9 +10120,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	ErrorHandler:
 	FLine= 0
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub tbrTop_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton)
@@ -10617,7 +10618,6 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 		pnlForm.Style = pnlForm.Style Or WS_HSCROLL Or WS_VSCROLL
 	#endif
 	pnlCode.Add @txtCode
-	'This.Add @pnlTop
 	This.Add @tbrTop
 	This.Add @pnlForm
 	This.Add @splForm
@@ -12506,9 +12506,9 @@ Sub RunPr(Debugger As String = "")
 	ErrorHandler:
 	ThreadsEnter()
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	ThreadsLeave()
 End Sub
 
