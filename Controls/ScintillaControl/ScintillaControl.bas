@@ -85,49 +85,49 @@ Private Sub ScintillaControl.ProcessMessage(ByRef msg As Message)
 End Sub
 
 Namespace My.Sys.Forms
-
-Private Function TextFromAnsi(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1) As Long
-	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-	Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
-	If UnicodeStr Then Deallocate(UnicodeStr)
-	UnicodeStr = CAllocate(nLength * 2 + 2)
-	Return MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
-End Function
-
-Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByRef AnsiStr As ZString Ptr, ByVal nCodePage As Integer = -1) As Long
-	Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
-	Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
-	If AnsiStr Then Deallocate(AnsiStr)
-	AnsiStr = CAllocate(nLength * 2 + 2)
-	Return WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, AnsiStr, nLength, NULL, NULL)
-End Function
-
-Private Function TextFromUtf8(ByRef pZString As Const ZString, ByRef pText As WString Ptr) As Integer
-	Return TextFromAnsi(pZString, pText, 65001)
-End Function
-
-Private Function TextToUtf8(ByRef nWString As Const WString, ByRef pUtf8 As ZString Ptr) As Integer
-	Return TextToAnsi(nWString, pUtf8, 65001)
-End Function
-
-Function TextFromSciData(ByRef txtData As Const ZString, ByRef pText As WString Ptr, ByVal CodePage As Integer = 0) As Integer
-	If CodePage = 65001 Then
-		TextFromUtf8(txtData, pText)
-	Else
-		TextFromAnsi(txtData, pText)
-	End If
-	Return 0
-End Function
-
-Function TextToSciData(ByRef txtWStr As Const WString, ByRef SciData As ZString Ptr, ByVal CodePage As Integer = 0) As Integer
-	If CodePage = 65001 Then
-		TextToUtf8(txtWStr, SciData)
-	Else
-		TextToAnsi(txtWStr, SciData)
-	End If
-	Return 0
-End Function
-
+	
+	Private Function TextFromAnsi(ByRef AnsiStr As Const String, ByRef UnicodeStr As WString Ptr, ByVal nCodePage As Integer = -1) As Long
+		Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+		Dim As LongInt nLength = MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, NULL, 0) - 1
+		If UnicodeStr Then Deallocate(UnicodeStr)
+		UnicodeStr = CAllocate(nLength * 2 + 2)
+		Return MultiByteToWideChar(CodePage, 0, StrPtr(AnsiStr), -1, UnicodeStr, nLength)
+	End Function
+	
+	Private Function TextToAnsi(ByRef UnicodeStr As Const WString, ByRef AnsiStr As ZString Ptr, ByVal nCodePage As Integer = -1) As Long
+		Dim CodePage As Integer = IIf(nCodePage= -1, GetACP(), nCodePage)
+		Dim As LongInt nLength = WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), -1, NULL, 0, NULL, NULL) - 1
+		If AnsiStr Then Deallocate(AnsiStr)
+		AnsiStr = CAllocate(nLength * 2 + 2)
+		Return WideCharToMultiByte(CodePage, 0, StrPtr(UnicodeStr), nLength, AnsiStr, nLength, NULL, NULL)
+	End Function
+	
+	Private Function TextFromUtf8(ByRef pZString As Const ZString, ByRef pText As WString Ptr) As Integer
+		Return TextFromAnsi(pZString, pText, 65001)
+	End Function
+	
+	Private Function TextToUtf8(ByRef nWString As Const WString, ByRef pUtf8 As ZString Ptr) As Integer
+		Return TextToAnsi(nWString, pUtf8, 65001)
+	End Function
+	
+	Function TextFromSciData(ByRef txtData As Const ZString, ByRef pText As WString Ptr, ByVal CodePage As Integer = 0) As Integer
+		If CodePage = 65001 Then
+			TextFromUtf8(txtData, pText)
+		Else
+			TextFromAnsi(txtData, pText)
+		End If
+		Return 0
+	End Function
+	
+	Function TextToSciData(ByRef txtWStr As Const WString, ByRef SciData As ZString Ptr, ByVal CodePage As Integer = 0) As Integer
+		If CodePage = 65001 Then
+			TextToUtf8(txtWStr, SciData)
+		Else
+			TextToAnsi(txtWStr, SciData)
+		End If
+		Return 0
+	End Function
+	
 End Namespace
 
 #ifndef __USE_GTK__
