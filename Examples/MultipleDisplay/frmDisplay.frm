@@ -60,6 +60,7 @@
 		Declare Sub CommandButton6_Click(ByRef Sender As Control)
 		Declare Sub ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 		Declare Sub ListControl2_Click(ByRef Sender As Control)
+		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 		Declare Constructor
 		
 		Dim As Panel Panel1, Panel2, Panel3, Panel4
@@ -70,6 +71,12 @@
 	End Type
 	
 	Constructor frmDisplayType
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' frmDisplay
 		With This
 			.Name = "frmDisplay"
@@ -79,11 +86,12 @@
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			#ifdef __FB_64BIT__
 				'...instructions for 64bit OSes...
-				.Caption = "VFBE Multiple Display64"
+				.Caption = ML("VisualFBEditor Multiple Display64")
 			#else
 				'...instructions for other OSes
-				.Caption = "VFBE Multiple Display32"
+				.Caption = ML("VisualFBEditor Multiple Display32")
 			#endif
+			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 800, 600
 		End With
 		' Panel1
@@ -135,8 +143,8 @@
 		End With
 		' CommandButton1
 		With CommandButton1
-			.Name = "CommandButton1"
-			.Text = "QueryDisplayConfig"
+			.Name = "cmdQueryDisplayConfig"
+			.Text = ML("Query Display Config")
 			.TabIndex = 16
 			.SetBounds 0, 120, 230, 20
 			.Designer = @This
@@ -154,7 +162,7 @@
 		' CommandButton2
 		With CommandButton2
 			.Name = "CommandButton2"
-			.Text = "SetDisplayConfig"
+			.Text = ML("Set Display Config")
 			.TabIndex = 18
 			.SetBounds 120, 150, 110, 20
 			.Designer = @This
@@ -172,7 +180,7 @@
 		' CommandButton3
 		With CommandButton3
 			.Name = "CommandButton3"
-			.Text = "EnumDisplayMonitors"
+			.Text = ML("Enum Display Monitors")
 			.TabIndex = 20
 			.SetBounds 0, 190, 230, 20
 			.Designer = @This
@@ -182,7 +190,7 @@
 		' CommandButton4
 		With CommandButton4
 			.Name = "CommandButton4"
-			.Text = "EnumDisplayDevices"
+			.Text = ML("Enum Display Devices")
 			.TabIndex = 23
 			.SetBounds 0, 220, 230, 20
 			.Designer = @This
@@ -192,7 +200,7 @@
 		' CommandButton5
 		With CommandButton5
 			.Name = "CommandButton5"
-			.Text = "EnumDisplaySettingsEx"
+			.Text = ML("Enum Display Settings")
 			.TabIndex = 24
 			.SetBounds 0, 270, 230, 20
 			.Designer = @This
@@ -221,7 +229,7 @@
 		' CommandButton6
 		With CommandButton6
 			.Name = "CommandButton6"
-			.Text = "ChangeDisplaySettingsEx"
+			.Text = ML("Change Display Settings")
 			.TabIndex = 28
 			.SetBounds 0, 30, 230, 20
 			.Designer = @This
@@ -267,10 +275,11 @@
 			.Parent = @Panel1
 		End With
 	End Constructor
-
+	
 	Dim Shared frmDisplay As frmDisplayType
 	
 	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
 		frmDisplay.MainForm = True
 		frmDisplay.Show
 		App.Run
@@ -435,11 +444,11 @@ Private Sub Mode2WStr(ModeInfo As DISPLAYCONFIG_MODE_INFO, txt As TextBox Ptr)
 End Sub
 
 Private Sub DD2WStr(ddDisplay As DISPLAY_DEVICE, txt As TextBox Ptr)
-	txt->AddLine "DeviceID = " & ddDisplay.DeviceID
-	txt->AddLine "DeviceKey = " & ddDisplay.DeviceKey
-	txt->AddLine "DeviceName = " & ddDisplay.DeviceName
-	txt->AddLine "DeviceString = " & ddDisplay.DeviceString
-	txt->AddLine "StateFlags = " & ddDisplay.StateFlags
+	txt->AddLine ML("Device ID") & "= " & ddDisplay.DeviceID
+	txt->AddLine ML("Device Key") & "= " & ddDisplay.DeviceKey
+	txt->AddLine ML("Device Name") & "= " & ddDisplay.DeviceName
+	txt->AddLine ML("Device String") & "= " & ddDisplay.DeviceString
+	txt->AddLine ML("State Flags") & "= " & ddDisplay.StateFlags
 	txt->AddLine IIf (ddDisplay.StateFlags And DISPLAY_DEVICE_ACTIVE , " @ ", "   ") & "DISPLAY_DEVICE_ACTIVE"
 	txt->AddLine IIf (ddDisplay.StateFlags And DISPLAY_DEVICE_MIRRORING_DRIVER , " @ ", "   ") & "DISPLAY_DEVICE_MIRRORING_DRIVER"
 	txt->AddLine IIf (ddDisplay.StateFlags And DISPLAY_DEVICE_MODESPRUNED , " @ ", "   ") & "DISPLAY_DEVICE_MODESPRUNED"
@@ -499,40 +508,40 @@ End Sub
 Private Function QDCrtn2WStr(ByVal rtn As Long) ByRef As WString
 	Select Case rtn
 	Case ERROR_SUCCESS
-		Return "The function succeeded."
+		Return ML("The function succeeded.")
 	Case ERROR_INVALID_PARAMETER
-		Return "The combination of parameters and flags specified is invalid."
+		Return ML("The combination of parameters and flags specified is invalid.")
 	Case ERROR_NOT_SUPPORTED
-		Return "The system is not running a graphics driver that was written according to the Windows Display Driver Model (WDDM). The function is only supported on a system with a WDDM driver running."
+		Return ML("The system is not running a graphics driver that was written according to the Windows Display Driver Model (WDDM). The function is only supported on a system with a WDDM driver running.")
 	Case ERROR_ACCESS_DENIED
-		Return "The caller does not have access to the console session. This error occurs if the calling process does not have access to the current desktop or is running on a remote session."
+		Return ML("The caller does not have access to the console session. This error occurs if the calling process does not have access to the current desktop or is running on a remote session.")
 	Case ERROR_GEN_FAILURE
-		Return "An unspecified error occurred."
+		Return ML("An unspecified error occurred.")
 	Case ERROR_BAD_CONFIGURATION
-		Return "The function could not find a workable solution for the source and target modes that the caller did not specify."
+		Return ML("The function could not find a workable solution for the source and target modes that the caller did not specify.")
 	Case Else
-		Return "Unknow status."
+		Return ML("Unknow status.")
 	End Select
 End Function
 
 Private Function CDSErtnWstr(ByVal rtn As Long) ByRef As WString
 	Select Case rtn
 	Case DISP_CHANGE_SUCCESSFUL
-		Return "The settings change was successful."
+		Return ML("The settings change was successful.")
 	Case DISP_CHANGE_BADFLAGS
-		Return "An invalid set of values was used in the dwFlags parameter."
+		Return ML("An invalid set of values was used in the dwFlags parameter.")
 	Case DISP_CHANGE_BADMODE
-		Return "The graphics mode is not supported."
+		Return ML("The graphics mode is not supported.")
 	Case DISP_CHANGE_BADPARAM
-		Return "An invalid parameter was used. This error can include an invalid value or combination of values."
+		Return ML("An invalid parameter was used. This error can include an invalid value or combination of values.")
 	Case DISP_CHANGE_FAILED
-		Return "The display driver failed the specified graphics mode."
+		Return ML("The display driver failed the specified graphics mode.")
 	Case DISP_CHANGE_NOTUPDATED
-		Return "ChangeDisplaySettingsEx was unable to write settings to the registry."
+		Return ML("ChangeDisplaySettingsEx was unable to write settings to the registry.")
 	Case DISP_CHANGE_RESTART
-		Return "The user must restart the computer for the graphics mode to work."
+		Return ML("The user must restart the computer for the graphics mode to work.")
 	Case Else
-		Return "Unknow status."
+		Return ML("Unknow status.")
 	End Select
 End Function
 
@@ -555,9 +564,9 @@ Private Sub frmDisplayType.GetDisplayMode(ByVal NameIndex As Integer, ByVal Flag
 	
 	TextBox1.Clear
 	TextBox1.AddLine ComboBoxEdit3.Item(NameIndex)
-	TextBox1.AddLine "Total DEVMODE number: " & ListControl2.ItemCount
-	TextBox1.AddLine "Current DEVMODE: " & ListControl2.Item(Index)
-	TextBox1.AddLine "Current DEVMODE number: " & Index
+	TextBox1.AddLine ML("Total DEVMODE number") & ": " & ListControl2.ItemCount
+	TextBox1.AddLine ML("Current DEVMODE") & ": " & ListControl2.Item(Index)
+	TextBox1.AddLine ML("Current DEVMODE number") & ": " & Index
 	DM2WStr(dmDevModeCur, @TextBox1)
 	Deallocate(tmpi)
 	Deallocate(tmpc)
@@ -603,44 +612,45 @@ Private Sub frmDisplayType.EnumDisplayMode(ByVal NameIndex As Integer, ByVal Fla
 	ListControl2.ItemIndex = iModeCur
 	TextBox1.Clear
 	TextBox1.AddLine ComboBoxEdit3.Item(NameIndex)
-	TextBox1.AddLine "Total DEVMODE number: " & iModeNum
-	TextBox1.AddLine "Current DEVMODE number:" & iModeCur
+	TextBox1.AddLine ML("Total DEVMODE number") & ": " & iModeNum
+	TextBox1.AddLine ML("Current DEVMODE number") & ": " & iModeCur
 	DM2WStr(dmDevModeCur, @TextBox1)
 End Sub
 
 Private Sub frmDisplayType.Form_Create(ByRef Sender As Control)
-	ComboBoxEdit1.AddItem "QDC_ALL_PATHS"
-	ComboBoxEdit1.AddItem "QDC_ONLY_ACTIVE_PATHS"
-	ComboBoxEdit1.AddItem "QDC_DATABASE_CURRENT"
+	ComboBoxEdit1.AddItem ML("QDC_ALL_PATHS")
+	ComboBoxEdit1.AddItem ML("QDC_ONLY_ACTIVE_PATHS")
+	ComboBoxEdit1.AddItem ML("QDC_DATABASE_CURRENT")
 	ComboBoxEdit1.ItemIndex = 0
-	ListControl1.AddItem "QDC_VIRTUAL_MODE_AWARE"
-	ListControl1.AddItem "QDC_INCLUDE_HMD"
-	ListControl1.AddItem "QDC_VIRTUAL_REFRESH_RATE_AWARE"
-	ListControl1.AddItem "[NONE]"
+	ListControl1.AddItem ML("QDC_VIRTUAL_MODE_AWARE")
+	ListControl1.AddItem ML("QDC_INCLUDE_HMD")
+	ListControl1.AddItem ML("QDC_VIRTUAL_REFRESH_RATE_AWARE")
+	ListControl1.AddItem ML("NONE")
 	ListControl1.ItemIndex = 0
 	
-	ComboBoxEdit4.AddItem "EDS_RAWMODE"
-	ComboBoxEdit4.AddItem "EDS_ROTATEDMODE "
+	ComboBoxEdit4.AddItem ML("EDS RAWMODE")
+	ComboBoxEdit4.AddItem ML("EDS ROTATEDMODE")
 	ComboBoxEdit4.ItemIndex = 0
 	
-	ComboBoxEdit2.AddItem "Clone" '"SDC_TOPOLOGY_CLONE"
-	ComboBoxEdit2.AddItem "Extended" '"SDC_TOPOLOGY_EXTEND"
-	ComboBoxEdit2.AddItem "Internal" '"SDC_TOPOLOGY_INTERNAL"
-	ComboBoxEdit2.AddItem "External" '"SDC_TOPOLOGY_EXTERNAL"
+	ComboBoxEdit2.AddItem ML("Clone") '"SDC_TOPOLOGY_CLONE"
+	ComboBoxEdit2.AddItem ML("Extended") '"SDC_TOPOLOGY_EXTEND"
+	ComboBoxEdit2.AddItem ML("Internal") '"SDC_TOPOLOGY_INTERNAL"
+	ComboBoxEdit2.AddItem ML("External") '"SDC_TOPOLOGY_EXTERNAL"
 	ComboBoxEdit2.ItemIndex = 0
 	
 	ComboBoxEdit5.AddItem "0"
-	ComboBoxEdit5.AddItem "CDS_FULLSCREEN"
-	ComboBoxEdit5.AddItem "CDS_GLOBAL"
-	ComboBoxEdit5.AddItem "CDS_NORESET"
-	ComboBoxEdit5.AddItem "CDS_RESET"
-	ComboBoxEdit5.AddItem "CDS_SET_PRIMARY"
-	ComboBoxEdit5.AddItem "CDS_TEST"
-	ComboBoxEdit5.AddItem "CDS_UPDATEREGISTRY"
-	ComboBoxEdit5.AddItem "CDS_VIDEOPARAMETERS"
-	ComboBoxEdit5.AddItem "CDS_ENABLE_UNSAFE_MODES"
-	ComboBoxEdit5.AddItem "CDS_DISABLE_UNSAFE_MODES"
+	ComboBoxEdit5.AddItem ML("CDS FULLSCREEN")
+	ComboBoxEdit5.AddItem ML("CDS GLOBAL")
+	ComboBoxEdit5.AddItem ML("CDS NORESET")
+	ComboBoxEdit5.AddItem ML("CDS RESET")
+	ComboBoxEdit5.AddItem ML("CDS SET PRIMARY")
+	ComboBoxEdit5.AddItem ML("CDS TEST")
+	ComboBoxEdit5.AddItem ML("CDS UPDATEREGISTRY")
+	ComboBoxEdit5.AddItem ML("CDS VIDEOPARAMETERS")
+	ComboBoxEdit5.AddItem ML("CDS ENABLE UNSAFE MODES")
+	ComboBoxEdit5.AddItem ML("CDS DISABLE UNSAFE MODES")
 	ComboBoxEdit5.ItemIndex = 7
+	TextBox1.Text =  ML("Hello!") & WChr(55357 , 56832)
 End Sub
 
 Private Function frmDisplayType.MonitorEnumProc(ByVal hMtr As HMONITOR , ByVal hDCMonitor As HDC , ByVal lprcMonitor As LPRECT , ByVal dwData As LPARAM) As WINBOOL
@@ -676,7 +686,7 @@ Private Sub frmDisplayType.CommandButton2_Click(ByRef Sender As Control)
 	Dim rtn As Integer = SetDisplayConfig(0, NULL, 0, NULL, flag)
 	TextBox1.Clear
 	TextBox1.AddLine ComboBoxEdit2.Item(ComboBoxEdit2.ItemIndex)
-	TextBox1.AddLine "SetDisplayConfig=" & rtn
+	TextBox1.AddLine ML("Set Display Config") & " = " & rtn
 	TextBox1.AddLine QDCrtn2WStr(rtn)
 End Sub
 
@@ -846,3 +856,10 @@ Private Sub frmDisplayType.ComboBoxEdit4_Selected(ByRef Sender As ComboBoxEdit, 
 	EnumDisplayMode(ComboBoxEdit3.ItemIndex, ItemIndex)
 End Sub
 
+
+Private Sub frmDisplayType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+	Erase mtrMI
+	Erase mtrHMtr
+	Erase mtrHDC
+	Erase mtrRECT
+End Sub
