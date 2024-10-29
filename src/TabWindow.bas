@@ -1817,7 +1817,7 @@ Sub TabWindow.FillAllProperties()
 		te = FPropertyItems.Object(lvPropertyCount)
 		If te = 0 Then Continue For
 		With *te
-			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
+			If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.Name) <> "designer") AndAlso CInt(LCase(.Name) <> "xdpi") AndAlso CInt(LCase(.Name) <> "ydpi") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
 				If plvProperties->Nodes.Count <= lvPropertyCount Then
 					Dim As Boolean iBool = pComps->Contains(.TypeName)
 					Dim As Boolean TypeIsPointer = GetTypeIsPointer(te)
@@ -10941,7 +10941,7 @@ Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As 
 		FPropertyItems.Clear
 		tb->FillProperties te->TypeName
 		FPropertyItems.Sort
-		For lvPropertyCount As Integer = FPropertyItems.Count - 1 To 0 Step -1
+		For lvPropertyCount As Integer = 0 To FPropertyItems.Count - 1
 			ItemText = tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 			If SelCount > 1 AndAlso ItemText <> "" Then
 				For i As Integer = 0 To SelCount - 1
@@ -10954,7 +10954,7 @@ Sub lvProperties_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As 
 			te = FPropertyItems.Object(lvPropertyCount)
 			If te = 0 Then Continue For
 			With *te
-				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
+				If CInt(LCase(.Name) <> "handle") AndAlso CInt(LCase(.Name) <> "designer") AndAlso CInt(LCase(.Name) <> "xdpi") AndAlso CInt(LCase(.Name) <> "ydpi") AndAlso CInt(LCase(.TypeName) <> "hwnd") AndAlso CInt(LCase(.TypeName) <> "jobject") AndAlso CInt(LCase(.TypeName) <> "gtkwidget") AndAlso (CInt(.ElementType = E_Property) OrElse CInt(.ElementType = E_Field)) Then
 					lvItem = Item->Nodes.Add(FPropertyItems.Item(lvPropertyCount), 2, IIf((Not .TypeIsPointer) AndAlso pComps->Contains(.TypeName), 1, 0))
 					lvItem->Text(1) = ItemText 'tb->ReadObjProperty(tb->Des->SelectedControl, PropertyName & "." & FPropertyItems.Item(lvPropertyCount))
 					If (Not .TypeIsPointer) AndAlso pComps->Contains(.TypeName) Then
