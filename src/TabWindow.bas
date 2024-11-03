@@ -648,23 +648,22 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 	End If
 	OldY = y: OldX = x
 	Dim As UString Value
+	Dim As Integer EndChar
+	Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, False, , , EndChar)
+	If sWord <> "" Then
+		Dim As TypeElement Ptr te, teOld, teTypeOld
+		Dim As String TypeName, OldTypeName
+		Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
+		Dim As Integer iSelEndCharFunc = EndChar + 1
+		TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
+		Value = GetParameters(sWord, te, teOld)
+	End If
 	If InDebug Then
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, True)
 		If sWord <> "" Then
 			#ifdef __USE_WINAPI__
-				Value = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
+				Value = Value & IIf(Value = "", "", !"\rValue: ") & get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
 			#endif
-		End If
-	Else
-		Dim As Integer EndChar
-		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, False, , , EndChar)
-		If sWord <> "" Then
-			Dim As TypeElement Ptr te, teOld, teTypeOld
-			Dim As String TypeName, OldTypeName
-			Dim As Integer iSelEndLine = tb->txtCode.LineIndexFromPoint(x, y)
-			Dim As Integer iSelEndCharFunc = EndChar + 1
-			TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
-			Value = GetParameters(sWord, te, teOld)
 		End If
 	End If
 	If Value <> "" Then
