@@ -6716,7 +6716,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 				varfind.ad = vrp1(idx, i).ad
 				varfind.tv=tv 'handle treeview
 				varfind.tl=hitem 'handle line
-				varfind.iv=-1
+				varfind.iv = -1
 				Return i
 			End If
 		Next
@@ -6782,6 +6782,56 @@ End Function
 			'If helpbx=0 Then helptyp=5:fb_Dialog(@help_box,"WString (ushort) : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,250)
 		End If
 	End Sub
+	
+	Function get_sh(i As Integer) As UString
+		Static As Byte wrapflag, buf(32004)
+		var_fill(i)
+		
+		If varfind.ty <> 4 And varfind.ty <> 13 And varfind.ty <> 14 And varfind.ty <> 6 Then 'or ty<>15 Then
+			Return ""
+		End If
+		stringadr = varfind.ad
+		If varfind.pt Then
+			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'string ptr 27/07/2015 64bit
+			If varfind.pt = 2 Then ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'if two levels
+		End If
+		Dim f As Integer, inc As Integer = 32000, wstrg As WString * 32001, bufw As UShort
+		If varfind.ty <> 6 Then
+			If varfind.ty = 13 Then 'string Then
+				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'string address
+			End If
+			
+			f = stringadr
+			While inc <> 0
+				If ReadProcessMemory(dbghand, Cast(LPCVOID, f + inc), @buf(0), 4, 0) Then
+					f += inc
+					Exit While
+				Else
+					inc \= 2
+				End If
+			Wend
+			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @buf(0), f - stringadr, 0)
+			buf(f - stringadr + 1) = 0 'end of string if length >32000
+			
+			Return *Cast(WString Ptr, @buf(0))
+			'txt.Text = *Cast(String Ptr, @buf(0))
+			'If helpbx=0 Then helptyp=4:fb_Dialog(@help_box,"String : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,260)
+		Else
+			inc = 0: wstrg = ""
+			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @bufw, 2, 0)
+			While bufw
+				wstrg[inc] = bufw
+				inc += 1
+				If inc = 32000 Then Exit While 'limit if wstring >32000
+				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr + inc * 2), @bufw, 2, 0)
+			Wend
+			wstrg[inc] = 0 'end of wstring
+			Return wstrg
+			'SendMessage (hedit1,WM_SETFONT,Cast(WPARAM,fonthdl),0)
+			'setwindowtextw(hedit1,wstrg)
+			'If helpbx=0 Then helptyp=5:fb_Dialog(@help_box,"WString (ushort) : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,250)
+		End If
+	End Function
 	
 	Sub shwexp_new(tview As Any Ptr) '24/11/2014
 		Dim As Integer hitem,temp,typ,pt,rvadr
@@ -6907,7 +6957,7 @@ Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As
 			If p>200 Then
 				varlib+="="+proc_name(*Ptrs.puinteger) 'proc name
 			Else
-				varlib+="="+Str(*Ptrs.puinteger) 'just the value
+				varlib += "=" + Str(*Ptrs.puinteger) 'just the value
 			End If
 		Else
 			varlib+=" No valid value"
@@ -6942,7 +6992,7 @@ Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As
 					varlib+=Str(*Ptrs.pshort)
 				Case 6 'ushort
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
-					varlib+=Str(*Ptrs.pushort)
+					varlib += Str(*Ptrs.pushort)
 				Case 7 'void  '25/07/2015
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0)
 					varlib+=Str(*Ptrs.pvoid)
@@ -10128,7 +10178,11 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				text+="<Common / "
 			End Select
 			If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini+SizeOf(Integer))+" >> "  '25/07/2015
-			text+=var_sh2(.typ,adr,.pt,soffset)
+			text += var_sh2(.typ, adr, .pt, soffset)
+			If InStr(text, "Ushort") > 0 Then
+				Dim As UString result = get_sh(i)
+				text += ": """ + result + """"
+			End If
 			Return text
 		End With
 	End If

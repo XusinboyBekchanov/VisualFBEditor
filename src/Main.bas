@@ -3267,6 +3267,7 @@ Sub TimerProc()
 	tb->txtCode.PaintControl
 	#ifndef __USE_GTK__
 		SetForegroundWindow frmMain.Handle
+		ChangeEnabledDebug True, False, True
 	#endif
 	fntab = 0
 	fcurlig = -1
