@@ -10181,6 +10181,9 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 			text += var_sh2(.typ, adr, .pt, soffset)
 			If InStr(text, "Ushort") > 0 Then
 				Dim As UString result = get_sh(i)
+				If Len(result) > 75 Then
+					result = Left(result, 75) & "..."
+				End If
 				text += ": """ + result + """"
 			End If
 			Return text
