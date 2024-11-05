@@ -420,7 +420,7 @@ Namespace My.Sys.Forms
 			If SelectedControls.Count = 0 Then SelectedControls.Add SelectedControl
 			'if Control <> FDialog then
 			Dim As Integer DotsCount = UBound(FDots)
-			For j As Integer = DotsCount To SelectedControls.Count - 1 Step -1
+			For j As Integer = DotsCount To SelectedControls.Count Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
 						If FDots(j, i) > 0 AndAlso GTK_IS_WIDGET(FDots(j, i)) Then
@@ -560,7 +560,7 @@ Namespace My.Sys.Forms
 					Next i
 				Next j
 			#else
-				For j As Integer = SelectedControls.Count - 1 To DotsCount Step - 1 'For Compile with FBC 1.10
+				For j As Integer = SelectedControls.Count - 1 To DotsCount + 1 Step - 1 'For Compile with FBC 1.10
 					For i As Integer = 0 To 7
 						FDots(j, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), GetParent(FDialog), 0, Instance, 0)
 						SetWindowLongPtr(FDots(j, i), GWLP_USERDATA, CInt(@This))
