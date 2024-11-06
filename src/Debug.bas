@@ -10179,13 +10179,15 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 			End Select
 			If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini+SizeOf(Integer))+" >> "  '25/07/2015
 			text += var_sh2(.typ, adr, .pt, soffset)
-			If InStr(text, "Ushort") > 0 Then
-				Dim As UString result = get_sh(i)
-				If Len(result) > 75 Then
-					result = Left(result, 75) & "..."
+			#ifdef __USE_WINAPI__
+				If InStr(text, "Ushort") > 0 Then
+					Dim As UString result = get_sh(i)
+					If Len(result) > 75 Then
+						result = Left(result, 75) & "..."
+					End If
+					text += ": """ + result + """"
 				End If
-				text += ": """ + result + """"
-			End If
+			#endif
 			Return text
 		End With
 	End If
