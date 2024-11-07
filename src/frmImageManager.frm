@@ -13,7 +13,6 @@
 			.Name = "frmImageManager"
 			.Text = ML("Image Manager")
 			.Designer = @This
-			.OnShow = @Form_Show_
 			.Margins.Top = 0
 			.Margins.Right = 0
 			.Margins.Left = 0
@@ -273,13 +272,6 @@
 	pfImageManager = @fImageManager
 	pfImageListEditor = @fImageListEditor
 '#End Region
-
-Private Sub frmImageManager.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
-	(*Cast(frmImageManager Ptr, Sender.Designer)).Form_Show(Sender)
-End Sub
-Private Sub frmImageManager.Form_Show(ByRef Sender As Form)
-	
-End Sub
 
 Private Sub frmImageManager.cmdCancel_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	(*Cast(frmImageManager Ptr, Sender.Designer)).cmdCancel_Click(Sender)
@@ -595,6 +587,10 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 						FileExt = Mid(Key, Pos1 + 1)
 						Key = ..Left(Key, Pos1 - 1)
 					End If
+					If InStr(" BITMAP PNG ICON CURSOR RCDATA ", " " & UCase(Trim(Key)) & " ") Then 
+						MsgBox ML("not loaded") & " " & ML("Keywords") & ": " & Key
+						Exit Sub
+					End If
 					Select Case LCase(FileExt)
 					Case "bmp": ResourceType = "BITMAP"
 					Case "png": ResourceType = "PNG"
@@ -729,6 +725,11 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 			Dim As String Image
 			Do Until EOF(Fn)
 				Line Input #Fn, sLine
+				Pos1 = InStr(LTrim(sLine), " ")
+				If Pos1 > 0 AndAlso InStr(" BITMAP PNG ICON CURSOR RCDATA ", " " & UCase(Trim(Mid(LTrim(sLine), 1, Pos1))) & " ") Then 
+					MsgBox ML("not loaded") & " " & ML("Keywords") & ": " & Trim(Mid(LTrim(sLine), 1, Pos1))
+					Continue Do
+				End If
 				Pos1 = InStr(sLine, " BITMAP "): Image = "BITMAP"
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " PNG "): Image = "PNG"
 				If Pos1 = 0 Then Pos1 = InStr(sLine, " RCDATA "): Image = "RCDATA"
