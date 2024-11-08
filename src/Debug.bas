@@ -6037,7 +6037,7 @@ End Sub
 '' -----------------------
 Private Sub dbg_line(linenum As Integer, ofset As Integer)
 	If linenum Then
-		#Ifndef __FB_64BIT__
+		#ifndef __FB_64BIT__
 			''to skip stabd
 			If linenum<rline(linenb).nu Then
 				If procnb=rline(linenb).px Then
@@ -6460,14 +6460,45 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 	Next
 End Sub
 
+Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As Integer
+	For i As Integer = udt(typ).lb To udt(typ).ub
+		If cudt(i).nm = text Then
+			Dim As Integer iUBound = i - udt(typ).lb
+			#ifdef __USE_WINAPI__
+				Dim As HTREEITEM hFirstChildOfProcThis, hChildOfThis
+				hFirstChildOfProcThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, tv)))
+				hChildOfThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, hFirstChildOfProcThis)))
+				For j As Integer = 1 To iUBound
+					hChildOfThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_NEXT, Cast(LPARAM, hChildOfThis)))
+				Next
+				Dim tvi As TVITEM
+				tvi.mask = TVIF_PARAM
+				tvi.hItem = hChildOfThis
+				SendMessage(tvVar.Handle, TVM_GETITEM, 0, Cast(LPARAM, @tvi))
+				Return tvi.lParam
+			#endif
+			Return -1
+		End If
+	Next
+	If cudt(udt(typ).lb).nm = "BASE$" Then
+		#ifdef __USE_WINAPI__
+			Dim As HTREEITEM hFirstChildOfProcThisOrBase
+			hFirstChildOfProcThisOrBase = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, tv)))
+			Return var_search2(text, cudt(udt(typ).lb).typ, hFirstChildOfProcThisOrBase)
+		#endif
+		Return -1
+	End If
+	Return -1
+End Function
+
 Private Function var_search(pproc As Integer,text() As String,vnb As Integer,varr As Integer,vpnt As Integer=0) As Integer
-	Dim As Integer begv=procr(pproc).vr,endv=procr(pproc+1).vr,tvar=1,flagvar
+	Dim As Integer begv = procr(pproc).vr, endv = procr(pproc + 1).vr, tvar = 1, flagvar
 	'dbg_prt2("searching="+text(1)+"__"+text(2)+"***"+Str(vnb))'18/01/2015
 	flagvar=True 'either only a var either var then its components
 	While begv<endv And tvar<=vnb 'inside the local vars and all the elements (see parsing)
 		If flagvar Then
-			If vrr(begv).vr>0 Then 'var ok
-				If vrb(vrr(begv).vr).nm=text(tvar) Then 'name ok
+			If vrr(begv).vr > 0 Then 'var ok Then
+				If vrb(vrr(begv).vr).nm = text(tvar) Then 'name ok
 					'testing array or not
 					flagvar=0 'only one time
 					If tvar=vnb Then
@@ -6476,13 +6507,16 @@ Private Function var_search(pproc As Integer,text() As String,vnb As Integer,var
 						End If
 						
 					End If
-					tvar+=1 'next element, a component
+					tvar += 1 'next element, a component
+				ElseIf vrb(vrr(begv).vr).nm = "THIS" Then
+					Dim ivrr As Integer = var_search2(text(tvar), vrb(vrr(begv).vr).typ, procr(pproc).tv)
+					If ivrr <> -1 Then Return ivrr
 				End If
 			End If
 		Else
 			'component level
-			If vrr(begv).vr<0 Then
-				If cudt(Abs(vrr(begv).vr)).nm=text(tvar) Then
+			If vrr(begv).vr < 0 Then
+				If cudt(Abs(vrr(begv).vr)).nm = text(tvar) Then
 					If tvar=vnb Then
 						If (varr=1 AndAlso cudt(Abs(vrr(begv).vr)).arr<>0 ) OrElse (varr=0 And cudt(Abs(vrr(begv).vr)).arr=0) Then
 							Return begv'happy found !!!
@@ -8279,7 +8313,7 @@ End Sub
 			If ladr<>rline(linenb).ad Then
 				linenb+=1
 			Else
-				writeprocessmemory(dbghand,Cast(LPVOID,rline(linenb).ad),@rline(linenb).sv,1,0)
+				WriteProcessMemory(dbghand,Cast(LPVOID,rline(linenb).ad),@rline(linenb).sv,1,0)
 			End If
 			'
 			rline(linenb).ad=ladr
@@ -8682,19 +8716,19 @@ Private Sub load_dat(ByVal ofset As Integer,ByVal size As Integer,ByVal ofstr As
 	Dim As Integer value
 	Dim As String strg
 	ofstr+=1 ''1 based
-	#Ifdef __FB_64BIT__
+	#ifdef __FB_64BIT__
 		Dim As LongInt buf(1) ''16 bytes
 	#else
 		Dim As Long buf(2) ''12 bytes
 	#endif
 	Dim As Integer ofsmax,ofstemp
-	#Ifdef __FB_64BIT__
+	#ifdef __FB_64BIT__
 		For ibuf As Integer =1 To size/16
 	#else
 		For ibuf As Integer =1 To size/12
 	#endif
 		Get #1,ofset+1,buf()
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			stab.full=buf(0)
 		#else
 			stab.offst=buf(0)
@@ -8710,7 +8744,7 @@ Private Sub load_dat(ByVal ofset As Integer,ByVal size As Integer,ByVal ofstr As
 			ofsmax=ofstemp
 		End If
 		'dbg_prt2 strg,ofstr,stab.offst,ofsmax
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			value=buf(1)
 		#else
 			value=buf(2)
@@ -8718,33 +8752,33 @@ Private Sub load_dat(ByVal ofset As Integer,ByVal size As Integer,ByVal ofstr As
 		'dbg_prt2 "D="+str(value)+" H="+hex(value)
 		
 		Select case As Const stab.cod
-		case 100 '' file name
+		Case 100 '' file name
 			dbg_file(strg,value)
-		case 255 ''not as standard stab freebasic version and maybe other information
+		Case 255 ''not as standard stab freebasic version and maybe other information
 			'dbg_prt2 "compiled with=";strg
-		case 32,38,40,128,160 'init common/ var / uninit var / local / parameter
+		Case 32,38,40,128,160 'init common/ var / uninit var / local / parameter
 			parse_var(strg,value)',exebase-baseimg) ''todo
-		case 132 '' file name
+		Case 132 '' file name
 			'dbg_prt2 "dbg include=";strg
 			dbg_include(strg)
-		case 36 ''procedure
+		Case 36 ''procedure
 			dbg_proc(strg,stab.desc,value)
-		case 68 ''line
+		Case 68 ''line
 			dbg_line(stab.desc,value)
-		case 224 ''address epilog
+		Case 224 ''address epilog
 			dbg_epilog(value)
-		case 42 ''main entry point
+		Case 42 ''main entry point
 			'not used
-		case 0
-			#Ifdef __FB_64BIT__
+		Case 0
+			#ifdef __FB_64BIT__
 				If ofsmax<>ofstr+7 Then
 					ofstr=ofsmax
 				End If
 			#endif
-		case Else
+		Case Else
 			dbg_prt2 "Unknow stab cod=";stab.cod
 		End Select
-		#Ifdef __FB_64BIT__
+		#ifdef __FB_64BIT__
 			ofset+=16
 		#else
 			ofset+=12
@@ -9399,7 +9433,7 @@ Private Sub thread_resume(thd As Integer=-1)
 			If thread(ith).sts=KTHD_STOP Then ''not those BLKD or INIT and useless those RUN
 				''restore old value for execution
 				If thread(ith).sv>0 Then ''if attachment no saved line
-					writeprocessmemory(dbghand,Cast(LPVOID,rline(thread(ith).sv).ad),@rline(thread(ith).sv).sv,1,0)
+					WriteProcessMemory(dbghand,Cast(LPVOID,rline(thread(ith).sv).ad),@rline(thread(ith).sv).sv,1,0)
 				End If
 				thread(ith).sts=KTHD_RUN
 				thread(ith).rtype=runtype
@@ -10152,6 +10186,15 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini)+" >> "  '19/05/2014
 				text+="<"+var_sh2(.typ,vrr(i).ad,.pt,soffset)
 			End If
+			#ifdef __USE_WINAPI__
+				If InStr(text, "Ushort") > 0 Then
+					Dim As UString result = get_sh(i)
+					If Len(result) > 75 Then
+						result = Left(result, 75) & "..."
+					End If
+					text += ": """ + result + """"
+				End If
+			#endif
 			Return text
 		End With
 	Else
@@ -10792,7 +10835,7 @@ Private Sub proc_new()
 	libel+=proc(procsv).nm+":"+proc_retval(procsv)
 	If flagverbose Then libel+=" ["+Str(proc(procsv).db)+"]"
 	
-	procr(procrnb).tv=Tree_AddItem(0,libel,tv,tviewvar, 0)
+	procr(procrnb).tv = Tree_AddItem(0, libel, tv, tviewvar, 0)
 	thread(threadcur).plt=procr(procrnb).tv 'keep handle last item
 	
 	'add new proc to thread treeview
