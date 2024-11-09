@@ -8648,7 +8648,7 @@ lvThreads.Align = DockStyle.alClient
 lvThreads.Columns.Add ML("Procedure"), , 500
 lvThreads.Columns.Add ML("Line"), , 50
 lvThreads.Columns.Add ML("File"), , 500
-lvThreads.StateImages = @imgListStates
+'lvThreads.StateImages = @imgListStates
 lvThreads.Images = @imgListStates
 lvThreads.OnItemActivate = @lvThreads_ItemActivate
 
@@ -8720,7 +8720,7 @@ lvLocals.Columns.Add ML("Variable"), , 150
 lvLocals.Columns.Add ML("Value"), , 500
 lvLocals.Columns.Add ML("Type"), , 500
 lvLocals.Columns.Column(1)->Editable = True
-lvLocals.StateImages = @imgListStates
+'lvLocals.StateImages = @imgListStates
 lvLocals.Images = @imgListStates
 lvLocals.OnItemExpanding = @lvVar_ItemExpanding
 
@@ -8731,7 +8731,7 @@ lvGlobals.Columns.Add ML("Variable"), , 150
 lvGlobals.Columns.Add ML("Value"), , 500
 lvGlobals.Columns.Add ML("Type"), , 500
 lvGlobals.Columns.Column(1)->Editable = True
-lvGlobals.StateImages = @imgListStates
+'lvGlobals.StateImages = @imgListStates
 lvGlobals.Images = @imgListStates
 lvGlobals.OnItemExpanding = @lvVar_ItemExpanding
 
@@ -8777,7 +8777,7 @@ lvWatches.Columns.Add ML("Value"), , 500
 lvWatches.Columns.Add ML("Type"), , 500
 lvWatches.Columns.Column(0)->Editable = True
 lvWatches.Columns.Column(1)->Editable = True
-lvWatches.StateImages = @imgListStates
+'lvWatches.StateImages = @imgListStates
 lvWatches.Images = @imgListStates
 lvWatches.OnItemExpanding = @lvVar_ItemExpanding
 lvWatches.OnCellEditing = @lvWatches_CellEditing
@@ -8788,7 +8788,7 @@ lvMemory.Align = DockStyle.alClient
 lvMemory.ContextMenu = @mnuVars
 lvMemory.Columns.Add ML("Address / delta"), , 150
 lvMemory.Columns.Add ML("Ascii value"), , 150
-lvMemory.StateImages = @imgListStates
+'lvMemory.StateImages = @imgListStates
 lvMemory.Images = @imgListStates
 
 
