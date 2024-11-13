@@ -17,4 +17,4 @@ QueryDisplayConfig
 GetDisplayConfigBufferSizes
 	https://docs.microsoft.com/en-us/windows/win32/api/winuser/nf-winuser-getdisplayconfigbuffersizes
   
-![image](https://user-images.githubusercontent.com/35757455/207781599-de9bcd64-45cc-4046-8204-3fc0ef21a237.png)
+![image](https://github.com/user-attachments/assets/1c693d4e-367f-4fd3-9edc-bcec48cb6e78)

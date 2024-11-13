@@ -1,4 +1,6 @@
-﻿*File=frmDisplay.frm
+﻿File=Monitor.bi
+*File=frmDisplay.frm
+File=Monitor.bas
 ProjectType=0
 Subsystem=0
 ProjectName="Display"
@@ -9,7 +11,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=156
+BuildVersion=440
 AutoIncrementVersion=true
 ApplicationTitle="MultipleDisplay"
 ApplicationIcon=""
