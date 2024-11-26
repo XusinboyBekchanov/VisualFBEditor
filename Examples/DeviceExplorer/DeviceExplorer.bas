@@ -1,0 +1,442 @@
+﻿'DeviceExplorer.bas
+' Copyright (c) 2024 CM.Wang
+' Freeware. Use at your own risk.
+' 通过windows api实现如device manager一样的update driver, uninstall device, eject device的功能
+' 翻译了cfgmgr32, devguid, devpkey, devpropdef, newdev等相关头文件
+' 参考TwinBasic的样例
+' https://github.com/fafalone/DeviceExplorer
+
+#include once "DeviceExplorer.bi"
+
+Private Sub pvRelase()
+	Dim i As Integer
+	
+	For i = 0 To categoriesCount
+		'If categoriesHSet(i) <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(categoriesHSet(i))
+		If categoriesName(i) Then Deallocate(categoriesName(i))
+		If categoriesDescription(i) Then Deallocate(categoriesDescription(i))
+	Next
+	Erase categoriesHSet
+	Erase categoriesDevInfo
+	Erase categoriesGuid
+	Erase categoriesName
+	Erase categoriesDescription
+	categoriesCount = -1
+	
+	For i = 0 To devicesCount
+		If devicesFriendlyName(i) Then Deallocate(devicesFriendlyName(i))
+		If devicesDescription(i) Then Deallocate(devicesDescription(i))
+		If devicesInstanceId(i) Then Deallocate(devicesInstanceId(i))
+		If devicesHardwareId(i) Then Deallocate(devicesHardwareId(i))
+		If devicesDriver(i) Then Deallocate(devicesDriver(i))
+	Next
+	Erase devicesIndexCategories
+	Erase devicesGUID
+	Erase devicesCapabilities
+	Erase devicesEnabled
+	Erase devicesPresent
+	Erase devicesProblem
+	Erase devicesStatus
+	Erase devicesFriendlyName
+	Erase devicesHardwareId
+	Erase devicesDriver
+	Erase devicesDescription
+	Erase devicesInstanceId
+	devicesCount = -1
+End Sub
+
+Private Sub pvInitIcon(hImgLst As HANDLE)
+	Dim As HMODULE hm = GetModuleHandle(NULL)
+	ImageList_Remove hImgLst, -1
+	Dim hOvr1 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRWARN), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
+	Dim hOvr2 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRINFO), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
+	Dim hOvr3 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRDOWN), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
+	Dim o1 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr1)
+	Dim o2 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr2)
+	Dim o3 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr3)
+	ImageList_SetOverlayImage(hImgLst, o1, 1)
+	ImageList_SetOverlayImage(hImgLst, o2, 2)
+	ImageList_SetOverlayImage(hImgLst, o3, 3)
+	DestroyIcon hOvr1
+	DestroyIcon hOvr2
+	DestroyIcon hOvr3
+End Sub
+
+Private Function pvIndexBydevicesInstanceId(hwndParent As HWND, pGuid As GUID Ptr, pInstanceId As WString Ptr, ShowHide As Boolean, ByRef hSet As HDEVINFO, ByRef pDevInfo As PSP_DEVINFO_DATA) As BOOL
+	Dim i As Long = 0
+	Dim ret As BOOL
+	Dim cchReq As DWORD = 0
+	
+	hSet = SetupDiGetClassDevs(pGuid, NULL, hwndParent, IIf(ShowHide, 0, DIGCF_PRESENT))
+	If hSet = INVALID_HANDLE_VALUE Then Return False
+	
+	memset(pDevInfo, 0, SizeOf(SP_DEVINFO_DATA))
+	pDevInfo->cbSize = SizeOf(SP_DEVINFO_DATA)
+	
+	Dim tInstanceId As WString Ptr
+	Do While SetupDiEnumDeviceInfo(hSet, i, pDevInfo)
+		ret = SetupDiGetDeviceInstanceId(hSet, pDevInfo, NULL, NULL, @cchReq)
+		If cchReq Then
+			tInstanceId = CAllocate(cchReq * 2, SizeOf(Byte))
+			ret = SetupDiGetDeviceInstanceId(hSet, pDevInfo, tInstanceId, cchReq, @cchReq)
+			
+			If *tInstanceId = *pInstanceId Then
+				If tInstanceId Then Deallocate(tInstanceId)
+				Return True
+			End If
+		End If
+		i += 1
+		memset(pDevInfo, 0, SizeOf(SP_DEVINFO_DATA))
+		pDevInfo->cbSize = SizeOf(SP_DEVINFO_DATA)
+	Loop
+	If tInstanceId Then Deallocate(tInstanceId)
+	Return False
+End Function
+
+Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCategories As Boolean, ShowHide As Boolean) As Integer
+	Dim ret As BOOL
+	Dim cbReq As DWORD
+	
+	tv->Nodes.Clear
+	pvRelase()
+
+	cbReq = 0
+	'SetupDiBuildClassInfoList返回本地计算机上安装的设备类别的 GUID 列表
+	ret = SetupDiBuildClassInfoList(NULL, NULL, 0, @cbReq)
+	categoriesCount = cbReq - 1
+	EnumCCount = 0
+	EnumDCount = 0
+	If cbReq < 1 Then Return 0
+	
+	ReDim categoriesHSet(categoriesCount)
+	ReDim categoriesDevInfo(categoriesCount)
+	ReDim categoriesGuid(categoriesCount)
+	ReDim categoriesName(categoriesCount)
+	ReDim categoriesDescription(categoriesCount)
+	
+	Dim cchReq As DWORD = 0
+	ret = SetupDiBuildClassInfoList(NULL, @categoriesGuid(0), cbReq, @cchReq)
+	If ret = False Then Return 0
+	
+	Dim i As Long
+	Dim j As Integer = 0
+	
+	Dim pTNode As TreeNode Ptr
+	Dim sTNode As TreeNode Ptr
+	Dim mIndex As DWORD
+	Dim regType As DWORD = REGTYPES.REG_NONE 
+	Dim hicn As HICON
+	Dim ico As Long
+	
+	Dim cbiReq As Integer
+	Dim nPropType As DEVPROPTYPE = DEVPROP_TYPE_BOOLEAN
+	Dim fPresent As Integer
+	Dim dwStatus As CfgMgDevNodeStatus = 0
+	Dim nProbCode As CfgMgrProblems = 0
+	Dim bProblem As Boolean = False
+	Dim dwState As DWORD = 0
+	Dim dwMask As DWORD = 0
+	
+	For i = 0 To categoriesCount
+		'Print "EnumClasses: " & i
+		
+		'SetupDiGetClassDevs用于获取包含所请求的设备信息集的句柄
+		categoriesHSet(i) = SetupDiGetClassDevs(@categoriesGuid(i), NULL, hwndParent, IIf(ShowHide, 0, DIGCF_PRESENT))
+		If categoriesHSet(i) = INVALID_HANDLE_VALUE Then Continue For
+		
+		'Print "EnumClasses: " & i, 1
+		cchReq = 0
+		'SetupDiClassNameFromGuid根据设备类别 GUID 获取设备类名称
+		ret = SetupDiClassNameFromGuid(@categoriesGuid(i), NULL, NULL, @cchReq)
+		If cchReq Then
+			categoriesName(i) = CAllocate(cchReq * 2, SizeOf(Byte))
+			ret = SetupDiClassNameFromGuid(@categoriesGuid(i), categoriesName(i), cchReq, @cchReq)
+		End If
+		
+		'Print "EnumClasses: " & i, 2
+		cchReq = 0
+		'SetupDiGetClassDescription获取设备类的描述
+		ret = SetupDiGetClassDescription(@categoriesGuid(i), NULL, NULL, @cchReq)
+		If cchReq Then
+			categoriesDescription(i) = CAllocate(cchReq * 2, SizeOf(Byte))
+			ret = SetupDiGetClassDescription(@categoriesGuid(i), categoriesDescription(i), cchReq, @cchReq)
+		End If
+		
+		'显示所有设备类别
+		If ShowCategories Then
+			'Print "EnumClasses: " & i, 3
+			EnumCCount += 1
+			ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
+			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+			DestroyIcon(hicn)
+			pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
+		Else
+			pTNode = NULL
+		End If
+		
+		mIndex = 0
+		memset(@categoriesDevInfo(i), 0, SizeOf(categoriesDevInfo(i)))
+		categoriesDevInfo(i).cbSize = SizeOf(categoriesDevInfo(i))
+		'SetupDiEnumDeviceInfo枚举设备信息集中的设备信息元素
+		Do While SetupDiEnumDeviceInfo(categoriesHSet(i), mIndex, @categoriesDevInfo(i))
+			
+			If pTNode = NULL Then
+				'Print "EnumClasses: " & i, 4
+				'只显示有设备的设备类别
+				EnumCCount += 1
+				ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
+				ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+				DestroyIcon(hicn)
+				pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
+			End If
+			cchReq = 0
+			
+			j += 1
+			ReDim Preserve devicesIndexCategories(j)
+			ReDim Preserve devicesGUID(j)
+			ReDim Preserve devicesCapabilities(j)
+			ReDim Preserve devicesStatus(j)
+			ReDim Preserve devicesProblem(j)
+			ReDim Preserve devicesPresent(j)
+			ReDim Preserve devicesEnabled(j)
+			ReDim Preserve devicesFriendlyName(j)
+			ReDim Preserve devicesHardwareId(j)
+			ReDim Preserve devicesDescription(j)
+			ReDim Preserve devicesInstanceId(j)
+			ReDim Preserve devicesDriver(j)
+			
+			devicesIndexCategories(j) = i
+			
+			'SetupDiGetDeviceInstanceId获取设备实例 ID。这个 ID 是一个唯一的字符串，用于标识系统中的每个设备实例。
+			cchReq = 0
+			'Print "EnumClasses: " & i, 5, j
+			ret = SetupDiGetDeviceInstanceId(categoriesHSet(i), @categoriesDevInfo(i), NULL, 0, @cchReq)
+			If cchReq Then
+				devicesInstanceId(j) = CAllocate(cchReq * 2, SizeOf(Byte))
+				ret = SetupDiGetDeviceInstanceId(categoriesHSet(i), @categoriesDevInfo(i), devicesInstanceId(j), cchReq, @cchReq)
+			End If
+			
+			'SetupDiGetDeviceRegistryProperty从设备的信息集中检索设备的注册表属性
+			'Print "EnumClasses: " & i, "SPDRP_CLASSGUID", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CLASSGUID, @regType, NULL, 0, @cchReq)
+			'Print "EnumClasses: " & i, "SPDRP_CLASSGUID", j, cchReq, regType
+			If cchReq Then
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CLASSGUID, @regType, Cast(UByte Ptr, @devicesGUID(j)), SizeOf(devicesGUID(j)), @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SPDRP_CAPABILITIES", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CAPABILITIES, @regType, NULL, 0, @cchReq)
+			If cchReq Then
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CAPABILITIES, @regType, Cast(UByte Ptr, @devicesCapabilities(j)), SizeOf(devicesCapabilities(j)), @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SPDRP_HARDWAREID", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_HARDWAREID, @regType, NULL, 0, @cchReq)
+			If cchReq Then
+				devicesHardwareId(j) = CAllocate(cchReq * 2, SizeOf(Byte))
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_HARDWAREID, @regType, Cast(PBYTE, devicesHardwareId(j)), cchReq, @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SPDRP_FRIENDLYNAME", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_FRIENDLYNAME, @regType, NULL, 0, @cchReq)
+			If cchReq Then
+				devicesFriendlyName(j) = CAllocate(cchReq * 2, SizeOf(Byte))
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_FRIENDLYNAME, @regType, Cast(PBYTE, devicesFriendlyName(j)), cchReq, @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SPDRP_DEVICEDESC", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DEVICEDESC, @regType, NULL, 0, @cchReq)
+			If cchReq Then
+				devicesDescription(j) = CAllocate(cchReq * 2, SizeOf(Byte))
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DEVICEDESC, @regType, Cast(PBYTE, devicesDescription(j)), cchReq, @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SPDRP_DRIVER", j
+			cchReq = 0
+			regType= 0 
+			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DRIVER, @regType, NULL, 0, @cchReq)
+			If cchReq Then
+				devicesDriver(j) = CAllocate(cchReq * 2, SizeOf(Byte))
+				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DRIVER, @regType, Cast(PBYTE, devicesDriver(j)), cchReq, @cchReq)
+			End If
+			
+			'Print "EnumClasses: " & i, "SetupDiLoadDeviceIcon", j
+			ret = SetupDiLoadDeviceIcon(categoriesHSet(i), @categoriesDevInfo(i), 16, 16, NULL, @hicn)
+			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+			DestroyIcon(hicn)
+			
+			'Print "EnumClasses: " & i, "CM_Get_DevNode_Status", j
+			If CM_Get_DevNode_Status(@dwStatus, @nProbCode, categoriesDevInfo(i).DevInst, 0) = CR_SUCCESS Then
+				If dwStatus <> 0 And nProbCode<> 0 Then bProblem = True
+				If dwStatus And DN_HAS_PROBLEM Then
+					
+					'Print "EnumClasses: " & i, "DeviceProblemText", j
+					Dim p As WString Ptr
+					Dim s As DWORD = 0
+					s = DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, NULL, NULL)
+					p = CAllocate(s * 4, SizeOf(Byte))
+					DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, p, @s)
+					'Print i, j, s, nProbCode, *p
+					If p Then Deallocate(p)
+				End If
+			End If
+			
+			If ShowHide Then
+				fPresent = False
+				
+				'Print "EnumClasses: " & i, "SetupDiGetDeviceProperty", j
+				ret = SetupDiGetDeviceProperty(categoriesHSet(i), @categoriesDevInfo(i), @DEVPKEY_Device_IsPresent, nPropType, @fPresent, SizeOf(fPresent), @cbiReq, 0)
+			Else
+				fPresent = CTRUE
+			End If
+			
+			devicesEnabled(j) = True
+			If bProblem Then
+				Select Case nProbCode
+				Case CM_PROB_DISABLED
+					devicesEnabled(j) = False
+					dwState = INDEXTOOVERLAYMASK(3)
+					ico = 2
+				Case CM_PROB_DEVICE_NOT_THERE
+					dwState = INDEXTOOVERLAYMASK(1)
+					fPresent = False
+					ico = 1
+				End Select
+				devicesProblem(j) = nProbCode
+				dwMask = TVIS_OVERLAYMASK
+			End If
+			devicesPresent(j) = fPresent
+			If fPresent = False Then
+				dwState = dwState Or TVIS_CUT
+				dwMask = dwMask Or TVIS_CUT
+			End If
+			devicesStatus(j) = dwStatus
+			
+			'显示设备
+			If *devicesFriendlyName(j)="" Then
+				sTNode = pTNode->Nodes.Add(*devicesDescription(j), WStr(j), WStr("Devices"), ico, ico)
+			Else
+				sTNode = pTNode->Nodes.Add(*devicesFriendlyName(j), WStr(j), WStr("Devices"), ico, ico)
+			End If
+			
+			If dwMask Then
+				'Print "EnumClasses: " & i, "TreeView_SetItemState", j
+				TreeView_SetItemState(tv->Handle, sTNode->Handle, dwState, dwMask)
+			Else
+				
+			End If
+			
+			mIndex += 1
+			memset(@categoriesDevInfo(i), 0, SizeOf(categoriesDevInfo(i)))
+			categoriesDevInfo(i).cbSize = SizeOf(categoriesDevInfo(i))
+		Loop
+		
+		'Print "EnumClasses: " & i, "SetupDiDestroyDeviceInfoList", j
+		If categoriesHSet(i) Then SetupDiDestroyDeviceInfoList(categoriesHSet(i))
+	Next
+	EnumDCount = j
+	
+	Return EnumCCount + EnumDCount
+End Function
+
+Private Function pvEjectDevice(hwndParent As HWND, idx As Integer) As BOOL
+	Dim lpVeto As PNP_VETO_TYPE
+	Dim lRet As CONFIGRET
+	
+	lRet = CM_Request_Device_Eject(categoriesDevInfo(devicesIndexCategories(idx)).DevInst, lpVeto, devicesInstanceId(idx), MAX_PATH, 0)
+	Return IIf(lRet = CR_SUCCESS, True, False)
+End Function
+
+Private Function pvEnableDevice(hwndParent As HWND, idx As Integer, fEnable As BOOL, ShowHide As Boolean) As BOOL
+	Dim ret As BOOL
+	
+	Dim hSet As HDEVINFO
+	Dim cDevInfo As SP_DEVINFO_DATA
+	
+	ret = pvIndexBydevicesInstanceId(hwndParent, @categoriesGuid(devicesIndexCategories(idx)), devicesInstanceId(idx), ShowHide, hSet, @cDevInfo)
+	If ret Then
+		Dim tParams As SP_PROPCHANGE_PARAMS
+		Dim ret As BOOL
+		
+		tParams.ClassInstallHeader.cbSize = SizeOf(SP_CLASSINSTALL_HEADER)
+		tParams.ClassInstallHeader.InstallFunction = DIF_PROPERTYCHANGE
+		tParams.StateChange = IIf(fEnable, DICS_ENABLE, DICS_DISABLE)
+		tParams.Scope = DICS_FLAG_GLOBAL 'DICS_FLAG_CONFIGSPECIFIC
+		'tParams.Scope = DICS_FLAG_GLOBAL
+		
+		ret = SetupDiSetClassInstallParams(hSet, @cDevInfo, @tParams.ClassInstallHeader, SizeOf(SP_PROPCHANGE_PARAMS))
+		If ret Then
+			ret = SetupDiCallClassInstaller(DIF_PROPERTYCHANGE, hSet, @cDevInfo)
+		End If
+	End If
+	
+	If hSet <> NULL Or hSet <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(hSet)
+	Return ret
+End Function
+
+Private Function pvRemoveDevice(hwndParent As HWND, idx As Integer, ShowHide As Boolean) As BOOL
+	Dim ret As BOOL
+	
+	Dim hSet As HDEVINFO
+	Dim cDevInfo As SP_DEVINFO_DATA
+	
+	ret = pvIndexBydevicesInstanceId(hwndParent, @categoriesGuid(devicesIndexCategories(idx)), devicesInstanceId(idx), ShowHide, hSet, @cDevInfo)
+	If ret Then
+		Dim tParams As SP_REMOVEDEVICE_PARAMS
+		
+		tParams.ClassInstallHeader.cbSize = SizeOf(SP_CLASSINSTALL_HEADER)
+		tParams.ClassInstallHeader.InstallFunction = DIF_REMOVE
+		tParams.Scope = DI_REMOVEDEVICE_GLOBAL
+		
+		ret = SetupDiSetClassInstallParams(hSet, @cDevInfo, @tParams.ClassInstallHeader, SizeOf(SP_REMOVEDEVICE_PARAMS))
+		If ret Then
+			ret = SetupDiCallClassInstaller(DIF_REMOVE, hSet, @cDevInfo)
+		End If
+	End If
+	If hSet <> NULL Or hSet <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(hSet)
+	Return ret
+End Function
+
+Private Function pvUninstallDevice(hwndParent As HWND, idx As Integer, ShowHide As Boolean) As BOOL
+	Dim ret As WINBOOL
+	
+	Dim hSet As HDEVINFO
+	Dim cDevInfo As SP_DEVINFO_DATA
+	
+	ret = pvIndexBydevicesInstanceId(hwndParent, @categoriesGuid(devicesIndexCategories(idx)), devicesInstanceId(idx), ShowHide, hSet, @cDevInfo)
+	If ret Then
+		ret = SetupDiRemoveDevice(hSet, @cDevInfo)
+	End If
+	If hSet <> NULL Or hSet <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(hSet)
+	Return ret
+End Function
+
+Private Function pvUpdateDevice(hwndParent As HWND, idx As Integer, ShowHide As Boolean) As BOOL
+	Dim ret As WINBOOL
+	
+	Dim hSet As HDEVINFO
+	Dim cDevInfo As SP_DEVINFO_DATA
+	
+	ret = pvIndexBydevicesInstanceId(hwndParent, @categoriesGuid(devicesIndexCategories(idx)), devicesInstanceId(idx), ShowHide, hSet, @cDevInfo)
+	If ret Then
+		ret = SetupDiInstallDevice(hSet, @cDevInfo)
+	End If
+	If hSet <> NULL Or hSet <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(hSet)
+	Return ret
+End Function
+
+Private Function pvShowPropPage(hwndParent As HWND, idx As Integer) As BOOL
+	Return DevicePropertiesEx(hwndParent, NULL, devicesInstanceId(idx), DEVPROP_SHOW_RESOURCE_TAB, False)
+End Function
+
+
