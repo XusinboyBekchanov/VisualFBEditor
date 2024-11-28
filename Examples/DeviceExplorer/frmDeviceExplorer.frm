@@ -17,7 +17,6 @@
 	#include once "mff/Panel.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/StatusBar.bi"
-	#include once "mff/ImageList.bi"
 	#include once "mff/CheckBox.bi"
 	
 	#include once "DeviceExplorer.bi"
@@ -40,7 +39,6 @@
 		Dim As Panel Panel1, Panel2
 		Dim As CommandButton cmdRefresh, cmdEnabled, cmdDisabled, cmdRemoved, cmdEject, cmdUninstall, cmdUpdate
 		Dim As StatusBar StatusBar1
-		Dim As ImageList ImageList1
 		Dim As StatusPanel StatusPanel1
 		Dim As CheckBox chkShowHidden, chkDarkmode, chkShowCategories
 	End Type
@@ -73,9 +71,7 @@
 			.ExtraMargins.Left = 10
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Bottom = 10
-			.Images = @ImageList1
 			.Sorted = True
-			.SelectedImages = @ImageList1
 			.SetBounds 10, 10, 380, 419
 			.Designer = @This
 			.OnSelChanged = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode), @TreeView1_SelChanged)
@@ -109,7 +105,7 @@
 			.Text = "Panel2"
 			.TabIndex = 2
 			.Align = DockStyle.alBottom
-			.SetBounds 0, 319, 324, 100
+			.SetBounds 0, 339, 324, 80
 			.Designer = @This
 			.Parent = @Panel1
 		End With
@@ -134,7 +130,7 @@
 			.Text = "Show all categories"
 			.TabIndex = 4
 			.Caption = "Show all categories"
-			.SetBounds 0, 11, 150, 18
+			.SetBounds 0, 10, 140, 18
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -144,7 +140,7 @@
 			.Text = "Show hidden"
 			.TabIndex = 5
 			.Caption = "Show hidden"
-			.SetBounds 140, 10, 150, 18
+			.SetBounds 140, 10, 140, 18
 			.Designer = @This
 			.Parent = @Panel2
 		End With
@@ -155,7 +151,7 @@
 			.TabIndex = 6
 			.Caption = "Dark mode"
 			.Checked = True
-			.SetBounds 0, 30, 70, 18
+			.SetBounds 250, 10, 70, 18
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox_Click)
 			.Parent = @Panel2
@@ -166,7 +162,7 @@
 			.Text = "Refresh"
 			.TabIndex = 7
 			.Caption = "Refresh"
-			.SetBounds 140, 29, 70, 20
+			.SetBounds 250, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -177,7 +173,7 @@
 			.Text = "Enabled"
 			.TabIndex = 8
 			.Caption = "Enabled"
-			.SetBounds 0, 59, 70, 20
+			.SetBounds 0, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -188,7 +184,7 @@
 			.Text = "Disabled"
 			.TabIndex = 9
 			.Caption = "Disabled"
-			.SetBounds 70, 59, 70, 20
+			.SetBounds 70, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -199,7 +195,7 @@
 			.Text = "Removed"
 			.TabIndex = 10
 			.Caption = "Removed"
-			.SetBounds 140, 59, 70, 20
+			.SetBounds 140, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -210,7 +206,7 @@
 			.Text = "Eject"
 			.TabIndex = 11
 			.Caption = "Eject"
-			.SetBounds 0, 79, 70, 20
+			.SetBounds 0, 59, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -221,7 +217,7 @@
 			.Text = "Uninstall"
 			.TabIndex = 12
 			.Caption = "Uninstall"
-			.SetBounds 70, 81, 70, 20
+			.SetBounds 70, 60, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -232,7 +228,7 @@
 			.Text = "Update"
 			.TabIndex = 13
 			.Caption = "Update"
-			.SetBounds 140, 81, 70, 20
+			.SetBounds 140, 60, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
 			.Parent = @Panel2
@@ -251,15 +247,6 @@
 			.Name = "StatusPanel1"
 			.Designer = @This
 			.Parent = @StatusBar1
-		End With
-		' ImageList1
-		With ImageList1
-			.Name = "ImageList1"
-			.ImageWidth = 16
-			.ImageHeight = 16
-			.SetBounds 0, 0, 16, 16
-			.Designer = @This
-			.Parent = @This
 		End With
 	End Constructor
 	
@@ -297,7 +284,7 @@ Private Sub frmDeviceExplorerType.TreeView1_SelChanged(ByRef Sender As TreeView,
 	devicesSelected = j
 	
 	TextBox1.AddLine "Categories****" & i
-	TextBox1.AddLine "HDEVINFO      " & categoriesHSet(i)
+'	TextBox1.AddLine "HDEVINFO      " & categoriesHSet(i)
 	TextBox1.AddLine "Description   " & *categoriesDescription(i)
 	TextBox1.AddLine "Name          " & *categoriesName(i)
 	StringFromCLSID(@categoriesGuid(i), @wtmp)
@@ -307,25 +294,24 @@ Private Sub frmDeviceExplorerType.TreeView1_SelChanged(ByRef Sender As TreeView,
 	Else
 		TextBox1.AddLine ""
 		TextBox1.AddLine "Devices*******" & j
-		TextBox1.AddLine "HardwareId    " & *devicesHardwareId(j)
-		TextBox1.AddLine "Description   " & *devicesDescription(j)
 		TextBox1.AddLine "FriendlyName  " & *devicesFriendlyName(j)
+		TextBox1.AddLine "Description   " & *devicesDescription(j)
+		TextBox1.AddLine "HardwareId    " & *devicesHardwareId(j)
 		TextBox1.AddLine "InstanceId    " & *devicesInstanceId(j)
-		TextBox1.AddLine "Capabilities  " & devicesCapabilities(j)
-		TextBox1.AddLine Capabilities2Str(devicesCapabilities(j))
 		TextBox1.AddLine "Enabled       " & devicesEnabled(j)
 		TextBox1.AddLine "Present       " & devicesPresent(j)
-		TextBox1.AddLine "Problem       " & devicesProblem(j)
-		TextBox1.AddLine Problems2Str(devicesProblem(j))
-		TextBox1.AddLine "Status        " & devicesStatus(j)
-		TextBox1.AddLine NodeStatus2Str(devicesStatus(j))
 		StringFromCLSID(devicesGUID(j), @wtmp)
 		TextBox1.AddLine "GUID          " & *wtmp
-		TextBox1.AddLine "Driver        " & *devicesDriver(j)
-		TextBox1.AddLine "=============="
+		TextBox1.AddLine ""
+		TextBox1.AddLine "Capabilities--(&H" & Hex(devicesCapabilities(j), 8) & ")"
+		TextBox1.AddLine Capabilities2Str(devicesCapabilities(j))
+		TextBox1.AddLine "Problem-------(&H" & Hex(devicesProblem(j), 8) & ")"
+		TextBox1.AddLine Problems2Str(devicesProblem(j))
+		TextBox1.AddLine "Status--------(&H" & Hex(devicesStatus(j), 8) & ")"
+		TextBox1.AddLine NodeStatus2Str(devicesStatus(j))
+		TextBox1.AddLine "Driver--------" & *devicesDriver(j)
 		GetDriverAllInformation(*devicesDriver(j), wtmp2)
 		TextBox1.AddLine *wtmp2
-		TextBox1.AddLine "=============="
 	End If
 	CommandButton_Enabled(IIf(j < 0, False, True))
 	'If wtmp Then Deallocate(wtmp)
@@ -342,14 +328,17 @@ Private Sub frmDeviceExplorerType.CommandButton_Enabled(e As Boolean)
 End Sub
 
 Private Sub frmDeviceExplorerType.Form_Show(ByRef Sender As Form)
+	gImageList = ImageList_Create(16, 16, ILC_COLOR32 Or ILC_MASK, 2, 0)
+	SendMessage(TreeView1.Handle, TVM_SETIMAGELIST, TVSIL_NORMAL, Cast(LPARAM, gImageList))
+	
 	CommandButton_Enabled(False)
 	CommandButton_Click(cmdRefresh)
 End Sub
 
 Private Sub frmDeviceExplorerType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	TreeView1.Enabled = False
-	ImageList1.Clear
 	pvRelase()
+	ImageList_Destroy(gImageList)
 End Sub
 
 Private Sub frmDeviceExplorerType.TreeView1_DblClick(ByRef Sender As Control)
@@ -359,8 +348,7 @@ End Sub
 
 Private Sub frmDeviceExplorerType.CommandButton_Click(ByRef Sender As Control)
 	If Sender.Name= "cmdRefresh" Then
-		ImageList1.Clear
-		pvInitIcon(ImageList1.Handle)
+		pvInitIcon(gImageList)
 		pvEnumClasses(Handle, @TreeView1, chkShowCategories.Checked, chkShowHidden.Checked)
 		StatusPanel1.Caption = "Total: " & EnumCCount + EnumDCount & ", Categories: " & EnumCCount & ", Devices: " &  EnumDCount
 	Else

@@ -3,7 +3,9 @@
 ' Freeware. Use at your own risk.
 ' 通过windows api实现如device manager一样的update driver, uninstall device, eject device的功能
 ' 翻译了cfgmgr32, devguid, devpkey, devpropdef, newdev等相关头文件
-' 参考TwinBasic的样例
+' https://learn.microsoft.com/en-us/windows/win32/devinst/setupapi-h
+
+' 参考了TwinBasic的样例
 ' https://github.com/fafalone/DeviceExplorer
 
 #include once "mff/Form.bi"
@@ -38,6 +40,8 @@ Const IDI_EJECT     = "304"
 Const IDI_UPDATE    = "305"
 Const IDI_REFRESH   = "306"
 Const IDI_PLAIN     = "307"
+
+Dim Shared gImageList As HIMAGELIST
 
 Dim Shared categoriesHSet(Any) As HDEVINFO
 Dim Shared categoriesDevInfo(Any) As SP_DEVINFO_DATA

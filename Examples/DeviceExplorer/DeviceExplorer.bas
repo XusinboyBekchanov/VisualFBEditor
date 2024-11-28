@@ -3,7 +3,9 @@
 ' Freeware. Use at your own risk.
 ' 通过windows api实现如device manager一样的update driver, uninstall device, eject device的功能
 ' 翻译了cfgmgr32, devguid, devpkey, devpropdef, newdev等相关头文件
-' 参考TwinBasic的样例
+' https://learn.microsoft.com/en-us/windows/win32/devinst/setupapi-h
+
+' 参考了TwinBasic的样例
 ' https://github.com/fafalone/DeviceExplorer
 
 #include once "DeviceExplorer.bi"
@@ -12,7 +14,6 @@ Private Sub pvRelase()
 	Dim i As Integer
 	
 	For i = 0 To categoriesCount
-		'If categoriesHSet(i) <> INVALID_HANDLE_VALUE Then SetupDiDestroyDeviceInfoList(categoriesHSet(i))
 		If categoriesName(i) Then Deallocate(categoriesName(i))
 		If categoriesDescription(i) Then Deallocate(categoriesDescription(i))
 	Next
@@ -99,7 +100,7 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 	
 	tv->Nodes.Clear
 	pvRelase()
-
+	
 	cbReq = 0
 	'SetupDiBuildClassInfoList返回本地计算机上安装的设备类别的 GUID 列表
 	ret = SetupDiBuildClassInfoList(NULL, NULL, 0, @cbReq)
@@ -121,30 +122,18 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 	Dim i As Long
 	Dim j As Integer = 0
 	
-	Dim pTNode As TreeNode Ptr
-	Dim sTNode As TreeNode Ptr
 	Dim mIndex As DWORD
-	Dim regType As DWORD = REGTYPES.REG_NONE 
+	Dim regType As DWORD = REGTYPES.REG_NONE
 	Dim hicn As HICON
 	Dim ico As Long
 	
 	Dim cbiReq As Integer
 	Dim nPropType As DEVPROPTYPE = DEVPROP_TYPE_BOOLEAN
-	Dim fPresent As Integer
-	Dim dwStatus As CfgMgDevNodeStatus = 0
-	Dim nProbCode As CfgMgrProblems = 0
-	Dim bProblem As Boolean = False
-	Dim dwState As DWORD = 0
-	Dim dwMask As DWORD = 0
 	
 	For i = 0 To categoriesCount
-		'Print "EnumClasses: " & i
-		
-		'SetupDiGetClassDevs用于获取包含所请求的设备信息集的句柄
 		categoriesHSet(i) = SetupDiGetClassDevs(@categoriesGuid(i), NULL, hwndParent, IIf(ShowHide, 0, DIGCF_PRESENT))
 		If categoriesHSet(i) = INVALID_HANDLE_VALUE Then Continue For
 		
-		'Print "EnumClasses: " & i, 1
 		cchReq = 0
 		'SetupDiClassNameFromGuid根据设备类别 GUID 获取设备类名称
 		ret = SetupDiClassNameFromGuid(@categoriesGuid(i), NULL, NULL, @cchReq)
@@ -153,7 +142,6 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			ret = SetupDiClassNameFromGuid(@categoriesGuid(i), categoriesName(i), cchReq, @cchReq)
 		End If
 		
-		'Print "EnumClasses: " & i, 2
 		cchReq = 0
 		'SetupDiGetClassDescription获取设备类的描述
 		ret = SetupDiGetClassDescription(@categoriesGuid(i), NULL, NULL, @cchReq)
@@ -162,16 +150,14 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			ret = SetupDiGetClassDescription(@categoriesGuid(i), categoriesDescription(i), cchReq, @cchReq)
 		End If
 		
+		Dim pTNode As TreeNode Ptr = NULL
 		'显示所有设备类别
 		If ShowCategories Then
-			'Print "EnumClasses: " & i, 3
 			EnumCCount += 1
 			ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
-			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+			ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
 			DestroyIcon(hicn)
 			pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
-		Else
-			pTNode = NULL
 		End If
 		
 		mIndex = 0
@@ -180,16 +166,14 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 		'SetupDiEnumDeviceInfo枚举设备信息集中的设备信息元素
 		Do While SetupDiEnumDeviceInfo(categoriesHSet(i), mIndex, @categoriesDevInfo(i))
 			
+			'只显示有设备的设备类别
 			If pTNode = NULL Then
-				'Print "EnumClasses: " & i, 4
-				'只显示有设备的设备类别
 				EnumCCount += 1
 				ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
-				ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+				ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
 				DestroyIcon(hicn)
 				pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
 			End If
-			cchReq = 0
 			
 			j += 1
 			ReDim Preserve devicesIndexCategories(j)
@@ -209,7 +193,6 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			
 			'SetupDiGetDeviceInstanceId获取设备实例 ID。这个 ID 是一个唯一的字符串，用于标识系统中的每个设备实例。
 			cchReq = 0
-			'Print "EnumClasses: " & i, 5, j
 			ret = SetupDiGetDeviceInstanceId(categoriesHSet(i), @categoriesDevInfo(i), NULL, 0, @cchReq)
 			If cchReq Then
 				devicesInstanceId(j) = CAllocate(cchReq * 2, SizeOf(Byte))
@@ -217,88 +200,86 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			End If
 			
 			'SetupDiGetDeviceRegistryProperty从设备的信息集中检索设备的注册表属性
-			'Print "EnumClasses: " & i, "SPDRP_CLASSGUID", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CLASSGUID, @regType, NULL, 0, @cchReq)
-			'Print "EnumClasses: " & i, "SPDRP_CLASSGUID", j, cchReq, regType
 			If cchReq Then
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CLASSGUID, @regType, Cast(UByte Ptr, @devicesGUID(j)), SizeOf(devicesGUID(j)), @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SPDRP_CAPABILITIES", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CAPABILITIES, @regType, NULL, 0, @cchReq)
 			If cchReq Then
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_CAPABILITIES, @regType, Cast(UByte Ptr, @devicesCapabilities(j)), SizeOf(devicesCapabilities(j)), @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SPDRP_HARDWAREID", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_HARDWAREID, @regType, NULL, 0, @cchReq)
 			If cchReq Then
 				devicesHardwareId(j) = CAllocate(cchReq * 2, SizeOf(Byte))
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_HARDWAREID, @regType, Cast(PBYTE, devicesHardwareId(j)), cchReq, @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SPDRP_FRIENDLYNAME", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_FRIENDLYNAME, @regType, NULL, 0, @cchReq)
 			If cchReq Then
 				devicesFriendlyName(j) = CAllocate(cchReq * 2, SizeOf(Byte))
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_FRIENDLYNAME, @regType, Cast(PBYTE, devicesFriendlyName(j)), cchReq, @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SPDRP_DEVICEDESC", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DEVICEDESC, @regType, NULL, 0, @cchReq)
 			If cchReq Then
 				devicesDescription(j) = CAllocate(cchReq * 2, SizeOf(Byte))
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DEVICEDESC, @regType, Cast(PBYTE, devicesDescription(j)), cchReq, @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SPDRP_DRIVER", j
 			cchReq = 0
-			regType= 0 
+			regType= 0
 			ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DRIVER, @regType, NULL, 0, @cchReq)
 			If cchReq Then
 				devicesDriver(j) = CAllocate(cchReq * 2, SizeOf(Byte))
 				ret = SetupDiGetDeviceRegistryProperty(categoriesHSet(i), @categoriesDevInfo(i), SPDRP_DRIVER, @regType, Cast(PBYTE, devicesDriver(j)), cchReq, @cchReq)
 			End If
 			
-			'Print "EnumClasses: " & i, "SetupDiLoadDeviceIcon", j
 			ret = SetupDiLoadDeviceIcon(categoriesHSet(i), @categoriesDevInfo(i), 16, 16, NULL, @hicn)
-			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
+			ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
 			DestroyIcon(hicn)
 			
-			'Print "EnumClasses: " & i, "CM_Get_DevNode_Status", j
+			Dim fPresent As Integer
+			Dim dwStatus As CfgMgDevNodeStatus = 0
+			Dim nProbCode As CfgMgrProblems = 0
+			Dim bProblem As Boolean = False
+			
 			If CM_Get_DevNode_Status(@dwStatus, @nProbCode, categoriesDevInfo(i).DevInst, 0) = CR_SUCCESS Then
-				If dwStatus <> 0 And nProbCode<> 0 Then bProblem = True
+				If nProbCode<> 0 Then bProblem = True
 				If dwStatus And DN_HAS_PROBLEM Then
+					bProblem = True
 					
-					'Print "EnumClasses: " & i, "DeviceProblemText", j
-					Dim p As WString Ptr
-					Dim s As DWORD = 0
-					s = DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, NULL, NULL)
-					p = CAllocate(s * 4, SizeOf(Byte))
-					DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, p, @s)
-					'Print i, j, s, nProbCode, *p
-					If p Then Deallocate(p)
+					'Dim p As WString Ptr
+					'Dim s As DWORD = 0
+					's = DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, NULL, NULL)
+					'p = CAllocate(s * 4, SizeOf(Byte))
+					'DeviceProblemText(0, categoriesDevInfo(i).DevInst, nProbCode, p, @s)
+					'If p Then Deallocate(p)
 				End If
+				devicesProblem(j) = nProbCode
+				devicesStatus(j) = dwStatus
 			End If
 			
 			If ShowHide Then
 				fPresent = False
-				
-				'Print "EnumClasses: " & i, "SetupDiGetDeviceProperty", j
 				ret = SetupDiGetDeviceProperty(categoriesHSet(i), @categoriesDevInfo(i), @DEVPKEY_Device_IsPresent, nPropType, @fPresent, SizeOf(fPresent), @cbiReq, 0)
 			Else
-				fPresent = CTRUE
+				fPresent = True
 			End If
+			
+			Dim dwState As DWORD = 0
+			Dim dwMask As DWORD = 0
 			
 			devicesEnabled(j) = True
 			If bProblem Then
@@ -306,34 +287,29 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 				Case CM_PROB_DISABLED
 					devicesEnabled(j) = False
 					dwState = INDEXTOOVERLAYMASK(3)
-					ico = 2
 				Case CM_PROB_DEVICE_NOT_THERE
 					dwState = INDEXTOOVERLAYMASK(1)
 					fPresent = False
-					ico = 1
+				Case Else
+					dwState = INDEXTOOVERLAYMASK(2)
 				End Select
-				devicesProblem(j) = nProbCode
 				dwMask = TVIS_OVERLAYMASK
 			End If
-			devicesPresent(j) = fPresent
 			If fPresent = False Then
 				dwState = dwState Or TVIS_CUT
 				dwMask = dwMask Or TVIS_CUT
 			End If
-			devicesStatus(j) = dwStatus
+			devicesPresent(j) = fPresent
 			
 			'显示设备
-			If *devicesFriendlyName(j)="" Then
+			Dim sTNode As TreeNode Ptr
+			If *devicesFriendlyName(j) = "" Then
 				sTNode = pTNode->Nodes.Add(*devicesDescription(j), WStr(j), WStr("Devices"), ico, ico)
 			Else
 				sTNode = pTNode->Nodes.Add(*devicesFriendlyName(j), WStr(j), WStr("Devices"), ico, ico)
 			End If
-			
-			If dwMask Then
-				'Print "EnumClasses: " & i, "TreeView_SetItemState", j
+			If dwMask Then 
 				TreeView_SetItemState(tv->Handle, sTNode->Handle, dwState, dwMask)
-			Else
-				
 			End If
 			
 			mIndex += 1
@@ -341,7 +317,6 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			categoriesDevInfo(i).cbSize = SizeOf(categoriesDevInfo(i))
 		Loop
 		
-		'Print "EnumClasses: " & i, "SetupDiDestroyDeviceInfoList", j
 		If categoriesHSet(i) Then SetupDiDestroyDeviceInfoList(categoriesHSet(i))
 	Next
 	EnumDCount = j

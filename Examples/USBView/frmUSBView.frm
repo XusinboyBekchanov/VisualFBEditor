@@ -27,10 +27,10 @@
 	Type frmUSUViewType Extends Form
 		Declare Sub CommandButton_Click(ByRef Sender As Control)
 		Declare Sub CheckBox3_Click(ByRef Sender As CheckBox)
-		Declare Sub StatusBar1_Create(ByRef Sender As Control)
 		Declare Sub TreeView1_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub Form_Close(ByRef Sender As Form, ByRef Action As Integer)
+		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
 		Dim As TreeView TreeView1
@@ -60,6 +60,7 @@
 			.StartPosition = FormStartPosition.CenterScreen
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.SetBounds 0, 0, 750, 500
 		End With
 		' TreeView1
@@ -189,7 +190,6 @@
 			.Align = DockStyle.alBottom
 			.SetBounds 0, 439, 734, 22
 			.Designer = @This
-			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @StatusBar1_Create)
 			.Parent = @This
 		End With
 		' StatusPanel1
@@ -265,31 +265,6 @@ Private Sub frmUSUViewType.CheckBox3_Click(ByRef Sender As CheckBox)
 	InvalidateRect(0, 0, True)
 End Sub
 
-Private Sub frmUSUViewType.StatusBar1_Create(ByRef Sender As Control)
-	Dim i As Long
-	Dim j As Long
-	Dim Icon As HICON
-	
-	j = ExtractIconEx("C:\Windows\System32\setupapi.dll", -1, 0, 0, 1)
-	For i = 0 To j
-		ExtractIconEx("C:\Windows\System32\setupapi.dll", i, 0, @Icon, 1)
-		ImageList_ReplaceIcon(ImageList1.Handle, -1, Icon)
-		DestroyIcon Icon
-	Next
-	
-	'Dim As HMODULE Hlib = LoadLibrary("SetupApi.DLL")
-	'Dim As HICON hComputerIcon, hUsbIcon
-	'If Hlib Then
-	'	hComputerIcon = LoadIcon(Hlib, MAK32(35, 0))
-	'	ImageList_ReplaceIcon(ImageList1.Handle, -1, hComputerIcon)
-	'	DestroyIcon(hComputerIcon)
-	'	hUsbIcon = LoadIcon(Hlib, MAK32(20, 0)) 
-	'	ImageList_ReplaceIcon(ImageList1.Handle, -1, hUsbIcon)
-	'	DestroyIcon(hUsbIcon)
-	'	FreeLibrary(Hlib)
-	'End If
-End Sub
-
 Private Sub frmUSUViewType.TreeView1_SelChanged(ByRef Sender As TreeView, ByRef Item As TreeNode)
 	If Item.Name="" Then
 		TextBox1.Text = Item.Text & vbTab & Item.Name
@@ -304,4 +279,17 @@ End Sub
 
 Private Sub frmUSUViewType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
 	usbTextRelease()
+End Sub
+
+Private Sub frmUSUViewType.Form_Create(ByRef Sender As Control)
+	Dim i As Long
+	Dim j As Long
+	Dim Icon As HICON
+	
+	j = ExtractIconEx("C:\Windows\System32\setupapi.dll", -1, 0, 0, 1)
+	For i = 0 To j
+		ExtractIconEx("C:\Windows\System32\setupapi.dll", i, 0, @Icon, 1)
+		ImageList_ReplaceIcon(ImageList1.Handle, -1, Icon)
+		DestroyIcon Icon
+	Next
 End Sub
