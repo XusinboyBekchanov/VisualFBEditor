@@ -7,8 +7,8 @@ DOWN ICON ".\Resources\Down.ico"
 #define APP_TITLE_STR               "DeviceExplorer\0"
 #define VER_FILEDESCRIPTION_STR     "DeviceExplorer\0"
 
-#define VER_FILEVERSION             0,0,0,621
-#define VER_FILEVERSION_STR         "0.0.0.621\0"
+#define VER_FILEVERSION             0,0,0,660
+#define VER_FILEVERSION_STR         "0.0.0.660\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
