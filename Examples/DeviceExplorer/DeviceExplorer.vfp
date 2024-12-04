@@ -1,6 +1,7 @@
 ﻿File=DeviceExplorer.bi
 *File=frmDeviceExplorer.frm
 File=DeviceExplorer.bas
+File=Form1.rc
 ProjectType=0
 Subsystem=2
 ProjectName="DeviceExplorer"
@@ -11,7 +12,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=660
+BuildVersion=713
 AutoIncrementVersion=false
 ApplicationTitle="DeviceExplorer"
 ApplicationIcon=""

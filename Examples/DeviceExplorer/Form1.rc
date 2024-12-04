@@ -1,14 +1,11 @@
 ﻿1 24 "Manifest.xml"
-
-WARN ICON ".\Resources\Warn.ico"
-INFO ICON ".\Resources\Info.ico"
-DOWN ICON ".\Resources\Down.ico"
+1 ICON "DeviceExplorer.ico"
 
 #define APP_TITLE_STR               "DeviceExplorer\0"
 #define VER_FILEDESCRIPTION_STR     "DeviceExplorer\0"
 
-#define VER_FILEVERSION             0,0,0,660
-#define VER_FILEVERSION_STR         "0.0.0.660\0"
+#define VER_FILEVERSION             0,0,0,713
+#define VER_FILEVERSION_STR         "0.0.0.713\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
@@ -31,7 +28,7 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-        	VALUE "ApplicationTitle", APP_TITLE_STR
+            VALUE "ApplicationTitle", APP_TITLE_STR
             VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     VER_INTERNALNAME_STR

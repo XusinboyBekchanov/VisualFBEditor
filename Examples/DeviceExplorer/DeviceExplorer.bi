@@ -29,19 +29,7 @@
 
 #include once "../USBView/USBView.bi"
 
-Const IDI_ICONUNK   = "102"
-Const IDI_OVRWARN   = "WARN"
-Const IDI_OVRINFO   = "INFO"
-Const IDI_OVRDOWN   = "DOWN"
-Const IDI_DISABLE   = "301"
-Const IDI_REMOVE    = "302"
-Const IDI_UNINST    = "303"
-Const IDI_EJECT     = "304"
-Const IDI_UPDATE    = "305"
-Const IDI_REFRESH   = "306"
-Const IDI_PLAIN     = "307"
-
-Dim Shared gImageList As HIMAGELIST
+Dim Shared SystemPath As WString * MAX_PATH
 
 Dim Shared categoriesHSet(Any) As HDEVINFO
 Dim Shared categoriesDevInfo(Any) As SP_DEVINFO_DATA
@@ -63,7 +51,6 @@ Dim Shared devicesHardwareId(Any) As WString Ptr
 Dim Shared devicesInstanceId(Any) As WString Ptr
 Dim Shared devicesDriver(Any) As WString Ptr
 Dim Shared devicesCount As Integer = -1
-
 Dim Shared devicesSelected As Integer = -1
 
 Dim Shared EnumCCount As Integer = 0
