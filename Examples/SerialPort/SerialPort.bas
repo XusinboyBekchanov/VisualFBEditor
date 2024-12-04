@@ -1,8 +1,6 @@
-﻿#pragma once
-' SerialPort 串口
+﻿' SerialPort 串口
 ' Copyright (c) 2022 CM.Wang
 ' Freeware. Use at your own risk.
-
 
 #include once "SerialPort.bi"
 

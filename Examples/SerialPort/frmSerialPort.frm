@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿' frmSerialPort
+' Copyright (c) 2022 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -36,12 +40,13 @@
 		Declare Sub CheckBox_Click(ByRef Sender As CheckBox)
 		Declare Sub TextBox_Change(ByRef Sender As TextBox)
 		Declare Sub TimerComponent_Timer(ByRef Sender As TimerComponent)
+		Declare Sub chkDark_Click(ByRef Sender As CheckBox)
 		Declare Constructor
 		
-		Dim As Panel Panel1, Panel3, Panel2, Panel4, Panel5, Panel6, Panel7, Panel8, Panel9
+		Dim As Panel Panel1, Panel4, Panel5, Panel6, Panel7
 		Dim As CommandButton CommandButton1, CommandButton2, cmdSend, cmdClearRec
 		Dim As ComboBoxEdit cbePortName, cbeBaudRate, cbeByteSize, cbeStopBits, cbeParity, cbefDtrControl, cbefRtsControl
-		Dim As CheckBox chkfBinary, chkfParity, chkfOutxCtsFlow, chkfOutxDsrFlow, chkfDsrSensitivity, chkfTXContinueOnXoff, chkfOutX, chkfInX, chkfErrorChar, chkfNull, chkfAbortOnError, chkCTS, chkDSR, chkRING, chkRLSD, chkHexRec, chkHexSend
+		Dim As CheckBox chkfBinary, chkfParity, chkfOutxCtsFlow, chkfOutxDsrFlow, chkfDsrSensitivity, chkfTXContinueOnXoff, chkfOutX, chkfInX, chkfErrorChar, chkfNull, chkfAbortOnError, chkCTS, chkDSR, chkRING, chkRLSD, chkHexRec, chkHexSend, chkDark
 		Dim As TextBox txtfDummy2, txtwReserved, txtXonLim, txtXoffLim, txtXonChar, txtXoffChar, txtErrorChar, txtEofChar, txtEvtChar, txtwReserved1, txtRec, txtSend
 		Dim As TimerComponent tmrGetStatus, tmrSetStatus
 		Dim As Label lblDTR, lblRTS
@@ -61,6 +66,12 @@
 				'...instructions for other OSes
 				.Caption = "VFBE SerialPort32"
 			#endif
+			#ifdef __USE_GTK__
+				This.Icon.LoadFromFile(ExePath & "\SerialPort.ico")
+			#else
+				This.Icon.LoadFromResourceID(1)
+			#endif
+
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)
 			.StartPosition = FormStartPosition.CenterScreen
 			.SetBounds 0, 0, 820, 680
@@ -75,60 +86,50 @@
 			.Designer = @This
 			.Parent = @This
 		End With
-		' Panel2
-		With Panel2
-			.Name = "Panel2"
-			.Text = "Panel2"
-			.TabIndex = 1
-			.Align = DockStyle.alTop
-			.SetBounds 0, 0, 170, 140
-			.Designer = @This
-			.Parent = @Panel1
-		End With
 		' CommandButton1
 		With CommandButton1
 			.Name = "CommandButton1"
 			.Text = "Refresh"
-			.TabIndex = 3
+			.TabIndex = 1
 			.Caption = "Refresh"
 			.SetBounds 10, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
-			.Parent = @Panel2
+			.Parent = @Panel1
 		End With
 		' CommandButton2
 		With CommandButton2
 			.Name = "CommandButton2"
 			.Text = "Open"
-			.TabIndex = 4
+			.TabIndex = 2
 			.Caption = "Open"
 			.Enabled = False
 			.SetBounds 90, 10, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
-			.Parent = @Panel2
+			.Parent = @Panel1
 		End With
 		' cbePortName
 		With cbePortName
 			.Name = "cbePortName"
 			.Text = "cbePortName"
-			.TabIndex = 5
+			.TabIndex = 3
 			.Hint = "Serial Port List"
 			.Style = ComboBoxEditStyle.cbDropDownList
 			.SetBounds 10, 50, 150, 21
 			.Designer = @This
-			.Parent = @Panel2
+			.Parent = @Panel1
 		End With
 		' cbeBaudRate
 		With cbeBaudRate
 			.Name = "cbeBaudRate"
 			.Text = "cbeBaudRate"
-			.TabIndex = 6
+			.TabIndex = 4
 			.Hint = "Baud Rate"
 			.Style = ComboBoxEditStyle.cbDropDown
 			.SetBounds 10, 80, 70, 21
 			.Designer = @This
-			.Parent = @Panel2
+			.Parent = @Panel1
 			.AddItem "" & CBR_110
 			.AddItem "" & CBR_300
 			.AddItem "" & CBR_600
@@ -163,12 +164,12 @@
 		With cbeByteSize
 			.Name = "cbeByteSize"
 			.Text = "cbeByteSize"
-			.TabIndex = 7
+			.TabIndex = 5
 			.Hint = "Byte Size: The number of bits in the bytes transmitted and received."
 			.Style = ComboBoxEditStyle.cbDropDownList
 			.SetBounds 90, 80, 70, 21
 			.Designer = @This
-			.Parent = @Panel2
+			.Parent = @Panel1
 			.AddItem "5"
 			.AddItem "6"
 			.AddItem "7"
@@ -183,12 +184,12 @@
 		With cbeStopBits
 			.Name = "cbeStopBits"
 			.Text = "cbeStopBits"
-			.TabIndex = 8
+			.TabIndex = 6
 			.Hint = "Stop Bits: The number of stop bits to be used. This member can be one of the following values."
 			.Style = ComboBoxEditStyle.cbDropDownList
 			.SetBounds 10, 110, 70, 21
 			.Designer = @This
-			.Parent = @Panel2
+			.Parent = @Panel1
 			.AddItem "1"
 			.AddItem "1.5"
 			.AddItem "2"
@@ -201,12 +202,12 @@
 		With cbeParity
 			.Name = "cbeParity"
 			.Text = "cbeParity"
-			.TabIndex = 9
+			.TabIndex = 7
 			.Hint = "Parity: The parity scheme to be used. This member can be one of the following values."
 			.Style = ComboBoxEditStyle.cbDropDownList
 			.SetBounds 90, 110, 70, 21
 			.Designer = @This
-			.Parent = @Panel2
+			.Parent = @Panel1
 			.AddItem "None"
 			.AddItem "Odd"
 			.AddItem "Even"
@@ -219,27 +220,15 @@
 			.ItemData(4) = Cast(Any Ptr, &h1000)
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
-		' lblRTS
-		With lblRTS
-			.Name = "lblRTS"
-			.Text = "Pin(7) RTS"
-			.TabIndex = 10
-			.Caption = "Pin(7) RTS"
-			.Hint = "fRtsControl: The RTS (request-to-send) flow control. This member can be one of the following values."
-			.ForeColor = 255
-			.SetBounds 10, 383, 70, 16
-			.Designer = @This
-			.Parent = @Panel1
-		End With
 		' lblDTR
 		With lblDTR
 			.Name = "lblDTR"
 			.Text = "Pin(4) DTR"
-			.TabIndex = 11
+			.TabIndex = 8
 			.Caption = "Pin(4) DTR"
 			.Hint = "fDtrControl: The DTR (data-terminal-ready) flow control. This member can be one of the following values."
 			.ForeColor = 255
-			.SetBounds 10, 233, 70, 16
+			.SetBounds 10, 153, 70, 16
 			.Designer = @This
 			.Parent = @Panel1
 		End With
@@ -247,10 +236,10 @@
 		With cbefDtrControl
 			.Name = "cbefDtrControl"
 			.Text = "fDtrControl"
-			.TabIndex = 12
+			.TabIndex = 9
 			.Hint = "fDtrControl: The DTR (data-terminal-ready) flow control. This member can be one of the following values."
 			.Style = ComboBoxEditStyle.cbDropDownList
-			.SetBounds 90, 230, 70, 21
+			.SetBounds 90, 150, 70, 21
 			.Designer = @This
 			.Parent = @Panel1
 			.AddItem("Disable")
@@ -259,15 +248,27 @@
 			.AddItem("Unuse")
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 		End With
+		' lblRTS
+		With lblRTS
+			.Name = "lblRTS"
+			.Text = "Pin(7) RTS"
+			.TabIndex = 10
+			.Caption = "Pin(7) RTS"
+			.Hint = "fRtsControl: The RTS (request-to-send) flow control. This member can be one of the following values."
+			.ForeColor = 255
+			.SetBounds 10, 183, 70, 16
+			.Designer = @This
+			.Parent = @Panel1
+		End With
 		' cbefRtsControl
 		With cbefRtsControl
 			.Name = "cbefRtsControl"
 			.Text = "fRtsControl"
-			.TabIndex = 13
+			.TabIndex = 11
 			.Hint = "fRtsControl: The RTS (request-to-send) flow control. This member can be one of the following values."
 			.ForeColor = 0
 			.Style = ComboBoxEditStyle.cbDropDownList
-			.SetBounds 90, 380, 70, 21
+			.SetBounds 90, 180, 70, 21
 			.Designer = @This
 			.Parent = @Panel1
 			.AddItem("Disable")
@@ -280,10 +281,10 @@
 		With chkfBinary
 			.Name = "chkfBinary"
 			.Text = "fBinary"
-			.TabIndex = 14
+			.TabIndex = 12
 			.Hint = "If this member is TRUE, binary mode is enabled. Windows does not support nonbinary mode transfers, so this member must be TRUE."
 			.Caption = "fBinary"
-			.SetBounds 10, 150, 150, 16
+			.SetBounds 10, 210, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -292,10 +293,10 @@
 		With chkfParity
 			.Name = "chkfParity"
 			.Text = "fParity"
-			.TabIndex = 15
+			.TabIndex = 13
 			.Caption = "fParity"
 			.Hint = "If this member is TRUE, parity checking is performed and errors are reported."
-			.SetBounds 10, 170, 150, 16
+			.SetBounds 10, 230, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -304,11 +305,11 @@
 		With chkfOutxCtsFlow
 			.Name = "chkfOutxCtsFlow"
 			.Text = "fOutxCtsFlow"
-			.TabIndex = 16
+			.TabIndex = 14
 			.Caption = "fOutxCtsFlow"
 			.Hint = "If this member is TRUE, the CTS (clear-to-send) signal is monitored for output flow control. If this member is TRUE and CTS is turned off, output is suspended until CTS is sent again."
 			.ForeColor = 0
-			.SetBounds 10, 190, 150, 16
+			.SetBounds 10, 250, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -317,11 +318,11 @@
 		With chkfOutxDsrFlow
 			.Name = "chkfOutxDsrFlow"
 			.Text = "fOutxDsrFlow"
-			.TabIndex = 17
+			.TabIndex = 15
 			.Caption = "fOutxDsrFlow"
 			.Hint = "If this member is TRUE, the DSR (data-set-ready) signal is monitored for output flow control. If this member is TRUE and DSR is turned off, output is suspended until DSR is sent again."
 			.ForeColor = 0
-			.SetBounds 10, 210, 150, 16
+			.SetBounds 10, 270, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -330,10 +331,10 @@
 		With chkfDsrSensitivity
 			.Name = "chkfDsrSensitivity"
 			.Text = "fDsrSensitivity"
-			.TabIndex = 18
+			.TabIndex = 16
 			.Caption = "fDsrSensitivity"
 			.Hint = "If this member is TRUE, the communications driver is sensitive to the state of the DSR signal. The driver ignores any bytes received, unless the DSR modem input line is high."
-			.SetBounds 10, 260, 150, 16
+			.SetBounds 10, 290, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -342,10 +343,10 @@
 		With chkfTXContinueOnXoff
 			.Name = "chkfTXContinueOnXoff"
 			.Text = "fTXContinueOnXoff"
-			.TabIndex = 19
+			.TabIndex = 17
 			.Caption = "fTXContinueOnXoff"
 			.Hint = "If this member is TRUE, transmission continues after the input buffer has come within XoffLim bytes of being full and the driver has transmitted the XoffChar character to stop receiving bytes. If this member is FALSE, transmission does not continue until the input buffer is within XonLim bytes of being empty and the driver has transmitted the XonChar character to resume reception."
-			.SetBounds 10, 280, 150, 16
+			.SetBounds 10, 310, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -354,10 +355,10 @@
 		With chkfOutX
 			.Name = "chkfOutX"
 			.Text = "fOutX"
-			.TabIndex = 20
+			.TabIndex = 18
 			.Caption = "fOutX"
 			.Hint = "Indicates whether XON/XOFF flow control is used during transmission. If this member is TRUE, transmission stops when the XoffChar character is received and starts again when the XonChar character is received."
-			.SetBounds 10, 300, 150, 16
+			.SetBounds 10, 330, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -366,10 +367,10 @@
 		With chkfInX
 			.Name = "chkfInX"
 			.Text = "fInX"
-			.TabIndex = 21
+			.TabIndex = 19
 			.Caption = "fInX"
 			.Hint = "Indicates whether XON/XOFF flow control is used during reception. If this member is TRUE, the XoffChar character is sent when the input buffer comes within XoffLim bytes of being full, and the XonChar character is sent when the input buffer comes within XonLim bytes of being empty."
-			.SetBounds 10, 320, 150, 16
+			.SetBounds 10, 350, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -378,10 +379,10 @@
 		With chkfErrorChar
 			.Name = "chkfErrorChar"
 			.Text = "fErrorChar"
-			.TabIndex = 23
+			.TabIndex = 20
 			.Caption = "fErrorChar"
 			.Hint = "Indicates whether bytes received with parity errors are replaced with the character specified by the ErrorChar member. If this member is TRUE and the fParity member is TRUE, replacement occurs."
-			.SetBounds 10, 340, 140, 16
+			.SetBounds 10, 370, 150, 16
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -390,10 +391,10 @@
 		With chkfNull
 			.Name = "chkfNull"
 			.Text = "fNull"
-			.TabIndex = 24
+			.TabIndex = 21
 			.Caption = "fNull"
 			.Hint = "If this member is TRUE, null bytes are discarded when received."
-			.SetBounds 10, 360, 150, 20
+			.SetBounds 10, 390, 150, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
 			.Parent = @Panel1
@@ -402,9 +403,10 @@
 		With chkfAbortOnError
 			.Name = "chkfAbortOnError"
 			.Text = "fAbortOnError"
-			.TabIndex = 25
+			.TabIndex = 22
 			.Caption = "fAbortOnError"
 			.Hint = "If this member is TRUE, the driver terminates all read and write operations with an error status if an error occurs. The driver will not accept any further communications operations until the application has acknowledged the error by calling the ClearCommError function."
+			.ControlIndex = 37
 			.SetBounds 10, 410, 150, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CheckBox_Click)
@@ -414,7 +416,7 @@
 		With txtfDummy2
 			.Name = "txtfDummy2"
 			.Text = "fDummy2"
-			.TabIndex = 26
+			.TabIndex = 23
 			.Hint = "fDummy2: Reserved; do not use."
 			.SetBounds 10, 440, 70, 20
 			.Designer = @This
@@ -425,7 +427,7 @@
 		With txtwReserved
 			.Name = "txtwReserved"
 			.Text = "wReserved"
-			.TabIndex = 27
+			.TabIndex = 24
 			.Hint = "wReserved: Reserved; must be zero."
 			.SetBounds 90, 440, 70, 20
 			.Designer = @This
@@ -436,7 +438,7 @@
 		With txtXonLim
 			.Name = "txtXonLim"
 			.Text = "XonLim"
-			.TabIndex = 28
+			.TabIndex = 25
 			.Hint = "XonLim: The minimum number of bytes in use allowed in the input buffer before flow control is activated to allow transmission by the sender. This assumes that either XON/XOFF, RTS, or DTR input flow control is specified in the fInX, fRtsControl, or fDtrControl members."
 			.SetBounds 10, 460, 70, 20
 			.Designer = @This
@@ -447,8 +449,9 @@
 		With txtXoffLim
 			.Name = "txtXoffLim"
 			.Text = "XoffLim"
-			.TabIndex = 29
+			.TabIndex = 26
 			.Hint = "XoffLim: The minimum number of free bytes allowed in the input buffer before flow control is activated to inhibit the sender. Note that the sender may transmit characters after the flow control signal has been activated, so this value should never be zero. This assumes that either XON/XOFF, RTS, or DTR input flow control is specified in the fInX, fRtsControl, or fDtrControl members. The maximum number of bytes in use allowed is calculated by subtracting this value from the size, in bytes, of the input buffer."
+			.ControlIndex = 28
 			.SetBounds 90, 460, 70, 20
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
@@ -458,7 +461,7 @@
 		With txtXonChar
 			.Name = "txtXonChar"
 			.Text = "XonChar"
-			.TabIndex = 30
+			.TabIndex = 27
 			.Hint = "XonChar: The value of the XON character for both transmission and reception."
 			.SetBounds 10, 480, 70, 20
 			.Designer = @This
@@ -469,7 +472,7 @@
 		With txtXoffChar
 			.Name = "txtXoffChar"
 			.Text = "XoffChar"
-			.TabIndex = 31
+			.TabIndex = 28
 			.Hint = "XoffChar: The value of the XOFF character for both transmission and reception."
 			.SetBounds 90, 480, 70, 20
 			.Designer = @This
@@ -480,7 +483,7 @@
 		With txtErrorChar
 			.Name = "txtErrorChar"
 			.Text = "ErrorChar"
-			.TabIndex = 32
+			.TabIndex = 29
 			.Hint = "ErrorChar: The value of the character used to replace bytes received with a parity error."
 			.SetBounds 10, 500, 70, 20
 			.Designer = @This
@@ -491,7 +494,7 @@
 		With txtEofChar
 			.Name = "txtEofChar"
 			.Text = "EofChar"
-			.TabIndex = 33
+			.TabIndex = 30
 			.Hint = "EofChar: The value of the character used to signal the end of data."
 			.SetBounds 90, 500, 70, 20
 			.Designer = @This
@@ -502,7 +505,7 @@
 		With txtEvtChar
 			.Name = "txtEvtChar"
 			.Text = "EvtChar"
-			.TabIndex = 34
+			.TabIndex = 31
 			.Hint = "EvtChar: The value of the character used to signal an event."
 			.SetBounds 10, 520, 70, 20
 			.Designer = @This
@@ -513,95 +516,66 @@
 		With txtwReserved1
 			.Name = "txtwReserved1"
 			.Text = "wReserved1"
-			.TabIndex = 35
+			.TabIndex = 32
 			.Hint = "wReserved1: Reserved; do not use."
 			.SetBounds 90, 520, 70, 20
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @TextBox_Change)
 			.Parent = @Panel1
 		End With
-		' Panel3
-		With Panel3
-			.Name = "Panel3"
-			.Text = "Panel3"
-			.TabIndex = 2
-			.Align = DockStyle.alBottom
-			.Enabled = False
-			.SetBounds 0, 591, 170, 100
-			.Designer = @This
-			.Parent = @Panel1
-		End With
 		' chkCTS
 		With chkCTS
 			.Name = "chkCTS"
 			.Text = "Pin(8) CTS"
-			.TabIndex = 36
+			.TabIndex = 33
 			.Hint = "The CTS (clear-to-send) signal is on."
 			.Caption = "Pin(8) CTS"
 			.ForeColor = 32768
-			.SetBounds 10, 10, 150, 20
+			.SetBounds 10, 550, 150, 20
 			.Designer = @This
-			.Parent = @Panel3
+			.Parent = @Panel1
 		End With
 		' chkDSR
 		With chkDSR
 			.Name = "chkDSR"
 			.Text = "Pin(6) DSR"
-			.TabIndex = 37
+			.TabIndex = 34
 			.Hint = "The DSR (data-set-ready) signal is on."
 			.Caption = "Pin(6) DSR"
 			.ForeColor = 32768
-			.SetBounds 10, 30, 150, 20
+			.SetBounds 10, 570, 150, 20
 			.Designer = @This
-			.Parent = @Panel3
+			.Parent = @Panel1
 		End With
 		' chkRING
 		With chkRING
 			.Name = "chkRING"
 			.Text = "Pin(9) RING"
-			.TabIndex = 38
+			.TabIndex = 35
 			.Hint = "The ring indicator signal is on."
 			.Caption = "Pin(9) RING"
 			.ForeColor = 32768
-			.SetBounds 10, 50, 150, 20
+			.SetBounds 10, 590, 150, 20
 			.Designer = @This
-			.Parent = @Panel3
+			.Parent = @Panel1
 		End With
 		' chkRLSD
 		With chkRLSD
 			.Name = "chkRLSD"
 			.Text = "Pin(1) RLSD"
-			.TabIndex = 39
+			.TabIndex = 36
 			.Hint = "The RLSD (receive-line-signal-detect) signal is on."
 			.Caption = "Pin(1) RLSD"
 			.ForeColor = 32768
-			.SetBounds 10, 70, 150, 20
+			.SetBounds 10, 610, 150, 20
 			.Designer = @This
-			.Parent = @Panel3
-		End With
-		' tmrGetStatus
-		With tmrGetStatus
-			.Name = "tmrGetStatus"
-			.Interval = 1000
-			.SetBounds 90, 160, 16, 16
-			.Designer = @This
-			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
-			.Parent = @Panel1
-		End With
-		' tmrSetStatus
-		With tmrSetStatus
-			.Name = "tmrSetStatus"
-			.Interval = 100
-			.SetBounds 110, 160, 16, 16
-			.Designer = @This
-			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
 			.Parent = @Panel1
 		End With
 		' Panel4
 		With Panel4
 			.Name = "Panel4"
 			.Text = "Panel4"
-			.TabIndex = 39
+			.TabIndex = 37
 			.Align = DockStyle.alClient
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
@@ -613,7 +587,7 @@
 		With Panel5
 			.Name = "Panel5"
 			.Text = "Panel5"
-			.TabIndex = 40
+			.TabIndex = 38
 			.Align = DockStyle.alTop
 			.SetBounds 0, 0, 624, 40
 			.Designer = @This
@@ -623,7 +597,7 @@
 		With Panel6
 			.Name = "Panel6"
 			.Text = "Panel6"
-			.TabIndex = 41
+			.TabIndex = 40
 			.Align = DockStyle.alBottom
 			.SetBounds 0, 551, 634, 140
 			.Designer = @This
@@ -633,27 +607,40 @@
 		With Panel7
 			.Name = "Panel7"
 			.Text = "Panel7"
-			.TabIndex = 44
+			.TabIndex = 41
 			.Align = DockStyle.alTop
 			.SetBounds 0, 0, 624, 40
 			.Designer = @This
 			.Parent = @Panel6
 		End With
-		' Panel9
-		With Panel9
-			.Name = "Panel9"
-			.Text = "Panel9"
-			.TabIndex = 50
-			.Align = DockStyle.alRight
-			.SetBounds 534, 0, 90, 40
+		' chkHexRec
+		With chkHexRec
+			.Name = "chkHexRec"
+			.Text = "Hex"
+			.TabIndex = 42
+			.Caption = "Hex"
+			.Visible = False
+			.SetBounds 0, 10, 70, 20
 			.Designer = @This
-			.Parent = @Panel7
+			.Parent = @Panel5
+		End With
+		' cmdClearRec
+		With cmdClearRec
+			.Name = "cmdClearRec"
+			.Text = "Clear"
+			.TabIndex = 43
+			.Caption = "Clear"
+			.ControlIndex = 2
+			.SetBounds 0, 9, 70, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
+			.Parent = @Panel5
 		End With
 		' txtRec
 		With txtRec
 			.Name = "txtRec"
 			.Text = ""
-			.TabIndex = 42
+			.TabIndex = 44
 			.Align = DockStyle.alClient
 			.Multiline = True
 			.ScrollBars = ScrollBarsType.Both
@@ -662,11 +649,33 @@
 			.Designer = @This
 			.Parent = @Panel4
 		End With
+		' chkHexSend
+		With chkHexSend
+			.Name = "chkHexSend"
+			.Text = "Hex"
+			.TabIndex = 45
+			.Visible = False
+			.SetBounds 0, 10, 70, 20
+			.Designer = @This
+			.Parent = @Panel7
+		End With
+		' cmdSend
+		With cmdSend
+			.Name = "cmdSend"
+			.Text = "Send"
+			.TabIndex = 46
+			.Caption = "Send"
+			.ControlIndex = 2
+			.SetBounds 0, 9, 70, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
+			.Parent = @Panel7
+		End With
 		' txtSend
 		With txtSend
 			.Name = "txtSend"
 			.Text = ""
-			.TabIndex = 43
+			.TabIndex = 47
 			.ControlIndex = 0
 			.Align = DockStyle.alClient
 			.Multiline = True
@@ -677,60 +686,36 @@
 			.Designer = @This
 			.Parent = @Panel6
 		End With
-		' chkHexRec
-		With chkHexRec
-			.Name = "chkHexRec"
-			.Text = "Hex"
-			.TabIndex = 45
-			.Caption = "Hex"
-			.Visible = False
-			.SetBounds 0, 10, 70, 20
-			.Designer = @This
-			.Parent = @Panel5
-		End With
-		' Panel8
-		With Panel8
-			.Name = "Panel8"
-			.Text = "Panel8"
-			.TabIndex = 49
-			.Align = DockStyle.alRight
-			.SetBounds 534, 0, 90, 40
-			.Designer = @This
-			.Parent = @Panel5
-		End With
-		' chkHexSend
-		With chkHexSend
-			.Name = "chkHexSend"
-			.Text = "Hex"
-			.TabIndex = 46
-			.Visible = False
-			.SetBounds 0, 10, 70, 20
-			.Designer = @This
-			.Parent = @Panel7
-		End With
-		' cmdSend
-		With cmdSend
-			.Name = "cmdSend"
-			.Text = "Send"
-			.TabIndex = 47
-			.Caption = "Send"
-			.ControlIndex = 0
-			.SetBounds 20, 9, 70, 20
-			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
-			.Parent = @Panel9
-		End With
-		' cmdClearRec
-		With cmdClearRec
-			.Name = "cmdClearRec"
-			.Text = "Clear"
+		' chkDark
+		With chkDark
+			.Name = "chkDark"
+			.Text = "Dark"
 			.TabIndex = 48
-			.Caption = "Clear"
-			.ControlIndex = 0
-			.SetBounds 20, 9, 70, 20
+			.Caption = "Dark"
+			.Anchor.Right = AnchorStyle.asAnchorProportional
+			.Checked = True
+			.SetBounds 550, 10, 70, 20
 			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
-			.Parent = @Panel8
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkDark_Click)
+			.Parent = @Panel5
+		End With
+		' tmrGetStatus
+		With tmrGetStatus
+			.Name = "tmrGetStatus"
+			.Interval = 1000
+			.SetBounds 120, 140, 16, 16
+			.Designer = @This
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
+			.Parent = @Panel1
+		End With
+		' tmrSetStatus
+		With tmrSetStatus
+			.Name = "tmrSetStatus"
+			.Interval = 100
+			.SetBounds 140, 140, 16, 16
+			.Designer = @This
+			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent_Timer)
+			.Parent = @Panel1
 		End With
 	End Constructor
 	
@@ -973,13 +958,13 @@ Private Sub frmSerialPortType.PortOpen(e As Boolean)
 		
 		txtfDummy2.Text = txtfDummy2.Name
 		txtwReserved.Text = txtwReserved.Name
-		txtXonLim.Text =txtXonLim.Name
-		txtXoffLim.Text =txtXoffLim.Name
-		txtXonChar.Text =txtXonChar.Name
-		txtXoffChar.Text =txtXoffChar.Name
-		txtErrorChar.Text =txtErrorChar.Name
-		txtEofChar.Text =txtEofChar.Name
-		txtEvtChar.Text =txtEvtChar.Name
+		txtXonLim.Text = txtXonLim.Name
+		txtXoffLim.Text = txtXoffLim.Name
+		txtXonChar.Text = txtXonChar.Name
+		txtXoffChar.Text = txtXoffChar.Name
+		txtErrorChar.Text = txtErrorChar.Name
+		txtEofChar.Text = txtEofChar.Name
+		txtEvtChar.Text = txtEvtChar.Name
 		txtwReserved1.Text = txtwReserved1.Name
 	End If
 End Sub
@@ -1007,4 +992,9 @@ Private Sub frmSerialPortType.DataArrive(Owner As Any Ptr, ArriveData As ZString
 	a->txtRec.Text = c
 	a->txtRec.SelStart = Len(a->txtRec.Text)
 	SendMessage(a->txtRec.Handle, EM_SCROLLCARET, 0, 0)
+End Sub
+
+Private Sub frmSerialPortType.chkDark_Click(ByRef Sender As CheckBox)
+	App.DarkMode = chkDark.Checked
+	InvalidateRect(Handle, NULL, False)
 End Sub

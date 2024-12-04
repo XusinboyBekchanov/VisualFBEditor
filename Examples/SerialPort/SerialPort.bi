@@ -1,5 +1,4 @@
-﻿#pragma once
-' SerialPort 串口
+﻿' SerialPort 串口
 ' Copyright (c) 2022 CM.Wang
 ' Freeware. Use at your own risk.
 
@@ -7,6 +6,8 @@
 'https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-setcommstate
 'https://learn.microsoft.com/en-us/windows/desktop/api/winbase/ns-winbase-dcb
 'https://learn.microsoft.com/en-us/windows/win32/api/winbase/nf-winbase-getcommmodemstatus
+
+#pragma once
 
 #include once "vbcompat.bi"
 #include once "win/winbase.bi"
