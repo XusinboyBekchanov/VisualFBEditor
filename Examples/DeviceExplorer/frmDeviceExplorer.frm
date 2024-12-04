@@ -18,6 +18,7 @@
 	#include once "mff/CommandButton.bi"
 	#include once "mff/StatusBar.bi"
 	#include once "mff/CheckBox.bi"
+	#include once "mff/ImageList.bi"
 	
 	#include once "DeviceExplorer.bi"
 	
@@ -41,6 +42,7 @@
 		Dim As StatusBar StatusBar1
 		Dim As StatusPanel StatusPanel1
 		Dim As CheckBox chkShowHidden, chkDarkmode, chkShowCategories
+		Dim As ImageList ImageList1
 	End Type
 	
 	Constructor frmDeviceExplorerType
@@ -57,6 +59,11 @@
 			.Designer = @This
 			.Caption = "Device Explorer"
 			.StartPosition = FormStartPosition.CenterScreen
+			#ifdef __USE_GTK__
+				This.Icon.LoadFromFile(ExePath & "DeviceExplorer.ico")
+			#else
+				This.Icon.LoadFromResourceID(1)
+			#endif
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.SetBounds 0, 0, 750, 500
@@ -72,6 +79,8 @@
 			.ExtraMargins.Top = 10
 			.ExtraMargins.Bottom = 10
 			.Sorted = True
+			.SelectedImages = @ImageList1
+			.Images = @ImageList1
 			.SetBounds 10, 10, 380, 419
 			.Designer = @This
 			.OnSelChanged = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode), @TreeView1_SelChanged)
@@ -248,6 +257,13 @@
 			.Designer = @This
 			.Parent = @StatusBar1
 		End With
+		' ImageList1
+		With ImageList1
+			.Name = "ImageList1"
+			.SetBounds 0, 0, 16, 16
+			.Designer = @This
+			.Parent = @This
+		End With
 	End Constructor
 	
 	Dim Shared frmDeviceExplorer As frmDeviceExplorerType
@@ -328,17 +344,16 @@ Private Sub frmDeviceExplorerType.CommandButton_Enabled(e As Boolean)
 End Sub
 
 Private Sub frmDeviceExplorerType.Form_Show(ByRef Sender As Form)
-	gImageList = ImageList_Create(16, 16, ILC_COLOR32 Or ILC_MASK, 2, 0)
-	SendMessage(TreeView1.Handle, TVM_SETIMAGELIST, TVSIL_NORMAL, Cast(LPARAM, gImageList))
+	pvInit()
 	
 	CommandButton_Enabled(False)
+	App.DoEvents()
+	
 	CommandButton_Click(cmdRefresh)
 End Sub
 
 Private Sub frmDeviceExplorerType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	TreeView1.Enabled = False
 	pvRelase()
-	ImageList_Destroy(gImageList)
 End Sub
 
 Private Sub frmDeviceExplorerType.TreeView1_DblClick(ByRef Sender As Control)
@@ -348,7 +363,7 @@ End Sub
 
 Private Sub frmDeviceExplorerType.CommandButton_Click(ByRef Sender As Control)
 	If Sender.Name= "cmdRefresh" Then
-		pvInitIcon(gImageList)
+		pvInitIcon(@TreeView1)
 		pvEnumClasses(Handle, @TreeView1, chkShowCategories.Checked, chkShowHidden.Checked)
 		StatusPanel1.Caption = "Total: " & EnumCCount + EnumDCount & ", Categories: " & EnumCCount & ", Devices: " &  EnumDCount
 	Else

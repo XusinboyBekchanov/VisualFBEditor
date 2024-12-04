@@ -46,21 +46,34 @@ Private Sub pvRelase()
 	devicesCount = -1
 End Sub
 
-Private Sub pvInitIcon(hImgLst As HANDLE)
-	Dim As HMODULE hm = GetModuleHandle(NULL)
-	ImageList_Remove hImgLst, -1
-	Dim hOvr1 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRWARN), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
-	Dim hOvr2 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRINFO), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
-	Dim hOvr3 As HANDLE = LoadImage(hm, VarPtr(IDI_OVRDOWN), IMAGE_ICON, 16, 16, LR_DEFAULTCOLOR Or LR_SHARED)
-	Dim o1 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr1)
-	Dim o2 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr2)
-	Dim o3 As Long = ImageList_ReplaceIcon(hImgLst, -1, hOvr3)
-	ImageList_SetOverlayImage(hImgLst, o1, 1)
-	ImageList_SetOverlayImage(hImgLst, o2, 2)
-	ImageList_SetOverlayImage(hImgLst, o3, 3)
-	DestroyIcon hOvr1
-	DestroyIcon hOvr2
-	DestroyIcon hOvr3
+Private Sub pvInit()
+	Dim pIIDL As ITEMIDLIST Ptr
+	Dim pFileInfo As SHFILEINFO
+	
+	SHGetSpecialFolderLocation(NULL, CSIDL_SYSTEMX86, @pIIDL)
+	SHGetPathFromIDList(pIIDL, @SystemPath)
+End Sub
+
+Private Sub pvInitIcon(tv As TreeView Ptr)
+	'初始化ImageList, 并从setupapi.dll文件获得Overlay Icon
+	
+	'清空ImageList Icon
+	ImageList_Remove tv->Images->Handle, -1
+	
+	Dim hico As HANDLE
+	Dim i As Integer
+	Dim j As Integer = 1
+	Dim k As Integer = ExtractIconEx(SystemPath & "\setupapi.dll", -1, 0, NULL, 0)
+	k -= 1
+	Dim o As Long
+	'最后3个图标是Overlay icon.
+	For i = k - 2 To k
+		ExtractIconEx(SystemPath & "\setupapi.dll", i, 0, @hico, 1)
+		o = ImageList_ReplaceIcon(tv->Images->Handle, -1, hico)
+		ImageList_SetOverlayImage(tv->Images->Handle, o, j)
+		DestroyIcon(hico)
+		j += 1
+	Next
 End Sub
 
 Private Function pvIndexBydevicesInstanceId(hwndParent As HWND, pGuid As GUID Ptr, pInstanceId As WString Ptr, ShowHide As Boolean, ByRef hSet As HDEVINFO, ByRef pDevInfo As PSP_DEVINFO_DATA) As BOOL
@@ -155,7 +168,7 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 		If ShowCategories Then
 			EnumCCount += 1
 			ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
-			ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
+			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
 			DestroyIcon(hicn)
 			pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
 		End If
@@ -170,7 +183,7 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			If pTNode = NULL Then
 				EnumCCount += 1
 				ret = SetupDiLoadClassIcon(@categoriesGuid(i), @hicn, NULL)
-				ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
+				ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
 				DestroyIcon(hicn)
 				pTNode = tv->Nodes.Add(*categoriesDescription(i), WStr(i), WStr("Categories"), ico, ico)
 			End If
@@ -247,7 +260,7 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			End If
 			
 			ret = SetupDiLoadDeviceIcon(categoriesHSet(i), @categoriesDevInfo(i), 16, 16, NULL, @hicn)
-			ico = ImageList_ReplaceIcon(gImageList, -1, hicn)
+			ico = ImageList_ReplaceIcon(tv->Images->Handle, -1, hicn)
 			DestroyIcon(hicn)
 			
 			Dim fPresent As Integer
@@ -308,7 +321,7 @@ Private Function pvEnumClasses(hwndParent As HWND, tv As TreeView Ptr, ShowCateg
 			Else
 				sTNode = pTNode->Nodes.Add(*devicesFriendlyName(j), WStr(j), WStr("Devices"), ico, ico)
 			End If
-			If dwMask Then 
+			If dwMask Then
 				TreeView_SetItemState(tv->Handle, sTNode->Handle, dwState, dwMask)
 			End If
 			

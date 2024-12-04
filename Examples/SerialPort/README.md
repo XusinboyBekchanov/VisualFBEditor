@@ -1,7 +1,7 @@
-Serial Port Example
+# Serial Port Example
 
-![image](https://github.com/chunmingwang/VisualFBEditor/blob/master/Examples/SerialPort/SerialPort.png)
+GetCommModemStatus, GetCommState, SetCommState
 
-![image](https://user-images.githubusercontent.com/35757455/207768519-c5ca82d3-8783-4f67-a1fe-2c2427e4ba61.png)
+![image](https://github.com/user-attachments/assets/89a73e96-9d8f-4cec-ad48-f6e11627d4cb)
 
-![image](https://user-images.githubusercontent.com/35757455/207768596-fbd5b380-c183-459f-b662-dacceb307516.png)
+![image](https://github.com/user-attachments/assets/5b360f7c-14f3-412a-b366-31e0b501bbf1)

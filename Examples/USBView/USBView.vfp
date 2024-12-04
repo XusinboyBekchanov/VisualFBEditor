@@ -1,6 +1,7 @@
 ﻿File=USBView.bi
 *File=frmUSBView.frm
 File=USBView.bas
+File=Form1.rc
 ProjectType=0
 Subsystem=2
 ProjectName="USBView"
@@ -11,7 +12,7 @@ OpenProjectAsFolder=false
 MajorVersion=0
 MinorVersion=0
 RevisionVersion=0
-BuildVersion=274
+BuildVersion=281
 AutoIncrementVersion=false
 ApplicationTitle="USBView"
 ApplicationIcon=""
