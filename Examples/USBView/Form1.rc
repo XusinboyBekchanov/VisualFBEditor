@@ -1,10 +1,11 @@
 ﻿1 24 "Manifest.xml"
+1 ICON "USBView.ico"
 
 #define APP_TITLE_STR               "USBView\0"
 #define VER_FILEDESCRIPTION_STR     "USBView\0"
 
-#define VER_FILEVERSION             0,0,0,274
-#define VER_FILEVERSION_STR         "0.0.0.274\0"
+#define VER_FILEVERSION             0,0,0,281
+#define VER_FILEVERSION_STR         "0.0.0.281\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
