@@ -2915,20 +2915,19 @@ Sub ReloadHistoryCode()
 End Sub
 
 Sub SetAsMain(IsTab As Boolean)
-	Dim As TreeNode Ptr tn
+	Dim As TreeNode Ptr tn, ptn
 	If IsTab AndAlso ptabCode->SelectedTab <> 0 Then
 		tn = Cast(TabWindow Ptr, ptabCode->SelectedTab)->tn
 	Else
 		tn = tvExplorer.SelectedNode
 	End If
 	If CInt(ptabCode->Focused) AndAlso CInt(ptabCode->SelectedTab <> 0) Then tn = Cast(TabWindow Ptr, ptabCode->SelectedTab)->tn
-	If tn = 0 Then Exit Sub
-	If tn->ParentNode = 0 OrElse (tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement) Then
+	If tn = 0 Then Exit Sub Else ptn = GetParentNode(tn)
+	If tn->ParentNode = 0 OrElse (ptn <> 0 AndAlso ptn->ImageKey = "Opened") OrElse (tn->Tag <> 0 AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement) Then
 		SetMainNode tn
 		lblLeft.Text = ML("Main Project") & ": " & MainNode->Text
 	Else
 		Dim As ExplorerElement Ptr ee = tn->Tag
-		Dim As TreeNode Ptr ptn = GetParentNode(tn)
 		Dim As ProjectElement Ptr ppe
 		Dim As WString * MAX_PATH tMainNode
 		If ptn <> 0 Then
