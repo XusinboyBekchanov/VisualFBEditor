@@ -40,6 +40,12 @@
 	End Type
 	
 	Constructor frmDisplayType
+		#if _MAIN_FILE_ = __FILE__
+			With App
+				.CurLanguagePath = ExePath & "/Languages/"
+				.CurLanguage = My.Sys.Language
+			End With
+		#endif
 		' frmDisplay
 		With This
 			.Name = "frmDisplay"
