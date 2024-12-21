@@ -1,0 +1,30 @@
+﻿chinese
+[General]
+Categories  =  类型
+Categories Description  =  类型描述
+Categories GUID  =  类型GUID
+Categories Name  =  类型名称
+Dark mode  =  深色模式
+Devices  =  设备
+Devices Capabilities  =  设备功能
+Devices Description  =  设备描述
+Devices Driver  =  设备驱动程序
+Devices Enabled  =  已启用的设备
+Devices Explorer = 设备管理器
+Devices Friendly Name  =  设备显示名称
+Devices GUID  =  设备 GUID
+Devices Hardware Id  =  设备硬件 ID
+Devices Instance Id  =  设备实例 ID
+Devices Present  =  存在的设备
+Devices Problem  =  设备问题
+Devices Status  =  设备状态
+Disabled  =  禁用
+Eject  =  弹出
+Enabled  =  启用
+Refresh  =  刷新
+Removed  =  删除
+Show all categories  =  显示所有类别
+Show hidden  =  显示隐藏的
+Total  =  总计
+Uninstall  =  卸载
+Update  =  更新
