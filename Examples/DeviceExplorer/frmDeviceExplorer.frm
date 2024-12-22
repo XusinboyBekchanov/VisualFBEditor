@@ -55,9 +55,8 @@
 		' frmDeviceExplorer
 		With This
 			.Name = "frmDeviceExplorer"
-			.Text = "Device Explorer"
+			.Text = ML("Devices Explorer")
 			.Designer = @This
-			.Caption = "Device Explorer"
 			.StartPosition = FormStartPosition.CenterScreen
 			#ifdef __USE_GTK__
 				This.Icon.LoadFromFile(ExePath & "DeviceExplorer.ico")
@@ -136,9 +135,8 @@
 		' chkShowCategories
 		With chkShowCategories
 			.Name = "chkShowCategories"
-			.Text = "Show all categories"
+			.Text = ML("Show all categories")
 			.TabIndex = 4
-			.Caption = "Show all categories"
 			.SetBounds 0, 10, 140, 18
 			.Designer = @This
 			.Parent = @Panel2
@@ -146,9 +144,8 @@
 		' chkShowHidden
 		With chkShowHidden
 			.Name = "chkShowHidden"
-			.Text = "Show hidden"
+			.Text = ML("Show hidden")
 			.TabIndex = 5
-			.Caption = "Show hidden"
 			.SetBounds 140, 10, 140, 18
 			.Designer = @This
 			.Parent = @Panel2
@@ -156,9 +153,8 @@
 		' chkDarkmode
 		With chkDarkmode
 			.Name = "chkDarkmode"
-			.Text = "Dark mode"
+			.Text = ML("Dark mode")
 			.TabIndex = 6
-			.Caption = "Dark mode"
 			.Checked = True
 			.SetBounds 250, 10, 70, 18
 			.Designer = @This
@@ -168,9 +164,8 @@
 		' cmdRefresh
 		With cmdRefresh
 			.Name = "cmdRefresh"
-			.Text = "Refresh"
+			.Text = ML("Refresh")
 			.TabIndex = 7
-			.Caption = "Refresh"
 			.SetBounds 250, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -179,9 +174,8 @@
 		' cmdEnabled
 		With cmdEnabled
 			.Name = "cmdEnabled"
-			.Text = "Enabled"
+			.Text = ML("Enabled")
 			.TabIndex = 8
-			.Caption = "Enabled"
 			.SetBounds 0, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -190,9 +184,8 @@
 		' cmdDisabled
 		With cmdDisabled
 			.Name = "cmdDisabled"
-			.Text = "Disabled"
+			.Text = ML("Disabled")
 			.TabIndex = 9
-			.Caption = "Disabled"
 			.SetBounds 70, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -201,9 +194,8 @@
 		' cmdRemoved
 		With cmdRemoved
 			.Name = "cmdRemoved"
-			.Text = "Removed"
+			.Text = ML("Removed")
 			.TabIndex = 10
-			.Caption = "Removed"
 			.SetBounds 140, 40, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -212,9 +204,8 @@
 		' cmdEject
 		With cmdEject
 			.Name = "cmdEject"
-			.Text = "Eject"
+			.Text = ML("Eject")
 			.TabIndex = 11
-			.Caption = "Eject"
 			.SetBounds 0, 59, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -223,9 +214,8 @@
 		' cmdUninstall
 		With cmdUninstall
 			.Name = "cmdUninstall"
-			.Text = "Uninstall"
+			.Text = ML("Uninstall")
 			.TabIndex = 12
-			.Caption = "Uninstall"
 			.SetBounds 70, 60, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -234,9 +224,8 @@
 		' cmdUpdate
 		With cmdUpdate
 			.Name = "cmdUpdate"
-			.Text = "Update"
+			.Text = ML("Update")
 			.TabIndex = 13
-			.Caption = "Update"
 			.SetBounds 140, 60, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -291,41 +280,41 @@ Private Sub frmDeviceExplorerType.TreeView1_SelChanged(ByRef Sender As TreeView,
 	Select Case Item.Hint
 	Case "Categories"
 		i = CInt(Item.Name)
-		StatusPanel1.Caption = Item.Hint & ": " & i
+		StatusPanel1.Caption = ML(Item.Hint) & ": " & i
 	Case Else
 		j = CInt(Item.Name)
 		i = devicesIndexCategories(j)
-		StatusPanel1.Caption = Item.Hint & ": " & j
+		StatusPanel1.Caption = ML(Item.Hint) & ": " & j
 	End Select
 	devicesSelected = j
 	
-	TextBox1.AddLine "Categories****" & i
-'	TextBox1.AddLine "HDEVINFO      " & categoriesHSet(i)
-	TextBox1.AddLine "Description   " & *categoriesDescription(i)
-	TextBox1.AddLine "Name          " & *categoriesName(i)
+	TextBox1.AddLine ML("Categories") + ": " & i
+'	TextBox1.AddLine "HDEVINFO) + ": " & categoriesHSet(i)
+	TextBox1.AddLine ML("Categories Description") + ": " & *categoriesDescription(i)
+	TextBox1.AddLine ML("Categories Name") + ": " & *categoriesName(i)
 	StringFromCLSID(@categoriesGuid(i), @wtmp)
-	TextBox1.AddLine "GUID          " & *wtmp
+	TextBox1.AddLine ML("Categories GUID") + ": " & *wtmp
 	
 	If j < 0 Then
 	Else
 		TextBox1.AddLine ""
-		TextBox1.AddLine "Devices*******" & j
-		TextBox1.AddLine "FriendlyName  " & *devicesFriendlyName(j)
-		TextBox1.AddLine "Description   " & *devicesDescription(j)
-		TextBox1.AddLine "HardwareId    " & *devicesHardwareId(j)
-		TextBox1.AddLine "InstanceId    " & *devicesInstanceId(j)
-		TextBox1.AddLine "Enabled       " & devicesEnabled(j)
-		TextBox1.AddLine "Present       " & devicesPresent(j)
+		TextBox1.AddLine ML("Devices") + ": " & j
+		TextBox1.AddLine ML("Devices Friendly Name") + ": " & *devicesFriendlyName(j)
+		TextBox1.AddLine ML("Devices Description") + ": " & *devicesDescription(j)
+		TextBox1.AddLine ML("Devices Hardware Id") + ": " & *devicesHardwareId(j)
+		TextBox1.AddLine ML("Devices Instance Id") + ": " & *devicesInstanceId(j)
+		TextBox1.AddLine ML("Devices Enabled") + ": " & devicesEnabled(j)
+		TextBox1.AddLine ML("Devices Present") + ": " & devicesPresent(j)
 		StringFromCLSID(devicesGUID(j), @wtmp)
-		TextBox1.AddLine "GUID          " & *wtmp
+		TextBox1.AddLine ML("Devices GUID") + ": " & *wtmp
 		TextBox1.AddLine ""
-		TextBox1.AddLine "Capabilities--(&H" & Hex(devicesCapabilities(j), 8) & ")"
+		TextBox1.AddLine ML("Devices Capabilities") + ": " + "(&H" & Hex(devicesCapabilities(j), 8) & ")"
 		TextBox1.AddLine Capabilities2Str(devicesCapabilities(j))
-		TextBox1.AddLine "Problem-------(&H" & Hex(devicesProblem(j), 8) & ")"
+		TextBox1.AddLine ML("Devices Problem") + ": " + "(&H" & Hex(devicesProblem(j), 8) & ")"
 		TextBox1.AddLine Problems2Str(devicesProblem(j))
-		TextBox1.AddLine "Status--------(&H" & Hex(devicesStatus(j), 8) & ")"
+		TextBox1.AddLine ML("Devices Status") + ": " + "(&H" & Hex(devicesStatus(j), 8) & ")"
 		TextBox1.AddLine NodeStatus2Str(devicesStatus(j))
-		TextBox1.AddLine "Driver--------" & *devicesDriver(j)
+		TextBox1.AddLine ML("Devices Driver") + ": " & *devicesDriver(j)
 		GetDriverAllInformation(*devicesDriver(j), wtmp2)
 		TextBox1.AddLine *wtmp2
 	End If
@@ -365,7 +354,7 @@ Private Sub frmDeviceExplorerType.CommandButton_Click(ByRef Sender As Control)
 	If Sender.Name= "cmdRefresh" Then
 		pvInitIcon(@TreeView1)
 		pvEnumClasses(Handle, @TreeView1, chkShowCategories.Checked, chkShowHidden.Checked)
-		StatusPanel1.Caption = "Total: " & EnumCCount + EnumDCount & ", Categories: " & EnumCCount & ", Devices: " &  EnumDCount
+		StatusPanel1.Caption = ML("Total") + ": " & EnumCCount & EnumDCount & ", " & ML("Categories") + ": " & EnumCCount & ", " + ML("Devices") + ": " &  EnumDCount
 	Else
 		If devicesSelected < 0 Then Exit Sub
 		Select Case Sender.Name
