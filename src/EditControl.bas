@@ -17,7 +17,7 @@ Namespace My.Sys.Forms
 		If FileName Then _Deallocate( FileName)
 		If TemplateFileName Then _Deallocate( TemplateFileName)
 	End Destructor
-
+	
 	Destructor EditControlHistory
 		If Comment Then _Deallocate( Comment)
 		For i As Integer = Lines.Count - 1 To 0 Step -1
@@ -868,7 +868,7 @@ Namespace My.Sys.Forms
 		'If LineText <> "" Then
 		'	LineText_ = LineText
 		'Else
-			LineText_ = TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))
+		LineText_ = TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))
 		'End If
 		Dim As Boolean Collapsible
 		Dim As List Statements
@@ -903,7 +903,7 @@ Namespace My.Sys.Forms
 						ecsOld_->ConstructionIndex = i
 						ecsOld_->ConstructionPart = j
 						If EC Then
-							 Cast(EditControl Ptr, EC)->ChangeCollapsibility iii + 1, LineText_
+							Cast(EditControl Ptr, EC)->ChangeCollapsibility iii + 1, LineText_
 						Else
 							ChangeCollapsibility iii + 1, LineText_
 						End If
@@ -1127,7 +1127,7 @@ Namespace My.Sys.Forms
 				j = 0
 				Var OldVisibleLineIndex = k
 				For k = OldVisibleLineIndex To OldLineIndex + 1
-				'For k = k + 1 To OldLineIndex
+					'For k = k + 1 To OldLineIndex
 					FECLine2 = Content.Lines.Items[k]
 					For iii As Integer = IIf(k = OldVisibleLineIndex, FECLine->Statements.IndexOf(FECLine->MainStatement) + 1, 0) To IIf(k = OldLineIndex + 1, ecl->Statements.IndexOf(ecl->MainStatement), FECLine2->Statements.Count - 1)
 						FECStatement = FECLine2->Statements.Item(iii)
@@ -1940,7 +1940,7 @@ Namespace My.Sys.Forms
 					End If
 					dwBytesToWrite = Len(sFileContents)
 					WriteFile(hFile, @sFileContents[0], dwBytesToWrite, @dwBytesWrite, NULL)
-  					CloseHandle(hFile)
+					CloseHandle(hFile)
 				End If
 			End If
 		#endif
@@ -2678,12 +2678,12 @@ Namespace My.Sys.Forms
 		ShowCaretPos True
 	End Sub
 	
-    Sub EditControl.UnComment
+	Sub EditControl.UnComment
 		UpdateLock
-		Dim As Integer n, CommentFlag 
+		Dim As Integer n, CommentFlag
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar  
-		Changing("Izohni olish") 
+		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Changing("Izohni olish")
 		For i As Integer = iSelStartLine To iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 			FECLine = Content.Lines.Items[i]
 			If .Left(Trim(*FECLine->Text, Any !"\t "), 2) = "/'" Then
@@ -2693,11 +2693,11 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, *FLineTemp & Mid(*FECLine->Text, n + 3))
 				If i = FSelEndLine And FSelEndChar > n Then FSelEndChar -= 2
 				If i = FSelStartLine And FSelStartChar > n Then FSelStartChar -= 2
-				If Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then 
+				If Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then
 					WLet(FECLine->Text, Mid(*FECLine->Text, 1, Len(*FECLine->Text) - 2))
 					CommentFlag = 0
 				End If
-			ElseIf Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then	
+			ElseIf Right(RTrim(*FECLine->Text, Any !"\t "), 2) = "'/" Then
 				CommentFlag = 0
 				WLet(FECLine->Text, Mid(*FECLine->Text, 1, Len(*FECLine->Text) - 2))
 			ElseIf .Left(Trim(*FECLine->Text, Any !"\t "), 1) = "'" AndAlso CommentFlag <> 2 Then
@@ -3094,7 +3094,7 @@ Namespace My.Sys.Forms
 		End If
 		If te > 0 Then Return True Else Return False
 	End Function
-
+	
 	Function GetFromConstructionBlock(cb As ConstructionBlock Ptr, ByRef Text As String, z As Integer, TypesOnly As Boolean = False) As TypeElement Ptr
 		If cb = 0 Then Return 0
 		If TypesOnly Then
@@ -3314,9 +3314,9 @@ Namespace My.Sys.Forms
 					If IsArg(Asc(ch)) Then 'AndAlso Not bArgEnded Then
 						sTemp = ch & sTemp
 						bArg = True
-					'ElseIf (ch = " " OrElse ch = !"\t") Then
-					'	If bArg Then bArgEnded = True
-					'	Continue For
+						'ElseIf (ch = " " OrElse ch = !"\t") Then
+						'	If bArg Then bArgEnded = True
+						'	Continue For
 					ElseIf sTemp <> "" Then
 						If ch = "." Then
 							If i > 0 AndAlso Mid(*sLine, i - 1, 1) = "." Then
@@ -4204,7 +4204,7 @@ Namespace My.Sys.Forms
 																End If
 															End If
 														End If
-															
+														
 														If Not OneDot Then
 															If Not bInAsm Then
 																If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
@@ -4231,7 +4231,7 @@ Namespace My.Sys.Forms
 																	Next
 																End If
 															End If
-																
+															
 															'Procedure
 															If (Not TwoDots) AndAlso (tIndex = -1) AndAlso (FECLine->InConstructionBlock > 0) Then 'AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol)
 																te = GetFromConstructionBlock(FECLine->InConstructionBlock, MatnLCaseWithoutOldSymbol, z, (OldMatnLCase = "as") AndAlso Not WithOldSymbol)
@@ -4274,7 +4274,7 @@ Namespace My.Sys.Forms
 																	End If
 																End If
 															End If
-																
+															
 															If (Not TwoDots) AndAlso tIndex = -1 AndAlso FECLine->InConstruction > 0 AndAlso ((OldMatnLCase <> "as") OrElse WithOldSymbol) Then
 																tIndex = Cast(TypeElement Ptr, FECLine->InConstruction)->Elements.IndexOf(MatnLCaseWithoutOldSymbol)
 																If tIndex <> -1 Then
@@ -4382,7 +4382,7 @@ Namespace My.Sys.Forms
 															End If
 														End If
 													End If
-														
+													
 													If WithOldSymbol AndAlso Not bKeyWord Then MatnLCase = MatnLCaseWithoutOldSymbol
 													
 													If ChangeIdentifiersCase OrElse SyntaxHighlightingIdentifiers Then
@@ -4585,7 +4585,7 @@ Namespace My.Sys.Forms
 																	End If
 																End If
 															End If
-																
+															
 															If tIndex = -1 Then
 																tIndex = Content.LineLabels.IndexOf(MatnLCase)
 																If tIndex <> -1 Then
@@ -4996,7 +4996,7 @@ Namespace My.Sys.Forms
 								End If
 							End If
 						Next ii
-						If ((Not FECLine->Collapsed) AndAlso CBool(CollapseIndex > 0)) OrElse (FECLine->Collapsed AndAlso (CBool(OldCollapseIndex > 0) OrElse Not FECLine->CollapsedFully)) Then 'CBool(OldCollapseIndex = 0) AndAlso 
+						If ((Not FECLine->Collapsed) AndAlso CBool(CollapseIndex > 0)) OrElse (FECLine->Collapsed AndAlso (CBool(OldCollapseIndex > 0) OrElse Not FECLine->CollapsedFully)) Then 'CBool(OldCollapseIndex = 0) AndAlso
 							#ifdef __USE_GTK__
 								cairo_move_to(cr, ScaleX(LeftMargin - 11 + CodePaneX) - 0.5, ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY) - 0.5)
 								cairo_line_to(cr, ScaleX(LeftMargin - 11 + CodePaneX) - 0.5, ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY) - 0.5)
@@ -5059,9 +5059,9 @@ Namespace My.Sys.Forms
 					'	cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
 					'	gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
 					'#else
-						cairo_rectangle (cr, ScaleX(HCaretPos), ScaleY(VCaretPos), ScaleX(HCaretPos) + 0.5, ScaleY(VCaretPos + dwCharY), True)
-						cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
-						cairo_fill (cr)
+					cairo_rectangle (cr, ScaleX(HCaretPos), ScaleY(VCaretPos), ScaleX(HCaretPos) + 0.5, ScaleY(VCaretPos + dwCharY), True)
+					cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
+					cairo_fill (cr)
 					'#endif
 				End If
 				'cairo_paint(cr)
@@ -5768,6 +5768,11 @@ Namespace My.Sys.Forms
 			End If
 			Return True
 		End Function
+		
+		#ifdef __USE_GTK2__
+			Const GDK_KEY_dead_grave = &hfe50
+			Const GDK_KEY_dead_greek = &hfe8c
+		#endif
 	#endif
 	
 	Sub EditControl.ProcessMessage(ByRef msg As Message)
@@ -5933,7 +5938,7 @@ Namespace My.Sys.Forms
 					If bShifted Then
 						#ifdef __USE_GTK__
 							If scrDirection = 1 Then
-								gtk_adjustment_set_value(adjustmenth, min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
+								gtk_adjustment_set_value(adjustmenth, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
 							ElseIf scrDirection = -1 Then
 								gtk_adjustment_set_value(adjustmenth, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmenth)))
 							End If
@@ -5945,7 +5950,7 @@ Namespace My.Sys.Forms
 							'End If
 						#else
 							If scrDirection = -1 Then
-								si.nPos = min(si.nPos + 3, si.nMax)
+								si.nPos = Min(si.nPos + 3, si.nMax)
 							Else
 								si.nPos = Max(si.nPos - 3, si.nMin)
 							End If
@@ -5980,7 +5985,7 @@ Namespace My.Sys.Forms
 					Else
 						#ifdef __USE_GTK__
 							If scrDirection = 1 Then
-								gtk_adjustment_set_value(adjustmentv, min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
+								gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
 							ElseIf scrDirection = -1 Then
 								gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 							End If
@@ -5992,7 +5997,7 @@ Namespace My.Sys.Forms
 							'End If
 						#else
 							If scrDirection = -1 Then
-								si.nPos = min(si.nPos + 3, si.nMax)
+								si.nPos = Min(si.nPos + 3, si.nMax)
 							Else
 								si.nPos = Max(si.nPos - 3, si.nMin)
 							End If
@@ -6185,7 +6190,7 @@ Namespace My.Sys.Forms
 					si.nPos = si.nTrackPos
 				End Select
 				si.fMask = SIF_POS Or SIF_TRACKPOS
-				si.nPos = min(Max(si.nPos, si.nMin), si.nMax)
+				si.nPos = Min(Max(si.nPos, si.nMin), si.nMax)
 				'si.nTrackPos = si.nTrackPos
 				'If msg.wParamLo <> SB_THUMBTRACK Then
 				'?msg.wParamLo
@@ -6244,6 +6249,11 @@ Namespace My.Sys.Forms
 				'bInMButtonClicked = False
 				bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
 				bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+				If dead_key <> 0 OrElse (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
+					If gtk_im_context_filter_keypress(im_context, @e->key) Then
+						Return
+					End If
+				End If
 				Select Case e->key.keyval
 			#else
 			Case WM_KEYDOWN
@@ -6688,7 +6698,6 @@ Namespace My.Sys.Forms
 				#endif
 				#ifdef __USE_GTK__
 				Case Else
-					
 					Select Case (Asc(*e->key.string))
 				#else
 				End Select
@@ -6856,7 +6865,7 @@ Namespace My.Sys.Forms
 				Else
 					WAdd FLineSpace, !"\t"
 				End If
-				ModifiedLine = True 
+				ModifiedLine = True
 				ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", Min(FSelStartLine, FSelEndLine) + 1, d + k
 				'Var n = Min(FSelStart, FSelEnd)
 				'Var x = Max(FSelStart, FSelEnd)
@@ -6898,7 +6907,7 @@ Namespace My.Sys.Forms
 				'End If
 			Case Else:    ' отображаемые символы
 				#ifdef __USE_GTK__
-					If CInt(Not bCtrl) AndAlso CInt(*e->key.string <> "") Then
+					If CInt(Not bCtrl) AndAlso CInt(WChr(gdk_keyval_to_unicode(e->key.keyval)) <> "") Then
 				#else
 					If GetKeyState(VK_CONTROL) >= 0 OrElse GetKeyState(VK_RMENU) < 0 Then
 				#endif
@@ -6918,7 +6927,7 @@ Namespace My.Sys.Forms
 					'End If
 					bAddText = True
 					#ifdef __USE_GTK__
-						ChangeText *e->key.string
+						ChangeText WChr(gdk_keyval_to_unicode(e->key.keyval))
 					#else
 						ChangeText WChr(msg.wParam)
 					#endif
@@ -6966,6 +6975,17 @@ Namespace My.Sys.Forms
 		Case GDK_KEY_RELEASE
 			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
 			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+			Dim As Integer OldDeadKey = dead_key
+			If (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
+				dead_key = msg.Event->key.keyval
+			Else
+				dead_key = 0
+			End If
+			If OldDeadKey <> 0 OrElse dead_key <> 0 Then
+				If gtk_im_context_filter_keypress(im_context, @e->key) Then
+					Return
+				End If
+			End If
 			#else
 			Case WM_KEYUP
 			#endif
@@ -7432,6 +7452,9 @@ Namespace My.Sys.Forms
 			#endif
 		End Sub
 		
+		Sub EditControl_Commit(imcontext As GtkIMContext Ptr, sStr As ZString Ptr, ec As EditControl Ptr)
+			ec->ChangeText FromUtf8(*sStr)
+		End Sub
 	#endif
 	
 	Constructor EditControl
@@ -7564,6 +7587,9 @@ Namespace My.Sys.Forms
 			horizontalScrollBarHeight = hrequisition.height
 			'layoutwidget = widget
 			'gtk_widget_grab_focus(wText)
+			
+			im_context = gtk_im_multicontext_new()
+			g_signal_connect(G_OBJECT(im_context), "commit", G_CALLBACK(@EditControl_Commit), @This)
 		#else
 			OnHandleIsAllocated = @HandleIsAllocated
 			'sbScrollBarvTop.Style = ScrollBarControlStyle.sbVertical

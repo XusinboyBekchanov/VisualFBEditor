@@ -3064,6 +3064,8 @@ End Sub
 	'================================================
 	'' starts debuggee for linux
 	'================================================
+	Declare Function execv_ Alias "execv" (ByVal __path As Const ZString Ptr, ByVal __argv As Const ZString Ptr Ptr) As Long
+	
 	Private Sub start_pgm(p As Any Ptr)
 		
 		thread2=syscall(SYS_GETTID)
@@ -3088,7 +3090,7 @@ End Sub
 			End If
 			dbg_prt2 "name=";exename
 			Dim As String exename_ = exename
-			If execv(StrPtr(exename_), NULL) Then
+			If execv_(StrPtr(exename_), NULL) Then
 				dbg_prt2 "error on starting debuggee=";errno ' argv, envp)=-1
 				Exit Sub
 			End If
@@ -15136,7 +15138,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				ThreadsLeave()
 			End If
 		End If
-		WDeAllocate Arguments
+		WDeAllocate(Arguments)
 		'Shell "gdb " & CmdL
 	#else
 		ShowMessages(Time & ": " & ML("Run") & ": " & *CmdL + " ...")
@@ -15147,11 +15149,13 @@ Sub RunWithDebug(Param As Any Ptr)
 			Dim As Unsigned Long ExitCode
 			exename = GetFullPath(WGet(DebuggerPath))
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
-			If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
-				WaitForSingleObject PInfo.hProcess, INFINITE
-				GetExitCodeProcess(PInfo.hProcess, @ExitCode)
-				CloseHandle(PInfo.hProcess)
-				CloseHandle(PInfo.hThread)
+			Dim As WString Ptr pEnv = NULL
+			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then pEnv = EnvironmentVariables
+			If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, pEnv, Workdir, @SInfo, @pinfo) Then
+				WaitForSingleObject pinfo.hProcess, INFINITE
+				GetExitCodeProcess(pinfo.hProcess, @ExitCode)
+				CloseHandle(pinfo.hProcess)
+				CloseHandle(pinfo.hThread)
 			End If
 			Result = ExitCode
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))

@@ -12362,7 +12362,7 @@ Sub RunPr(Debugger As String = "")
 				ThreadsLeave()
 				Result = Shell(CommandLine)
 			End If
-			WDeAllocate Arguments
+			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 			ThreadsLeave()

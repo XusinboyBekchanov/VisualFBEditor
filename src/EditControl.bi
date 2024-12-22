@@ -390,6 +390,8 @@ Namespace My.Sys.Forms
 		Dim As Integer HCaretPos, VCaretPos
 		#ifdef __USE_GTK__
 			Dim As GtkTooltip Ptr tooltip
+			Dim As Integer dead_key
+			Dim As GtkIMContext Ptr im_context
 		#else
 			Dim As HDC hd
 			Dim As HDC bufDC
@@ -740,6 +742,8 @@ Namespace My.Sys.Forms
 		Declare Sub EditControl_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 		
 		Declare Sub EditControl_ScrollValueChanged(widget As GtkAdjustment Ptr, user_data As Any Ptr)
+		
+		Declare Sub EditControl_Commit(imcontext As GtkIMContext Ptr, sStr As ZString Ptr, ec As EditControl Ptr)
 	#endif
 End Namespace
 

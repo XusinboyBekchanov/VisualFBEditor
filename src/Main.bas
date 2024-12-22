@@ -6751,7 +6751,6 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "UserControl32", "UserControl32"
 	imgList32.Add "Form32", "Form32"
 	imgList32.Add "Form3D32", "Form3D32"
-	imgList32.Add "FormRC", "FormRC"
 	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList
@@ -7373,11 +7372,16 @@ End Sub
 CreateMenusAndToolBars
 'tbStandard.AddRange 1, @cboCommands
 
+Sub tbLeft_OnResize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	pnlLeftPin.Height = NewHeight
+End Sub
+
 tbLeft.ImagesList = @imgList
 tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , tstEnabled Or tstChecked
 tbLeft.Flat = True
 tbLeft.Width = 23
 tbLeft.Parent = @pnlLeftPin
+tbLeft.OnResize = @tbLeft_OnResize
 
 tbExplorer.ImagesList = @imgList
 tbExplorer.HotImagesList = @imgList
