@@ -8117,7 +8117,6 @@ Sub btnPropertyValue_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 				FontUnderline = QBoolean(st->ReadPropertyFunc(SelFont, "Underline"))
 				FontStrikeout = QBoolean(st->ReadPropertyFunc(SelFont, "Strikeout"))
 				FontOrientation = QInteger(st->ReadPropertyFunc(SelFont, "Orientation"))
-				Debug.Print fd.Font.Name & " Font.Name " &  FontName
 				If fd.Font.Name <> FontName Then FontName = fd.Font.Name: st->WritePropertyFunc(SelFont, "Name", @FontName): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Name")
 				If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: st->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Color")
 				If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: st->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Size")
