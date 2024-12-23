@@ -11113,8 +11113,9 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 	'WLet fileW, file
 	'WLet cmdW, cmd
 	#ifdef __USE_GTK__
-		Shell cmd
-		'Add Get Error here
+		Dim As Long result = Shell(cmd)
+		If result = -1 Then MsgBox ML("Error: Couldn't Create Process") & Chr(10) & cmd
+		'Add Get Error code here
 		'Dim As gint i_retcode = 0, i_exitcode = 0
 		'i_retcode = g_spawn_command_line_sync(ToUTF8(cmd), NULL, NULL, @i_exitcode, NULL)
 	#else
@@ -11129,7 +11130,7 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 		CloseHandle(PI.hProcess)
 		CloseHandle(PI.hThread)
 		Dim As Integer result = GetLastError()
-		If result <> 0 Then MsgBox GetErrorString(result)
+		If result <> 0 Then MsgBox ML("Error: Couldn't Create Process") & Chr(13, 10) & GetErrorString(result) & Chr(13, 10) & cmd
 	#endif
 End Sub
 
