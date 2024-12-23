@@ -11114,6 +11114,7 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 	'WLet cmdW, cmd
 	#ifdef __USE_GTK__
 		Shell cmd
+		'Add Get Error here
 		'Dim As gint i_retcode = 0, i_exitcode = 0
 		'i_retcode = g_spawn_command_line_sync(ToUTF8(cmd), NULL, NULL, @i_exitcode, NULL)
 	#else
@@ -11123,11 +11124,12 @@ Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
 		SI.wShowWindow = SW_HIDE
 		SI.cb = SizeOf(STARTUPINFO)
 		SI.dwFlags = STARTF_USESHOWWINDOW
-		
 		CreateProcess(0, cmdW, 0, 0, 1, NORMAL_PRIORITY_CLASS, 0, 0, @SI, @PI)
 		WaitForSingleObject(PI.hProcess, INFINITE)
 		CloseHandle(PI.hProcess)
 		CloseHandle(PI.hThread)
+		Dim As Integer result = GetLastError()
+		If result <> 0 Then MsgBox GetErrorString(result)
 	#endif
 End Sub
 
