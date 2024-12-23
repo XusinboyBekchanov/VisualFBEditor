@@ -8081,7 +8081,7 @@ Sub btnPropertyValue_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		Dim As Any Ptr SelFont = txtPropertyValue.Tag
 		If SelFont = 0 Then Exit Sub
 		Dim As FontDialog fd
-		Dim As UString FontName = QWString(st->ReadPropertyFunc(SelFont, "Name"))
+		Dim As WString * 255 FontName = QWString(st->ReadPropertyFunc(SelFont, "Name"))
 		Dim As Integer FontColor = QInteger(st->ReadPropertyFunc(SelFont, "Color"))
 		Dim As Integer FontSize = QInteger(st->ReadPropertyFunc(SelFont, "Size"))
 		Dim As Integer FontCharset_ = QInteger(st->ReadPropertyFunc(SelFont, "Charset"))
@@ -8100,15 +8100,33 @@ Sub btnPropertyValue_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		fd.Font.StrikeOut = FontStrikeout
 		fd.Font.Orientation = FontOrientation
 		If fd.Execute Then
-			If fd.Font.Name <> FontName Then FontName = fd.Font.Name: st->WritePropertyFunc(SelFont, "Name", FontName.vptr): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Name")
-			If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: st->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Color")
-			If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: st->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Size")
-			If fd.Font.CharSet <> FontCharset_ Then FontCharset_ = fd.Font.CharSet: st->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Charset")
-			If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: st->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Bold")
-			If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: st->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Italic")
-			If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: st->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Underline")
-			If fd.Font.StrikeOut <> FontStrikeout Then FontStrikeout = fd.Font.StrikeOut: st->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Strikeout")
-			If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: st->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(*tb->Des, tb->Des->SelectedControl, te->Name & ".Orientation")
+			Dim As Integer SelCount = tb->Des->SelectedControls.Count
+			'Dim As Boolean OnlySelected = Not tb->Des->SelectedControls.Contains(tb->Des->SelectedControl)
+			'If OnlySelected Then SelCount = 1
+			For i As Integer = 0 To SelCount - 1
+				st = tb->Des->Symbols(tb->Des->SelectedControls.Item(i))
+				If st = 0 OrElse st->ReadPropertyFunc = 0 OrElse st->WritePropertyFunc = 0 Then Continue For
+				SelFont = st->ReadPropertyFunc(tb->Des->SelectedControls.Item(i), te->Name)
+				If SelFont = 0 Then Continue For
+				FontName = QWString(st->ReadPropertyFunc(SelFont, "Name"))
+				FontColor = QInteger(st->ReadPropertyFunc(SelFont, "Color"))
+				FontSize = QInteger(st->ReadPropertyFunc(SelFont, "Size"))
+				FontCharset_ = QInteger(st->ReadPropertyFunc(SelFont, "Charset"))
+				FontBold = QBoolean(st->ReadPropertyFunc(SelFont, "Bold"))
+				FontItalic = QBoolean(st->ReadPropertyFunc(SelFont, "Italic"))
+				FontUnderline = QBoolean(st->ReadPropertyFunc(SelFont, "Underline"))
+				FontStrikeout = QBoolean(st->ReadPropertyFunc(SelFont, "Strikeout"))
+				FontOrientation = QInteger(st->ReadPropertyFunc(SelFont, "Orientation"))
+				If fd.Font.Name <> FontName Then FontName = fd.Font.Name: st->WritePropertyFunc(SelFont, "Name", @FontName): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Name")
+				If fd.Font.Color <> FontColor Then FontColor = fd.Font.Color: st->WritePropertyFunc(SelFont, "Color", @FontColor): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Color")
+				If fd.Font.Size <> FontSize Then FontSize = fd.Font.Size: st->WritePropertyFunc(SelFont, "Size", @FontSize): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Size")
+				If fd.Font.CharSet <> FontCharset_ Then FontCharset_ = fd.Font.CharSet: st->WritePropertyFunc(SelFont, "Charset", @FontCharset_): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Charset")
+				If fd.Font.Bold <> FontBold Then FontBold = fd.Font.Bold: st->WritePropertyFunc(SelFont, "Bold", @FontBold): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Bold")
+				If fd.Font.Italic <> FontItalic Then FontItalic = fd.Font.Italic: st->WritePropertyFunc(SelFont, "Italic", @FontItalic): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Italic")
+				If fd.Font.Underline <> FontUnderline Then FontUnderline = fd.Font.Underline: st->WritePropertyFunc(SelFont, "Underline", @FontUnderline): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Underline")
+				If fd.Font.StrikeOut <> FontStrikeout Then FontStrikeout = fd.Font.StrikeOut: st->WritePropertyFunc(SelFont, "Strikeout", @FontStrikeout): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Strikeout")
+				If fd.Font.Orientation <> FontOrientation Then FontOrientation = fd.Font.Orientation: st->WritePropertyFunc(SelFont, "Orientation", @FontOrientation): ChangeControl(*tb->Des, tb->Des->SelectedControls.Item(i), te->Name & ".Orientation")
+			Next
 			If st->ToStringFunc Then txtPropertyValue.Text = st->ToStringFunc(SelFont)
 			If lvProperties.SelectedItem <> 0 Then lvProperties.SelectedItem->Text(1) = txtPropertyValue.Text
 		End If
