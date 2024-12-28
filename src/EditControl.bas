@@ -7453,7 +7453,11 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Sub EditControl_Commit(imcontext As GtkIMContext Ptr, sStr As ZString Ptr, ec As EditControl Ptr)
-			ec->ChangeText FromUtf8(*sStr)
+			#ifdef __FB_WIN32__
+				ec->ChangeText FromUtf8(*sStr)
+			#else
+				ec->ChangeText *sStr
+			#endif
 		End Sub
 	#endif
 	
