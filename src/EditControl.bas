@@ -5521,9 +5521,11 @@ Namespace My.Sys.Forms
 		Dim As Boolean IsFocused = Focused
 		If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
 		#ifdef __USE_GTK__
+			Dim As gint xorigin, yorigin
 			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
-			gtk_window_move(GTK_WINDOW(winMouseHoverTooltip), ScaleX(X), ScaleY(Y))
-			gtk_window_resize(GTK_WINDOW(winMouseHoverTooltip), ScaleX(100), ScaleY(25))
+			gdk_window_get_origin(gtk_layout_get_bin_window(GTK_LAYOUT(widget)), @xorigin, @yorigin)
+			gtk_window_move(GTK_WINDOW(winMouseHoverTooltip), X + xorigin, Y + yorigin)
+			gtk_window_resize(GTK_WINDOW(winMouseHoverTooltip), 100, 25)
 			gtk_widget_show_all(winMouseHoverTooltip)
 		#else
 			Dim As TOOLINFO    ti
@@ -7358,6 +7360,7 @@ Namespace My.Sys.Forms
 				gtk_window_set_transient_for(GTK_WINDOW(ec->winIntellisense), GTK_WINDOW(pfrmMain->Handle))
 				gtk_window_set_transient_for(GTK_WINDOW(ec->winTooltip), GTK_WINDOW(pfrmMain->Handle))
 				gtk_window_set_transient_for(GTK_WINDOW(ec->winDropDownTooltip), GTK_WINDOW(pfrmMain->Handle))
+				gtk_window_set_transient_for(GTK_WINDOW(ec->winMouseHoverTooltip), GTK_WINDOW(pfrmMain->Handle))
 				
 			End If
 			#ifdef __USE_GTK3__
@@ -7465,6 +7468,7 @@ Namespace My.Sys.Forms
 		Child       = @This
 		#ifdef __USE_GTK__
 			widget = gtk_layout_new(NULL, NULL)
+			layoutwidget = widget
 			'tooltip = gtk_tooltip_new()
 			#ifdef __USE_GTK3__
 				scontext = gtk_widget_get_style_context (widget)
@@ -7664,6 +7668,16 @@ Namespace My.Sys.Forms
 			#endif
 			gtk_container_add(GTK_CONTAINER(winDropDownTooltip), lblDropDownTooltip)
 			g_signal_connect(lblDropDownTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
+			winMouseHoverTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			lblMouseHoverTooltip = gtk_label_new(NULL)
+			#ifdef __USE_GTK3__
+				gtk_widget_set_margin_left(lblMouseHoverTooltip, 1)
+				gtk_widget_set_margin_top(lblMouseHoverTooltip, 1)
+				gtk_widget_set_margin_right(lblMouseHoverTooltip, 1)
+				gtk_widget_set_margin_bottom(lblMouseHoverTooltip, 1)
+			#endif
+			gtk_container_add(GTK_CONTAINER(winMouseHoverTooltip), lblMouseHoverTooltip)
+			g_signal_connect(lblMouseHoverTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 		#else
 			pnlIntellisense.SetBounds 0, -50, 250, 0
 			'cboIntellisense.Visible = False
