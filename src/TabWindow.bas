@@ -2952,7 +2952,9 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 				#ifdef __USE_WINAPI__
 					If iParentCtrl <> 0 Then tb->Des->BringToFront iParentCtrl
 				#endif
-				tb->Des->SelectedControls.Clear
+				If Not tb->Des->SelectedControls.Contains(Ctrl) Then
+					tb->Des->SelectedControls.Clear
+				End If
 				tb->Des->SelectedControl = Ctrl
 				Dim As Any Ptr hw = st->ReadPropertyFunc(Ctrl, "Handle")
 				If hw <> 0 Then tb->Des->MoveDots(Ctrl, False) Else tb->Des->MoveDots(0, False)
