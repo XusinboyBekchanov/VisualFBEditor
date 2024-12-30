@@ -410,17 +410,20 @@ Namespace My.Sys.Forms
 			Dim As HWND ControlHandle
 		#endif
 		ControlHandle = GetControlHandle(Control)
+		Dim As Integer CountOfDots
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(ControlHandle) Then
+				CountOfDots = 0
 		#else
 			If IsWindow(ControlHandle) Then
+				CountOfDots = SelectedControls.Count
 		#endif
 			SelectedControl = Control
 			FSelControl = ControlHandle
 			If SelectedControls.Count = 0 Then SelectedControls.Add SelectedControl
 			'if Control <> FDialog then
 			Dim As Integer DotsCount = UBound(FDots)
-			For j As Integer = DotsCount To SelectedControls.Count Step -1
+			For j As Integer = DotsCount To CountOfDots Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
 						If FDots(j, i) > 0 AndAlso GTK_IS_WIDGET(FDots(j, i)) Then
@@ -1004,14 +1007,12 @@ Namespace My.Sys.Forms
 					FSelControl = FDialog
 					For i As Integer = Objects.Count - 1 To 0 Step -1
 						Ctrl = Objects.Item(i)
-						If Ctrl Then
+						Dim As SymbolsType Ptr st = Symbols(Ctrl)
+						If Ctrl AndAlso st AndAlso st->ReadPropertyFunc <> 0 Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
 							If Not (ALeft + AWidth < FBeginX OrElse ALeft > FNewX OrElse ATop > FNewY OrElse ATop + AHeight < FBeginY) Then
-								If SelectedControls.Count > 0 Then
-									Dim As SymbolsType Ptr stCtrl = Symbols(Ctrl), st0 = Symbols(SelectedControls.Items[0])
-									If SelectedControls.Count = 0 OrElse (stCtrl AndAlso st0 AndAlso st0->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = stCtrl->ReadPropertyFunc(Ctrl, "Parent")) Then
-										SelectedControls.Add Ctrl
-									End If
+								If SelectedControls.Count = 0 OrElse (Symbols(SelectedControls.Items[0]) AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc <> 0 AndAlso Symbols(SelectedControls.Items[0])->ReadPropertyFunc(SelectedControls.Items[0], "Parent") = st->ReadPropertyFunc(Ctrl, "Parent")) Then
+									SelectedControls.Add Ctrl
 								End If
 							End If
 						End If
