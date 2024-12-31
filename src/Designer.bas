@@ -410,20 +410,23 @@ Namespace My.Sys.Forms
 			Dim As HWND ControlHandle
 		#endif
 		ControlHandle = GetControlHandle(Control)
-		Dim As Integer CountOfDots
+		Dim As Integer CountOfControls
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(ControlHandle) Then
-				CountOfDots = 0
 		#else
 			If IsWindow(ControlHandle) Then
-				CountOfDots = SelectedControls.Count
 		#endif
 			SelectedControl = Control
 			FSelControl = ControlHandle
 			If SelectedControls.Count = 0 Then SelectedControls.Add SelectedControl
+			#ifdef __USE_GTK__
+				CountOfControls = 0
+			#else
+				CountOfControls = SelectedControls.Count
+			#endif
 			'if Control <> FDialog then
 			Dim As Integer DotsCount = UBound(FDots)
-			For j As Integer = DotsCount To CountOfDots Step -1
+			For j As Integer = DotsCount To CountOfControls Step -1
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
 						If FDots(j, i) > 0 AndAlso GTK_IS_WIDGET(FDots(j, i)) Then
@@ -1483,7 +1486,7 @@ Namespace My.Sys.Forms
 					g_signal_connect(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
 				End If
 				#ifdef __USE_GTK3__
-					g_signal_connect(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
+					g_signal_connect_after(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
 				#endif
 			End If
 		#else
