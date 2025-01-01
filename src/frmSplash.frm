@@ -1,4 +1,4 @@
-'#########################################################
+﻿'#########################################################
 '#  frmSplash.bas                                        #
 '#  This file is part of VisualFBEditor                  #
 '#  Authors: Xusinboy Bekchanov (2018-2020)              #
@@ -19,18 +19,14 @@ Using My.Sys.Forms
 		#endif
 		This.Cursor = crWait
 		This.BackColor = 0
-		This.SetBounds 0, 0, 412, 396
+		This.SetBounds 0, 0, 412, 412
 		This.BorderStyle = 0
 		This.StartPosition = FormStartPosition.CenterParent
 		' lblImage
 		lblImage.Name = "lblImage"
 		'lblImage.Graphic.Bitmap.LoadFromResourceName("Logo")
-		#ifdef __USE_GTK__
-			lblImage.Graphic.LoadFromFile(ExePath & "/Resources/Logo.png")
-		#else
-			lblImage.Graphic = "Logo"
-		#endif
-		lblImage.SetBounds 36, 66, 343, 270
+		lblImage.Graphic = "Logo"
+		lblImage.SetBounds 36, 76, 343, 270
 		lblImage.CenterImage = True
 		lblImage.Designer = @This
 		lblImage.OnClick = @lblImage_Click_
@@ -53,12 +49,13 @@ Using My.Sys.Forms
 		lblSplash.Align = DockStyle.alNone
 		lblSplash.ID = 1004
 		lblSplash.Parent = @This
+		lblSplash.Alignment = AlignmentConstants.taCenter
 		
 		'lblIcon.Graphic.Icon = 100
 		' lblInfo
 		lblInfo.Name = "lblInfo"
-		lblInfo.Text = "2018-2024"
-		lblInfo.SetBounds 18, 332, 52, 17
+		lblInfo.Text = "2018-2025"
+		lblInfo.SetBounds 18, 348, 52, 17
 		lblInfo.BackColor = 0
 		lblInfo.Font.Color = 16777215
 		lblInfo.Font.Size = 8
@@ -67,7 +64,7 @@ Using My.Sys.Forms
 		With lblProcess
 			.Name = "lblProcess"
 			.Text = ""
-			.SetBounds 18, 356, 380, 30
+			.SetBounds 18, 366, 380, 30
 			.BackColor = 0
 			.Font.Color = 16777215
 			.Font.Size = 8

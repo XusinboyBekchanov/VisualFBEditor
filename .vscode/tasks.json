@@ -7,13 +7,17 @@
             "label": "FreeBASIC Build",
             "type": "shell",
             "windows": {
-                "command": "D:/FreeBasic/FreeBASIC-1.09.0-winlibs-gcc-9.3.0/fbc32.exe",
+                "command": "D:/GitHub/VisualFBEditor/Compilers/FreeBASIC-1.10.0-winlibs-gcc-9.3.0/fbc32.exe",
                 "args": [
                     "-g",
                     "VisualFBEditor.bas",
                     "VisualFBEditor.rc",
+                    "-d",
+                    "__USE_GTK__",
+                    "-d",
+                    "__USE_GTK3__",
                     "-x",
-                    "../VisualFBEditor32.exe",
+                    "../VisualFBEditor32_gtk3.exe",
                     "-i",
                     "../Controls/MyFbFramework"
                 ],

@@ -752,6 +752,7 @@ pfOptions = @fOptions
 		chkAutoIndentation.Constraints.Height = 21
 		chkAutoIndentation.AutoSize = True
 		chkAutoIndentation.SetBounds 0, 2, 137, 21
+		chkAutoIndentation.ControlIndex = 0
 		chkAutoIndentation.Parent = @vbxCodeEditor
 		' chkEnableAutoComplete
 		chkEnableAutoComplete.Name = "chkEnableAutoComplete"
@@ -762,6 +763,7 @@ pfOptions = @fOptions
 		chkEnableAutoComplete.Constraints.Height = 21
 		chkEnableAutoComplete.AutoSize = True
 		chkEnableAutoComplete.SetBounds 0, 23, 161, 21
+		chkEnableAutoComplete.ControlIndex = 1
 		chkEnableAutoComplete.Parent = @vbxCodeEditor
 		' chkEnableAutoSuggestions
 		With chkEnableAutoSuggestions
@@ -770,10 +772,9 @@ pfOptions = @fOptions
 			.TabIndex = 228
 			.Align = DockStyle.alTop
 			.ControlIndex = 1
-			'.Caption = ML("Enable Auto Suggestions")
 			.Constraints.Height = 21
 			.AutoSize = True
-			.SetBounds 0, 44, 174, 21
+			.SetBounds 0, 23, 174, 21
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
@@ -786,7 +787,23 @@ pfOptions = @fOptions
 		chkShowSpaces.Constraints.Height = 21
 		chkShowSpaces.AutoSize = True
 		chkShowSpaces.SetBounds 0, 65, 118, 21
+		chkShowSpaces.ControlIndex = 3
 		chkShowSpaces.Parent = @vbxCodeEditor
+		' chkShowHolidayFrame
+		With chkShowHolidayFrame
+			.Name = "chkShowHolidayFrame"
+			.Text = ML("Show Holiday Frame")
+			.TabIndex = 252
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.ControlIndex = 8
+			.Caption = ML("Show Holiday Frame")
+			.Constraints.Height = 21
+			.SetBounds 0, 86, 152, 21
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
+			'.Caption = ML("Enable Auto Suggestions")
 		' chkShowKeywordsTooltip
 		With chkShowKeywordsTooltip
 			.Name = "chkShowKeywordsTooltip"
@@ -2938,6 +2955,7 @@ Sub frmOptions.LoadSettings()
 		.chkShowSymbolsTooltipsOnMouseHover.Checked = GlobalSettings.ShowSymbolsTooltipsOnMouseHover
 		.chkShowClassesExplorerOnOpenWindow.Checked = GlobalSettings.ShowClassesExplorerOnOpenWindow
 		.chkShowHorizontalSeparatorLines.Checked = ShowHorizontalSeparatorLines
+		.chkShowHolidayFrame.Checked = ShowHolidayFrame
 		.chkHighlightBrackets.Checked = HighlightBrackets
 		.chkHighlightCurrentLine.Checked = HighlightCurrentLine
 		.chkHighlightCurrentWord.Checked = HighlightCurrentWord
@@ -3580,6 +3598,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		GlobalSettings.ShowSymbolsTooltipsOnMouseHover = .chkShowSymbolsTooltipsOnMouseHover.Checked
 		GlobalSettings.ShowClassesExplorerOnOpenWindow = .chkShowClassesExplorerOnOpenWindow.Checked
 		ShowHorizontalSeparatorLines = .chkShowHorizontalSeparatorLines.Checked
+		ShowHolidayFrame = .chkShowHolidayFrame.Checked
 		HighlightBrackets = .chkHighlightBrackets.Checked
 		HighlightCurrentLine = .chkHighlightCurrentLine.Checked
 		HighlightCurrentWord = .chkHighlightCurrentWord.Checked
@@ -3762,6 +3781,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "ShowSymbolsTooltipsOnMouseHover", GlobalSettings.ShowSymbolsTooltipsOnMouseHover
 		piniSettings->WriteBool "Options", "ShowClassesExplorerOnOpenWindow", GlobalSettings.ShowClassesExplorerOnOpenWindow
 		piniSettings->WriteBool "Options", "ShowHorizontalSeparatorLines", ShowHorizontalSeparatorLines
+		piniSettings->WriteBool "Options", "ShowHolidayFrame", ShowHolidayFrame
 		piniSettings->WriteBool "Options", "HighlightBrackets", HighlightBrackets
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
 		piniSettings->WriteBool "Options", "HighlightCurrentWord", HighlightCurrentWord

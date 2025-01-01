@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "SudoKu\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             1,0,0,342
-#define VER_FILEVERSION_STR         "1.0.0.342\0"
+#define VER_FILEVERSION             1,0,0,475
+#define VER_FILEVERSION_STR         "1.0.0.475\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "\0"
 

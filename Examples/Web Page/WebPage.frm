@@ -126,6 +126,7 @@
 		Dim As HTTPRequest Request
 		Dim As HTTPResponce Responce
 		Request.ResourceAddress = "Untitled.html"
+		Request.Headers = ""
 		Request.Body = "{key: value}"
 		HTTP.CallMethod("POST", Request, Responce)
 		?Responce.StatusCode, Responce.Body

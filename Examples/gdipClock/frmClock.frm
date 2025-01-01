@@ -10,6 +10,10 @@
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
+	
+	'#define MEMCHECK 1
+	'#include "mff/FBMemCheck.bi"
+
 	#include once "mff/Form.bi"
 	#include once "mff/TimerComponent.bi"
 	#include once "mff/Menus.bi"

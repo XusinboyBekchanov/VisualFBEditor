@@ -3711,6 +3711,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.PaintControlPriv(Full As Boolean = False)
 		'	On Error Goto ErrHandler
 		Dim As Boolean bFull = Full
+		If ShowHolidayFrame AndAlso WithFrame Then bFull = True
+		bFull = True
 		#ifdef __USE_GTK__
 			If cr = 0 Then Exit Sub
 			If CurrentFontSize <> EditorFontSize OrElse *CurrentFontName <> *EditorFontName Then
@@ -3847,7 +3849,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			iC = 0
-			vlc = min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
+			vlc = Min(LinesCount, VScrollPos + VisibleLinesCount(zz) + 2)
 			vlc1 = VisibleLinesCount(zz)
 			IzohBoshi = 0
 			QavsBoshi = 0
@@ -3927,6 +3929,7 @@ Namespace My.Sys.Forms
 			OldCollapseIndex = 0
 			'ChangeCase = False
 			OldMatnLCase = ""
+			If ShowHolidayFrame AndAlso WithFrame Then Canvas.DrawAlpha dwClientX - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
 			For z As Integer = 0 To Content.Lines.Count - 1
 				FECLine = Content.Lines.Items[z]
 				Dim As WStringList Ptr pFiles = FECLine->FileList
@@ -4864,7 +4867,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 					cairo_fill (cr)
 				#else
-					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY(min(IIf(bDividedY AndAlso zz = 0, iDividedY, (i - VScrollPos + 1) * dwCharY), (i - VScrollPos + 1) * dwCharY) + CodePaneY))
+					SetRect(@rc, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + CodePaneY), ScaleX(LeftMargin + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, (i - VScrollPos + 1) * dwCharY), (i - VScrollPos + 1) * dwCharY) + CodePaneY))
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				#endif
 				If FECLine->Breakpoint Then

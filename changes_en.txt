@@ -1,4 +1,133 @@
-﻿Version 1.3.5 (September 17, 2023)
+﻿Version 1.3.6 (January 1, 2025)
+- Fixed: Selecting Controls on Designer
+- Fixed: Multiple selecting controls on Designer in Linux
+- Added: Showing Symbol Tooltips On Mouse Hover in Linux
+- Fixed: Dead keys in Linux
+- Fixed: Do not modify the font property when multiple controls are selected.
+- Fixed: Display the error message in Sub PipeCmd.
+- Added: Dead keys to EditControl
+- Added: Added language support for DeviceExplorer examples.
+- Fixed: MainNode caption not updated when a file is set as the main in the Folders node
+- Added: WMI Example
+- Added: Finding from .cxx files
+- Added: DeviceExplorer Example
+- Added: USBView Example
+- Improved: Debugger shows value of variables of This and Base
+- Fixed: Inverting selections on Designer
+- Updated: Scintilla to 5.5.3 in the Scintilla examples
+- Added: Tip of the Day (Chinese)
+- Fixed: Properties Window, Compiling messages
+- Fixed: Crash when Project is not selected
+- Changed: Images to 32x32 in the Templates form
+- Added: Console class to the Console Application template
+- Added: Chinese (Traditional) language file
+- Added: Open the current folder to which the file belongs if the project is in folders.
+- Added: OnBeforeCompile event to Add-Ins
+- Added： Calculator Example
+- Fixed: Addin template project
+- Added: GTK Application project template
+- Added: Set the default language to be the same as the operating system
+- Fixed: Catch the error of Resource Script
+- Fixed: RC file located issue at Compile All projects
+- Added: Sudoku Game examples
+- Added: Locale support for Examples of MDIForm
+- Fixed: Scrolling Edit Control to caret on got focus
+- Added: Default events to controls "HTTPServer", "HTTPConnection" and "PrintDocument"
+- Improved: Switch between Dark mode and Light mode.
+- Fixed: Appearance of the event list in place of the list of functions.
+- Fixed: Click on Dropdown Tooltip
+- Improved: Tip of the day
+- Added： Maze Game Example
+- Fixed: Open project when double click ".vfp" items
+- Fixed: Closing tooltips
+- Fixed: Description's BackColor of properties in Dark mode
+- Improved: Properties Description in Properties Window
+- Added: SapiRecognizer Example
+- Added: ListView Example
+- Added: MariaDBBox Example
+- Fixed: DownloadAndCompileWithQuestions.bat
+- Fixed: Unicode in compile information
+- Added: Adding a default event handler when pressing Enter in the Designer.
+- Added: Goto Code/Form (F7) menu item to View menu
+- Added: Moving focus in the designer using Tab and Shift+Tab
+- Improved: Now double-clicking or pressing Return on the ToolBox button creates a control in the designer.
+- Added: midiPlayer example
+- Added: Web Page Example
+- Improved: My Add-In Example
+- Improved: Add Type functionality
+- Added: Add Type form
+- Added: PagePanel control to Options form
+- Fixed: COMWrapperBuilder's Unicode support
+- Added: Auto Save Session option
+- Improved: Integrated IDE Debugger
+- Improved: Integrated GDB Debugger
+- Fixed: When moving the caret in Code Editor, the function in Class Explorer is highlighted.
+- Added: Show Symbols Tooltips On Mouse Hover option and Show Classes Explorer On Open Window option
+- Added: MidiKeyboard example
+- Improved: Const IntelliSense
+- Added: FileBrowser Example
+- Fixed: Memory leaks
+- Fixed: MariaDBBox and SQLite3 component
+- Added: Build Configurations option
+- Improved: Display type hints when hovering over variables, constants, class names, etc
+- Fixed: Save Session
+- Added: gdipGoldFish Example
+- Added: VFBE-DownloadAndCompile.cmd
+- Fixed: Display type hints when hovering over variables, constants, class names, etc
+- Added: SearchBar to Properties and Events windows
+- Fixed: SearchBar of Explorer
+- Added: SearchBar to Explorer and ToolBox
+- Added: Display type hints when hovering over variables, constants, class names, etc
+- Added: Selection line with third mouse click
+- Fixed: Crash IDE when opening Add-ins
+- Added: Support for multiple languages
+- Added: Compile to CLANG option to Project Properties
+- Fixed: gdipClock Example display issue in the High DPI
+- Fixed: Crash Menu Editor
+- Added: Copying compile error messages to the clipboard.
+- Improved: Menu Editor
+- Added: Form_3D to Templates
+- Fixed: Form Designer Toolbar turn to black
+- Fixed: Reduced the sensitivity of multi-select controls
+- Added： Examples for Excel VBA code
+- Added: Print Preview
+- Added: gdipClock Example
+- Fixed: Crashing IDE in Linux
+- Fixed: Showing Compiler options in Linux
+- Added: Compiler options form (for Parameters window)
+- Improved: IntelliSense for types and enums inside procedures
+- Added: Time Announce and Speech for ChineseCalendar Example
+- Fixed: Menu Editor update blink
+- Fixed: Compiling ChineseCalendar Example in Linux
+- Improved: Clock of Chinese Calendar Example:
+- Improved: Month Calendar of Chinese Calendar Example
+- Improved: ChineseCalendar Example
+- Improved: WebBrowser Example
+- Added: __USE_WEBVIEW2__ define to WebBrowser Example
+- Improved: Localization
+- Improved: Localization of About form
+- Added: High DPI when compiling with GTK
+- Improved: Finding executable file name from main file
+- Improved: IntelliSense
+- Fixed: Compiling with GTK on Windows
+- Added: DirectShow and DirectSound Example
+- Added: NtpClient Example
+- Fixed: Designer on High DPI
+- Fixed: Find and Replace in Projects
+- Added: Snippets in Linux
+- Improved: Snippets
+- Fixed: Find & Replace Form
+- Added: Snippets
+- Fixed: Tab in Intellisense dropdown on Windows.
+- Fixed: Find and Replace within Selection text
+- Improved: Find & Replace
+- Fixed: Search out of the range after replace in the procedure
+- Improved: Replacement method
+- Fixed: Showing the index and the count of finding
+- Added: Changing Edit Control theme when changing Dark Mode
+- Added: Dark Mode menu item and button to ToolBar
+- Added: DynamicControl example
+Version 1.3.5 (September 17, 2023)
 - Added: Use WASM menu item
 - Fixed: Find and Replace
 - Added: Confirm first before Replace All in Project

@@ -366,6 +366,19 @@ Sub ExecuteTool(Param As Any Ptr)
 	If tt = 0 Then Exit Sub
 	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	'If tb = 0 Then 
+		PipeCmd "", tt->GetCommand(), False
+		'Shell tt->GetCommand()
+	'Else
+	'	?tt->GetCommand(tb->FileName)
+	'	Shell tt->GetCommand(tb->FileName)
+	'End If
+End Sub
+
+Sub ExecuteToolInMainThread(Param As Any Ptr)
+	Dim As UserToolType Ptr tt = Param
+	If tt = 0 Then Exit Sub
+	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	'If tb = 0 Then 
 		PipeCmd "", tt->GetCommand()
 		'Shell tt->GetCommand()
 	'Else
@@ -376,7 +389,7 @@ End Sub
 
 Sub UserToolType.Execute()
 	If WaitComplete Then
-		ExecuteTool @This
+		ExecuteToolInMainThread @This
 	Else
 		ThreadCounter(ThreadCreate_(@ExecuteTool, @This))
 	End If

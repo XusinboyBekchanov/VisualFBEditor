@@ -9,8 +9,8 @@
             "type": "cppdbg",
             "request": "launch",
             "windows": {
-                "program": "${workspaceFolder}/VisualFBEditor32.exe",
-                "miDebuggerPath": "D:/FreeBasic/FreeBASIC-1.07.1-win32/bin/win32/gdb.exe",
+                "program": "${workspaceFolder}/VisualFBEditor32_gtk3.exe",
+                "miDebuggerPath": "D:/GitHub/VisualFBEditor/Debuggers/gdb-11.2.90.20220320-i686/bin/gdb.exe",
             },
             "linux": {
                 "program": "${workspaceFolder}/VisualFBEditor64_gtk3",

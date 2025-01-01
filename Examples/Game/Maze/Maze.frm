@@ -123,7 +123,7 @@
 			.Text = ML("Play")
 			.TabIndex = 3
 			.ControlIndex = 2
-			.Visible = False
+			.Visible = True
 			.SetBounds 20, 100, 60, 20
 			.Enabled = False
 			.Designer = @This
@@ -302,6 +302,7 @@ Private Sub Form1Type.cmdRefresh_Click(ByRef Sender As Control)
 	aMaze.Init(Val(NumUpDnMazeSize.Text), Val(NumUpDnWallSize.Text))
 	PanelRender.Repaint
 	cmdRefresh.Enabled = True
+	'ScrollMaze.RecalculateScrollBars
 End Sub
 
 Private Sub Form1Type.TrackBarFPS_Change(ByRef Sender As TrackBar, Position As Integer)

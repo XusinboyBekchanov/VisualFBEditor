@@ -6,8 +6,8 @@
 #define APP_TITLE_STR               "Chinese Calendar\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
 
-#define VER_FILEVERSION             0,0,0,1955
-#define VER_FILEVERSION_STR         "0.0.0.1955\0"
+#define VER_FILEVERSION             0,0,0,1956
+#define VER_FILEVERSION_STR         "0.0.0.1956\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

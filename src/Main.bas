@@ -94,7 +94,7 @@ Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Termin
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue
+Dim Shared As TextBox txtPropertyValue, txtExpand
 Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
@@ -190,6 +190,7 @@ Globals.Functions.Sorted = True
 Globals.Args.Sorted = True
 GlobalAsmFunctionsHelp.Sorted = True
 GlobalFunctionsHelp.Sorted = True
+WithFrame = Month(Now) = 12 OrElse Month(Now) = 1
 
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
@@ -2636,7 +2637,14 @@ Sub RunHelp(Param As Any Ptr)
 		ThreadsLeave()
 	Else
 		#ifdef __USE_GTK__
-			PipeCmd "", "xchm " & CurrentHelpPath
+			Dim As WString * MAX_PATH wszKeyword
+			If Param <> 0 Then wszKeyword = Cast(HelpOptions Ptr, Param)->CurrentWord
+			If wszKeyword = "" AndAlso Param = 0 AndAlso tb <> 0 Then wszKeyword = tb->txtCode.GetWordAtCursor
+			If wszKeyword = "" Then
+				PipeCmd "", ExePath & "/CHMVIEW " & CurrentHelpPath, False
+			Else
+				PipeCmd "", ExePath & "/CHMVIEW " & CurrentHelpPath & " -k " & wszKeyword, False
+			End If
 		#endif
 	End If
 	#ifndef __USE_GTK__
@@ -2654,7 +2662,7 @@ Sub RunHelp(Param As Any Ptr)
 			If Param <> 0 Then wszKeyword = Cast(HelpOptions Ptr, Param)->CurrentWord
 			If wszKeyword = "" AndAlso Param = 0 AndAlso tb <> 0 Then wszKeyword = tb->txtCode.GetWordAtCursor
 			If wszKeyword = "" Then
-				HtmlHelpW(0, CurrentHelpPath, HH_DISPLAY_TOC, Null)
+				HtmlHelpW(0, CurrentHelpPath, HH_DISPLAY_TOC, NULL)
 			Else
 				wszKeywordUpper = UCase(wszKeyword)
 				For i As Integer = -1 To Helps.Count - 1
@@ -6365,6 +6373,7 @@ Sub LoadSettings
 	GlobalSettings.ShowSymbolsTooltipsOnMouseHover = iniSettings.ReadBool("Options", "ShowSymbolsTooltipsOnMouseHover", True)
 	GlobalSettings.ShowClassesExplorerOnOpenWindow = iniSettings.ReadBool("Options", "ShowClassesExplorerOnOpenWindow", True)
 	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
+	ShowHolidayFrame = iniSettings.ReadBool("Options", "ShowHolidayFrame", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
@@ -6428,7 +6437,7 @@ Sub LoadSettings
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")	
 	LoadKeyWords
 	LoadTheme
-	
+	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
 End Sub
 
 Sub LoadLanguageTexts

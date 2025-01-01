@@ -445,7 +445,11 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String,
 					If r = 2 Then Exit While
 					If siz And r <> 1 Then
 						rs_Utf8(yi, i) = String(siz, 0)
-						memcpy StrPtr(rs_Utf8(yi, i)), value, siz
+						#ifdef __USE_WASM__
+							Fb_MemCopy rs_Utf8(yi, i), value, siz
+						#else
+							memcpy StrPtr(rs_Utf8(yi, i)), value, siz
+						#endif
 					End If
 				Case 4 ' SQLITE_BLOB
 					value = Cast(Any Ptr, sqlite3_column_blob(ppStmt, i))
@@ -458,7 +462,11 @@ Function SQLite3Component.FindByteUtf(Table_Utf8 As String, Cond_Utf8 As String,
 					If r = 2 Then Exit While
 					If siz And r <> 1 Then
 						rs_Utf8(yi, i) = String(siz, 0)
-						memcpy StrPtr(rs_Utf8(yi, i)), value, siz
+						#ifdef __USE_WASM__
+							Fb_MemCopy rs_Utf8(yi, i), value, siz
+						#else
+							memcpy StrPtr(rs_Utf8(yi, i)), value, siz
+						#endif
 					End If
 					
 				Case 5 ' SQLITE_NULL
@@ -535,7 +543,11 @@ Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As Stri
 					If r = 2 Then Exit For
 					If siz And r <> 1 Then
 						rs_Utf8(i) = String(siz, 0)
-						memcpy StrPtr(rs_Utf8(i)), value, siz
+						#ifdef __USE_WASM__
+							Fb_MemCopy rs_Utf8(i), value, siz
+						#else
+							memcpy StrPtr(rs_Utf8(i)), value, siz
+						#endif
 					End If
 				Case 4 ' SQLITE_BLOB
 					value = Cast(Any Ptr, sqlite3_column_blob(ppStmt, i))
@@ -548,7 +560,11 @@ Function SQLite3Component.FindOneByteUtf(Table_Utf8 As String, Cond_Utf8 As Stri
 					If r = 2 Then Exit For
 					If siz And r <> 1 Then
 						rs_Utf8(i) = String(siz, 0)
-						memcpy StrPtr(rs_Utf8(i)), value, siz
+						#ifdef __USE_WASM__
+							Fb_MemCopy rs_Utf8(i), value, siz
+						#else
+							memcpy StrPtr(rs_Utf8(i)), value, siz
+						#endif
 					End If
 					
 				Case 5 ' SQLITE_NULL
@@ -717,7 +733,7 @@ Function SQLite3Component.UpdateByteUtf(Table_Utf8 As String, Cond_Utf8 As Strin
 		ErrStr = FromUtf8(Str(ErrStr)): This.Event_Send(12, ErrStr)
 		Return -1
 	End If
-	If sqlite3_bind_blob(ppStmt,1,nByte,nLen,NULL) = 0 Then
+	If sqlite3_bind_blob(ppStmt, 1, nByte, nLen, NULL) = 0 Then
 		sqlite3_step(ppStmt)
 		ErrStr = ""
 		If FSQLite3Mem <> 0 And FSynchronization <> 0 Then

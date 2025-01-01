@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "DynamicControl\0"
 #define VER_FILEDESCRIPTION_STR     "DynamicControl\0"
 
-#define VER_FILEVERSION             0,0,0,8
-#define VER_FILEVERSION_STR         "0.0.0.8\0"
+#define VER_FILEVERSION             0,0,0,9
+#define VER_FILEVERSION_STR         "0.0.0.9\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 

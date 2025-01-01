@@ -131,7 +131,7 @@ pfFind = @fFind
 			.Default = True
 			.TabIndex = 8
 			.Hint = ML("Find Next") & " (" & HK("Find Next", "F3") & ")"
-			.SetBounds 403, 1, 25, 21
+			.SetBounds 403, 1, 25, 22
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @btnFind_Click)
 			.Designer = @This
 			.Parent = @This

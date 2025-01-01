@@ -1,0 +1,5 @@
+﻿Setting the path of compiler before compile your project <br> And also setting the path of MyFbFramework.
+Double click at the top of Tabs will change the position of Tabs head.
+In the code editing window moving move the mouse to the file name like “#include once xxx.bi", hold down the keyboard ctrl key + Left Click, <br> will open the header file in a new code window.
+In the code window the cursor hover on the variable name or function name, <br> and pressing the keyboard F2 key will jump to the definition or program body of the variable.
+After right click mouse button in the code editing window tab bar, you can set the main file, <br>reopen the historical backup file which saved in the "Temp" directory from the menu bar. <br>The retention time of historical backup files can be modified in the “Service\Options”

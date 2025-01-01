@@ -1,0 +1,31 @@
+// The IDL file for wellCOM.DLL
+//
+// "{26A8002A-83D7-45eb-98E1-09CF47A40EE3}" = Type library's GUID
+// "{F2E0AC34-64BA-4871-BBFC-B9DE5BD9C80B}" =CLSID_MyObject 
+// "{2A2AF189-C5A1-4a4e-9277-B4FD871A5119}" = IID_MyObject
+
+[
+   uuid(26A8002A-83D7-45eb-98E1-09CF47A40EE3),
+   version(1.0),
+   helpstring("IObject COM server")
+         
+]
+library IObject
+{
+   importlib("STDOLE2.TLB");
+
+   [uuid(2A2AF189-C5A1-4a4e-9277-B4FD871A5119), dual, oleautomation, hidden, nonextensible]
+   interface IObjectVTbl : IDispatch
+   {
+      // [helpstring("Sets the test string.")]
+      [id(1), propput, helpstring("Sets the test string.")] HRESULT String([in] BSTR val);
+      // [helpstring("Gets the test string.")]
+      [id(1), propget, helpstring("Sets the test string.")] HRESULT String([out, retval] BSTR *val);
+   };
+
+   [uuid(F2E0AC34-64BA-4871-BBFC-B9DE5BD9C80B), helpstring("IObject object."), appobject]
+   coclass IObject
+   {
+      [default] interface IObjectVTbl;
+   }
+}

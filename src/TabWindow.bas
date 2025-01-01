@@ -5707,7 +5707,7 @@ Sub OnKeyPressEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key
 				If cbINFO.hwndList Then
 					Dim As Rect rc
 					GetWindowRect cbINFO.hwndList, @rc
-					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, min(tb->txtCode.cboIntellisense.ItemCount, 7)) * tb->ScaleY(tb->txtCode.cboIntellisense.ItemHeight) + 2, True
+					MoveWindow cbINFO.hwndList, rc.Left, rc.Top, rc.Right - rc.Left, Max(1, Min(tb->txtCode.cboIntellisense.ItemCount, 7)) * tb->ScaleY(tb->txtCode.cboIntellisense.ItemHeight) + 2, True
 				End If
 			End If
 		#endif
@@ -5759,7 +5759,23 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 			Loop
 		End If
 		CloseFile_(Fn)
-		Return ""
+		ThreadsEnter()
+		Dim As ProjectElement Ptr Project
+		Dim As TreeNode Ptr ProjectNode
+		Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+		Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+		Dim As UString ExeFolderName = GetFolderName(GetExeFileName(MainFile, CompileLine & " " & FirstLine))
+		ThreadsLeave()
+		If FileExists(ExeFolderName & "/./Resources/" & ResName & ".png") Then
+			FilePath = ExeFolderName & "/./Resources/" & ResName & ".png"
+		ElseIf FileExists(ExeFolderName & "/./resources/" & ResName & ".png") Then
+			FilePath = ExeFolderName & "/./resources/" & ResName & ".png"
+		ElseIf FileExists(ExeFolderName & "/./Resources/" & ResName & ".ico") Then
+			FilePath = ExeFolderName & "/./Resources/" & ResName & ".ico"
+		ElseIf FileExists(ExeFolderName & "/./resources/" & ResName & ".ico") Then
+			FilePath = ExeFolderName & "/./Resources/" & ResName & ".ico"
+		End If
+		Return FilePath
 	End If
 End Function
 
@@ -11110,13 +11126,15 @@ Function Err2Description(Code As Integer) ByRef As WString
 	End Select
 End Function
 
-Sub PipeCmd(ByRef file As WString, ByRef cmd As WString)
+Sub PipeCmd(ByRef file As WString, ByRef cmd As WString, MainThread As Boolean = True)
 	Dim As WString Ptr fileW, cmdW
 	'WLet fileW, file
 	'WLet cmdW, cmd
 	#ifdef __USE_GTK__
 		Dim As Long result = Shell(cmd)
+		If Not MainThread Then ThreadsEnter
 		If result = -1 Then MsgBox ML("Error: Couldn't Create Process") & Chr(10) & cmd
+		If Not MainThread Then ThreadsLeave
 		'Add Get Error code here
 		'Dim As gint i_retcode = 0, i_exitcode = 0
 		'i_retcode = g_spawn_command_line_sync(ToUTF8(cmd), NULL, NULL, @i_exitcode, NULL)
@@ -11719,7 +11737,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
 							If Pos1 > 0 Then
 								ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
-								If isNumeric(ResNameOrID) Then
+								If IsNumeric(ResNameOrID) Then
 									If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
 								Else
 									If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
@@ -11747,7 +11765,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 				If n = 1 Then NewLine = WChr(13) & WChr(10)
 			Loop
 			If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
-				If isNumeric(*Project->ApplicationIcon) Then
+				If IsNumeric(*Project->ApplicationIcon) Then
 					If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
 						bChangeIcon = True
 						bFinded = True
