@@ -1,4 +1,134 @@
-﻿VisualFBEditor版本 1.3.5（2023 年 9 月 17 日）
+﻿版本 1.3.6（2025 年 1 月 1 日）
+- 修复：在 Designer 上选择控件
+- 已修复：Linux 中 Designer 上的多个选择控件
+- 新增：在 Linux 中鼠标悬停时显示符号提示
+- 修复：Linux 中的死键
+- 已修复：选择多个控件时不修改字体属性。
+- 修复：在 Sub PipeCmd 中显示错误消息。
+- 新增：EditControl 的死键
+- 新增：新增对 DeviceExplorer 示例的语言支持。
+- 已修复：在“文件夹”节点中将文件设置为主文件时，MainNode 标题未更新
+- 新增：WMI 示例
+- 新增：从 .cxx 文件中查找
+- 新增：DeviceExplorer 示例
+- 新增：USBView 示例
+- 改进：Debugger 显示 This 和 Base 的变量值
+- 已修复：在 Designer 上反转选区
+- 更新：Scintilla 示例中的 Scintilla 到 5.5.3
+- 新增： 每日提示 （中文）
+- 修复：Properties 窗口，编译消息
+- 已修复：未选择项目时崩溃
+- 更改：模板表单中的图像更改为 32x32
+- 已将 Console 类添加到控制台应用程序模板
+- 新增：中文（繁体）语言文件
+- 已添加： 如果项目位于文件夹中，则打开文件所属的当前文件夹。
+- 已添加：OnBeforeCompile 事件到加载项
+- 新增：计算器示例
+- 修复：插件模板项目
+- 新增：GTK 应用程序项目模板
+- 新增：将默认语言设置为与操作系统相同
+- 修复：捕获 Resource Script 的错误
+- 修复：在 Compile All projects 处找到 RC 文件的问题
+- 新增：数独游戏示例
+- 添加了：对 MDIForm 示例的区域设置
+- 修复：滚动编辑控件以插入对获得焦点的插入符号
+- 添加：控件 “HTTPServer”、“HTTPConnection” 和 “PrintDocument” 的默认事件
+- 改进：在深色模式和浅色模式之间切换。
+- 已修复：事件列表代替函数列表的外观。
+- 修复：单击下拉工具提示
+- 改进：每日提示
+- 新增：迷宫游戏示例
+- 已修复：双击“.vfp”项时打开项目
+- 修复：关闭提示框
+- 修复：深色模式下属性的描述的 BackColor
+- 改进：属性窗口中的属性描述
+- 新增：SapiRecognizer 示例
+- 新增：ListView 示例
+- 新增：MariaDBBox 示例
+- 修复：DownloadAndCompileWithQuestions.bat
+- 修复：编译信息中的 Unicode
+- 新增：在 Designer 中按 Enter 键时添加默认事件处理程序。
+- 新增：转到代码/表单 （F7） 菜单项到“查看”菜单
+- 新增：使用 Tab 和 Shift+Tab 在设计器中移动焦点
+- 改进：现在，双击或按 Toolbox 按钮上的 Return 可在设计器中创建一个控件。
+- 新增：midiPlayer 示例
+- 新增：网页示例
+- 改进：我的插件示例
+- 改进：添加类型功能
+- 新增：添加类型表单
+- 添加：PagePanel 控件到选项表单
+- 修复：COMWrapperBuilder 的 Unicode 支持
+- 新增：自动保存会话选项
+- 改进：集成 IDE 调试器
+- 改进：集成 GDB 调试器
+- 已修复：在代码编辑器中移动插入点时，类资源管理器中的函数被突出显示。
+- 新增：鼠标悬停时显示符号工具提示选项和打开窗口时显示类资源管理器选项
+- 新增：MidiKeyboard 示例
+- 改进：Const IntelliSense
+- 新增：FileBrowser 示例
+- 修复：内存泄漏
+- 修复：MariaDBBox 和 SQLite3 组件
+- 新增：构建配置选项
+- 改进：将鼠标悬停在变量、常量、类名等上时显示类型提示
+- 修复：保存会话
+- 新增：gdipGoldFish 示例
+- 新增： VFBE-DownloadAndCompile.cmd
+- 修复：将鼠标悬停在变量、常量、类名等上时显示类型提示
+- 添加了：SearchBar 到“属性”和“事件”窗口
+- 修复：资源管理器的 SearchBar
+- 新增：Explorer和ToolBox的SearchBar
+- 新增：将鼠标悬停在变量、常量、类名等上时显示类型提示
+- 新增：第三次点击鼠标的选择行
+- 已修复：打开插件时 IDE 崩溃
+- 新增：支持多种语言
+- 新增：项目属性的 Compile to CLANG 选项
+- 修复：高 DPI 中的 gdipClock 示例显示问题
+- 修复：崩溃菜单编辑器
+- 新增：将编译错误消息复制到剪贴板。
+- 改进：菜单编辑器
+- 新增：Form_3D模板
+- 修复：Form Designer 工具栏变黑
+- 已修复：降低了多选控件的灵敏度
+- 新增：Excel VBA 代码示例
+- 新增：打印预览
+- 新增：gdipClock 示例
+- 修复：Linux 中 IDE 崩溃的问题
+- 已修复：在 Linux 中显示编译器选项
+- 新增：编译器选项表单（用于 Parameters 窗口）
+- 改进：过程内部类型和枚举的 IntelliSense
+- 新增：ChineseCalendar 的 Time Announce 和 Speech 示例
+- 修复：菜单编辑器更新闪烁
+- 修复：在 Linux 中编译 ChineseCalendar 示例
+- 改进： 农历时钟示例：
+- 改进：中国历月历示例
+- 改进：ChineseCalendar 示例
+- 改进：WebBrowser 示例
+- 新增：__USE_WEBVIEW2__ define 到 WebBrowser 示例
+- 改进：本地化
+- 改进：关于表单的本地化
+- 新增：使用 GTK 编译时的高 DPI
+- 改进：从主文件中查找可执行文件名
+- 改进：IntelliSense
+- 修复：在 Windows 上使用 GTK 进行编译
+- 添加：DirectShow 和 DirectSound 示例
+- 新增：NtpClient 示例
+- 修复：高 DPI 上的 Designer
+- 修复：在项目中查找和替换
+- 新增：Linux 中的代码片段
+- 改进：片段
+- 修复：查找和替换表格
+- 新增：片段
+- 已修复：Windows 上 Intellisense 下拉列表中的 Tab 键。
+- 修复：在选择文本中查找和替换
+- 改进：查找和替换
+- 修复：在过程中替换后搜索超出范围
+- 改进：替换方法
+- 已修复：显示查找结果的索引和计数
+- 新增：更改深色模式时更改编辑控件主题
+- 添加了：深色模式菜单项和工具栏按钮
+- 新增：DynamicControl 示例
+
+VisualFBEditor版本 1.3.5（2023 年 9 月 17 日）
 - 新增：使用 WASM 菜单项
 - 修复：查找和替换
 - 新增：在工程中进行全部替换之前需要先确认
@@ -55,6 +185,7 @@
 - 修复：自动建议 ASM
 - 改进：ASM智能感知
 - 改进：农历示例
+
 版本 1.3.4（2023 年 3 月 5 日）
 - 修正：内存泄漏
 - 添加：ElseIf、Else、Case、...结构的可折叠性

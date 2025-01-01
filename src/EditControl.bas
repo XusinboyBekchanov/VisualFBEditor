@@ -3929,7 +3929,7 @@ Namespace My.Sys.Forms
 			OldCollapseIndex = 0
 			'ChangeCase = False
 			OldMatnLCase = ""
-			If ShowHolidayFrame AndAlso WithFrame Then Canvas.DrawAlpha dwClientX - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
+			If ShowHolidayFrame AndAlso WithFrame Then Canvas.DrawAlpha ScaleX(dwClientX - 10) - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
 			For z As Integer = 0 To Content.Lines.Count - 1
 				FECLine = Content.Lines.Items[z]
 				Dim As WStringList Ptr pFiles = FECLine->FileList
