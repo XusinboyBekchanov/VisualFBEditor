@@ -19,7 +19,7 @@ echo; &echo "start to download compiler" &echo;
 call :download !fbliburl! !FBlibPkg!
 )
 
-if exist !FBlibPkg! ( "%a7z%" x -y "!FBlibpkg!" -o%cdir%%cpl%  || (
+if exist !FBlibPkg! ( "%a7z%" x -y "!FBlibpkg!" -o"%cdir%%cpl%" || (
 del !FBlibPkg! & goto loadcompiler)
  ) else (goto loadcompiler)
 
@@ -31,7 +31,7 @@ set package=master.zip
 call :download !ideurl! !package!
 if exist !package! ("%a7z%" x -y "!package!" -o".") else (goto loadeditor)
 ren VisualFBEditor-master VisualFBEditor
-del !package!
+del "!package!"
 
 :loadframework
 echo; &echo "start to download myfbframework" &echo;
@@ -40,27 +40,41 @@ set package=master.zip
 call :download !liburl! !package!
 ::PowerShell Expand-Archive -LiteralPath "!package!" -DestinationPath ".\VisualFBEditor\Controls" -Force
 if exist !package! ("%a7z%" x -y "!package!" -o".\VisualFBEditor\Controls") else (goto loadframework)
-cd !cdir!VisualFBEditor\Controls
+cd "!cdir!VisualFBEditor\Controls"
 if exist MyFbFramework (rd /q /s MyFbFramework)
 ren MyFbFramework-master MyFbFramework
-del !cdir!!package!
-cd !cdir!
+del "!cdir!!package!"
+cd "!cdir!"
 
 :loaddebugger
 echo; &echo "start to download debuger" &echo;
-set gdb=gdb-14.1.90.20240125
-if not exist %gdb%-i686.7z (
-call :download https://github.com/ssbssa/gdb/releases/download/%gdb%/%gdb%-i686.7z %gdb%-i686.7z)
-if not exist %gdb%-x86_64.7z (
-call :download https://github.com/ssbssa/gdb/releases/download/%gdb%/%gdb%-x86_64.7z %gdb%-x86_64.7z )
-"%a7z%" x "%gdb%-i686.7z" -o!cdir!VisualFBEditor\Debuggers\%gdb%-i686
-"%a7z%" x "%gdb%-x86_64.7z" -o!cdir!VisualFBEditor\Debuggers\%gdb%-x86_64
+set page=https://github.com/ssbssa/gdb/tags
+set keyword=/ssbssa/gdb/releases/tag/
+set dfile=gdbpage.html
+pushd "%~dp0"
+if not exist %dfile% (call :download %page% %dfile%)
+for /f "tokens=1, 2, 3* delims=^>" %%i in ('findstr /c:%keyword% %dfile%') do (
+for /f "tokens=1, 2* delims=^<" %%l in ("%%k") do (echo %%l | find "gdb" && set gdbver=%%l & goto getver )
+)
+:getver
+if defined gdbver ( set gdb=%gdbver: =%) else (set gdb=gdb-15.1.90.20240707 )
+if defined gdb (del /q %dfile% )
+:loadgdb86
+if not exist %gdb%-i686.7z (call :download https://github.com/ssbssa/gdb/releases/download/%gdb%/%gdb%-i686.7z %gdb%-i686.7z)
+if exist %gdb%-i686.7z ("%a7z%" x "%gdb%-i686.7z" -o"!cdir!VisualFBEditor\Debuggers\%gdb%-i686" || goto loadgdb86
+) else ( goto loadgdb86)
+:loadgdb64
+if not exist %gdb%-x86_64.7z (call :download https://github.com/ssbssa/gdb/releases/download/%gdb%/%gdb%-x86_64.7z %gdb%-x86_64.7z )
+if exist %gdb%-x86_64.7z ("%a7z%" x "%gdb%-x86_64.7z" -o"!cdir!VisualFBEditor\Debuggers\%gdb%-x86_64" || goto loadgdb64
+) else ( goto loadgdb64)
+
+
 
 
 :getcompiler 
 cd %cdir%%cpl%
-for /f  %%i in ('dir /ad /b') do (set cpl1=%%i)
-if defined cpl1 (set cpldir=%cpl1%) else (set cpldir=%fblib%)
+for /f %%i in ('dir /ad /b') do (set cplsub=%%i)
+if defined cplsub (set cpldir=%cplsub%) else (set cpldir=%fblib%)
 
 echo;&echo "start to compile" &echo;
 
@@ -68,17 +82,14 @@ call :compile 32
 call :compile 64
 
 :moveFBlib
-cd %cdir%VisualFBEditor
+cd "%cdir%VisualFBEditor"
 if exist compilers (rd /q /s compilers)
-if exist %cdir%!cpl! (move %cdir%!cpl! %cdir%VisualFBEditor)
+if exist "%cdir%!cpl!" (move "%cdir%!cpl!" "%cdir%VisualFBEditor")
 
-:ModifyConfig
-
+:moveConfig
+cd /d %cdir%
 CALL :diyconfig 32
 call :diyconfig 64
-
-goto endbat
-
 
 :endbat
 IF defined a7z del "%a7z%"
@@ -87,13 +98,16 @@ pause
 exit
 
 :download
+PUSHD "%cdir%"
 echo Downloading the file of %2 
 echo please wait for a while... & echo;
 if exist "%cdir%curl.exe" set ldr=%cdir%curl.exe
 if not defined ldr if exist %windir%\system32\curl.exe set ldr=%windir%\system32\curl.exe
+ECHO URL:%1
+ECHO;
 
-if defined ldr (echo %ldr% & "%ldr%" -L -O  %1)  else (
-powershell "[System.Net.ServicePointManager]::SecurityProtocol += [System.Net.SecurityProtocolType]::Tls12; $client= [System.Net.WebClient]::new(); $client.DownloadFile('%1', '!cdir!%2')"  || (  powershell "Start-BitsTransfer -Source '%1' -Destination '!cdir!%2' "   
+if defined ldr ("%ldr%" -o %2 -L %1) else (
+powershell "[System.Net.ServicePointManager]::SecurityProtocol += [System.Net.SecurityProtocolType]::Tls12; $client= [System.Net.WebClient]::new(); $client.DownloadFile('%1', '!cdir!%2')" || ( powershell "Start-BitsTransfer -Source '%1' -Destination '!cdir!%2' "   
     )
 )
 goto :EOF
@@ -108,40 +122,39 @@ cd ..\..\
 goto :EOF
 
 :setconfig
+chcp 65001
 cd %cdir%VisualFBEditor\Settings\
 for /f "tokens=*" %%i in (VisualFBEditor%1.ini) do (
 set line=%%i
-echo !line! | findstr ".\Compilers\" >nul && (
-set Tmp=!line:~0,19!
-set ef=!line:-10!
-set line=%tmp%%cpldir%%ef% ) 
-echo !line! 
-)>> tmp%1.ini
+echo !line! | find ".\Compilers\" >nul && (
+set Tmpstr=!line:~0,19!
+set ef=!line:~-10!
+set line=!Tmpstr!!cpldir!!ef! ) || (
+echo !line! | find ".\Debuggers\" >nul && (
+set Tmpstr=!line:~0,19!
+set mstr=!line:~-14,2!
+if !mstr!==86 (set ef=!line:~-17!) 
+if !mstr!==64 (set ef=!line:~-19!) 
+set line=!Tmpstr!!gdb!!ef! ) 
+ ) 
+ echo !line! 
+) >> tmp%1.ini
+
 if exist tmp%1.ini (
   if exist visualfbeditor%1.ini.bak (
-  if exist visualfbeditor%1.ini  del visualfbeditor%1.ini
+  if exist visualfbeditor%1.ini del visualfbeditor%1.ini
   ) else (rename visualfbeditor%1.ini visualfbeditor%1.ini.bak )
     rename tmp%1.ini visualfbeditor%1.ini  
 )
 goto :EOF
 
-:DIYconfig
+:diyconfig 
 if exist %cdir%VisualFBEditor%1.ini (
-echo; &echo "COPY DIY CONFIG FILE "  &echo.
-copy /y %cdir%VisualFBEditor%1.ini %cdir%VisualFBEditor\Settings\)
-CD %CDIR%
+echo; &echo "COPY DIY CONFIG FILE " %1 &echo.
+copy /y %cdir%VisualFBEditor%1.ini %cdir%VisualFBEditor\Settings\) else (
+  call :setconfig %1
+)
 goto :EOF
-
-:NEWCONFIG  
-echo [Compilers]>>tmp%1.ini
-echo DefaultCompiler32=x32>>tmp%1.ini
-echo DefaultCompiler64=x64>>tmp%1.ini
-echo Version_0=x32>>tmp%1.ini
-echo Path_0=.\compilers\%cpldir%\fbc32.exe>>tmp%1.ini
-echo Command_0=>>tmp%1.ini
-echo Version_1=x64>>tmp%1.ini
-echo Path_1=.\compilers\%cpldir%\fbc64.exe>>tmp%1.ini
-echo Command_1=>>tmp%1.ini
 
 
 ::---------------7za codes---------------
