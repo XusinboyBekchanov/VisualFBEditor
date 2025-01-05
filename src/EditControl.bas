@@ -2961,7 +2961,7 @@ Namespace My.Sys.Forms
 				cairo_set_source_rgb(cr, CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue)
 				.cairo_rectangle (cr, ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)), ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0)), extend2.width, ScaleY(dwCharY))
 				cairo_fill (cr)
-			ElseIf Colors.Background <> -1 Then
+			ElseIf Colors.Background <> -1 AndAlso Colors.Background <> NormalText.Background Then
 				pango_layout_line_get_pixel_extents(pl, NULL, @extend2)
 				'GetColor BKColor, iRed, iGreen, iBlue
 				cairo_set_source_rgb(cr, Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue)
@@ -2984,7 +2984,7 @@ Namespace My.Sys.Forms
 				'ElseIf @Colors = @NormalText Then
 				'	SetBKMode(bufDC, TRANSPARENT)
 			Else
-				If Colors.Background = -1 Then
+				If Colors.Background = -1 OrElse Colors.Background = NormalText.Background Then
 					SetBkMode(bufDC, TRANSPARENT)
 				Else
 					SetBkColor(bufDC, Colors.Background)
@@ -3010,7 +3010,7 @@ Namespace My.Sys.Forms
 			'DrawText(bufDC, FLineRight, Len(*FLineRight), @rc, DT_SINGLELINE Or DT_NOPREFIX)
 			ExtTextOut bufDC, x, y, ETO_CLIPPED, @rc, FLineRight, Len(*FLineRight), 0
 			'PolyTextOut bufDC, @ppt, 1
-			If Colors.Background = -1 Then SetBkMode(bufDC, OPAQUE)
+			If Colors.Background = -1 OrElse Colors.Background = NormalText.Background Then SetBkMode(bufDC, OPAQUE)
 			If Bold Or Italic Or Underline Then
 				Canvas.Font.Bold = False
 				Canvas.Font.Italic = False
