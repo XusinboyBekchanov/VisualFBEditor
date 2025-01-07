@@ -1,5 +1,5 @@
 ﻿'frmUSBView.frm
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -20,6 +20,7 @@
 	#include once "mff/CheckBox.bi"
 	#include once "mff/ImageList.bi"
 	
+	#include once "../MDINotepad/Text.bi"
 	#include once "USBView.bi"
 	
 	Using My.Sys.Forms
@@ -59,10 +60,10 @@
 			.Caption = "USB View"
 			.StartPosition = FormStartPosition.CenterScreen
 			#ifdef __USE_GTK__
-				This.Icon.LoadFromFile(ExePath & "USBView.ico")
+				This.Icon.LoadFromFile(ExePath & "/USBView.ico")
 			#else
 				This.Icon.LoadFromResourceID(1)
-			#endif			
+			#endif
 			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
 			.OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Create)

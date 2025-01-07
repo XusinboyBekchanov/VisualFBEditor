@@ -1,4 +1,4 @@
-﻿' Copyright (c) 2024 CM.Wang
+﻿' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -15,6 +15,7 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/ComboBoxEdit.bi"
 	
+	#include once "../MDINotepad/Text.bi"
 	#include once "WMI.bi"
 	
 	Using My.Sys.Forms
@@ -195,14 +196,14 @@ Private Sub frmWMIType.Form_Show(ByRef Sender As Form)
 End Sub
 
 Private Sub frmWMIType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	WStrArrayRelease(namespaces())
-	WStrArrayRelease(wmiclasses())
-	WStrArrayRelease(properties())
-	WStrArrayRelease(values())
+	ArrayDeallocate(namespaces())
+	ArrayDeallocate(wmiclasses())
+	ArrayDeallocate(properties())
+	ArrayDeallocate(values())
 End Sub
 
 Private Sub frmWMIType.CommandButton_Click(ByRef Sender As Control)
-	Dim As WString Ptr txt
+	Dim As WString Ptr txt = NULL
 	Dim i As Integer
 	Select Case Sender.Name
 	Case "cmdNameSpace"
@@ -211,14 +212,15 @@ Private Sub frmWMIType.CommandButton_Click(ByRef Sender As Control)
 		For i = 0 To UBound(namespaces)
 			comboNamespace.AddItem *namespaces(i)
 		Next
-		txtInfo.Text = Join(namespaces(), vbCrLf)
+		JoinWStr(namespaces(), vbCrLf, txt)
+		txtInfo.Text = *txt
 	Case "cmdWMIClasses"
 		ComboBoxEdit_Selected(comboNamespace, 0)
 	Case "cmdPropreties"
 		ComboBoxEdit_Selected(comboClasses, 0)
 	Case "cmdPropretyValue"
 		EnumPropretiesValues(comboNamespace.Text, comboClasses.Text, txt)
-		txtInfo.Text = *txt
+		If txt Then txtInfo.Text = *txt
 	Case "cmdClear"
 		txtInfo.Clear
 	End Select
@@ -226,6 +228,7 @@ Private Sub frmWMIType.CommandButton_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	Dim As WString Ptr txt
 	Select Case Sender.Name
 	Case "comboClasses"
 		EnumPropreties(comboNamespace.Text, comboClasses.Text, properties())
@@ -234,7 +237,8 @@ Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemI
 		For i = 0 To UBound(properties)
 			comboPropreties.AddItem *properties(i)
 		Next
-		txtInfo.Text = Join(properties(), vbCrLf)
+		JoinWStr(properties(), vbCrLf, txt)
+		txtInfo.Text = *txt
 	Case "comboNamespace"
 		EnumClasses(comboNamespace.Text, "SELECT * FROM META_CLASS", wmiclasses())
 		Dim i As Integer
@@ -242,8 +246,10 @@ Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemI
 		For i = 0 To UBound(wmiclasses)
 			comboClasses.AddItem *wmiclasses(i)
 		Next
-		txtInfo.Text = Join(wmiclasses(), vbCrLf)
+		JoinWStr(wmiclasses(), vbCrLf, txt)
+		txtInfo.Text = *txt
 	Case "comboPropreties"
 	End Select
+	If txt Then Deallocate(txt)
 End Sub
 

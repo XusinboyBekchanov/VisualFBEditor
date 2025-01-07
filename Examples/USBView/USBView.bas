@@ -1,5 +1,5 @@
 ﻿'USBView.bi
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "USBView.bi"
@@ -60,7 +60,7 @@ End Sub
 Private Sub usbTextAdd()
 	If usbMsgIndex >-1 Then
 		ReDim Preserve usbMessage(usbMsgIndex)
-		WLet(usbMessage(usbMsgIndex), Join(usbTempTxt(), WStr(vbCrLf)))
+		JoinWStr(usbTempTxt(), WStr(vbCrLf), usbMessage(usbMsgIndex))
 	End If
 	usbMsgIndex += 1
 	usbTempRelease()
@@ -151,7 +151,7 @@ Private Function GetDriverAllInformation(pDriverName As WString, ByRef pDriverIn
 			WLet(pValStr(i), *pValName(i) & *pTemp)
 		End If
 	Next
-	WLet(pDriverInfo, Join(pValStr(), WStr(vbCrLf)))
+	JoinWStr(pValStr(), WStr(vbCrLf), pDriverInfo)
 	If pTemp Then Deallocate(pTemp)
 	For i = 0 To ValueCount
 		If pValStr(i) Then Deallocate(pValStr(i))
