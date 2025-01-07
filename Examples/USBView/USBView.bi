@@ -1,5 +1,5 @@
 ﻿'USBView.bi
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 'https://developer.microsoft.com/windows/downloads/windows-sdk/
