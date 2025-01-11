@@ -55,9 +55,8 @@
 		' frmUSUView
 		With This
 			.Name = "frmUSUView"
-			.Text = "USB View"
+			.Text = ML("USB View")
 			.Designer = @This
-			.Caption = "USB View"
 			.StartPosition = FormStartPosition.CenterScreen
 			#ifdef __USE_GTK__
 				This.Icon.LoadFromFile(ExePath & "/USBView.ico")
@@ -133,9 +132,8 @@
 		' cmdRefresh
 		With cmdRefresh
 			.Name = "cmdRefresh"
-			.Text = "Refresh"
+			.Text = ML("Refresh")
 			.TabIndex = 4
-			.Caption = "Refresh"
 			.SetBounds 0, 9, 70, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -144,9 +142,8 @@
 		' cmdEnabled
 		With cmdEnabled
 			.Name = "cmdEnabled"
-			.Text = "Enabled"
+			.Text = ML("Enabled")
 			.TabIndex = 5
-			.Caption = "Enabled"
 			.Visible = False
 			.SetBounds 80, 9, 70, 20
 			.Designer = @This
@@ -156,9 +153,8 @@
 		' cmdDisabled
 		With cmdDisabled
 			.Name = "cmdDisabled"
-			.Text = "Disabled"
+			.Text = ML("Disabled")
 			.TabIndex = 6
-			.Caption = "Disabled"
 			.Visible = False
 			.SetBounds 160, 9, 70, 20
 			.Designer = @This
@@ -168,9 +164,9 @@
 		' cmdRemoved
 		With cmdRemoved
 			.Name = "cmdRemoved"
-			.Text = "Removed"
+			.Text = ML("Removed")
 			.TabIndex = 7
-			.Caption = "Removed"
+			'.Caption = "Removed"
 			.Visible = False
 			.SetBounds 240, 9, 70, 20
 			.Designer = @This
@@ -180,9 +176,9 @@
 		' cmdEject
 		With cmdEject
 			.Name = "cmdEject"
-			.Text = "Eject"
+			.Text = ML("Eject")
 			.TabIndex = 8
-			.Caption = "Eject"
+			'.Caption = "Eject"
 			.Visible = False
 			.SetBounds 320, 9, 70, 20
 			.Designer = @This
@@ -227,9 +223,9 @@
 		' CheckBox3
 		With CheckBox3
 			.Name = "CheckBox3"
-			.Text = "Dark mode"
+			.Text = ML("Dark mode")
 			.TabIndex = 11
-			.Caption = "Dark mode"
+			'.Caption = "Dark mode"
 			.Checked = True
 			.SetBounds 80, 11, 70, 20
 			.Designer = @This
