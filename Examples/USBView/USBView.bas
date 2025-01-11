@@ -58,9 +58,10 @@ Private Sub usbTextPrint(txt As WString)
 End Sub
 
 Private Sub usbTextAdd()
-	If usbMsgIndex >-1 Then
+	'Avoid due to runtime error 18 (array not dimensioned)
+	If usbMsgIndex >-1 AndAlso UBound(usbTempTxt) > 0 Then
 		ReDim Preserve usbMessage(usbMsgIndex)
-		JoinWStr(usbTempTxt(), WStr(vbCrLf), usbMessage(usbMsgIndex))
+		 usbMessage(usbMsgIndex) = Join(usbTempTxt(), WStr(vbCrLf))
 	End If
 	usbMsgIndex += 1
 	usbTempRelease()
@@ -151,7 +152,7 @@ Private Function GetDriverAllInformation(pDriverName As WString, ByRef pDriverIn
 			WLet(pValStr(i), *pValName(i) & *pTemp)
 		End If
 	Next
-	JoinWStr(pValStr(), WStr(vbCrLf), pDriverInfo)
+	pDriverInfo = Join(pValStr(), WStr(vbCrLf))
 	If pTemp Then Deallocate(pTemp)
 	For i = 0 To ValueCount
 		If pValStr(i) Then Deallocate(pValStr(i))
