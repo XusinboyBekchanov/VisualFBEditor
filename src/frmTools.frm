@@ -32,6 +32,10 @@ pfTools = @fTools
 		lvTools.Name = "lvTools"
 		lvTools.Text = "ListView1"
 		lvTools.TabIndex = 0
+		lvTools.Anchor.Bottom = AnchorStyle.asAnchor
+		lvTools.Anchor.Left = AnchorStyle.asAnchor
+		lvTools.Anchor.Right = AnchorStyle.asAnchor
+		lvTools.Anchor.Top = AnchorStyle.asAnchor
 		lvTools.SetBounds 12, 12, 366, 198
 		lvTools.OnSelectedItemChanged = @lvTools_SelectedItemChanged
 		lvTools.OnItemClick = @lvTools_ItemClick
@@ -42,6 +46,8 @@ pfTools = @fTools
 		cmdOK.Name = "cmdOK"
 		cmdOK.Text = ML("OK")
 		cmdOK.TabIndex = 18
+		cmdOK.Anchor.Bottom = AnchorStyle.asAnchor
+		cmdOK.Anchor.Right = AnchorStyle.asAnchor
 		cmdOK.SetBounds 302, 392, 78, 24
 		cmdOK.OnClick = @cmdOK_Click
 		cmdOK.Parent = @This
@@ -49,6 +55,8 @@ pfTools = @fTools
 		cmdCancel.Name = "cmdCancel"
 		cmdCancel.Text = ML("Cancel")
 		cmdCancel.TabIndex = 19
+		cmdCancel.Anchor.Bottom = AnchorStyle.asAnchor
+		cmdCancel.Anchor.Right = AnchorStyle.asAnchor
 		cmdCancel.SetBounds 390, 392, 78, 24
 		cmdCancel.OnClick = @cmdCancel_Click
 		cmdCancel.Parent = @This
@@ -56,6 +64,7 @@ pfTools = @fTools
 		cmdHelp.Name = "cmdHelp"
 		cmdHelp.Text = ML("Help")
 		cmdHelp.TabIndex = 6
+		cmdHelp.Anchor.Right = AnchorStyle.asAnchor
 		cmdHelp.SetBounds 390, 186, 78, 24
 		cmdHelp.Parent = @This
 		' cmdAdd
@@ -63,6 +72,7 @@ pfTools = @fTools
 			.Name = "cmdAdd"
 			.Text = ML("&Add")
 			.TabIndex = 1
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 390, 12, 78, 24
 			.OnClick = @cmdAdd_Click
 			.Parent = @This
@@ -72,6 +82,7 @@ pfTools = @fTools
 			.Name = "cmdChange"
 			.Text = ML("Chan&ge")
 			.TabIndex = 2
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 390, 41, 78, 24
 			.OnClick = @cmdChange_Click
 			.Parent = @This
@@ -81,6 +92,7 @@ pfTools = @fTools
 			.Name = "cmdRemove"
 			.Text = ML("&Remove")
 			.TabIndex = 3
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 390, 72, 78, 24
 			.OnClick = @cmdRemove_Click
 			.Parent = @This
@@ -90,6 +102,7 @@ pfTools = @fTools
 			.Name = "lblParameters"
 			.Text = ML("Parameters") & ":"
 			.TabIndex = 7
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 16, 224, 104, 16
 			.Parent = @This
 		End With
@@ -98,6 +111,9 @@ pfTools = @fTools
 			.Name = "txtParameters"
 			.Text = ""
 			.TabIndex = 8
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 128, 221, 250, 21
 			.OnChange = @txtParameters_Change
 			.Parent = @This
@@ -107,6 +123,9 @@ pfTools = @fTools
 			.Name = "lblInfo"
 			.Text = "{F} " & ML("Current File") & " {P} " & ML("Project Name") & " {S} " & ML("Main Source File") & " {W} " & ML("Current Word") & " {E} " & ML("EXE/DLL Name")
 			.TabIndex = 9
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 136, 248, 240, 29
 			.Parent = @This
 		End With
@@ -115,6 +134,7 @@ pfTools = @fTools
 			.Name = "lblWorkingFolder"
 			.Text = ML("Working Folder") & ":"
 			.TabIndex = 10
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 16, 288, 104, 16
 			.Parent = @This
 		End With
@@ -122,6 +142,9 @@ pfTools = @fTools
 		With txtWorkingFolder
 			.Name = "txtWorkingFolder"
 			.TabIndex = 11
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 128, 285, 252, 21
 			.OnChange = @txtWorkingFolder_Change
 			.Parent = @This
@@ -131,6 +154,7 @@ pfTools = @fTools
 			.Name = "lblTrigger"
 			.Text = ML("Start on event") & ":"
 			.TabIndex = 13
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 16, 315, 112, 16
 			.Parent = @This
 		End With
@@ -139,6 +163,7 @@ pfTools = @fTools
 			.Name = "cboEvent"
 			.Text = "ComboBoxEdit1"
 			.TabIndex = 14
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 128, 312, 144, 21
 			.OnChange = @cboEvent_Change
 			.Parent = @This
@@ -152,6 +177,7 @@ pfTools = @fTools
 			.Name = "lblShortcut"
 			.Text = ML("Shortcuts") & ":"
 			.TabIndex = 15
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 16, 343, 80, 16
 			.Parent = @This
 		End With
@@ -160,6 +186,7 @@ pfTools = @fTools
 			.Name = "hkShortcut"
 			.Text = ""
 			.TabIndex = 16
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 128, 340, 144, 21
 			.OnChange = @hkShortcut_Change
 			.Parent = @This
@@ -169,6 +196,7 @@ pfTools = @fTools
 			.Name = "chkWaitComplete"
 			.Text = ML("Wait until tool quits")
 			.TabIndex = 17
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 16, 372, 256, 16
 			.OnClick = @chkWaitComplete_Click
 			.Parent = @This
@@ -178,6 +206,8 @@ pfTools = @fTools
 			.Name = "cmdWorkingFolder"
 			.Text = ML("Browse") & " ..."
 			.TabIndex = 12
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
 			.SetBounds 390, 284, 78, 24
 			.Parent = @This
 		End With
@@ -186,6 +216,7 @@ pfTools = @fTools
 			.Name = "cmdMoveUp"
 			.Text = ML("Move Up")
 			.TabIndex = 4
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 390, 112, 78, 24
 			.OnClick = @cmdMoveUp_Click
 			.Parent = @This
@@ -195,6 +226,7 @@ pfTools = @fTools
 			.Name = "cmdMoveDown"
 			.Text = ML("Move Down")
 			.TabIndex = 5
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 390, 144, 78, 24
 			.OnClick = @cmdMoveDown_Click
 			.Parent = @This
