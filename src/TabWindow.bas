@@ -13111,13 +13111,13 @@ Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		FECLine->Ends.Clear
 		FECLine->EndsCompleted = False
 		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1)))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1))): .ChangeCollapsibility iSelStartLine
 			FECLine = .Content.Lines.Items[iSelEndLine]
 			WLet(LineStr, *FECLine->Text)
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1)): .ChangeCollapsibility iSelEndLine
 		Else
 			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & LCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1)): .ChangeCollapsibility iSelStartLine
 		End If
 		If iSelEndLine > iSelStartLine + 1 Then
 			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
@@ -13125,7 +13125,7 @@ Sub TabWindow.ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 				WLet(LineStr, *FECLine->Text)
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
-				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(*LineStr))
+				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, LCase(*LineStr)): .ChangeCollapsibility i
 			Next i
 		End If
 		_Deallocate(LineStr)
@@ -13155,13 +13155,13 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		FECLine->Ends.Clear
 		FECLine->EndsCompleted = False
 		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1)))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1))): .ChangeCollapsibility iSelStartLine
 			FECLine = .Content.Lines.Items[iSelEndLine]
 			WLet(LineStr, *FECLine->Text)
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(Mid(*LineStr, 1, iSelEndChar)) & Mid(*LineStr, iSelEndChar + 1)): .ChangeCollapsibility iSelEndLine
 		Else
 			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
-			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1))
+			If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & UCase(Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar)) & Mid(*LineStr, iSelEndChar + 1)): .ChangeCollapsibility iSelStartLine
 		End If
 		If iSelEndLine > iSelStartLine + 1 Then
 			For i As Integer = iSelStartLine + 1 To iSelEndLine - 1
@@ -13169,7 +13169,7 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
 				WLet(LineStr, *FECLine->Text)
-				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(*LineStr))
+				If Trim(*LineStr, Any !"\t ") <> "" Then WLet(FECLine->Text, UCase(*LineStr)): .ChangeCollapsibility i
 			Next i
 		End If
 		_Deallocate(LineStr)
