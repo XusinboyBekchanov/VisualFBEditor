@@ -3818,7 +3818,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		pfrmMain->RequestAlign
 		SetDarkMode DarkMode, False
 		#ifdef __USE_WINAPI__
-			If DarkMode Then
+			If DarkMode AndAlso g_darkModeSupported Then
 				txtLabelProperty.BackColor = darkBkColor
 				txtLabelEvent.BackColor = darkBkColor
 				fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)

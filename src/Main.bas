@@ -6413,7 +6413,7 @@ Sub LoadSettings
 		*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
 	End If
 	#ifdef __USE_WINAPI__
-		If DarkMode Then
+		If DarkMode AndAlso g_darkModeSupported Then
 			txtLabelProperty.BackColor = darkBkColor
 			txtLabelEvent.BackColor = darkBkColor
 			fAddIns.txtDescription.BackColor = GetSysColor(COLOR_WINDOW)

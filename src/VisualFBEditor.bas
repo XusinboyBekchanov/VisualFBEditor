@@ -254,7 +254,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			UpdateAllTabWindows
 		End If
 		#ifdef __USE_WINAPI__
-			If DarkMode Then
+			If DarkMode AndAlso g_darkModeSupported Then
 				txtLabelProperty.BackColor = darkBkColor
 				txtLabelEvent.BackColor = darkBkColor
 				fAddIns.txtDescription.BackColor = darkBkColor
@@ -354,7 +354,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					'#ifndef __USE_GTK__
 						ChangeEnabledDebug False, True, True
 						'brk_set(12)
-						'runtype=RTAUTO
+						'runtype = RTAUTO
 						'#ifdef __FB_WIN32__
 						'	set_cc()
 						'#else
@@ -368,9 +368,29 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 						'runtype = RTRUN
 						'thread_resume()
 					'#endif
+					'runtype = RTAUTO
+					'#ifdef __FB_WIN32__
+					'	set_cc()
+					'#else
+					'	If ccstate = KCC_NONE Then
+					'		msgdata = 1 ''CC everywhere
+					'		exec_order(KPT_CCALL)
+					'	End If
+					'#endif
+					'thread_set()
 				ElseIf UseDebugger Then
 					runtype = RTFRUN
 					'runtype = RTRUN
+					'runtype = RTAUTO
+					'#ifdef __FB_WIN32__
+					'	set_cc()
+					'#else
+					'	If ccstate = KCC_NONE Then
+					'		msgdata = 1 ''CC everywhere
+					'		exec_order(KPT_CCALL)
+					'	End If
+					'#endif
+					'thread_set()
 					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 					ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
