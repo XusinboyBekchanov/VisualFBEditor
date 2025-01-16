@@ -38,7 +38,35 @@
 Using My.Sys.Forms
 Using My.Sys.Drawing
 
+Dim Shared As Boolean bQuitting
 #ifdef __USE_WINAPI__
+	Function EnumWindowsProc(ByVal hWnd As HWND, ByVal lParam As LPARAM) As BOOL
+		Dim As Any Ptr VisualFBEditorAppPtr = GetProp(hWnd, "VisualFBEditorApp")
+		
+		If VisualFBEditorAppPtr <> 0 Then
+			Dim As ZString Ptr FileFromCmdLine = Cast(ZString Ptr, lParam)
+			Dim cds As COPYDATASTRUCT
+			cds.dwData = 0
+			cds.cbData = Len(*FileFromCmdLine) + 1
+			cds.lpData = FileFromCmdLine
+			If SendMessage(hWnd, WM_COPYDATA, 0, Cast(lParam, @cds)) <> 0 Then
+				bQuitting = True
+				End
+			End If
+		End If
+		
+		Return True
+	End Function
+	
+	Var FileFromCommandLine = Command(-1)
+	Var Pos1 = InStr(FileFromCommandLine, "2>CON")
+	If Pos1 > 0 Then FileFromCommandLine = Left(FileFromCommandLine, Pos1 - 1)
+	If FileFromCommandLine <> "" AndAlso Right(LCase(FileFromCommandLine), 4) <> ".exe" Then
+		If App.PrevInstance Then
+			EnumWindows(@EnumWindowsProc, Cast(LPARAM, StrPtr(FileFromCommandLine)))
+		End If
+	End If
+		
 	InitDarkMode
 	'setDarkMode(True, True)
 #endif
@@ -10031,6 +10059,9 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		pnlPropertyValue.SendToBack
 		pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
+	#ifdef __USE_WINAPI__
+		SetProp(frmMain.Handle, "VisualFBEditorApp", @VisualFBEditorApp)
+	#endif
 	
 	LoadToolBox
 	
@@ -10420,6 +10451,22 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
+Sub frmMain_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Msg As Message)
+	#ifdef __USE_WINAPI__
+		Select Case Msg.Msg
+		Case WM_COPYDATA
+			Dim pCDS As COPYDATASTRUCT Ptr = Cast(COPYDATASTRUCT Ptr, Msg.lParam)
+			Dim As ZString Ptr FileNameFromCmdLine = Cast(ZString Ptr, pCDS->lpData)
+			If FileNameFromCmdLine <> 0 Then
+				OpenFiles *FileNameFromCmdLine
+				If frmMain.WindowState = WindowStates.wsMinimized Then ShowWindow frmMain.Handle, SW_RESTORE
+				Msg.Result = -1
+				Return
+			End If
+		End Select
+	#endif
+End Sub
+
 Sub ToolBar_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 1 Then Exit Sub
 	Sender.ContextMenu = miToolBars->SubMenu
@@ -10456,6 +10503,7 @@ frmMain.OnCreate = @frmMain_Create
 frmMain.OnShow = @frmMain_Show
 frmMain.OnClose = @frmMain_Close
 frmMain.OnDropFile = @frmMain_DropFile
+frmMain.OnMessage = @frmMain_Message
 frmMain.Menu = @mnuMain
 '#ifndef __USE_GTK__
 MainReBar.Add @tbStandard
@@ -10484,6 +10532,7 @@ Sub OnProgramStart() Constructor
 End Sub
 
 Sub OnProgramQuit() Destructor
+	If bQuitting Then Exit Sub
 	WDeAllocate(ProjectsPath)
 	WDeAllocate(LastOpenPath)
 	WDeAllocate(DefaultMakeTool)
