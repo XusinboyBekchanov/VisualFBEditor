@@ -10460,6 +10460,7 @@ Sub frmMain_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			If FileNameFromCmdLine <> 0 Then
 				OpenFiles *FileNameFromCmdLine
 				If frmMain.WindowState = WindowStates.wsMinimized Then ShowWindow frmMain.Handle, SW_RESTORE
+				SetForegroundWindow frmMain.Handle
 				Msg.Result = -1
 				Return
 			End If
