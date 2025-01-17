@@ -58,11 +58,11 @@ Dim Shared As Boolean bQuitting
 		Return True
 	End Function
 	
-	Var FileFromCommandLine = Command(-1)
-	Var Pos1 = InStr(FileFromCommandLine, "2>CON")
-	If Pos1 > 0 Then FileFromCommandLine = Left(FileFromCommandLine, Pos1 - 1)
-	If FileFromCommandLine <> "" AndAlso Right(LCase(FileFromCommandLine), 4) <> ".exe" Then
-		If App.PrevInstance Then
+	If App.PrevInstance Then
+		Var FileFromCommandLine = Command(-1)
+		Var Pos1 = InStr(FileFromCommandLine, "2>CON")
+		If Pos1 > 0 Then FileFromCommandLine = Left(FileFromCommandLine, Pos1 - 1)
+		If FileFromCommandLine <> "" AndAlso Right(LCase(FileFromCommandLine), 4) <> ".exe" Then
 			EnumWindows(@EnumWindowsProc, Cast(LPARAM, StrPtr(FileFromCommandLine)))
 		End If
 	End If
