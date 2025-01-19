@@ -10289,16 +10289,15 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 	Var File = Command(-1)
 	Var Pos1 = InStr(File, "2>CON")
-	Var bFileOpened = False
+	Var bFileOpening = False
 	If Pos1 > 0 Then File = Left(File, Pos1 - 1)
 	If File <> "" AndAlso Right(LCase(File), 4) <> ".exe" Then
-		OpenFiles GetFullPath(File)
-		bFileOpened = True
+		bFileOpening = True
 	End If
 	If bSharedFind Then
 		Select Case WhenVisualFBEditorStarts
-		Case 1: If Not bFileOpened Then NewProject 'pfTemplates->ShowModal
-		Case 2: If Not bFileOpened Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
+		Case 1: If Not bFileOpening Then NewProject 'pfTemplates->ShowModal
+		Case 2: If Not bFileOpening Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
 			Select Case LastOpenedFileType
 			Case 0: OpenFiles GetFullPath(*RecentFiles)
@@ -10308,6 +10307,9 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			Case 4: OpenFiles GetFullPath(*RecentFile)
 			End Select
 		End Select
+	End If
+	If bFileOpening Then
+		OpenFiles GetFullPath(File)
 	End If
 	'	Var FILE = Command(-1)
 	'	Var Pos1 = InStr(file, "2>CON")
