@@ -5942,9 +5942,9 @@ Namespace My.Sys.Forms
 				ElseIf VScrollMax <> 0 Then
 					If bShifted Then
 						#ifdef __USE_GTK__
-							If scrDirection = 1 Then
+							If scrDirection > 0 Then
 								gtk_adjustment_set_value(adjustmenth, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmenth)))
-							ElseIf scrDirection = -1 Then
+							ElseIf scrDirection < 0 Then
 								gtk_adjustment_set_value(adjustmenth, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmenth)))
 							End If
 							'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
@@ -5989,9 +5989,9 @@ Namespace My.Sys.Forms
 						#endif
 					Else
 						#ifdef __USE_GTK__
-							If scrDirection = 1 Then
+							If scrDirection > 0 Then
 								gtk_adjustment_set_value(adjustmentv, Min(OldPos + 3, gtk_adjustment_get_upper(adjustmentv)))
-							ElseIf scrDirection = -1 Then
+							ElseIf scrDirection < 0 Then
 								gtk_adjustment_set_value(adjustmentv, Max(OldPos - 3, gtk_adjustment_get_lower(adjustmentv)))
 							End If
 							'If Not gtk_adjustment_get_value(adjustmentv) = OldPos Then
