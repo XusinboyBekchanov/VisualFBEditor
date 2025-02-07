@@ -116,7 +116,7 @@ Dim Shared As ReBar MainReBar
 Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
-Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions ' add Sessions
+Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
@@ -127,14 +127,14 @@ Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
-Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches
+Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches, lvProfiler
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TextBox txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -7059,6 +7059,7 @@ Sub CreateMenusAndToolBars
 	
 	Var miDebug = mnuMain.Add(ML("&Debug"), "", "Debug")
 	mnuUseDebugger = miDebug->Add(ML("&Use Debugger") & HK("UseDebugger"), "", "UseDebugger", @mClick, True)
+	mnuUseProfiler = miDebug->Add(ML("Use &Profiler") & HK("UseProfiler"), "", "UseProfiler", @mClick, True)
 	miDebug->Add("-")
 	miStepInto = miDebug->Add(ML("Step &Into") & HK("StepInto", "F8"), "", "StepInto", @mClick, , , False)
 	miStepOver = miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "", "StepOver", @mClick, , , False)
@@ -8849,6 +8850,42 @@ lvMemory.Columns.Add ML("Ascii value"), , 150
 'lvMemory.StateImages = @imgListStates
 lvMemory.Images = @imgListStates
 
+Sub lvProfiler_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
+		ptabBottom->UpdateLock
+		Item->Nodes.Clear
+		Var Idx = ProfilingFunctions.IndexOf(Item->Text(0))
+		Dim As TreeListViewItem Ptr tlvi, parenttlvi
+		If Idx > -1 Then
+			Dim As ProfilingFunction Ptr pfuncitem, pfunc = ProfilingFunctions.Object(Idx)
+			parenttlvi = Item->Nodes.Add(ProfilingFunctions.Item(Idx))
+			parenttlvi->Text(1) = pfunc->Count
+			parenttlvi->Text(2) = pfunc->Time
+			parenttlvi->Text(3) = pfunc->Total
+			parenttlvi->Text(4) = pfunc->Proc
+			For i As Integer = 0 To pfunc->Items.Count - 1
+				pfuncitem = pfunc->Items.Object(i)
+				tlvi = parenttlvi->Nodes.Add(pfunc->Items.Item(i))
+				tlvi->Text(1) = pfuncitem->Count
+				tlvi->Text(2) = pfuncitem->Time
+				tlvi->Text(3) = pfuncitem->Total
+				tlvi->Text(4) = pfuncitem->Proc
+				tlvi->Nodes.Add
+			Next
+		End If
+		ptabBottom->UpdateUnLock
+	End If
+End Sub
+
+lvProfiler.Align = DockStyle.alClient
+lvProfiler.Columns.Add ML("Function"), , 500
+lvProfiler.Columns.Add ML("Count"), , 100, ColumnFormat.cfRight
+lvProfiler.Columns.Add ML("Time"), , 100, ColumnFormat.cfRight
+lvProfiler.Columns.Add ML("Total, %"), , 100, ColumnFormat.cfRight
+lvProfiler.Columns.Add ML("Proc, %"), , 100, ColumnFormat.cfRight
+lvProfiler.StateImages = @imgListStates
+lvProfiler.Images = @imgListStates
+lvProfiler.OnItemExpanding = @lvProfiler_ItemExpanding
 
 Sub tabRight_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then
@@ -9532,6 +9569,7 @@ tpProcedures = ptabBottom->AddTab(ML("Procedures"))
 tpThreads = ptabBottom->AddTab(ML("Threads"))
 tpWatches = ptabBottom->AddTab(ML("Watches"))
 tpMemory = ptabBottom->AddTab(ML("Memory"))
+tpProfiler = ptabBottom->AddTab(ML("Profiler"))
 tpOutput->Add @txtOutput
 tpProblems->Add @lvProblems
 tpSuggestions->Add @lvSuggestions
@@ -9548,6 +9586,7 @@ tpThreads->Add @tvThd
 tpWatches->Add @lvWatches
 tpWatches->Add @tvWch
 tpMemory->Add @lvMemory
+tpProfiler->Add @lvProfiler
 ptabBottom->OnClick = @tabBottom_Click
 ptabBottom->OnDblClick = @tabBottom_DblClick
 ptabBottom->OnSelChange = @tabBottom_SelChange
@@ -10466,6 +10505,7 @@ Sub frmMain_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 				OpenFiles *FileNameFromCmdLine
 				If frmMain.WindowState = WindowStates.wsMinimized Then ShowWindow frmMain.Handle, SW_RESTORE
 				SetForegroundWindow frmMain.Handle
+				SetFocus frmMain.Handle
 				Msg.Result = -1
 				Return
 			End If

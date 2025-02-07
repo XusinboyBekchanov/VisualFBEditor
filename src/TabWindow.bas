@@ -2478,7 +2478,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 End Function
 
 Sub TabWindow.CheckExtension(ByRef sFileName As WString)
-	txtCode.Content.CStyle = CInt(EndsWith(LCase(sFileName), ".rc")) OrElse CInt(EndsWith(LCase(sFileName), ".c")) OrElse CInt(EndsWith(LCase(sFileName), ".cxx")) OrElse CInt(EndsWith(LCase(sFileName), ".cpp")) OrElse CInt(EndsWith(LCase(sFileName), ".java")) OrElse CInt(EndsWith(LCase(sFileName), ".h")) OrElse CInt(EndsWith(LCase(sFileName), ".xml")) OrElse CInt(EndsWith(LCase(sFileName), ".bat"))
+	txtCode.Content.CStyle = CInt(EndsWith(LCase(sFileName), ".rc")) OrElse CInt(EndsWith(LCase(sFileName), ".c")) OrElse CInt(EndsWith(LCase(sFileName), ".cxx")) OrElse CInt(EndsWith(LCase(sFileName), ".cpp")) OrElse CInt(EndsWith(LCase(sFileName), ".java")) OrElse CInt(EndsWith(LCase(sFileName), ".h")) OrElse CInt(EndsWith(LCase(sFileName), ".idl")) OrElse CInt(EndsWith(LCase(sFileName), ".xml")) OrElse CInt(EndsWith(LCase(sFileName), ".bat"))
 	txtCode.SyntaxEdit = txtCode.Content.CStyle OrElse CInt(sFileName = "") OrElse CInt(EndsWith(LCase(sFileName), ".bas")) OrElse CInt(EndsWith(LCase(sFileName), ".frm")) OrElse CInt(EndsWith(LCase(sFileName), ".bi")) OrElse CInt(EndsWith(LCase(sFileName), ".inc"))
 End Sub
 
@@ -2962,6 +2962,172 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 			'#endif
 		End If
 	End If
+End Sub
+
+Enum CBlocks
+	CB_None
+	CB_Comment
+	CB_Enum
+	CB_Extern
+	CB_QuotationMark
+End Enum
+
+Sub ConvertHToBi(ByRef FileName As WString)
+	Dim As Integer Result, i, LenB
+	Dim As WString * 2048 b, bb
+	Dim As Integer fr = FreeFile_
+	Dim As Integer fw = FreeFile_
+	Dim As WString * 1 wLeft, wRight
+	Dim As CBlocks In
+	Dim As IntegerList Blocks
+	If FileExists(FileName) Then
+		?"File found", FileName
+	Else
+		?"File not found", FileName
+	End If
+	Result = Open(FileName For Input Encoding "utf-32" As #fr)
+	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #fr)
+	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-8" As #fr)
+	If Result <> 0 Then Result = Open(FileName For Input As #fr)
+	If Result = 0 Then
+		Open Left(FileName, Len(FileName) - 2) & ".bi" For Output Encoding "utf-8" As #fw
+		Do Until EOF(fr)
+			Line Input #fr, b
+			i = 0
+			LenB = Len(b)
+			Do While i < LenB
+				If In = CBlocks.CB_QuotationMark Then
+					If b[i] = Asc("""") Then
+						If Blocks.Count > 0 Then
+							Blocks.Remove Blocks.Count - 1
+							If Blocks.Count > 0 Then
+								In = Blocks.Item(Blocks.Count - 1)
+							Else
+								In = CBlocks.CB_None
+							End If
+						End If
+					End If
+				ElseIf In = CBlocks.CB_Comment Then
+					If i > 0 AndAlso b[i - 1] = Asc("*") AndAlso b[i] = Asc("/") Then
+						b[i - 1] = Asc("'")
+						If Blocks.Count > 0 Then
+							Blocks.Remove Blocks.Count - 1
+							If Blocks.Count > 0 Then
+								In = Blocks.Item(Blocks.Count - 1)
+							Else
+								In = CBlocks.CB_None
+							End If
+						End If
+					End If
+				ElseIf i > 0 AndAlso b[i - 1] = Asc("/") AndAlso b[i] = Asc("*") Then
+					b[i] = Asc("'")
+					In = CB_Comment
+					Blocks.Add In
+				ElseIf b[i] = Asc("""") Then
+					In = CB_QuotationMark
+					Blocks.Add In
+				ElseIf i > 0 AndAlso b[i - 1] = Asc("/") AndAlso b[i] = Asc("/") Then
+					b = Left(b, i - 1) & "'" & Mid(b, i + 1)
+					Exit Do
+				ElseIf b[i] = Asc("!") Then
+					wLeft = IIf(i > 0 AndAlso b[i - 1] >= Asc("A") AndAlso b[i - 1] >= Asc("z"), " ", "")
+					wRight = IIf(i + 1 < LenB AndAlso b[i + 1] >= Asc("A") AndAlso b[i + 1] >= Asc("z"), " ", "")
+					b = Left(b, i) & wLeft & "Not " & wLeft & Mid(b, i + 2)
+					i += 2 + Len(wLeft) + Len(wRight)
+				ElseIf b[i] = Asc("|") Then
+					wLeft = IIf(i > 0 AndAlso b[i - 1] >= Asc("A") AndAlso b[i - 1] >= Asc("z"), " ", "")
+					If b[i + 1] = Asc("|") Then
+						wRight = IIf(i + 2 < LenB AndAlso b[i + 2] >= Asc("A") AndAlso b[i + 2] >= Asc("z"), " ", "")
+						b = Left(b, i) & wLeft & "OrElse" & wRight & Mid(b, i + 3)
+						i += 5 + Len(wLeft) + Len(wRight)
+					Else
+						wRight = IIf(i + 1 < LenB AndAlso b[i + 1] >= Asc("A") AndAlso b[i + 1] >= Asc("z"), " ", "")
+						b = Left(b, i) & wLeft & "Or" & wRight & Mid(b, i + 2)
+						i += 1 + Len(wLeft) + Len(wRight)
+					End If
+				ElseIf b[i] = Asc("&") Then
+					wLeft = IIf(i > 0 AndAlso b[i - 1] >= Asc("A") AndAlso b[i - 1] >= Asc("z"), " ", "")
+					If b[i + 1] = Asc("&") Then
+						wRight = IIf(i + 2 < LenB AndAlso b[i + 2] >= Asc("A") AndAlso b[i + 2] >= Asc("z"), " ", "")
+						b = Left(b, i) & wLeft & "AndAlso" & wRight & Mid(b, i + 3)
+						i += 6 + Len(wLeft) + Len(wRight)
+					Else
+						wRight = IIf(i + 1 < LenB AndAlso b[i + 1] >= Asc("A") AndAlso b[i + 1] >= Asc("z"), " ", "")
+						b = Left(b, i) & wLeft & "And" & wRight & Mid(b, i + 2)
+						i += 2 + Len(wLeft) + Len(wRight)
+					End If
+				ElseIf b[i] = Asc("#") AndAlso Mid(b, i + 1, 10) = "#include <" Then
+					Var Pos1 = InStr(b, ">")
+					If Pos1 > 0 Then
+						Dim As UString IncludeFileName = Mid(b, i + 11, Pos1 - (i + 11))
+						If EndsWith(IncludeFileName, ".h") Then
+							b = Left(b, i) & "#include once """ & Left(IncludeFileName, Len(IncludeFileName) - 2) & ".bi""" & Mid(b, Pos1 + 1)
+							Dim As UString FullPathH = GetRelativePath(IncludeFileName, FileName)
+							ConvertHToBi(FullPathH)
+						Else
+							b = Left(b, i) & "#include once """ & IncludeFileName & """" & Mid(b, Pos1 + 1)
+						End If
+						i = Pos1
+					End If
+				ElseIf b[i] = Asc("t") AndAlso Mid(b, i + 1, 8) = "typedef " Then
+					If Mid(b, i + 1, 18) = "typedef interface " Then
+						b = Left(b, i) & "'" & Mid(b, i + 1)
+						Exit Do
+					ElseIf Mid(b, i + 1, 15) = "typedef struct " Then
+						b = Left(b, i) & "'" & Mid(b, i + 1)
+						Exit Do
+					ElseIf Mid(b, i + 1, 13) = "typedef enum " Then
+						b = Left(b, i) & "Enum " & Mid(b, i + 14)
+						In = CB_Enum
+						Blocks.Add In
+					Else
+						b = Left(b, i) & "Type As " & Mid(b, i + 9)
+					End If
+				ElseIf b[i] = Asc("e") AndAlso Mid(b, i + 1, 5) = "enum " Then
+					b = Left(b, i) & "Enum " & Mid(b, i + 5)
+					In = CB_Enum
+					Blocks.Add In
+				ElseIf b[i] = Asc("e") AndAlso Mid(b, i + 1, 7) = "extern " Then
+					In = CB_Extern
+					Blocks.Add In
+				ElseIf b[i] = Asc("<") AndAlso b[i + 1] = Asc("<") Then
+					b = Left(b, i) & "Shl" & Mid(b, i + 3)
+				ElseIf b[i] = Asc(">") AndAlso b[i + 1] = Asc(">") Then
+					b = Left(b, i) & "Shr" & Mid(b, i + 3)
+				ElseIf b[i] = Asc("{") Then
+					b = Left(b, i) & Mid(b, i + 2)
+				ElseIf b[i] = Asc("}") Then
+					If Blocks.Count > 0 Then
+						wLeft = IIf(i > 0 AndAlso b[i - 1] >= Asc("A") AndAlso b[i - 1] >= Asc("z"), " ", "")
+						wRight = IIf(i + 1 < LenB AndAlso b[i + 1] >= Asc("A") AndAlso b[i + 1] >= Asc("z"), " ", "")
+						Select Case In
+						Case CB_Enum
+							b = Left(b, i) & wLeft & "End Enum '" & wRight & Mid(b, i + 2)
+						Case CB_Extern
+							b = Left(b, i) & wLeft & "End Extern" & wRight & Mid(b, i + 2)
+						End Select
+						Blocks.Remove Blocks.Count - 1
+						If Blocks.Count > 0 Then
+							In = Blocks.Item(Blocks.Count - 1)
+						Else
+							In = CBlocks.CB_None
+						End If
+					End If
+				ElseIf In = CB_Enum AndAlso b[i] = Asc(",") Then
+					b = Left(b, i) & Mid(b, i + 2)
+				ElseIf b[i] = Asc(";") Then
+					b = Left(b, i) & Mid(b, i + 2)
+				ElseIf b[i] = Asc("0") AndAlso b[i + 1] = Asc("x") Then
+					b[i] = Asc("&")
+					b[i + 1] = Asc("h")
+				End If
+				i += 1
+			Loop
+			Print #fw, b
+		Loop
+		CloseFile_(fw)
+	End If
+	CloseFile_(fr)
 End Sub
 
 Sub OnLinkClickedEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Link1 As WString)
@@ -9006,6 +9172,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Pos2 = InStr(Pos1 + 1, b, """")
 						If Pos2 - Pos1 - 1 > 0 Then
 							WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
+							If EndsWith(*FPath, ".bi") AndAlso Not FileExists(*FPath) Then
+								Dim As UString FullPathH = GetRelativePath(.Left(*FPath, Len(*FPath) - 3) & ".h", FileName)
+								If FileExists(FullPathH) Then
+									ConvertHToBi(FullPathH)
+								End If
+							End If
 							If ptxtCode = @txtCode Then
 								If IncludesChanged Then
 									txtCode.Content.Includes.Add *FPath
@@ -11919,6 +12091,7 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 		End If
 	End If
 	If CInt(UseDebugger) OrElse CInt(CInt(Project) AndAlso CInt(Project->CreateDebugInfo)) Then Result += " -g"
+	If CInt(mnuUseProfiler->Checked) Then Result += " -profgen fb"
 	If CInt(InStr(Result, " -v ") = 0)  Then
 		Result += " -v "
 	End If
@@ -12202,6 +12375,78 @@ Sub RunLogCat(Param As Any Ptr)
 	#endif
 End Sub
 
+Sub CheckProfiler(ByRef WorkDir As WString)
+	If Not mnuUseProfiler->Checked Then Exit Sub
+	Dim As Integer Result, i, l, n, f = FreeFile_
+	Dim As String Buff
+	Dim As Boolean bStarted
+	Dim As ProfilingFunction Ptr pfunc
+	Dim As WStringList Ptr oldList
+	Dim As TreeListViewItem Ptr tlvi, oldtlvi, Globaltlvi
+	lvProfiler.Nodes.Clear
+	For i As Integer = ProfilingFunctions.Count - 1 To 0 Step -1
+		pfunc = ProfilingFunctions.Object(i)
+		For j As Integer = pfunc->Items.Count - 1 To 0 Step -1
+			_Delete(Cast(ProfilingFunction Ptr, pfunc->Items.Object(j)))
+		Next
+		_Delete(Cast(ProfilingFunction Ptr, ProfilingFunctions.Object(i)))
+	Next
+	ProfilingFunctions.Clear
+	Result = Open(WorkDir & "/profile.txt" For Input As #f)
+	If Result <> 0 Then Exit Sub
+	tpProfiler->SelectTab
+	lvProfiler.UpdateLock
+	Do Until EOF(f)
+		Line Input #f, Buff
+		i += 1
+		If i < 13 Then Continue Do
+		l = Len(Buff)
+		If l = 0 Then Continue Do
+		If Buff[0] <> Asc(" ") Then
+			n = 10
+			If Trim(Buff) = "Global results:" Then
+				'Globaltlvi = lvProfiler.Nodes.Insert(0, Trim(Buff), , 1)
+				bStarted = True
+				Continue Do
+			'ElseIf Globaltlvi Then
+			ElseIf bStarted Then
+				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
+				tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
+				tlvi->Nodes.Add
+			Else
+				pfunc = New ProfilingFunction
+				pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
+				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
+				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
+				oldList = @pfunc->Items
+				ProfilingFunctions.Add Trim(Left(Buff, l - 30)), pfunc
+			'	tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
+			'	oldtlvi = tlvi
+				Continue Do
+			End If
+		Else
+			'tlvi = oldtlvi->Nodes.Add(Trim(Left(Buff, l - 40)))
+			n = 0
+		End If
+		If bStarted Then
+			tlvi->Text(1) = Trim(Mid(Buff, l - (40 - n), 8))
+			tlvi->Text(2) = Trim(Mid(Buff, l - (32 - n), 12))
+			tlvi->Text(3) = Trim(Mid(Buff, l - (20 - n), 11))
+			tlvi->Text(4) = Trim(Mid(Buff, l - (9 - n), 10))
+		Else
+			pfunc = New ProfilingFunction
+			pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+			pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
+			pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
+			pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
+			oldList->Add Trim(Left(Buff, l - 40)), pfunc
+		End If
+	Loop
+	Close #f
+	lvProfiler.UpdateUnLock
+End Sub
+
 Sub RunPr(Debugger As String = "")
 	On Error Goto ErrorHandler
 	Dim Result As Integer
@@ -12388,6 +12633,7 @@ Sub RunPr(Debugger As String = "")
 			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			CheckProfiler GetFolderName(ExeFileName)
 			ThreadsLeave()
 			'EndIf
 			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
@@ -12486,6 +12732,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle hReadPipe
 				result1 = GetLastError()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & IIf(result1 = ERROR_BROKEN_PIPE, "0 - " & Err2Description(0), result1  & " - " & GetErrorString(result1)))
+				CheckProfiler *Workdir
 			Else
 				Dim SInfo As STARTUPINFO
 				Dim PInfo As PROCESS_INFORMATION
@@ -12505,6 +12752,7 @@ Sub RunPr(Debugger As String = "")
 					Result = ExitCode
 					'Result = Shell(Debugger & """" & *ExeFileName + """")
 					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+					CheckProfiler *Workdir
 				Else
 					Result = GetLastError()
 					ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))

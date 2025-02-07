@@ -297,6 +297,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: MainReBar.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolBar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
 	Case "UseDebugger":                         ChangeUseDebugger Not mnuUseDebugger->Checked, 1
+	Case "UseProfiler":                         mnuUseProfiler->Checked = Not mnuUseProfiler->Checked
 	Case "ShowWithFolders":                     ChangeFolderType ProjectFolderTypes.ShowWithFolders
 	Case "ShowWithoutFolders":                  ChangeFolderType ProjectFolderTypes.ShowWithoutFolders
 	Case "ShowAsFolder":                        ChangeFolderType ProjectFolderTypes.ShowAsFolder
