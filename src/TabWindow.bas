@@ -12633,7 +12633,7 @@ Sub RunPr(Debugger As String = "")
 			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			CheckProfiler GetFolderName(ExeFileName)
+			CheckProfiler GetFolderName(*ExeFileName)
 			ThreadsLeave()
 			'EndIf
 			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
