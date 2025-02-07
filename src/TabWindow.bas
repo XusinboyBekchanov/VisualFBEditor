@@ -12411,7 +12411,8 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 			'ElseIf Globaltlvi Then
 			ElseIf bStarted Then
 				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
-				tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
+				'tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
+				tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)) & vbTab & Trim(Mid(Buff, l - (40 - n), 8)) & vbTab & Trim(Mid(Buff, l - (32 - n), 12)) & vbTab & Trim(Mid(Buff, l - (20 - n), 11)) & vbTab & Trim(Mid(Buff, l - (9 - n), 10)), , 1)
 				tlvi->Nodes.Add
 			Else
 				pfunc = New ProfilingFunction
@@ -12430,10 +12431,10 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 			n = 0
 		End If
 		If bStarted Then
-			tlvi->Text(1) = Trim(Mid(Buff, l - (40 - n), 8))
-			tlvi->Text(2) = Trim(Mid(Buff, l - (32 - n), 12))
-			tlvi->Text(3) = Trim(Mid(Buff, l - (20 - n), 11))
-			tlvi->Text(4) = Trim(Mid(Buff, l - (9 - n), 10))
+			'tlvi->Text(1) = Trim(Mid(Buff, l - (40 - n), 8))
+			'tlvi->Text(2) = Trim(Mid(Buff, l - (32 - n), 12))
+			'tlvi->Text(3) = Trim(Mid(Buff, l - (20 - n), 11))
+			'tlvi->Text(4) = Trim(Mid(Buff, l - (9 - n), 10))
 		Else
 			pfunc = New ProfilingFunction
 			pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
