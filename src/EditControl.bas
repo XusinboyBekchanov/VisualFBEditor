@@ -3713,6 +3713,7 @@ Namespace My.Sys.Forms
 		Dim As Boolean bFull = Full
 		If ShowHolidayFrame AndAlso WithFrame Then bFull = True
 		bFull = True
+		If FHoverTime <> CodeEditorHoverTime Then FHoverTime = CodeEditorHoverTime
 		#ifdef __USE_GTK__
 			If cr = 0 Then Exit Sub
 			If CurrentFontSize <> EditorFontSize OrElse *CurrentFontName <> *EditorFontName Then
@@ -7624,6 +7625,7 @@ Namespace My.Sys.Forms
 			This.Cursor = LoadCursor(NULL, IDC_IBEAM)
 		#endif
 		This.BackColor       = clWhite
+		This.FHoverTime       = CodeEditorHoverTime
 		WLet(FClassName, "EditControl")
 		#ifndef __USE_GTK__
 			This.RegisterClass "EditControl", ""

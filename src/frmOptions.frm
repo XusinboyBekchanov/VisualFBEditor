@@ -2833,6 +2833,41 @@ pfOptions = @fOptions
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdAddConfiguration_Click)
 			.Parent = @hbxConfigurations
 		End With
+		' pnlCodeEditorHoverTime
+		With pnlCodeEditorHoverTime
+			.Name = "pnlCodeEditorHoverTime"
+			.Text = "Panel1"
+			.TabIndex = 254
+			.Align = DockStyle.alTop
+			.ControlIndex = 18
+			.SetBounds 0, 384, 72, 20
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
+		' lblCodeEditorHoverTime
+		With lblCodeEditorHoverTime
+			.Name = "lblCodeEditorHoverTime"
+			.Text = ML("Hover time") & ":"
+			.TabIndex = 255
+			.Align = DockStyle.alClient
+			.Caption = ML("Hover time") & ":"
+			.ExtraMargins.Left = 40
+			.ExtraMargins.Top = 2
+			.SetBounds 0, 0, 0, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditorHoverTime
+		End With
+		' txtCodeEditorHoverTime
+		With txtCodeEditorHoverTime
+			.Name = "txtCodeEditorHoverTime"
+			.TabIndex = 257
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 2
+			.ExtraMargins.Right = 130
+			.SetBounds -72, 0, 72, 20
+			.Designer = @This
+			.Parent = @pnlCodeEditorHoverTime
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
@@ -2903,6 +2938,7 @@ Sub frmOptions.LoadSettings()
 		.TreeView1_SelChange *.tvOptions.Designer, .tvOptions, * (.tvOptions.Nodes.Item(0))
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
+		.txtCodeEditorHoverTime.Text = Str(CodeEditorHoverTime)
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
 		.chkSyntaxHighlightingIdentifiers.Checked = SyntaxHighlightingIdentifiers 
 		.chkChangeIdentifiersCase.Checked = ChangeIdentifiersCase
@@ -3604,6 +3640,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		HighlightCurrentWord = .chkHighlightCurrentWord.Checked
 		TabAsSpaces = .chkTabAsSpaces.Checked
 		ChoosedTabStyle = .cboTabStyle.ItemIndex
+		CodeEditorHoverTime = Val(.txtCodeEditorHoverTime.Text)
 		GridSize = Val(.txtGridSize.Text)
 		ShowAlignmentGrid = .chkShowAlignmentGrid.Checked
 		SnapToGridOption = .chkSnapToGrid.Checked
@@ -3786,6 +3823,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "HighlightCurrentLine", HighlightCurrentLine
 		piniSettings->WriteBool "Options", "HighlightCurrentWord", HighlightCurrentWord
 		piniSettings->WriteBool "Options", "TabAsSpaces", TabAsSpaces
+		piniSettings->WriteInteger "Options", "CodeEditorHoverTime", CodeEditorHoverTime
 		piniSettings->WriteInteger "Options", "GridSize", GridSize
 		piniSettings->WriteBool "Options", "ShowAlignmentGrid", ShowAlignmentGrid
 		piniSettings->WriteBool "Options", "SnapToGrid", SnapToGridOption

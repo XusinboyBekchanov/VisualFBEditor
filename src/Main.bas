@@ -6407,6 +6407,7 @@ Sub LoadSettings
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
 	TabAsSpaces = iniSettings.ReadBool("Options", "TabAsSpaces", True)
 	ChoosedTabStyle = iniSettings.ReadInteger("Options", "ChoosedTabStyle", 1)
+	CodeEditorHoverTime = iniSettings.ReadInteger("Options", "CodeEditorHoverTime", 0)
 	TabWidth = iniSettings.ReadInteger("Options", "TabWidth", 4)
 	AutoSaveCharMax = iniSettings.ReadInteger("Options", "AutoSaveCharMax", 100)
 	HistoryLimit = iniSettings.ReadInteger("Options", "HistoryLimit", 20)
