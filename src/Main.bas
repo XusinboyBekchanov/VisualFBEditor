@@ -4525,6 +4525,16 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
+						If Namespaces.Count > 0 Then
+							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & te->Name
+						Else
+							te->FullName = te->Name
+						End If
 						LastIndexFunction = Functions.Add(te->Name, te)
 						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "destructor ")) OrElse _
@@ -4551,6 +4561,16 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
+						If Namespaces.Count > 0 Then
+							Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+							If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & te->Name
+						Else
+							te->FullName = te->Name
+						End If
 						LastIndexFunction = Functions.Add(te->Name, te)
 						lastfunctionte = te
 					ElseIf CInt(StartsWith(bTrimLCase, "sub ")) OrElse _
@@ -4589,6 +4609,18 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
+						If Namespaces.Count > 0 Then
+							If bt = "" Then
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							End If
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & IIf(bt = "", "", bt & ".") & te->Name
+						Else
+							te->FullName = IIf(bt = "", "", bt & ".") & te->Name
+						End If
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -4610,16 +4642,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							LastIndexFunction = TypeProcedures.Add(te->Name, te)
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
-							If Namespaces.Count > 0 Then
-								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
-								For n_i As Integer = 0 To Namespaces.Count - 1
-									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
-								Next
-								te->FullName = te->OwnerNamespace & "." & te->Name
-							Else
-								te->FullName = te->Name
-							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
 						lastfunctionte = te
@@ -4665,6 +4687,18 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
+						If Namespaces.Count > 0 Then
+							If bt = "" Then
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							End If
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & IIf(bt = "", "", bt & ".") & te->Name
+						Else
+							te->FullName = IIf(bt = "", "", bt & ".") & te->Name
+						End If
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -4686,16 +4720,6 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							LastIndexFunction = TypeProcedures.Add(te->Name, te)
 						Else
 							'LastIndexFunction = Functions.Add(te->Name, te)
-							If Namespaces.Count > 0 Then
-								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
-								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
-								For n_i As Integer = 0 To Namespaces.Count - 1
-									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
-								Next
-								te->FullName = te->OwnerNamespace & "." & te->Name
-							Else
-								te->FullName = te->Name
-							End If
 							LastIndexFunction = Functions.Add(te->Name, te)
 						End If
 						lastfunctionte = te
@@ -4741,6 +4765,18 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
+						If Namespaces.Count > 0 Then
+							If bt = "" Then
+								Index = Globals.Namespaces.IndexOf(Cast(TypeElement Ptr, Namespaces.Object(Namespaces.Count - 1))->Name)
+								If Index > -1 Then Cast(TypeElement Ptr, Globals.Namespaces.Object(Index))->Elements.Add te->Name, te
+							End If
+							For n_i As Integer = 0 To Namespaces.Count - 1
+								te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
+							Next
+							te->FullName = te->OwnerNamespace & "." & IIf(bt = "", "", bt & ".") & te->Name
+						Else
+							te->FullName = IIf(bt = "", "", bt & ".") & te->Name
+						End If
 						If bt <> "" Then
 							te->Parameters = Trim(Mid(te->Parameters, Len(bt) + 2))
 							'te->TypeProcedure = True
@@ -8881,7 +8917,47 @@ Sub lvProfiler_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As Tr
 End Sub
 
 Sub lvProfiler_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-	
+	If Item = 0 Then Exit Sub
+	Dim As String ItemText = Item->Text(0), FuncName
+	Var Pos1 = InStr(ItemText, "(")
+	If Pos1 > 0 Then ItemText = Left(ItemText, Pos1 - 1)
+	Pos1 = InStr(ItemText, " [")
+	If Pos1 > 0 Then ItemText = Left(ItemText, Pos1 - 1)
+	Pos1 = InStrRev(ItemText, ".")
+	If Pos1 > 0 Then 
+		FuncName = Mid(ItemText, Pos1 + 1)
+	Else
+		FuncName = ItemText
+	End If
+	Dim As TypeElement Ptr te
+	Dim As Boolean bFinded
+	Var Idx = pGlobalTypeProcedures->IndexOf(FuncName)
+	If Idx <> -1 Then
+		For i As Integer = Idx To pGlobalTypeProcedures->Count - 1
+			If UCase(pGlobalTypeProcedures->Item(i)) <> UCase(FuncName) Then Exit For
+			te = pGlobalTypeProcedures->Object(i)
+			If UCase(te->FullName) = UCase(ItemText) Then
+				bFinded = True
+				Exit For
+			End If
+		Next
+	End If
+	If Not bFinded Then
+		Var Idx = pGlobalFunctions->IndexOf(FuncName)
+		If Idx <> -1 Then
+			For i As Integer = Idx To pGlobalFunctions->Count - 1
+				If UCase(pGlobalFunctions->Item(i)) <> UCase(FuncName) Then Exit For
+				te = pGlobalFunctions->Object(i)
+				If UCase(te->FullName) = UCase(ItemText) Then
+					bFinded = True
+					If Not te->Declaration Then Exit For
+				End If
+			Next
+		End If
+	End If
+	If bFinded Then
+		SelectSearchResult(te->FileName, te->StartLine + 2, 0, 0)
+	End If
 End Sub
 
 lvProfiler.Align = DockStyle.alClient

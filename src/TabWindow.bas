@@ -12416,27 +12416,53 @@ Function DemangleGccClangName(ByRef mangledName As String) As String
 		pos1 += segmentLength
 	Wend
 	
+	If Types.Count > 0 Then Types.Remove Types.Count - 1
+	
 	If Right(demangledResult, 1) = "." Then
 		demangledResult = Left(demangledResult, Len(demangledResult) - 1)
 	End If
 	
+	If EndsWith(demangledResult, "__set__") Then
+		demangledResult = Left(demangledResult, Len(demangledResult) - 7) & " [Let]"
+	ElseIf EndsWith(demangledResult, "__get__") Then
+		demangledResult = Left(demangledResult, Len(demangledResult) - 7) & " [Get]"
+	End If
+	
 	If pos1 <= Len(demangled) Then
+		Dim As String TypeNameRef = "", TypeNameStart = "", TypeName = "", TypeNameEnd = ""
 		demangledResult &= "("
-		Dim As String TypeNameRef = "", TypeNameStart = "", TypeNameEnd = ""
 		While pos1 <= Len(demangled)
 			Select Case Mid(demangled, pos1, 1)
-			Case "E":
+			Case "E"
+				If EndsWith(demangledResult, ", ") Then 
+					demangledResult = Left(demangledResult, Len(demangledResult) - 2) & "(), "
+				Else
+					demangledResult = Replace(demangledResult, "(", "") & "("
+				End If
 			Case "P": TypeNameEnd = " Ptr"
 			Case "R": TypeNameRef = "ByRef "
 			Case "K": TypeNameStart = "Const "
+			Case "N"
 			Case "V": TypeNameStart = "Volatile "
-			Case "C": TypeNameStart = "Complex "
+			Case "C": pos1 += 1: segmentLength = ReadNumber(demangled, pos1)
+				If segmentLength = 1 OrElse segmentLength = 2 Then
+					demangledResult &= " [Constructor]"
+				Else
+					TypeNameStart = "Complex "
+				End If
+			Case "D": segmentLength = ReadNumber(demangled, pos1)
+				If segmentLength = 1 OrElse segmentLength = 2 Then
+					demangledResult &= " [Destructor]"
+				Else
+					demangledResult &= "D" & Trim(Str(segmentLength))
+				End If
 			Case "G": TypeNameStart = "Imaginary "
 			Case "S": pos1 += 1: segmentLength = ReadNumber(demangled, pos1)
 				If Types.Count >= segmentLength Then
-					TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, Types.Item(Types.Count - segmentLength), TypeNameEnd, Types)
+					TypeName = Types.Item(Types.Count - segmentLength)
+					?TypeName
+					TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, TypeName, TypeNameEnd, Types)
 				End If
-				pos1 += Len(Trim(Str(segmentLength))) + 1
 			Case "v": 'TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Sub", TypeNameEnd, Types)
 			Case "w": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "WString", TypeNameEnd, Types)
 			Case "b": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Boolean", TypeNameEnd, Types)
@@ -12468,7 +12494,7 @@ Function DemangleGccClangName(ByRef mangledName As String) As String
 			End Select
 			pos1 += 1
 		Wend
-		demangledResult = Trim(Trim(demangledResult, ", "), "()") & ")"
+		demangledResult = Trim(Trim(demangledResult, ", ") & ")", "()")
 	End If
 	
 	If demangledResult = "" Then
