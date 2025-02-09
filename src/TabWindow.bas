@@ -12460,7 +12460,6 @@ Function DemangleGccClangName(ByRef mangledName As String) As String
 			Case "S": pos1 += 1: segmentLength = ReadNumber(demangled, pos1)
 				If Types.Count >= segmentLength Then
 					TypeName = Types.Item(Types.Count - segmentLength)
-					?TypeName
 					TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, TypeName, TypeNameEnd, Types)
 				End If
 			Case "v": 'TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Sub", TypeNameEnd, Types)
