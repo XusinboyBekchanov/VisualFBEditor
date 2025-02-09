@@ -8879,6 +8879,7 @@ Sub lvProfiler_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As Tr
 End Sub
 
 lvProfiler.Align = DockStyle.alClient
+lvProfiler.OwnerData = True
 lvProfiler.Columns.Add ML("Function"), , 500
 lvProfiler.Columns.Add ML("Count"), , 100, ColumnFormat.cfRight
 lvProfiler.Columns.Add ML("Time"), , 100, ColumnFormat.cfRight

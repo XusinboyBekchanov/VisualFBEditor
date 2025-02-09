@@ -12445,6 +12445,7 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 		End If
 	Loop
 	Close #f
+	lvProfiler.Nodes.Count = lvProfiler.Nodes.Count
 	lvProfiler.UpdateUnLock
 End Sub
 
