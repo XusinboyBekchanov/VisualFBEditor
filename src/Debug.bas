@@ -9559,7 +9559,7 @@ Private Sub process_terminated()
 	#endif
 	Var Result = ExitCode
 	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-	CheckProfiler GetFolderName(exename)
+	CheckProfiler GetFolderName(exename), exename
 	ChangeEnabledDebug True, False, False
 	#ifndef __USE_GTK__
 		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
@@ -15107,7 +15107,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				#endif
 				ThreadsEnter()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-				CheckProfiler GetFolderName(exename)
+				CheckProfiler GetFolderName(exename), exename
 				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
 			ElseIf CurrentDebuggerType = IntegratedIDEDebugger Then
@@ -15136,7 +15136,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				Result = Shell(CommandLine)
 				ThreadsEnter()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-				CheckProfiler GetFolderName(exename)
+				CheckProfiler GetFolderName(exename), exename
 				ChangeEnabledDebug True, False, False
 				ThreadsLeave()
 			End If
@@ -15162,7 +15162,7 @@ Sub RunWithDebug(Param As Any Ptr)
 			End If
 			Result = ExitCode
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			CheckProfiler GetFolderName(exename)
+			CheckProfiler GetFolderName(exename), exename
 			ChangeEnabledDebug True, False, False
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
@@ -15182,7 +15182,7 @@ Sub RunWithDebug(Param As Any Ptr)
 				iFlagStartDebug = 1
 				run_debug(1)
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-				CheckProfiler GetFolderName(exename)
+				CheckProfiler GetFolderName(exename), exename
 				ChangeEnabledDebug True, False, False
 			Else
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding

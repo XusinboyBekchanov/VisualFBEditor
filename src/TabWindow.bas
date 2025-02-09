@@ -12375,7 +12375,110 @@ Sub RunLogCat(Param As Any Ptr)
 	#endif
 End Sub
 
-Sub CheckProfiler(ByRef WorkDir As WString)
+Function ReadNumber(ByRef name1 As ZString, ByRef index As Integer) As Integer
+	Dim As String number = ""
+	While CBool(index <= Len(name1)) AndAlso CBool(name1[index - 1] >= Asc("0")) AndAlso CBool(name1[index - 1] <= Asc("9"))
+		number &= Chr(name1[index - 1])
+		index += 1
+	Wend
+	Return Val(number)
+End Function
+
+Sub TypeNameConstruct(ByRef Result As String, ByRef TypeNameRef As String, ByRef TypeNameStart As String, ByRef TypeName As String, ByRef TypeNameEnd As String, ByRef Types As WStringList)
+	Result &= TypeNameRef & "As " & TypeNameStart & TypeName & TypeNameEnd & ", "
+	Types.Add TypeName
+	TypeNameRef = ""
+	TypeNameStart = ""
+	TypeNameEnd = ""
+End Sub
+
+Function DemangleGccClangName(ByRef mangledName As String) As String
+	If Left(mangledName, 3) <> "__Z" Then
+		Return mangledName
+	End If
+	
+	Dim As String demangled = Mid(mangledName, 4)
+	
+	If Left(demangled, 1) = "N" Then demangled = Mid(demangled, 2)
+	
+	Dim As String demangledResult = ""
+	Dim As Integer pos1 = 1
+	Dim As Integer segmentLength
+	Dim As WStringList Types
+
+	While pos1 <= Len(demangled)
+		segmentLength = ReadNumber(demangled, pos1)
+		If segmentLength = 0 OrElse pos1 + segmentLength - 1 > Len(demangled) Then
+			Exit While
+		End If
+		Types.Add Mid(demangled, pos1, segmentLength)
+		demangledResult &= Mid(demangled, pos1, segmentLength) & "."
+		pos1 += segmentLength
+	Wend
+	
+	If Right(demangledResult, 1) = "." Then
+		demangledResult = Left(demangledResult, Len(demangledResult) - 1)
+	End If
+	
+	If pos1 <= Len(demangled) Then
+		demangledResult &= "("
+		Dim As String TypeNameRef = "", TypeNameStart = "", TypeNameEnd = ""
+		While pos1 <= Len(demangled)
+			Select Case Mid(demangled, pos1, 1)
+			Case "E":
+			Case "P": TypeNameEnd = " Ptr"
+			Case "R": TypeNameRef = "ByRef "
+			Case "K": TypeNameStart = "Const "
+			Case "V": TypeNameStart = "Volatile "
+			Case "C": TypeNameStart = "Complex "
+			Case "G": TypeNameStart = "Imaginary "
+			Case "S": pos1 += 1: segmentLength = ReadNumber(demangled, pos1)
+				If Types.Count >= segmentLength Then
+					TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, Types.Item(Types.Count - segmentLength), TypeNameEnd, Types)
+				End If
+				pos1 += Len(Trim(Str(segmentLength))) + 1
+			Case "v": 'TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Sub", TypeNameEnd, Types)
+			Case "w": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "WString", TypeNameEnd, Types)
+			Case "b": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Boolean", TypeNameEnd, Types)
+			Case "c": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "ZString", TypeNameEnd, Types)
+			Case "a": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Byte", TypeNameEnd, Types)
+			Case "h": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "UByte", TypeNameEnd, Types)
+			Case "s": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Short", TypeNameEnd, Types)
+			Case "t": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "UShort", TypeNameEnd, Types)
+			Case "i": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Integer", TypeNameEnd, Types)
+			Case "j": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "UInteger", TypeNameEnd, Types)
+			Case "l": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Long", TypeNameEnd, Types)
+			Case "m": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "ULong", TypeNameEnd, Types)
+			Case "x": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "LongInt", TypeNameEnd, Types)
+			Case "y": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "ULongInt", TypeNameEnd, Types)
+			Case "f": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Single", TypeNameEnd, Types)
+			Case "d": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Double", TypeNameEnd, Types)
+			Case "e": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "Double", TypeNameEnd, Types)
+			Case "z": TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, "...", TypeNameEnd, Types)
+			Case "@": Exit While
+			Case Else
+				If Mid(demangled, pos1, 1) >= "0" AndAlso Mid(demangled, pos1, 1) <= "9" Then
+					segmentLength = ReadNumber(demangled, pos1)
+					TypeNameConstruct(demangledResult, TypeNameRef, TypeNameStart, Mid(demangled, pos1, segmentLength), TypeNameEnd, Types)
+					pos1 += segmentLength
+					Continue While
+				Else
+					demangledResult &= Mid(demangled, pos1, 1)
+				End If
+			End Select
+			pos1 += 1
+		Wend
+		demangledResult = Trim(Trim(demangledResult, ", "), "()") & ")"
+	End If
+	
+	If demangledResult = "" Then
+		Return "Failed to demangle."
+	End If
+	
+	Return demangledResult
+End Function
+
+Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 	If Not mnuUseProfiler->Checked Then Exit Sub
 	Dim As Integer Result, i, l, n, f = FreeFile_
 	Dim As String Buff
@@ -12392,7 +12495,8 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 		_Delete(Cast(ProfilingFunction Ptr, ProfilingFunctions.Object(i)))
 	Next
 	ProfilingFunctions.Clear
-	Result = Open(WorkDir & "/profile.txt" For Input As #f)
+	'Result = Open(WorkDir & "/profile.txt" For Input As #f)
+	Result = Open(ExeName & ".prf" For Input As #f)
 	If Result <> 0 Then Exit Sub
 	tpProfiler->SelectTab
 	lvProfiler.UpdateLock
@@ -12412,16 +12516,17 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 			ElseIf bStarted Then
 				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
 				'tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
-				tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)) & vbTab & Trim(Mid(Buff, l - (40 - n), 8)) & vbTab & Trim(Mid(Buff, l - (32 - n), 12)) & vbTab & Trim(Mid(Buff, l - (20 - n), 11)) & vbTab & Trim(Mid(Buff, l - (9 - n), 10)), , 1)
-				tlvi->Nodes.Add
+				tlvi = lvProfiler.Nodes.Add(DemangleGccClangName(Trim(Left(Buff, l - 31))) & vbTab & Trim(Mid(Buff, l - (40 - n), 8)) & vbTab & Trim(Mid(Buff, l - (32 - n), 12)) & vbTab & Trim(Mid(Buff, l - (20 - n), 11)) & vbTab & Trim(Mid(Buff, l - (9 - n), 10)) & vbTab & Trim(Left(Buff, l - 31)), , 1)
+				'tlvi->Nodes.Add
 			Else
 				pfunc = New ProfilingFunction
 				pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
 				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
+				pfunc->Mangled = Trim(Left(Buff, l - 30))
 				oldList = @pfunc->Items
-				ProfilingFunctions.Add Trim(Left(Buff, l - 30)), pfunc
+				ProfilingFunctions.Add DemangleGccClangName(Trim(Left(Buff, l - 30))), pfunc
 			'	tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
 			'	oldtlvi = tlvi
 				Continue Do
@@ -12441,7 +12546,8 @@ Sub CheckProfiler(ByRef WorkDir As WString)
 			pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 			pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 			pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
-			oldList->Add Trim(Left(Buff, l - 40)), pfunc
+			pfunc->Mangled = Trim(Left(Buff, l - 40))
+			oldList->Add DemangleGccClangName(Trim(Left(Buff, l - 40))), pfunc
 		End If
 	Loop
 	Close #f
@@ -12635,7 +12741,7 @@ Sub RunPr(Debugger As String = "")
 			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			CheckProfiler GetFolderName(*ExeFileName)
+			CheckProfiler GetFolderName(*ExeFileName), *ExeFileName
 			ThreadsLeave()
 			'EndIf
 			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
@@ -12734,7 +12840,7 @@ Sub RunPr(Debugger As String = "")
 				CloseHandle hReadPipe
 				result1 = GetLastError()
 				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & IIf(result1 = ERROR_BROKEN_PIPE, "0 - " & Err2Description(0), result1  & " - " & GetErrorString(result1)))
-				CheckProfiler *Workdir
+				CheckProfiler *Workdir, *ExeFileName
 			Else
 				Dim SInfo As STARTUPINFO
 				Dim PInfo As PROCESS_INFORMATION
@@ -12754,7 +12860,7 @@ Sub RunPr(Debugger As String = "")
 					Result = ExitCode
 					'Result = Shell(Debugger & """" & *ExeFileName + """")
 					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-					CheckProfiler *Workdir
+					CheckProfiler *Workdir, *ExeFileName
 				Else
 					Result = GetLastError()
 					ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))

@@ -8852,30 +8852,36 @@ lvMemory.Columns.Add ML("Ascii value"), , 150
 lvMemory.Images = @imgListStates
 
 Sub lvProfiler_ItemExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
-	If Item AndAlso Item->Nodes.Count > 0 AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
+	If Item AndAlso Item->Nodes.Count = 0 Then 'AndAlso Item->Nodes.Item(0)->Text(0) = "" Then
 		ptabBottom->UpdateLock
 		Item->Nodes.Clear
 		Var Idx = ProfilingFunctions.IndexOf(Item->Text(0))
 		Dim As TreeListViewItem Ptr tlvi, parenttlvi
 		If Idx > -1 Then
 			Dim As ProfilingFunction Ptr pfuncitem, pfunc = ProfilingFunctions.Object(Idx)
-			parenttlvi = Item->Nodes.Add(ProfilingFunctions.Item(Idx))
+			parenttlvi = Item->Nodes.Add(ProfilingFunctions.Item(Idx), , 1)
 			parenttlvi->Text(1) = pfunc->Count
 			parenttlvi->Text(2) = pfunc->Time
 			parenttlvi->Text(3) = pfunc->Total
 			parenttlvi->Text(4) = pfunc->Proc
+			parenttlvi->Text(5) = pfunc->Mangled
 			For i As Integer = 0 To pfunc->Items.Count - 1
 				pfuncitem = pfunc->Items.Object(i)
-				tlvi = parenttlvi->Nodes.Add(pfunc->Items.Item(i))
+				tlvi = parenttlvi->Nodes.Add(pfunc->Items.Item(i), , 1)
 				tlvi->Text(1) = pfuncitem->Count
 				tlvi->Text(2) = pfuncitem->Time
 				tlvi->Text(3) = pfuncitem->Total
 				tlvi->Text(4) = pfuncitem->Proc
-				tlvi->Nodes.Add
+				tlvi->Text(5) = pfuncitem->Mangled
+				'tlvi->Nodes.Add
 			Next
 		End If
 		ptabBottom->UpdateUnLock
 	End If
+End Sub
+
+Sub lvProfiler_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
+	
 End Sub
 
 lvProfiler.Align = DockStyle.alClient
@@ -8885,9 +8891,11 @@ lvProfiler.Columns.Add ML("Count"), , 100, ColumnFormat.cfRight
 lvProfiler.Columns.Add ML("Time"), , 100, ColumnFormat.cfRight
 lvProfiler.Columns.Add ML("Total, %"), , 100, ColumnFormat.cfRight
 lvProfiler.Columns.Add ML("Proc, %"), , 100, ColumnFormat.cfRight
+lvProfiler.Columns.Add ML("Mangled"), , 500
 lvProfiler.StateImages = @imgListStates
 lvProfiler.Images = @imgListStates
 lvProfiler.OnItemExpanding = @lvProfiler_ItemExpanding
+lvProfiler.OnItemActivate = @lvProfiler_ItemActivate
 
 Sub tabRight_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If tabRight.TabPosition = tpRight And pnlRight.Width = 30 Then

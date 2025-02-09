@@ -1,0 +1,1141 @@
+Profiling results:
+------------------
+
+Executable name: D:\GitHub\VisualFBEditor\Projects\Form1.exe
+Launched on: 02-09-2025, 19:35:24
+Total program execution time: 2.104 seconds
+
+
+Per function results:
+
+        Function:                                                                         Count:       Time:    Total%:    Proc%:
+
+(main)                                                                                         1     2.10370    100.00%
+
+        __ZN2MY11APPLICATION3RUNEv@4                                                           1     2.06772     98.29%    98.29%
+        __ZN2MY3SYS5FORMS4FORM4SHOWEv@4                                                        1     0.03283      1.56%     1.56%
+        __ZN2MY11APPLICATION18CURLANGUAGE__set__ERw@8                                          1     0.00151      0.07%     0.07%
+        __ZN2MY3SYS5FORMS4FORMC1Ev                                                             1     0.00043      0.02%     0.02%
+        __ZN2MY11APPLICATION15DARKMODE__set__Eb@8                                              1     0.00042      0.02%     0.02%
+        INITCOMMONCONTROLSEX                                                                   1     0.00025      0.01%     0.01%
+        VERQUERYVALUE                                                                          1     0.00020      0.01%     0.01%
+        GETLOCALEINFO                                                                          1     0.00003      0.00%     0.00%
+        CREATESOLIDBRUSH                                                                       6     0.00003      0.00%     0.00%
+        GETFILEVERSIONINFOSIZE                                                                 1     0.00003      0.00%     0.00%
+        GETDC                                                                                  1     0.00002      0.00%     0.00%
+        WLET                                                                                   7     0.00002      0.00%     0.00%
+        __ZN2MY11APPLICATION8GETFONTSEv@4                                                      1     0.00001      0.00%     0.00%
+        GETFILEVERSIONINFO                                                                     1     0.00001      0.00%     0.00%
+        __ZN2MY11APPLICATION7EXENAMEEv@4                                                       1     0.00001      0.00%     0.00%
+        RELEASEDC                                                                              1     0.00001      0.00%     0.00%
+        EXEPATH                                                                                2     0.00001      0.00%     0.00%
+        __ZN2MY3SYS7DRAWING4FONT11NAME__set__ERw@8                                             1     0.00001      0.00%     0.00%
+        __ZN2MY3SYS8LANGUAGEEv@0                                                               1     0.00001      0.00%     0.00%
+        __ZN2MY3SYS7DRAWING4ICONC1Ev                                                           1     0.00001      0.00%     0.00%
+        __ZN2MY3SYS7DRAWING4FONT11SIZE__set__El@8                                              1     0.00001      0.00%     0.00%
+        __ZN11WSTRINGLISTC1Ev                                                                  1     0.00001      0.00%     0.00%
+        GETDEVICECAPS                                                                          2     0.00001      0.00%     0.00%
+        __ZN2MY3SYS5FORMS4FORM11TEXT__set__ERw@8                                               1     0.00000      0.00%     0.00%
+        __ZN2MY11APPLICATION22CURLANGUAGEPATH__set__ERw@8                                      1     0.00000      0.00%     0.00%
+        FB_WSTRCONCATAW                                                                        2     0.00000      0.00%     0.00%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT11NAME__set__ERw@8                                1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT9SETBOUNDSEllll@20                                1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS7DRAWING4FONT11NAME__get__Ev@4                                              1     0.00000      0.00%     0.00%
+        FB_WSTRDELETE                                                                          3     0.00000      0.00%     0.00%
+        HEX                                                                                    2     0.00000      0.00%     0.00%
+        FB_STRCONCAT                                                                           1     0.00000      0.00%     0.00%
+        FB_STRTOWSTR                                                                           1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 2     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS4FORM15MAINFORM__set__Eb@8                                            1     0.00000      0.00%     0.00%
+        ALLOCATE                                                                               1     0.00000      0.00%     0.00%
+        FB_STRASSIGN                                                                           2     0.00000      0.00%     0.00%
+        __ZN4LIST5CLEAREv@4                                                                    2     0.00000      0.00%     0.00%
+        __ZN4LISTC1Ev                                                                          2     0.00000      0.00%     0.00%
+        FB_STRDELETE                                                                           1     0.00000      0.00%     0.00%
+        FB___MAIN                                                                              1     0.00000      0.00%     0.00%
+        __ZN10fb_Object$C1Ev                                                                   1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS7DRAWING4FONT11SIZE__get__Ev@4                                              1     0.00000      0.00%     0.00%
+        FB_WSTRCOMPARE                                                                         1     0.00000      0.00%     0.00%
+
+ALLOWDARKMODEFORAPP                                                                            1     0.00000      0.00%
+
+        {fbfp}F16PREFERREDAPPMODES_E$1                                                         1     0.00000      0.00%    18.18%
+
+ALLOWDARKMODEFORWINDOW                                                                         1     0.00000      0.00%
+
+        {fbfp}FiP6HWND__iE$1                                                                   1     0.00000      0.00%    91.67%
+
+CREATEWINDOWEXW                                                                                1     0.00825      0.39%
+
+        DEFWINDOWPROC                                                                          4     0.00129      0.06%    15.61%
+        GETWINDOWLONGPTR                                                                       4     0.00000      0.00%     0.04%
+
+DESTROYWINDOW                                                                                  1     0.01207      0.57%
+
+        DEFWINDOWPROC                                                                         10     0.00351      0.17%    29.10%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                          9     0.00010      0.00%     0.82%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       9     0.00000      0.00%     0.04%
+        GETWINDOWLONGPTR                                                                      10     0.00000      0.00%     0.03%
+        FB_WSTRCOMPARE                                                                         9     0.00000      0.00%     0.01%
+
+DISPATCHMESSAGE                                                                               53     0.07579      3.60%
+
+        DEFWINDOWPROC                                                                         45     0.07568      3.60%    99.85%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                         45     0.00039      0.02%     0.52%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                      45     0.00005      0.00%     0.06%
+        GETWINDOWLONGPTR                                                                      45     0.00004      0.00%     0.05%
+        FB_WSTRCOMPARE                                                                        45     0.00002      0.00%     0.03%
+
+ENUMTHREADWINDOWS                                                                              1     0.00003      0.00%
+
+        REALLOCATE                                                                             1     0.00000      0.00%     4.61%
+        GETWINDOWLONGPTR                                                                       3     0.00000      0.00%     1.64%
+
+FLUSHMENUTHEMES                                                                                1     0.00000      0.00%
+
+        {fbfp}FvvE$1                                                                           1     0.00000      0.00%    73.81%
+
+GETMESSAGE                                                                                    53     1.98856     94.53%
+
+        DEFWINDOWPROC                                                                         82     0.00600      0.29%     0.30%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                         82     0.00046      0.02%     0.02%
+        GETWINDOWLONGPTR                                                                      82     0.00010      0.00%     0.00%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                      82     0.00009      0.00%     0.00%
+        FB_WSTRCOMPARE                                                                        82     0.00005      0.00%     0.00%
+
+INITDARKMODE                                                                                   1     0.00002      0.00%
+
+        GETPROCADDRESS                                                                        10     0.00001      0.00%    35.11%
+        GETMODULEHANDLE                                                                        1     0.00000      0.00%    11.17%
+        {fbfp}FvPjS_S_E$1                                                                      1     0.00000      0.00%    10.11%
+        LOADLIBRARYEX                                                                          1     0.00000      0.00%     7.98%
+        GETMODULEHANDLEW                                                                       1     0.00000      0.00%     4.79%
+        CHECKBUILDNUMBER                                                                       1     0.00000      0.00%     1.06%
+
+ISHIGHCONTRAST                                                                                 1     0.00039      0.02%
+
+        SYSTEMPARAMETERSINFOW                                                                  1     0.00039      0.02%    99.67%
+
+ML                                                                                             2     0.00001      0.00%
+
+        __ZN2MY11APPLICATION15LANGUAGE__get__Ev@4                                              2     0.00000      0.00%    27.27%
+        FB_WSTRCOMPARE                                                                         2     0.00000      0.00%     5.45%
+        __ZN2MY11APPLICATION18CURLANGUAGE__get__Ev@4                                           2     0.00000      0.00%     3.64%
+
+REFRESHTITLEBARTHEMECOLOR                                                                      1     0.00002      0.00%
+
+        SETTITLEBARTHEMECOLOR                                                                  1     0.00001      0.00%    41.48%
+        ISHIGHCONTRAST                                                                         1     0.00001      0.00%    30.11%
+        {fbfp}FiP6HWND__E$1                                                                    1     0.00000      0.00%     4.55%
+        {fbfp}FivE$1                                                                           1     0.00000      0.00%     0.57%
+
+SENDMESSAGE                                                                                    3     0.00018      0.01%
+
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                          3     0.00016      0.01%    88.98%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       3     0.00000      0.00%     1.71%
+        FB_WSTRCOMPARE                                                                         3     0.00000      0.00%     0.34%
+        GETWINDOWLONGPTR                                                                       3     0.00000      0.00%     0.29%
+        DEFWINDOWPROC                                                                          1     0.00000      0.00%     0.11%
+
+SETDARKMODE                                                                                    1     0.00040      0.02%
+
+        ISHIGHCONTRAST                                                                         1     0.00039      0.02%    97.79%
+        FLUSHMENUTHEMES                                                                        1     0.00000      0.00%     1.05%
+        SHOULDAPPSUSEDARKMODE                                                                  1     0.00000      0.00%     0.38%
+        ALLOWDARKMODEFORAPP                                                                    1     0.00000      0.00%     0.28%
+
+SETTITLEBARTHEMECOLOR                                                                          1     0.00001      0.00%
+
+        {fbfp}FiP6HWND__P27WINDOWCOMPOSITIONATTRIBDATAE$1                                      1     0.00001      0.00%    93.15%
+
+SETWINDOWPOS                                                                                   1     0.01914      0.91%
+
+        DEFWINDOWPROC                                                                          4     0.01515      0.72%    79.14%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                          5     0.00236      0.11%    12.34%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       5     0.00000      0.00%     0.01%
+        GETWINDOWLONGPTR                                                                       5     0.00000      0.00%     0.01%
+        FB_WSTRCOMPARE                                                                         5     0.00000      0.00%     0.00%
+
+SETWINDOWTHEME                                                                                 1     0.00086      0.04%
+
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                          7     0.00006      0.00%     6.69%
+        DEFWINDOWPROC                                                                          7     0.00001      0.00%     1.13%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       7     0.00000      0.00%     0.28%
+        FB_WSTRCOMPARE                                                                         7     0.00000      0.00%     0.12%
+        GETWINDOWLONGPTR                                                                       7     0.00000      0.00%     0.12%
+
+SHOULDAPPSUSEDARKMODE                                                                          1     0.00000      0.00%
+
+        {fbfp}FivE$1                                                                           1     0.00000      0.00%    80.00%
+
+SHOWWINDOW                                                                                     1     0.00379      0.18%
+
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                          7     0.00193      0.09%    50.96%
+        DEFWINDOWPROC                                                                          6     0.00001      0.00%     0.21%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       7     0.00000      0.00%     0.07%
+        GETWINDOWLONGPTR                                                                       7     0.00000      0.00%     0.05%
+        FB_WSTRCOMPARE                                                                         7     0.00000      0.00%     0.03%
+
+WLET                                                                                           7     0.00002      0.00%
+
+        WREALLOCATE                                                                            7     0.00001      0.00%    33.76%
+        FB_WSTRASSIGN                                                                          7     0.00000      0.00%    25.48%
+        FB_WSTRLEN                                                                             7     0.00000      0.00%     5.73%
+
+WREALLOCATE                                                                                    7     0.00001      0.00%
+
+        ALLOCATE                                                                               7     0.00000      0.00%    28.30%
+        DEALLOCATE                                                                             2     0.00000      0.00%    20.75%
+
+__Z11WDEALLOCATERPw@4                                                                          2     0.00000      0.00%
+
+        DEALLOCATE                                                                             2     0.00000      0.00%    21.05%
+
+__ZN10DICTIONARY5CLEAREv@4                                                                     1     0.00000      0.00%
+
+        __ZN4LIST12COUNT__get__Ev@4                                                            1     0.00000      0.00%     5.00%
+
+__ZN11INTEGERLIST12COUNT__get__Ev@4                                                            1     0.00000      0.00%
+
+        __ZN4LIST12COUNT__get__Ev@4                                                            1     0.00000      0.00%    16.67%
+
+__ZN11INTEGERLIST13INDEXOFOBJECTEPv@8                                                          1     0.00000      0.00%
+
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    1     0.00000      0.00%    53.33%
+
+__ZN11INTEGERLIST4SORTEv@4                                                                     1     0.00000      0.00%
+
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    1     0.00000      0.00%    18.75%
+
+__ZN11INTEGERLIST5CLEAREv@4                                                                    1     0.00000      0.00%
+
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    1     0.00000      0.00%    25.00%
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%     4.17%
+
+__ZN11INTEGERLISTC1Ev                                                                          1     0.00000      0.00%
+
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%     3.23%
+        __ZN10fb_Object$C1Ev                                                                   1     0.00000      0.00%     3.23%
+        __ZN4LISTC1Ev                                                                          1    -0.00000     -0.00%    -0.00%
+
+__ZN11INTEGERLISTD1Ev                                                                          1     0.00000      0.00%
+
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    1     0.00000      0.00%    40.00%
+        __ZN4LISTD1Ev                                                                          1     0.00000      0.00%     5.00%
+
+__ZN11POINTERLIST5COUNTEv@4                                                                    1     0.00000      0.00%
+
+        __ZN4LIST12COUNT__get__Ev@4                                                            1     0.00000      0.00%    25.00%
+
+__ZN11WSTRINGLIST5CLEAREv@4                                                                    1     0.00001      0.00%
+
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%     1.75%
+
+__ZN11WSTRINGLISTC1Ev                                                                          1     0.00001      0.00%
+
+        __ZN11WSTRINGLIST5CLEAREv@4                                                            1     0.00001      0.00%    73.08%
+        __ZN4LISTC1Ev                                                                          1     0.00000      0.00%     1.28%
+
+__ZN11WSTRINGLISTD1Ev                                                                          1     0.00000      0.00%
+
+        __ZN11WSTRINGLIST5CLEAREv@4                                                            1     0.00000      0.00%    58.33%
+        __ZN4LISTD1Ev                                                                          1    -0.00000     -0.00%    -0.00%
+
+__ZN2MY11APPLICATION15DARKMODE__set__Eb@8                                                      1     0.00042      0.02%
+
+        SETDARKMODE                                                                            1     0.00040      0.02%    95.11%
+        INITDARKMODE                                                                           1     0.00002      0.00%     4.48%
+
+__ZN2MY11APPLICATION15LANGUAGE__get__Ev@4                                                      2     0.00000      0.00%
+
+        WGET                                                                                   2     0.00000      0.00%    13.33%
+
+__ZN2MY11APPLICATION18CURLANGUAGE__set__ERw@8                                                  1     0.00151      0.07%
+
+        FB_PRINTWSTR                                                                           1     0.00116      0.06%    76.96%
+        FB_FILEOPENENCOD                                                                       3     0.00023      0.01%    15.43%
+        FB_FILEOPEN                                                                            1     0.00007      0.00%     4.55%
+        ML                                                                                     2     0.00001      0.00%     0.36%
+        __Zv23catR7USTRINGS0_@8                                                                1     0.00000      0.00%     0.32%
+        FREEFILE                                                                               1     0.00000      0.00%     0.26%
+        FB_WSTRASSIGNTOA                                                                       4     0.00000      0.00%     0.21%
+        __ZN7USTRINGD1Ev                                                                       3     0.00000      0.00%     0.15%
+        __ZN10DICTIONARY5CLEAREv@4                                                             1     0.00000      0.00%     0.13%
+        __ZN7USTRINGC1ERw                                                                      2     0.00000      0.00%     0.13%
+        FB_WSTRCONCAT                                                                          5     0.00000      0.00%     0.11%
+        FB_WSTRDELETE                                                                          9     0.00000      0.00%     0.10%
+        FB_STRDELETE                                                                           4     0.00000      0.00%     0.09%
+        FB_WSTRLCASE2                                                                          4     0.00000      0.00%     0.08%
+        __ZN7USTRINGcvwEv@4                                                                    5     0.00000      0.00%     0.04%
+        FB_WSTRCOMPARE                                                                         3     0.00000      0.00%     0.01%
+
+__ZN2MY11APPLICATION22CURLANGUAGEPATH__set__ERw@8                                              1     0.00000      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    94.44%
+
+__ZN2MY11APPLICATION3RUNEv@4                                                                   1     2.06772     98.29%
+
+        GETMESSAGE                                                                            53     1.98856     94.53%    96.17%
+        DISPATCHMESSAGE                                                                       53     0.07579      3.60%     3.67%
+        __ZN2MY11APPLICATION9FORMCOUNTEv@4                                                     1     0.00003      0.00%     0.00%
+        __ZN2MY3SYS5FORMS4FORM17KEYPREVIEW__get__Ev@4                                         53     0.00003      0.00%     0.00%
+        TRANSLATEMESSAGE                                                                      53     0.00002      0.00%     0.00%
+
+__ZN2MY11APPLICATION7EXENAMEEv@4                                                               1     0.00001      0.00%
+
+        WLET                                                                                   3     0.00000      0.00%    26.56%
+        FB_WSTRDELETE                                                                          4     0.00000      0.00%     4.69%
+        LEFT                                                                                   2     0.00000      0.00%     4.69%
+        FB_WSTRMID                                                                             2     0.00000      0.00%     3.91%
+        FB_WSTRINSTR                                                                           1     0.00000      0.00%     1.56%
+        FB_WSTRINSTRREVANY                                                                     1     0.00000      0.00%     1.56%
+        FB_WSTRASSIGN                                                                          2     0.00000      0.00%     1.56%
+        GETMODULEFILENAME                                                                      1     0.00000      0.00%     1.56%
+        FB_WSTRLEN                                                                             1     0.00000      0.00%     0.78%
+
+__ZN2MY11APPLICATION8GETFONTSEv@4                                                              1     0.00001      0.00%
+
+        GETDC                                                                                  1     0.00001      0.00%    47.95%
+        RELEASEDC                                                                              1     0.00001      0.00%    36.30%
+        __ZN11WSTRINGLIST5CLEAREv@4                                                            1     0.00000      0.00%     3.42%
+
+__ZN2MY11APPLICATION8GETFORMSEv@4                                                              1     0.00003      0.00%
+
+        ENUMTHREADWINDOWS                                                                      1     0.00003      0.00%    93.83%
+        GETCURRENTTHREADID                                                                     1     0.00000      0.00%     0.62%
+
+__ZN2MY11APPLICATION9FORMCOUNTEv@4                                                             1     0.00003      0.00%
+
+        __ZN2MY11APPLICATION8GETFORMSEv@4                                                      1     0.00003      0.00%    98.48%
+
+__ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPEC1Ev                                                   2     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 2     0.00000      0.00%    50.00%
+
+__ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPED1Ev                                                   2     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 2     0.00000      0.00%    14.28%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT11NAME__set__ERw@8                                        1     0.00000      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    82.76%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT12WIDTH__set__El@8                                        1     0.00001      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_370CEllll@20                                  1     0.00000      0.00%    35.56%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT11LEFT__get__Ev@4                                 1     0.00000      0.00%    14.44%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HEIGHT__get__Ev@4                               1     0.00000      0.00%     2.22%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT10TOP__get__Ev@4                                  1     0.00000      0.00%     2.22%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HEIGHT__set__El@8                                       1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_3718Ellll@20                                  1     0.00000      0.00%    16.13%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT10TOP__get__Ev@4                                  1     0.00000      0.00%     3.23%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT11LEFT__get__Ev@4                                 1     0.00000      0.00%     3.23%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT12WIDTH__get__Ev@4                                1    -0.00000     -0.00%    -0.00%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_36D4Ellll@20                                          1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT4MOVEEllll@20                                     1     0.00000      0.00%    16.67%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_370CEllll@20                                          1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT4MOVEEllll@20                                     1     0.00000      0.00%    15.63%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_3718Ellll@20                                          1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT4MOVEEllll@20                                     1     0.00000      0.00%    20.00%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT9SETBOUNDSEllll@20                                        1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_36D4Ellll@20                                  1     0.00000      0.00%    28.57%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENTC1Ev                                                      1     0.00000      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPEC1Ev                                           2     0.00000      0.00%    20.00%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     8.00%
+        __ZN4LISTC1Ev                                                                          1     0.00000      0.00%     2.00%
+
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENTD1Ev                                                      1     0.00001      0.00%
+
+        __ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPED1Ev                                           2     0.00000      0.00%    12.96%
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%     5.56%
+        DEALLOCATE                                                                             2     0.00000      0.00%     3.70%
+        FB_STRDELETE                                                                           1     0.00000      0.00%     1.85%
+        __ZN4LISTD1Ev                                                                          1     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS10ANCHORTYPEC1Ev                                                              1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%    66.67%
+
+__ZN2MY3SYS5FORMS10ANCHORTYPED1Ev                                                              1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%     5.00%
+
+__ZN2MY3SYS5FORMS15SIZECONSTRAINTSC1Ev                                                         1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%    20.00%
+
+__ZN2MY3SYS5FORMS15SIZECONSTRAINTSD1Ev                                                         1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%    25.00%
+
+__ZN2MY3SYS5FORMS16CONTAINERCONTROL14PROCESSMESSAGEER7MESSAGE@8                                7     0.00002      0.00%
+
+        __ZN2MY3SYS5FORMS7CONTROL14PROCESSMESSAGEER7MESSAGE@8                                  7     0.00001      0.00%    79.64%
+
+__ZN2MY3SYS5FORMS16CONTAINERCONTROLC1Ev                                                        1     0.00026      0.01%
+
+        __ZN2MY3SYS5FORMS7CONTROLC1Ev                                                          1     0.00025      0.01%    96.37%
+        WLET                                                                                   1     0.00000      0.00%     1.45%
+
+__ZN2MY3SYS5FORMS16CONTAINERCONTROLD1Ev                                                        1     0.01214      0.58%
+
+        __ZN2MY3SYS5FORMS7CONTROLD1Ev                                                          1     0.01214      0.58%    99.99%
+
+__ZN2MY3SYS5FORMS4FORM11TEXT__set__ERw@8                                                       1     0.00001      0.00%
+
+        __ZN2MY3SYS5FORMS7CONTROL11TEXT__set__ERw@8                                            1     0.00000      0.00%    68.25%
+
+__ZN2MY3SYS5FORMS4FORM17HANDLEISALLOCATEDERNS1_7CONTROLE@4                                     1     0.00014      0.01%
+
+        SETCLASSLONG                                                                           1     0.00007      0.00%    48.87%
+        SENDMESSAGE                                                                            2     0.00005      0.00%    38.31%
+        __ZN2MY3SYS5FORMS7CONTROL14CHANGETABINDEXEl@8                                          1     0.00001      0.00%     7.51%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__get__Ev@4                               3     0.00000      0.00%     0.21%
+        __ZN2MY3SYS5FORMS4FORM14OPACITY__get__Ev@4                                             1     0.00000      0.00%     0.14%
+        __ZN2MY3SYS5FORMS4FORM11MENU__get__Ev@4                                                1     0.00000      0.00%     0.07%
+        __ZN2MY3SYS5FORMS4FORM18TRANSPARENT__get__Ev@4                                         1     0.00000      0.00%     0.07%
+        __ZN2MY3SYS5FORMS4FORM18BORDERSTYLE__get__Ev@4                                         1     0.00000      0.00%     0.07%
+
+__ZN2MY3SYS5FORMS4FORM4SHOWEv@4                                                                1     0.03283      1.56%
+
+        __ZN2MY3SYS5FORMS4FORM7Lt_62FEEv@4                                                     1     0.03282      1.56%    99.96%
+        ISICONIC                                                                               1     0.00000      0.00%     0.01%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__get__Ev@4                               2     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS4FORM7Lt_62FEEv@4                                                             1     0.03282      1.56%
+
+        __ZN2MY3SYS5FORMS7CONTROL12BRINGTOFRONTEv@4                                            1     0.01914      0.91%    58.33%
+        CREATEWINDOWEXW                                                                        1     0.00825      0.39%    25.12%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_538BEv@4                                                  1     0.00380      0.18%    11.58%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5363Eb@8                                                  1     0.00125      0.06%     3.81%
+        {fbfp}FvRN2MY3SYS5FORMS7CONTROLEE$1                                                    1     0.00014      0.01%     0.43%
+        SETPROP                                                                                1     0.00009      0.00%     0.29%
+        __ZN2MY3SYS7DRAWING4FONT13PARENT__set__EPNS0_6OBJECTE@8                                1     0.00006      0.00%     0.17%
+        SETWINDOWLONGPTR                                                                       1     0.00002      0.00%     0.07%
+        __ZN2MY3SYS6OBJECT6SCALEXEf@8                                                          2     0.00002      0.00%     0.06%
+        SENDMESSAGE                                                                            1     0.00001      0.00%     0.03%
+        __ZN2MY3SYS5FORMS7CONTROL12REQUESTALIGNEllbPS2_@20                                     2     0.00001      0.00%     0.02%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       2     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL6UPDATEEv@4                                                   1     0.00000      0.00%     0.00%
+        FB_WSTRCOMPARE                                                                         4     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL12STYLE__get__Ev@4                                            4     0.00000      0.00%     0.00%
+        ABS_                                                                                   6     0.00000      0.00%     0.00%
+        GETWINDOWLONGPTR                                                                       1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL15SHOWHINT__get__Ev@4                                         1     0.00000      0.00%     0.00%
+        GETMODULEHANDLE                                                                        1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS6OBJECT6SCALEYEf@8                                                          2     0.00000      0.00%     0.00%
+        __ZN4LIST12COUNT__get__Ev@4                                                            1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL14EXSTYLE__get__Ev@4                                          1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL11HINT__get__Ev@4                                             1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL12CONTROLCOUNTEv@4                                            1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL12STYLE__set__El@8                                            1     0.00000      0.00%     0.00%
+        __ZN7USTRING4VPTREv@4                                                                  1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS7CONTROL18CONTEXTMENU__get__Ev@4                                      1     0.00000      0.00%     0.00%
+        FB_WSTRINSTR                                                                           2     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS4FORMC1Ev                                                                     1     0.00043      0.02%
+
+        __ZN2MY3SYS5FORMS16CONTAINERCONTROLC1Ev                                                1     0.00026      0.01%    60.75%
+        __ZN2MY3SYS5FORMS7CONTROL16BACKCOLOR__set__El@8                                        1     0.00006      0.00%    14.47%
+        __ZN2MY3SYS7DRAWING11GRAPHICTYPEC1Ev                                                   1     0.00003      0.00%     7.39%
+        __ZN2MY3SYS5FORMS7CONTROL13REGISTERCLASSERwS3_Pv@12                                    1     0.00003      0.00%     6.97%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT12WIDTH__set__El@8                                1     0.00001      0.00%     2.09%
+        __ZN2MY3SYS5FORMS4FORM11TEXT__set__ERw@8                                               1     0.00001      0.00%     1.46%
+        __ZN2MY3SYS7DRAWING4ICONC1Ev                                                           1     0.00001      0.00%     1.21%
+        WLET                                                                                   2     0.00000      0.00%     1.02%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HEIGHT__set__El@8                               1     0.00000      0.00%     0.72%
+        __ZN2MY3SYS5FORMS4FORM20STARTPOSITION__set__El@8                                       1     0.00000      0.00%     0.30%
+        GETSYSCOLOR                                                                            1     0.00000      0.00%     0.05%
+        __ZN2MY3SYS5FORMS7CONTROL14EXSTYLE__set__El@8                                          1     0.00000      0.00%     0.05%
+        __ZN2MY3SYS5FORMS7CONTROL12STYLE__set__El@8                                            1     0.00000      0.00%     0.02%
+        __ZN2MY11APPLICATION15MAINFORM__get__Ev@4                                              1     0.00000      0.00%     0.02%
+        __ZN2MY11APPLICATION15MAINFORM__set__EPNS_3SYS5FORMS4FORME@8                           1     0.00000      0.00%     0.02%
+        __ZN2MY3SYS5FORMS7CONTROL16BACKCOLOR__get__Ev@4                                        1     0.00000      0.00%     0.02%
+        __ZN4LISTC1Ev                                                                          1     0.00000      0.00%     0.02%
+        __ZN2MY3SYS7DRAWING6CANVAS11CTRL__set__EPNS0_14COMPONENTMODEL9COMPONENTE@8             1     0.00000      0.00%     0.02%
+
+__ZN2MY3SYS5FORMS4FORMD1Ev                                                                     1     0.01220      0.58%
+
+        __ZN2MY3SYS5FORMS16CONTAINERCONTROLD1Ev                                                1     0.01214      0.58%    99.50%
+        __ZN2MY3SYS7DRAWING11GRAPHICTYPED1Ev                                                   1     0.00005      0.00%     0.40%
+        __ZN2MY3SYS7DRAWING4ICOND1Ev                                                           1     0.00000      0.00%     0.01%
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%     0.00%
+        __ZN4LISTD1Ev                                                                          1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS5FORMS4FORM11MENU__set__EPNS1_8MAINMENUE@8                                  1     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL10UPDATELOCKEv@4                                                      1     0.00038      0.02%
+
+        LOCKWINDOWUPDATE                                                                       1     0.00038      0.02%    99.68%
+
+__ZN2MY3SYS5FORMS7CONTROL11CLIENTWIDTHEv@4                                                     2     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECT8UNSCALEXEf@8                                                        2     0.00000      0.00%     7.41%
+        GETCLIENTRECT                                                                          2     0.00000      0.00%     7.41%
+
+__ZN2MY3SYS5FORMS7CONTROL11GETCONTROLSEv@4                                                     1     0.00000      0.00%
+
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%    16.67%
+        __ZN2MY3SYS5FORMS7CONTROL12CONTROLCOUNTEv@4                                            1     0.00000      0.00%     8.33%
+
+__ZN2MY3SYS5FORMS7CONTROL11TEXT__set__ERw@8                                                    1     0.00000      0.00%
+
+        __ZN7USTRINGaSERw@8                                                                    1     0.00000      0.00%    90.70%
+
+__ZN2MY3SYS5FORMS7CONTROL12BRINGTOFRONTEv@4                                                    1     0.01914      0.91%
+
+        SETWINDOWPOS                                                                           1     0.01914      0.91%   100.00%
+
+__ZN2MY3SYS5FORMS7CONTROL12CLIENTHEIGHTEv@4                                                    2     0.00000      0.00%
+
+        GETCLIENTRECT                                                                          2     0.00000      0.00%     9.09%
+        __ZN2MY3SYS6OBJECT8UNSCALEYEf@8                                                        2    -0.00000     -0.00%    -0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL12REQUESTALIGNEllbPS2_@20                                             2     0.00001      0.00%
+
+        __ZN2MY3SYS5FORMS7CONTROL11CLIENTWIDTHEv@4                                             2     0.00000      0.00%    39.13%
+        __ZN2MY3SYS5FORMS7CONTROL12CLIENTHEIGHTEv@4                                            2     0.00000      0.00%    15.94%
+        __ZN2MY3SYS5FORMS7CONTROL12CONTROLCOUNTEv@4                                            2     0.00000      0.00%     4.35%
+
+__ZN2MY3SYS5FORMS7CONTROL12UPDATEUNLOCKEv@4                                                    1     0.00036      0.02%
+
+        LOCKWINDOWUPDATE                                                                       1     0.00036      0.02%    99.78%
+
+__ZN2MY3SYS5FORMS7CONTROL13REGISTERCLASSERwS3_Pv@12                                            1     0.00003      0.00%
+
+        GETCLASSINFOEX                                                                         1     0.00001      0.00%    36.67%
+        REGISTERCLASSEX                                                                        1     0.00001      0.00%    30.67%
+        LOADCURSOR                                                                             1     0.00000      0.00%     8.67%
+        GETMODULEHANDLE                                                                        2     0.00000      0.00%     1.00%
+        FB_WSTRCOMPARE                                                                         1     0.00000      0.00%     0.67%
+        MEMSET                                                                                 1     0.00000      0.00%     0.33%
+
+__ZN2MY3SYS5FORMS7CONTROL14CHANGETABINDEXEl@8                                                  1     0.00001      0.00%
+
+        __ZN11INTEGERLIST5CLEAREv@4                                                            1     0.00000      0.00%    22.64%
+        __ZN11INTEGERLIST4SORTEv@4                                                             1     0.00000      0.00%    15.09%
+        __ZN2MY3SYS5FORMS7CONTROL11GETCONTROLSEv@4                                             1     0.00000      0.00%    11.32%
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    2     0.00000      0.00%     7.55%
+        __ZN4LIST12COUNT__get__Ev@4                                                            1    -0.00000     -0.00%    -0.00%
+        __ZN2MY3SYS5FORMS7CONTROL7GETFORMEv@4                                                  1    -0.00000     -0.00%    -0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL14PROCESSMESSAGEER7MESSAGE@8                                          7     0.00001      0.00%
+
+        GETKEYSTATE                                                                           21     0.00000      0.00%    21.80%
+
+__ZN2MY3SYS5FORMS7CONTROL16BACKCOLOR__set__El@8                                                1     0.00006      0.00%
+
+        __ZN2MY3SYS7DRAWING6CANVAS16BACKCOLOR__set__El@8                                       1     0.00004      0.00%    61.00%
+        __ZN2MY3SYS7DRAWING5BRUSH12COLOR__set__El@8                                            1     0.00001      0.00%    10.43%
+        __ZN2MY3SYS5FORMS7CONTROL10INVALIDATEEv@4                                              1     0.00000      0.00%     7.70%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       1     0.00000      0.00%     0.96%
+        FB_WSTRCOMPARE                                                                         1     0.00000      0.00%     0.32%
+        GETRED                                                                                 1     0.00000      0.00%     0.16%
+        GETBLUE                                                                                1     0.00000      0.00%     0.16%
+        GETGREEN                                                                               1    -0.00000     -0.00%    -0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL17SELECTNEXTCONTROLEb@8                                               1     0.00001      0.00%
+
+        __ZN11INTEGERLIST13INDEXOFOBJECTEPv@8                                                  1     0.00000      0.00%    23.81%
+        __ZN11INTEGERLIST12COUNT__get__Ev@4                                                    1     0.00000      0.00%     4.76%
+        __ZN2MY3SYS5FORMS7CONTROL7GETFORMEv@4                                                  1     0.00000      0.00%     1.59%
+
+__ZN2MY3SYS5FORMS7CONTROL6UPDATEEv@4                                                           1     0.00000      0.00%
+
+        UPDATEWINDOW                                                                           1     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL7FREEWNDEv@4                                                          1     0.01208      0.57%
+
+        DESTROYWINDOW                                                                          1     0.01207      0.57%    99.94%
+        __ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                       1     0.00000      0.00%     0.02%
+        FB_WSTRCOMPARE                                                                         1     0.00000      0.00%     0.00%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__set__EP6HWND__@8                        1     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5363Eb@8                                                          1     0.00125      0.06%
+
+        __ZN2MY3SYS5FORMS7CONTROL7SETDARKEb@8                                                  1     0.00095      0.05%    75.83%
+        SENDMESSAGE                                                                            3     0.00018      0.01%    14.01%
+        REFRESHTITLEBARTHEMECOLOR                                                              1     0.00011      0.01%     8.70%
+        __ZN2MY3SYS5FORMS7CONTROL7REPAINTEv@4                                                  1     0.00000      0.00%     0.22%
+
+__ZN2MY3SYS5FORMS7CONTROL7Lt_538BEv@4                                                          1     0.00380      0.18%
+
+        SHOWWINDOW                                                                             1     0.00379      0.18%    99.72%
+        __ZN2MY3SYS5FORMS7CONTROL17SELECTNEXTCONTROLEb@8                                       1     0.00001      0.00%     0.17%
+        ISICONIC                                                                               1     0.00000      0.00%     0.01%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__get__Ev@4                               3     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                                  7     0.00006      0.00%
+
+        REFRESHTITLEBARTHEMECOLOR                                                              1     0.00002      0.00%    30.45%
+        __ZN2MY3SYS5FORMS16CONTAINERCONTROL14PROCESSMESSAGEER7MESSAGE@8                        7     0.00002      0.00%    28.89%
+        ALLOWDARKMODEFORWINDOW                                                                 1     0.00000      0.00%     8.30%
+        UPDATEWINDOW                                                                           1     0.00000      0.00%     0.17%
+
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5833ERw@8                                                         1     0.00001      0.00%
+
+        __ZN7USTRINGaSERw@8                                                                    1     0.00000      0.00%    27.38%
+
+__ZN2MY3SYS5FORMS7CONTROL7REPAINTEv@4                                                          1     0.00000      0.00%
+
+        REDRAWWINDOW                                                                           1     0.00000      0.00%    55.56%
+        __ZN2MY3SYS5FORMS7CONTROL6UPDATEEv@4                                                   1     0.00000      0.00%    14.82%
+
+__ZN2MY3SYS5FORMS7CONTROL7SETDARKEb@8                                                          1     0.00095      0.05%
+
+        SETWINDOWTHEME                                                                         1     0.00086      0.04%    91.20%
+        ALLOWDARKMODEFORWINDOW                                                                 1     0.00008      0.00%     8.66%
+
+__ZN2MY3SYS5FORMS7CONTROLC1Ev                                                                  1     0.00025      0.01%
+
+        __ZN2MY3SYS7DRAWING6CANVASC1Ev                                                         1     0.00013      0.01%    49.70%
+        WLET                                                                                   2     0.00004      0.00%    15.79%
+        __ZN2MY3SYS7DRAWING4FONTC1Ev                                                           2     0.00004      0.00%    14.56%
+        __ZN2MY3SYS5FORMS7CONTROL7Lt_5833ERw@8                                                 1     0.00001      0.00%     3.33%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENTC1Ev                                              1     0.00000      0.00%     1.98%
+        __ZN2MY3SYS7DRAWING5BRUSHC1Ev                                                          1     0.00000      0.00%     1.75%
+        __ZN2MY3SYS7DRAWING6CURSORC1Ev                                                         1     0.00000      0.00%     1.51%
+        __ZN11INTEGERLISTC1Ev                                                                  1     0.00000      0.00%     1.23%
+        __ZN2MY3SYS5FORMS15SIZECONSTRAINTSC1Ev                                                 1     0.00000      0.00%     0.79%
+        __ZN2MY3SYS5FORMS10ANCHORTYPEC1Ev                                                      1     0.00000      0.00%     0.24%
+        __ZN7USTRINGC1Ev                                                                       1     0.00000      0.00%     0.20%
+        __ZN4LISTC1Ev                                                                          2     0.00000      0.00%     0.04%
+
+__ZN2MY3SYS5FORMS7CONTROLD1Ev                                                                  1     0.01214      0.58%
+
+        __ZN2MY3SYS5FORMS7CONTROL7FREEWNDEv@4                                                  1     0.01208      0.57%    99.49%
+        __ZN2MY3SYS7DRAWING6CANVASD1Ev                                                         1     0.00003      0.00%     0.22%
+        __ZN2MY3SYS7DRAWING4FONTD1Ev                                                           2     0.00001      0.00%     0.07%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENTD1Ev                                              1     0.00001      0.00%     0.04%
+        __ZN2MY3SYS5FORMS10ANCHORTYPED1Ev                                                      1     0.00000      0.00%     0.03%
+        __ZN2MY3SYS7DRAWING6CURSORD1Ev                                                         1     0.00000      0.00%     0.02%
+        __ZN11INTEGERLISTD1Ev                                                                  1     0.00000      0.00%     0.02%
+        __ZN2MY3SYS7DRAWING5BRUSHD1Ev                                                          1     0.00000      0.00%     0.01%
+        __ZN7USTRINGD1Ev                                                                       1     0.00000      0.00%     0.01%
+        __ZN2MY3SYS5FORMS15SIZECONSTRAINTSD1Ev                                                 1     0.00000      0.00%     0.00%
+        __ZN4LIST5CLEAREv@4                                                                    1     0.00000      0.00%     0.00%
+        __ZN4LISTD1Ev                                                                          2     0.00000      0.00%     0.00%
+
+__ZN2MY3SYS6OBJECT6SCALEXEf@8                                                                  1     0.00001      0.00%
+
+        GETDC                                                                                  1     0.00000      0.00%    40.17%
+        RELEASEDC                                                                              1     0.00000      0.00%    32.48%
+        GETDEVICECAPS                                                                          2     0.00000      0.00%    11.97%
+
+__ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                               1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECT7ISEMPTYEv@4                                                         1     0.00000      0.00%    16.67%
+
+__ZN2MY3SYS6OBJECTC1Ev                                                                         2     0.00000      0.00%
+
+        __ZN10fb_Object$C1Ev                                                                   2     0.00000      0.00%    16.67%
+
+__ZN2MY3SYS6OBJECTD1Ev                                                                         1     0.00001      0.00%
+
+        DEALLOCATE                                                                             1     0.00000      0.00%    20.00%
+
+__ZN2MY3SYS7DRAWING10BITMAPTYPEC1Ev                                                            1     0.00002      0.00%
+
+        __ZN2MY3SYS7DRAWING3PENC1Ev                                                            1     0.00000      0.00%    22.58%
+        __ZN2MY3SYS7DRAWING5BRUSHC1Ev                                                          1     0.00000      0.00%    22.58%
+        WLET                                                                                   1     0.00000      0.00%    12.26%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     1.94%
+
+__ZN2MY3SYS7DRAWING10BITMAPTYPED1Ev                                                            1     0.00001      0.00%
+
+        __ZN2MY3SYS7DRAWING3PEND1Ev                                                            1     0.00000      0.00%    22.39%
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%    16.42%
+        __ZN2MY3SYS7DRAWING5BRUSHD1Ev                                                          1     0.00000      0.00%     9.70%
+        __ZN2MY3SYS7DRAWING10BITMAPTYPE4FREEEv@4                                               1     0.00000      0.00%     1.49%
+
+__ZN2MY3SYS7DRAWING11GRAPHICTYPEC1Ev                                                           1     0.00003      0.00%
+
+        __ZN2MY3SYS7DRAWING10BITMAPTYPEC1Ev                                                    1     0.00002      0.00%    48.74%
+        __ZN2MY3SYS7DRAWING4ICONC1Ev                                                           1     0.00000      0.00%    11.01%
+        __ZN2MY3SYS7DRAWING6CURSORC1Ev                                                         1     0.00000      0.00%    11.01%
+        WLET                                                                                   1     0.00000      0.00%     8.49%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     3.77%
+
+__ZN2MY3SYS7DRAWING11GRAPHICTYPED1Ev                                                           1     0.00005      0.00%
+
+        __ZN2MY3SYS7DRAWING4ICOND1Ev                                                           1     0.00002      0.00%    40.45%
+        __ZN2MY3SYS7DRAWING10BITMAPTYPED1Ev                                                    1     0.00001      0.00%    27.24%
+        __ZN2MY3SYS7DRAWING6CURSORD1Ev                                                         1     0.00001      0.00%    20.12%
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%     2.44%
+
+__ZN2MY3SYS7DRAWING23GPLINEGRADIENTPARAMETERC1Ev                                               1     0.00000      0.00%
+
+        __ZN7GDIPLUS6POINTFC1Ev                                                                2     0.00000      0.00%     6.25%
+
+__ZN2MY3SYS7DRAWING3PENC1Ev                                                                    1     0.00000      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    54.29%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%    31.43%
+
+__ZN2MY3SYS7DRAWING3PEND1Ev                                                                    1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%    70.00%
+
+__ZN2MY3SYS7DRAWING4FONT11NAME__get__Ev@4                                                      1     0.00000      0.00%
+
+        WGET                                                                                   1     0.00000      0.00%    86.67%
+
+__ZN2MY3SYS7DRAWING4FONT11NAME__set__ERw@8                                                     1     0.00001      0.00%
+
+        __ZN2MY3SYS7DRAWING4FONT6CREATEEv@4                                                    1     0.00001      0.00%    52.04%
+        WLET                                                                                   1     0.00000      0.00%    31.63%
+
+__ZN2MY3SYS7DRAWING4FONT11SIZE__set__El@8                                                      1     0.00001      0.00%
+
+        __ZN2MY3SYS7DRAWING4FONT6CREATEEv@4                                                    1     0.00001      0.00%    85.39%
+
+__ZN2MY3SYS7DRAWING4FONT13PARENT__set__EPNS0_6OBJECTE@8                                        1     0.00003      0.00%
+
+        __ZN2MY3SYS7DRAWING4FONT6CREATEEv@4                                                    1     0.00003      0.00%    95.78%
+
+__ZN2MY3SYS7DRAWING4FONT6CREATEEv@4                                                            1     0.00003      0.00%
+
+        CREATEFONTW                                                                            1     0.00002      0.00%    62.26%
+        FB_ISTYPEOF                                                                            1     0.00000      0.00%     1.26%
+        _ABS                                                                                   2     0.00000      0.00%     0.94%
+        MULDIV                                                                                 1     0.00000      0.00%     0.63%
+        WGET                                                                                   1     0.00000      0.00%     0.31%
+        FB_WSTRCOMPARE                                                                         1    -0.00000     -0.00%    -0.00%
+
+__ZN2MY3SYS7DRAWING4FONTC1Ev                                                                   2     0.00004      0.00%
+
+        GETDC                                                                                  2     0.00001      0.00%    32.15%
+        RELEASEDC                                                                              2     0.00001      0.00%    23.71%
+        WLET                                                                                   4     0.00000      0.00%    12.53%
+        GETDEVICECAPS                                                                          4     0.00000      0.00%     9.26%
+        __ZN2MY3SYS7DRAWING4FONT11NAME__get__Ev@4                                              2     0.00000      0.00%     4.09%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 2     0.00000      0.00%     2.18%
+        FB_WSTRCOMPARE                                                                         2     0.00000      0.00%     0.54%
+        __ZN2MY3SYS7DRAWING4FONT11SIZE__get__Ev@4                                              2     0.00000      0.00%     0.27%
+
+__ZN2MY3SYS7DRAWING4FONTD1Ev                                                                   2     0.00001      0.00%
+
+        DELETEOBJECT                                                                           1     0.00000      0.00%    51.76%
+        __Z11WDEALLOCATERPw@4                                                                  2     0.00000      0.00%    22.35%
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 2     0.00000      0.00%    10.59%
+
+__ZN2MY3SYS7DRAWING4ICONC1Ev                                                                   1     0.00001      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    29.35%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     4.35%
+
+__ZN2MY3SYS7DRAWING4ICOND1Ev                                                                   1     0.00002      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%     4.02%
+
+__ZN2MY3SYS7DRAWING5BRUSH12COLOR__set__El@8                                                    1     0.00001      0.00%
+
+        __ZN2MY3SYS7DRAWING5BRUSH6CREATEEv@4                                                   1     0.00001      0.00%    92.31%
+
+__ZN2MY3SYS7DRAWING5BRUSH12STYLE__set__ENS1_11BRUSHSTYLESE@8                                   1     0.00002      0.00%
+
+        __ZN2MY3SYS7DRAWING5BRUSH6CREATEEv@4                                                   1     0.00002      0.00%    98.31%
+
+__ZN2MY3SYS7DRAWING5BRUSH6CREATEEv@4                                                           1     0.00002      0.00%
+
+        CREATEBRUSHINDIRECT                                                                    1     0.00002      0.00%    88.84%
+        {fbfp}FvRN2MY3SYS6OBJECTERNS0_7DRAWING5BRUSHEE$1                                       1     0.00000      0.00%     6.87%
+
+__ZN2MY3SYS7DRAWING5BRUSHC1Ev                                                                  1     0.00000      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    50.00%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     6.82%
+
+__ZN2MY3SYS7DRAWING5BRUSHD1Ev                                                                  1     0.00000      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%    46.15%
+
+__ZN2MY3SYS7DRAWING6CANVAS12WIDTH__get__Ev@4                                                   1     0.00002      0.00%
+
+        GETCURRENTOBJECT                                                                       1     0.00001      0.00%    29.51%
+        GETOBJECT                                                                              1     0.00000      0.00%    13.11%
+        GETDEVICECAPS                                                                          1     0.00000      0.00%     1.64%
+        MEMSET                                                                                 1     0.00000      0.00%     1.09%
+
+__ZN2MY3SYS7DRAWING6CANVAS13HEIGHT__get__Ev@4                                                  1     0.00000      0.00%
+
+        GETCURRENTOBJECT                                                                       1     0.00000      0.00%    21.43%
+        GETOBJECT                                                                              1     0.00000      0.00%    10.71%
+        GETDEVICECAPS                                                                          1     0.00000      0.00%     3.57%
+        MEMSET                                                                                 1     0.00000      0.00%     3.57%
+
+__ZN2MY3SYS7DRAWING6CANVAS13RELEASEDEVICEEPv@8                                                 1     0.00001      0.00%
+
+        RELEASEDC                                                                              1     0.00001      0.00%    88.89%
+        __ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__get__Ev@4                               1     0.00000      0.00%     1.85%
+
+__ZN2MY3SYS7DRAWING6CANVAS16BACKCOLOR__set__El@8                                               1     0.00004      0.00%
+
+        __ZN2MY3SYS7DRAWING6CANVAS16FILLCOLOR__set__El@8                                       1     0.00004      0.00%    96.58%
+
+__ZN2MY3SYS7DRAWING6CANVAS16FILLCOLOR__set__El@8                                               1     0.00004      0.00%
+
+        __ZN2MY3SYS7DRAWING5BRUSH12COLOR__set__El@8                                            1     0.00002      0.00%    56.68%
+        SETBKCOLOR                                                                             1     0.00002      0.00%    41.42%
+
+__ZN2MY3SYS7DRAWING6CANVASC1Ev                                                                 1     0.00013      0.01%
+
+        __ZN2MY3SYS7DRAWING4FONT13PARENT__set__EPNS0_6OBJECTE@8                                1     0.00003      0.00%    26.50%
+        __ZN2MY3SYS7DRAWING5BRUSH12STYLE__set__ENS1_11BRUSHSTYLESE@8                           1     0.00002      0.00%    18.91%
+        __ZN2MY3SYS7DRAWING6CANVAS12WIDTH__get__Ev@4                                           1     0.00002      0.00%    14.60%
+        __ZN2MY3SYS7DRAWING4FONTC1Ev                                                           1     0.00002      0.00%    13.65%
+        __ZN2MY3SYS6OBJECT6SCALEXEf@8                                                          1     0.00001      0.00%     9.34%
+        __ZN2MY3SYS7DRAWING5BRUSHC1Ev                                                          1     0.00000      0.00%     2.95%
+        __ZN2MY3SYS7DRAWING3PENC1Ev                                                            1     0.00000      0.00%     2.79%
+        __ZN2MY3SYS7DRAWING6CANVAS13HEIGHT__get__Ev@4                                          1     0.00000      0.00%     2.23%
+        WLET                                                                                   1     0.00000      0.00%     1.68%
+        __ZN2MY3SYS7DRAWING23GPLINEGRADIENTPARAMETERC1Ev                                       1     0.00000      0.00%     1.28%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%     0.40%
+        __ZN2MY3SYS6OBJECT6SCALEYEf@8                                                          1     0.00000      0.00%     0.08%
+
+__ZN2MY3SYS7DRAWING6CANVASD1Ev                                                                 1     0.00003      0.00%
+
+        __ZN2MY3SYS7DRAWING6CANVAS13RELEASEDEVICEEPv@8                                         1     0.00001      0.00%    41.22%
+        __ZN2MY3SYS7DRAWING4FONTD1Ev                                                           1     0.00000      0.00%    17.18%
+        __ZN2MY3SYS7DRAWING5BRUSHD1Ev                                                          1     0.00000      0.00%    15.65%
+        __ZN2MY3SYS7DRAWING3PEND1Ev                                                            1     0.00000      0.00%     6.11%
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00000      0.00%     1.91%
+
+__ZN2MY3SYS7DRAWING6CURSORC1Ev                                                                 1     0.00000      0.00%
+
+        WLET                                                                                   1     0.00000      0.00%    52.63%
+        __ZN2MY3SYS6OBJECTC1Ev                                                                 1     0.00000      0.00%    10.53%
+
+__ZN2MY3SYS7DRAWING6CURSORD1Ev                                                                 1     0.00001      0.00%
+
+        __ZN2MY3SYS6OBJECTD1Ev                                                                 1     0.00001      0.00%    90.91%
+
+__ZN2MY3SYS8LANGUAGEEv@0                                                                       1     0.00001      0.00%
+
+        FB_WSTRASSIGNTOA_INIT                                                                  1     0.00000      0.00%    25.00%
+        GETUSERDEFAULTUILANGUAGE                                                               1     0.00000      0.00%     5.21%
+        GETLOCALEINFO                                                                          1     0.00000      0.00%     5.21%
+        FB_STRALLOCTEMPRESULT                                                                  1     0.00000      0.00%     1.04%
+
+__ZN7USTRINGC1ERw                                                                              2     0.00000      0.00%
+
+        ALLOCATE                                                                               2     0.00000      0.00%    26.32%
+        FB_WSTRLEN                                                                             2     0.00000      0.00%     5.26%
+        FB_WSTRASSIGN                                                                          2     0.00000      0.00%     5.26%
+
+__ZN7USTRINGC1Ev                                                                               1     0.00000      0.00%
+
+        ALLOCATE                                                                               1     0.00000      0.00%    40.00%
+
+__ZN7USTRINGD1Ev                                                                               3     0.00000      0.00%
+
+        DEALLOCATE                                                                             3     0.00000      0.00%    68.18%
+
+__ZN7USTRINGaSERw@8                                                                            1     0.00000      0.00%
+
+        FB_WSTRLEN                                                                             2     0.00000      0.00%     4.35%
+        __ZN7USTRING6RESIZEEl@8                                                                1     0.00000      0.00%     4.35%
+        FB_WSTRASSIGN                                                                          1    -0.00000     -0.00%    -0.00%
+
+__Zv23catR7USTRINGS0_@8                                                                        1     0.00000      0.00%
+
+        __ZN7USTRINGC1ERw                                                                      1     0.00000      0.00%    39.58%
+        FB_WSTRCONCAT                                                                          1     0.00000      0.00%     8.33%
+        FB_WSTRDELETE                                                                          1     0.00000      0.00%     4.17%
+        __ZN7USTRING4VPTREv@4                                                                  2     0.00000      0.00%     2.08%
+
+{fbfp}FvRN2MY3SYS5FORMS7CONTROLEE$1                                                            1     0.00000      0.00%
+
+        __ZN2MY3SYS5FORMS4FORM20ACTIVECONTROLCHANGEDERNS1_7CONTROLE@4                          1     0.00000      0.00%    12.50%
+
+{fbfp}FvRN2MY3SYS6OBJECTERNS0_7DRAWING5BRUSHEE$1                                               1     0.00000      0.00%
+
+        __ZN2MY3SYS7DRAWING6CANVAS12BRUSH_CREATEERNS0_6OBJECTERNS1_5BRUSHE@8                   1     0.00000      0.00%     6.25%
+
+
+
+Global results:
+
+(main)                                                                                         1     2.10370    100.00%
+ABS_                                                                                           6     0.00000      0.00%
+ALLOCATE                                                                                      44     0.00004      0.00%
+ALLOWDARKMODEFORAPP                                                                            1     0.00000      0.00%
+ALLOWDARKMODEFORWINDOW                                                                         3     0.00009      0.00%
+BEGINPAINT                                                                                     1     0.00002      0.00%
+CHECKBUILDNUMBER                                                                               1     0.00000      0.00%
+CREATEBRUSHINDIRECT                                                                            3     0.00003      0.00%
+CREATEFONTW                                                                                    4     0.00003      0.00%
+CREATESOLIDBRUSH                                                                               6     0.00003      0.00%
+CREATEWINDOWEXW                                                                                1     0.00825      0.39%
+DEALLOCATE                                                                                    45     0.00002      0.00%
+DEFWINDOWPROC                                                                                181     0.10171      4.83%
+DELETEOBJECT                                                                                  12     0.00003      0.00%
+DESTROYWINDOW                                                                                  1     0.01207      0.57%
+DISPATCHMESSAGE                                                                               53     0.07579      3.60%
+ENDPAINT                                                                                       1     0.00002      0.00%
+ENUMTHREADWINDOWS                                                                              1     0.00003      0.00%
+EXEPATH                                                                                        2     0.00001      0.00%
+FB_FILEOPEN                                                                                    1     0.00007      0.00%
+FB_FILEOPENENCOD                                                                               3     0.00023      0.01%
+FB_ISTYPEOF                                                                                    2     0.00000      0.00%
+FB_PRINTWSTR                                                                                   1     0.00116      0.06%
+FB_STRALLOCTEMPRESULT                                                                          1     0.00000      0.00%
+FB_STRASSIGN                                                                                   2     0.00000      0.00%
+FB_STRCONCAT                                                                                   1     0.00000      0.00%
+FB_STRDELETE                                                                                   8     0.00000      0.00%
+FB_STRTOWSTR                                                                                   1     0.00000      0.00%
+FB_WSTRASSIGN                                                                                 45     0.00001      0.00%
+FB_WSTRASSIGNTOA                                                                               4     0.00000      0.00%
+FB_WSTRASSIGNTOA_INIT                                                                          1     0.00000      0.00%
+FB_WSTRCOMPARE                                                                               197     0.00008      0.00%
+FB_WSTRCONCAT                                                                                  6     0.00000      0.00%
+FB_WSTRCONCATAW                                                                                2     0.00000      0.00%
+FB_WSTRDELETE                                                                                 17     0.00000      0.00%
+FB_WSTRINSTR                                                                                   3     0.00000      0.00%
+FB_WSTRINSTRREVANY                                                                             1     0.00000      0.00%
+FB_WSTRLCASE2                                                                                  4     0.00000      0.00%
+FB_WSTRLEN                                                                                    47     0.00001      0.00%
+FB_WSTRMID                                                                                     2     0.00000      0.00%
+FB___MAIN                                                                                      1     0.00000      0.00%
+FILLRECT                                                                                       1     0.00003      0.00%
+FLUSHMENUTHEMES                                                                                1     0.00000      0.00%
+FREEFILE                                                                                       1     0.00000      0.00%
+GETBLUE                                                                                        1     0.00000      0.00%
+GETCLASSINFOEX                                                                                 1     0.00001      0.00%
+GETCLIENTRECT                                                                                  7     0.00000      0.00%
+GETCURRENTOBJECT                                                                               2     0.00001      0.00%
+GETCURRENTTHREADID                                                                             1     0.00000      0.00%
+GETDC                                                                                          7     0.00006      0.00%
+GETDEVICECAPS                                                                                 14     0.00002      0.00%
+GETFILEVERSIONINFO                                                                             1     0.00001      0.00%
+GETFILEVERSIONINFOSIZE                                                                         1     0.00003      0.00%
+GETGREEN                                                                                       1    -0.00000     -0.00%
+GETKEYSTATE                                                                                  516     0.00035      0.02%
+GETLOCALEINFO                                                                                  2     0.00003      0.00%
+GETMENUBARINFO                                                                                 4     0.00005      0.00%
+GETMESSAGE                                                                                    53     1.98856     94.53%
+GETMODULEFILENAME                                                                              1     0.00000      0.00%
+GETMODULEHANDLE                                                                                4     0.00000      0.00%
+GETMODULEHANDLEW                                                                               1     0.00000      0.00%
+GETOBJECT                                                                                      2     0.00000      0.00%
+GETPROCADDRESS                                                                                10     0.00001      0.00%
+GETRED                                                                                         1     0.00000      0.00%
+GETSYSCOLOR                                                                                    1     0.00000      0.00%
+GETUSERDEFAULTUILANGUAGE                                                                       1     0.00000      0.00%
+GETWINDOWLONGPTR                                                                             187     0.00015      0.01%
+HEX                                                                                            2     0.00000      0.00%
+INITCOMMONCONTROLSEX                                                                           1     0.00025      0.01%
+INITDARKMODE                                                                                   1     0.00002      0.00%
+INVALIDATERECT                                                                                 1     0.00003      0.00%
+ISHIGHCONTRAST                                                                                 4     0.00044      0.02%
+ISICONIC                                                                                       3     0.00000      0.00%
+LEFT                                                                                           2     0.00000      0.00%
+LOADCURSOR                                                                                     1     0.00000      0.00%
+LOADLIBRARYEX                                                                                  1     0.00000      0.00%
+LOCKWINDOWUPDATE                                                                               2     0.00074      0.03%
+MEMSET                                                                                         3     0.00000      0.00%
+ML                                                                                             2     0.00001      0.00%
+MULDIV                                                                                         4     0.00000      0.00%
+REALLOCATE                                                                                     1     0.00000      0.00%
+REDRAWWINDOW                                                                                   1     0.00000      0.00%
+REFRESHTITLEBARTHEMECOLOR                                                                      3     0.00014      0.01%
+REGISTERCLASSEX                                                                                1     0.00001      0.00%
+RELEASEDC                                                                                      8     0.00005      0.00%
+SENDMESSAGE                                                                                    7     0.00025      0.01%
+SETBKCOLOR                                                                                     1     0.00002      0.00%
+SETCLASSLONG                                                                                   1     0.00007      0.00%
+SETDARKMODE                                                                                    1     0.00040      0.02%
+SETPROP                                                                                        1     0.00009      0.00%
+SETTITLEBARTHEMECOLOR                                                                          3     0.00007      0.00%
+SETWINDOWLONGPTR                                                                               2     0.00011      0.01%
+SETWINDOWPOS                                                                                   1     0.01914      0.91%
+SETWINDOWTHEME                                                                                 1     0.00086      0.04%
+SHOULDAPPSUSEDARKMODE                                                                          1     0.00000      0.00%
+SHOWWINDOW                                                                                     1     0.00379      0.18%
+SYSTEMPARAMETERSINFOW                                                                          4     0.00044      0.02%
+TRANSLATEMESSAGE                                                                              53     0.00002      0.00%
+UPDATEWINDOW                                                                                   5     0.00000      0.00%
+VERQUERYVALUE                                                                                  1     0.00020      0.01%
+WGET                                                                                          10     0.00000      0.00%
+WLET                                                                                          37     0.00011      0.01%
+WREALLOCATE                                                                                   39     0.00006      0.00%
+_ABS                                                                                           8     0.00000      0.00%
+__Z11WDEALLOCATERPw@4                                                                          4     0.00000      0.00%
+__ZN10DICTIONARY5CLEAREv@4                                                                     1     0.00000      0.00%
+__ZN10fb_Object$C1Ev                                                                          25     0.00000      0.00%
+__ZN11INTEGERLIST12COUNT__get__Ev@4                                                            7     0.00000      0.00%
+__ZN11INTEGERLIST13INDEXOFOBJECTEPv@8                                                          1     0.00000      0.00%
+__ZN11INTEGERLIST4SORTEv@4                                                                     1     0.00000      0.00%
+__ZN11INTEGERLIST5CLEAREv@4                                                                    1     0.00000      0.00%
+__ZN11INTEGERLISTC1Ev                                                                          1     0.00000      0.00%
+__ZN11INTEGERLISTD1Ev                                                                          1     0.00000      0.00%
+__ZN11POINTERLIST5COUNTEv@4                                                                    1     0.00000      0.00%
+__ZN11WSTRINGLIST5CLEAREv@4                                                                    3     0.00001      0.00%
+__ZN11WSTRINGLISTC1Ev                                                                          1     0.00001      0.00%
+__ZN11WSTRINGLISTD1Ev                                                                          1     0.00000      0.00%
+__ZN2MY11APPLICATION15DARKMODE__set__Eb@8                                                      1     0.00042      0.02%
+__ZN2MY11APPLICATION15LANGUAGE__get__Ev@4                                                      2     0.00000      0.00%
+__ZN2MY11APPLICATION15MAINFORM__get__Ev@4                                                      1     0.00000      0.00%
+__ZN2MY11APPLICATION15MAINFORM__set__EPNS_3SYS5FORMS4FORME@8                                   1     0.00000      0.00%
+__ZN2MY11APPLICATION17ACTIVEFORM__set__EPNS_3SYS5FORMS4FORME@8                                 1     0.00000      0.00%
+__ZN2MY11APPLICATION18CURLANGUAGE__get__Ev@4                                                   2     0.00000      0.00%
+__ZN2MY11APPLICATION18CURLANGUAGE__set__ERw@8                                                  1     0.00151      0.07%
+__ZN2MY11APPLICATION22CURLANGUAGEPATH__set__ERw@8                                              1     0.00000      0.00%
+__ZN2MY11APPLICATION3RUNEv@4                                                                   1     2.06772     98.29%
+__ZN2MY11APPLICATION7EXENAMEEv@4                                                               1     0.00001      0.00%
+__ZN2MY11APPLICATION8GETFONTSEv@4                                                              1     0.00001      0.00%
+__ZN2MY11APPLICATION8GETFORMSEv@4                                                              1     0.00003      0.00%
+__ZN2MY11APPLICATION9FORMCOUNTEv@4                                                             1     0.00003      0.00%
+__ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPEC1Ev                                                   2     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL11MARGINSTYPED1Ev                                                   2     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT10TOP__get__Ev@4                                          2     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT11LEFT__get__Ev@4                                         2     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT11NAME__set__ERw@8                                        1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT12WIDTH__get__Ev@4                                        1    -0.00000     -0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT12WIDTH__set__El@8                                        1     0.00001      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__get__Ev@4                                      16     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HANDLE__set__EP6HWND__@8                                2     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HEIGHT__get__Ev@4                                       1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT13HEIGHT__set__El@8                                       1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT4MOVEEllll@20                                             3     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_36D4Ellll@20                                          1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_370CEllll@20                                          1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT7Lt_3718Ellll@20                                          1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENT9SETBOUNDSEllll@20                                        1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENTC1Ev                                                      1     0.00000      0.00%
+__ZN2MY3SYS14COMPONENTMODEL9COMPONENTD1Ev                                                      1     0.00001      0.00%
+__ZN2MY3SYS5FORMS10ANCHORTYPEC1Ev                                                              1     0.00000      0.00%
+__ZN2MY3SYS5FORMS10ANCHORTYPED1Ev                                                              1     0.00000      0.00%
+__ZN2MY3SYS5FORMS15SIZECONSTRAINTSC1Ev                                                         1     0.00000      0.00%
+__ZN2MY3SYS5FORMS15SIZECONSTRAINTSD1Ev                                                         1     0.00000      0.00%
+__ZN2MY3SYS5FORMS16CONTAINERCONTROL14PROCESSMESSAGEER7MESSAGE@8                              162     0.00080      0.04%
+__ZN2MY3SYS5FORMS16CONTAINERCONTROLC1Ev                                                        1     0.00026      0.01%
+__ZN2MY3SYS5FORMS16CONTAINERCONTROLD1Ev                                                        1     0.01214      0.58%
+__ZN2MY3SYS5FORMS4FORM11MENU__get__Ev@4                                                        1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM11MENU__set__EPNS1_8MAINMENUE@8                                          1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM11TEXT__set__ERw@8                                                       2     0.00001      0.00%
+__ZN2MY3SYS5FORMS4FORM14OPACITY__get__Ev@4                                                     1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM15MAINFORM__get__Ev@4                                                    1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM15MAINFORM__set__Eb@8                                                    1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM17HANDLEISALLOCATEDERNS1_7CONTROLE@4                                     1     0.00014      0.01%
+__ZN2MY3SYS5FORMS4FORM17KEYPREVIEW__get__Ev@4                                                 53     0.00003      0.00%
+__ZN2MY3SYS5FORMS4FORM18BORDERSTYLE__get__Ev@4                                                 1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM18TRANSPARENT__get__Ev@4                                                 1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM20ACTIVECONTROLCHANGEDERNS1_7CONTROLE@4                                  1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM20STARTPOSITION__set__El@8                                               1     0.00000      0.00%
+__ZN2MY3SYS5FORMS4FORM4SHOWEv@4                                                                1     0.03283      1.56%
+__ZN2MY3SYS5FORMS4FORM7Lt_62FEEv@4                                                             1     0.03282      1.56%
+__ZN2MY3SYS5FORMS4FORMC1Ev                                                                     1     0.00043      0.02%
+__ZN2MY3SYS5FORMS4FORMD1Ev                                                                     1     0.01220      0.58%
+__ZN2MY3SYS5FORMS7CONTROL10INVALIDATEEv@4                                                      1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL10UPDATELOCKEv@4                                                      1     0.00038      0.02%
+__ZN2MY3SYS5FORMS7CONTROL11CLIENTWIDTHEv@4                                                     3     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL11GETCONTROLSEv@4                                                     1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL11HINT__get__Ev@4                                                     1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL11TEXT__set__ERw@8                                                    2     0.00001      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12BRINGTOFRONTEv@4                                                    1     0.01914      0.91%
+__ZN2MY3SYS5FORMS7CONTROL12CLIENTHEIGHTEv@4                                                    3     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12CONTROLCOUNTEv@4                                                    5     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12REQUESTALIGNEllbPS2_@20                                             3     0.00001      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12STYLE__get__Ev@4                                                    4     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12STYLE__set__El@8                                                    2     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL12UPDATEUNLOCKEv@4                                                    1     0.00036      0.02%
+__ZN2MY3SYS5FORMS7CONTROL13REGISTERCLASSERwS3_Pv@12                                            1     0.00003      0.00%
+__ZN2MY3SYS5FORMS7CONTROL14CHANGETABINDEXEl@8                                                  1     0.00001      0.00%
+__ZN2MY3SYS5FORMS7CONTROL14EXSTYLE__get__Ev@4                                                  1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL14EXSTYLE__set__El@8                                                  1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL14PROCESSMESSAGEER7MESSAGE@8                                        162     0.00066      0.03%
+__ZN2MY3SYS5FORMS7CONTROL15SHOWHINT__get__Ev@4                                                 1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL16BACKCOLOR__get__Ev@4                                                1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL16BACKCOLOR__set__El@8                                                1     0.00006      0.00%
+__ZN2MY3SYS5FORMS7CONTROL17SELECTNEXTCONTROLEb@8                                               1     0.00001      0.00%
+__ZN2MY3SYS5FORMS7CONTROL18CONTEXTMENU__get__Ev@4                                              1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL6UPDATEEv@4                                                           2     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL7FREEWNDEv@4                                                          1     0.01208      0.57%
+__ZN2MY3SYS5FORMS7CONTROL7GETFORMEv@4                                                          3     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5363Eb@8                                                          1     0.00125      0.06%
+__ZN2MY3SYS5FORMS7CONTROL7Lt_538BEv@4                                                          1     0.00380      0.18%
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5636ER7MESSAGE@8                                                177     0.01772      0.84%
+__ZN2MY3SYS5FORMS7CONTROL7Lt_5833ERw@8                                                         1     0.00001      0.00%
+__ZN2MY3SYS5FORMS7CONTROL7REPAINTEv@4                                                          1     0.00000      0.00%
+__ZN2MY3SYS5FORMS7CONTROL7SETDARKEb@8                                                          1     0.00095      0.05%
+__ZN2MY3SYS5FORMS7CONTROLC1Ev                                                                  1     0.00025      0.01%
+__ZN2MY3SYS5FORMS7CONTROLD1Ev                                                                  1     0.01214      0.58%
+__ZN2MY3SYS6OBJECT6SCALEXEf@8                                                                  3     0.00003      0.00%
+__ZN2MY3SYS6OBJECT6SCALEYEf@8                                                                  3     0.00000      0.00%
+__ZN2MY3SYS6OBJECT7ISEMPTYEv@4                                                               181     0.00003      0.00%
+__ZN2MY3SYS6OBJECT8UNSCALEXEf@8                                                                3     0.00000      0.00%
+__ZN2MY3SYS6OBJECT8UNSCALEYEf@8                                                                3     0.00000      0.00%
+__ZN2MY3SYS6OBJECT9CLASSNAMEEv@4                                                             181     0.00017      0.01%
+__ZN2MY3SYS6OBJECTC1Ev                                                                        23     0.00001      0.00%
+__ZN2MY3SYS6OBJECTD1Ev                                                                        23     0.00002      0.00%
+__ZN2MY3SYS7DRAWING10BITMAPTYPE4FREEEv@4                                                       1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING10BITMAPTYPEC1Ev                                                            1     0.00002      0.00%
+__ZN2MY3SYS7DRAWING10BITMAPTYPED1Ev                                                            1     0.00001      0.00%
+__ZN2MY3SYS7DRAWING11GRAPHICTYPEC1Ev                                                           1     0.00003      0.00%
+__ZN2MY3SYS7DRAWING11GRAPHICTYPED1Ev                                                           1     0.00005      0.00%
+__ZN2MY3SYS7DRAWING23GPLINEGRADIENTPARAMETERC1Ev                                               1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING3PENC1Ev                                                                    2     0.00001      0.00%
+__ZN2MY3SYS7DRAWING3PEND1Ev                                                                    2     0.00000      0.00%
+__ZN2MY3SYS7DRAWING4FONT11NAME__get__Ev@4                                                      4     0.00000      0.00%
+__ZN2MY3SYS7DRAWING4FONT11NAME__set__ERw@8                                                     1     0.00001      0.00%
+__ZN2MY3SYS7DRAWING4FONT11SIZE__get__Ev@4                                                      4     0.00000      0.00%
+__ZN2MY3SYS7DRAWING4FONT11SIZE__set__El@8                                                      1     0.00001      0.00%
+__ZN2MY3SYS7DRAWING4FONT13PARENT__set__EPNS0_6OBJECTE@8                                        2     0.00009      0.00%
+__ZN2MY3SYS7DRAWING4FONT6CREATEEv@4                                                            4     0.00010      0.00%
+__ZN2MY3SYS7DRAWING4FONTC1Ev                                                                   3     0.00005      0.00%
+__ZN2MY3SYS7DRAWING4FONTD1Ev                                                                   3     0.00001      0.00%
+__ZN2MY3SYS7DRAWING4ICONC1Ev                                                                   3     0.00002      0.00%
+__ZN2MY3SYS7DRAWING4ICOND1Ev                                                                   3     0.00002      0.00%
+__ZN2MY3SYS7DRAWING5BRUSH12COLOR__set__El@8                                                    2     0.00003      0.00%
+__ZN2MY3SYS7DRAWING5BRUSH12STYLE__set__ENS1_11BRUSHSTYLESE@8                                   1     0.00002      0.00%
+__ZN2MY3SYS7DRAWING5BRUSH6CREATEEv@4                                                           3     0.00005      0.00%
+__ZN2MY3SYS7DRAWING5BRUSHC1Ev                                                                  3     0.00001      0.00%
+__ZN2MY3SYS7DRAWING5BRUSHD1Ev                                                                  3     0.00001      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS11CTRL__set__EPNS0_14COMPONENTMODEL9COMPONENTE@8                     1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS11UNSETHANDLEEv@4                                                    1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS12BRUSH_CREATEERNS0_6OBJECTERNS1_5BRUSHE@8                           2     0.00000      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS12WIDTH__get__Ev@4                                                   1     0.00002      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS13HEIGHT__get__Ev@4                                                  1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS13RELEASEDEVICEEPv@8                                                 1     0.00001      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS16BACKCOLOR__set__El@8                                               1     0.00004      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS16FILLCOLOR__set__El@8                                               1     0.00004      0.00%
+__ZN2MY3SYS7DRAWING6CANVAS9SETHANDLEEP5HDC__@8                                                 1     0.00000      0.00%
+__ZN2MY3SYS7DRAWING6CANVASC1Ev                                                                 1     0.00013      0.01%
+__ZN2MY3SYS7DRAWING6CANVASD1Ev                                                                 1     0.00003      0.00%
+__ZN2MY3SYS7DRAWING6CURSORC1Ev                                                                 2     0.00001      0.00%
+__ZN2MY3SYS7DRAWING6CURSORD1Ev                                                                 2     0.00001      0.00%
+__ZN2MY3SYS8LANGUAGEEv@0                                                                       1     0.00001      0.00%
+__ZN4LIST12COUNT__get__Ev@4                                                                   12     0.00000      0.00%
+__ZN4LIST5CLEAREv@4                                                                           10     0.00000      0.00%
+__ZN4LISTC1Ev                                                                                  8     0.00000      0.00%
+__ZN4LISTD1Ev                                                                                  8     0.00000      0.00%
+__ZN7GDIPLUS6POINTFC1Ev                                                                        2     0.00000      0.00%
+__ZN7USTRING4VPTREv@4                                                                          3     0.00000      0.00%
+__ZN7USTRING6RESIZEEl@8                                                                        3     0.00000      0.00%
+__ZN7USTRINGC1ERw                                                                              3     0.00000      0.00%
+__ZN7USTRINGC1Ev                                                                               1     0.00000      0.00%
+__ZN7USTRINGD1Ev                                                                               4     0.00000      0.00%
+__ZN7USTRINGaSERw@8                                                                            3     0.00001      0.00%
+__ZN7USTRINGcvwEv@4                                                                            5     0.00000      0.00%
+__Zv23catR7USTRINGS0_@8                                                                        1     0.00000      0.00%
+{fbfp}F16PREFERREDAPPMODES_E$1                                                                 1     0.00000      0.00%
+{fbfp}FiP6HWND__E$1                                                                            3     0.00001      0.00%
+{fbfp}FiP6HWND__P27WINDOWCOMPOSITIONATTRIBDATAE$1                                              3     0.00007      0.00%
+{fbfp}FiP6HWND__iE$1                                                                           3     0.00009      0.00%
+{fbfp}FivE$1                                                                                   4     0.00000      0.00%
+{fbfp}FvPjS_S_E$1                                                                              1     0.00000      0.00%
+{fbfp}FvRN2MY3SYS5FORMS7CONTROLEE$1                                                            2     0.00014      0.01%
+{fbfp}FvRN2MY3SYS6OBJECTERNS0_7DRAWING5BRUSHEE$1                                               2     0.00000      0.00%
+{fbfp}FvvE$1                                                                                   1     0.00000      0.00%

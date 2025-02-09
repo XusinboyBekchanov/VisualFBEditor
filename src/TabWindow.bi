@@ -136,6 +136,7 @@ Type ProfilingFunction
 	Time As ZString * 12
 	Total As ZString * 11
 	Proc As ZString * 10
+	Mangled As ZString * 500
 	Items As WStringList
 End Type
 
@@ -448,7 +449,7 @@ Declare Sub PreprocessorNumberingOff(ByRef txtCode As EditControl, WithoutUpdate
 
 Declare Sub ParameterInfo(Key As Integer = Asc(","), SelStartChar As Integer = -1, SelEndChar As Integer = -1, sWordAt As String = "")
 
-Declare Sub CheckProfiler(ByRef WorkDir As WString)
+Declare Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 
 #ifndef __USE_MAKE__
 	#include once "TabWindow.bas"
