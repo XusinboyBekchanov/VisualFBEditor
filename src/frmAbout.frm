@@ -48,7 +48,7 @@
 		!"Cm Wang\r" & _
 		ML("e-mail") & !": <a href=""mailto:cm.wang@126.com"">cm.wang@126.com</a>\r\r" & _
 		ML("QQ Forums") & !" 1032313876 78458582 \r\r" & _
-		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r\r" & _
+		ML("For donation") & !":\r Patreon: <a href=""https://www.patreon.com/xusinboy"">patreon.com/xusinboy</a>,\r WebMoney: <a href=""https://www.webmoney.ru""> WMZ: Z884195021874</a>\r\r\r" & _
 		MS("Thanks to $1 for codes of $2 and $3", "Nastase Eodor", "FreeBasic Windows GUI ToolKit", "Simple Designer") & !"\r" & _
 		MS("Thanks to $1 for codes of $2 and $3", "Stanislav Budinov", "GUI Library Window9", "FrontEnd GDB for freebasic") & !"\r" & _
 		MS("Thanks to $1 for codes of $2", "Aloberoger", "GUITK-S Windows GUI FB Wrapper Library") & !"\r" & _
@@ -63,7 +63,7 @@
 		!"Juan Sánchez (Spanish)\r" & _
 		!"Dariusz Prochotta (Polish)\r"
 		Label2.BorderStyle = 0
-		Label2.SetBounds 10, 58, 472, 403
+		Label2.SetBounds 10, 58, 472, 413
 		Label2.Parent = @This
 		' lblIcon
 		lblIcon.Name = "lblIcon"
