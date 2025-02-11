@@ -87,7 +87,7 @@ pfOptions = @fOptions
 		pnlCodeEditor.Text = ""
 		pnlCodeEditor.Align = DockStyle.alClient
 		pnlCodeEditor.TabIndex = 78
-		pnlCodeEditor.SetBounds 10, 0, 417, 400
+		pnlCodeEditor.SetBounds 10, 0, 417, 390
 		pnlCodeEditor.ControlIndex = 4
 		pnlCodeEditor.Parent = @pplGeneral
 		' pnlColorsAndFonts
@@ -966,7 +966,7 @@ pfOptions = @fOptions
 		cboCase.Align = DockStyle.alRight
 		cboCase.ExtraMargins.Bottom = 2
 		cboCase.TabIndex = 32
-		cboCase.SetBounds 215, 0, 182, 21
+		cboCase.SetBounds 198, 0, 150, 21
 		cboCase.Parent = @pnlChangeKeywordsCase
 		' chkTabAsSpaces
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
@@ -989,7 +989,7 @@ pfOptions = @fOptions
 		cboTabStyle.ExtraMargins.Top = 0
 		cboTabStyle.ExtraMargins.Bottom = 2
 		cboTabStyle.TabIndex = 34
-		cboTabStyle.SetBounds 215, 0, 182, 21
+		cboTabStyle.SetBounds 198, 0, 150, 21
 		cboTabStyle.Parent = @pnlTreatTabAsSpaces
 		' lblTabSize
 		lblTabSize.Name = "lblTabSize"
@@ -1005,12 +1005,12 @@ pfOptions = @fOptions
 		txtTabSize.Name = "txtTabSize"
 		txtTabSize.Text = ""
 		txtTabSize.ExtraMargins.Left = 0
-		txtTabSize.ExtraMargins.Right = 130
+		txtTabSize.ExtraMargins.Right = 20
 		txtTabSize.ExtraMargins.Top = 0
 		txtTabSize.Align = DockStyle.alRight
 		txtTabSize.ExtraMargins.Bottom = 2
 		txtTabSize.TabIndex = 36
-		txtTabSize.SetBounds 215, 0, 72, 18
+		txtTabSize.SetBounds 198, 0, 72, 18
 		txtTabSize.Parent = @pnlTabSize
 		' lstIncludePaths
 		lstIncludePaths.Name = "lstIncludePaths"
@@ -1079,12 +1079,12 @@ pfOptions = @fOptions
 		' txtHistoryLimit
 		txtHistoryLimit.Name = "txtHistoryLimit"
 		txtHistoryLimit.ExtraMargins.Top = 0
-		txtHistoryLimit.ExtraMargins.Right = 130
+		txtHistoryLimit.ExtraMargins.Right = 20
 		txtHistoryLimit.ExtraMargins.Left = 0
 		txtHistoryLimit.Align = DockStyle.alRight
 		txtHistoryLimit.ExtraMargins.Bottom = 2
 		txtHistoryLimit.TabIndex = 38
-		txtHistoryLimit.SetBounds 215, 0, 72, 18
+		txtHistoryLimit.SetBounds 198, 0, 72, 18
 		txtHistoryLimit.Text = ""
 		txtHistoryLimit.Parent = @pnlHistoryLimit
 		' grbGrid
@@ -2273,11 +2273,11 @@ pfOptions = @fOptions
 			.Text = ""
 			.ExtraMargins.Left = 0
 			.ExtraMargins.Top = 0
-			.ExtraMargins.Right = 130
+			.ExtraMargins.Right = 20
 			.Align = DockStyle.alRight
 			.ControlIndex = 2
 			.ExtraMargins.Bottom = 2
-			.SetBounds 215, 0, 72, 18
+			.SetBounds 198, 0, 72, 18
 			.Parent = @pnlIntellisenseLimit
 		End With
 		' chkTurnOnEnvironmentVariables
@@ -2377,11 +2377,11 @@ pfOptions = @fOptions
 			.Text = "3"
 			.TabIndex = 198
 			.ExtraMargins.Top = 0
-			.ExtraMargins.Right = 130
+			.ExtraMargins.Right = 20
 			.ExtraMargins.Left = 0
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 2
-			.SetBounds 215, 0, 72, 18
+			.SetBounds 198, 0, 72, 18
 			.Designer = @This
 			.Parent = @pnlHistoryFileSavingDays
 		End With
@@ -2700,12 +2700,12 @@ pfOptions = @fOptions
 		With txtAutoSaveCharMax
 			.Name = "txtAutoSaveCharMax"
 			.ExtraMargins.Top = 0
-			.ExtraMargins.Right = 130
+			.ExtraMargins.Right = 20
 			.ExtraMargins.Left = 0
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 2
 			.TabIndex = 232
-			.SetBounds 215, 0, 72, 18
+			.SetBounds 198, 0, 72, 18
 			.Text = "100"
 			.Parent = @pnlAutoSaveCharMax
 		End With
@@ -2863,8 +2863,8 @@ pfOptions = @fOptions
 			.TabIndex = 257
 			.Align = DockStyle.alRight
 			.ExtraMargins.Bottom = 2
-			.ExtraMargins.Right = 130
-			.SetBounds -72, 0, 72, 20
+			.ExtraMargins.Right = 20
+			.SetBounds 198, 0, 72, 18
 			.Designer = @This
 			.Parent = @pnlCodeEditorHoverTime
 		End With
