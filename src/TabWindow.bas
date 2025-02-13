@@ -5136,16 +5136,16 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	MouseHoverTimerVal = Timer
-	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(iSelEndLine + 1) + " : " + WStr(tb->txtCode.LinesCount) + WSpace(2) + _
 	ML("Column") + " " + WStr(iSelEndChar) + " : " + WStr(Len(tb->txtCode.Lines(iSelEndLine))) + WSpace(2) + _
-	ML("Selection") + " " + WStr(Len(tb->txtCode.SelText))
+	ML("Selection") + " " + WStr(tb->txtCode.SelTextLength )
 	If Not tb->txtCode.ToolTipShowed Then Exit Sub
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
 	Dim As String sWord, sWordAt, Symb, FuncName, Parameters, Parameter, Link1, Param
-	Dim As UString Lines(Any), Params(Any), LinkParse(Any)
+	Dim As WString Ptr Lines(Any), Params(Any), LinkParse(Any)
 	Dim As Integer iCount, iPos, iPos1, iPos2, n, iParamCount, iSelStartCharFunc, iSelEndCharFunc
 	Parameters = tb->txtCode.Hint
 	Split Parameters, !"\r", Lines()
@@ -5163,49 +5163,62 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	sWord = tb->txtCode.HintWord
 	If sWordAt <> sWord Then Exit Sub
 	For i As Integer = 0 To UBound(Lines)
-		If Lines(i) = "_________________" Then Exit For
-		iPos = InStr(Lines(i), "<a href=""")
-		iPos1 = InStr(Lines(i), """>")
-		iPos2 = InStr(Lines(i), "</a>")
-		Link1 = Mid(Lines(i), iPos + 9, iPos1 - iPos - 9)
+		If *Lines(i) = "_________________" Then Exit For
+		iPos = InStr(*Lines(i), "<a href=""")
+		iPos1 = InStr(*Lines(i), """>")
+		iPos2 = InStr(*Lines(i), "</a>")
+		Link1 = Mid(*Lines(i), iPos + 9, iPos1 - iPos - 9)
 		Split Link1, "~", LinkParse()
 		If UBound(LinkParse) < 2 Then Continue For
-		Lines(i) = ..Left(Lines(i), iPos - 1) & LinkParse(2) & Mid(Lines(i), iPos2 + 4)
-		Split GetChangedCommas(Replace(Lines(i), """", "”"), True), ",", Params()
+		*Lines(i) = ..Left(*Lines(i), iPos - 1) & *LinkParse(2) & Mid(*Lines(i), iPos2 + 4)
+		Split GetChangedCommas(Replace(*Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
-			Params(j) = Replace(Replace(Params(j), ";", ","), "`", "=")
-			iPos = InStr(Params(j), "(")
-			iPos1 = InStr(Params(j), ")")
-			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then 'AndAlso (Mid(Params(0), InStr(LCase(Params(0)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
-				iPos = InStr(LCase(Params(j)), LCase(sWord))
+			*Params(j) = Replace(Replace(*Params(j), ";", ","), "`", "=")
+			iPos = InStr(*Params(j), "(")
+			iPos1 = InStr(*Params(j), ")")
+			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Mid(*Params(0), InStr(LCase(*Params(0)), LCase(sWord)) + Len(sWord), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then 'AndAlso (Mid(*Params(0), InStr(LCase(*Params(0)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
+				iPos = InStr(LCase(*Params(j)), LCase(sWord))
 				If iPos > 0 Then
-					sWord = Mid(Params(j), iPos, Len(sWord))
-					Params(j) = ..Left(Params(j), iPos - 1) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(Params(j), iPos + Len(sWord))
+					sWord = Mid(*Params(j), iPos, Len(sWord))
+					*Params(j) = ..Left(*Params(j), iPos - 1) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(*Params(j), iPos + Len(sWord))
 				End If
 			ElseIf iParamCount = j Then
-				n = Len(Params(j)) - Len(LTrim(Params(j)))
-				If j = 0 AndAlso ..Left(Params(0), 1) = " " Then iPos = InStr(InStr(LCase(Params(j)), LCase(sWord)) + 1, Params(j), " ")
-				If ..Left(Params(0), 1) = " " Then iPos1 = Len(Params(j)) + 1
-				If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
+				n = Len(*Params(j)) - Len(LTrim(*Params(j)))
+				If j = 0 AndAlso ..Left(*Params(0), 1) = " " Then iPos = InStr(InStr(LCase(*Params(j)), LCase(sWord)) + 1, *Params(j), " ")
+				If ..Left(*Params(0), 1) = " " Then iPos1 = Len(*Params(j)) + 1
+				If iPos1 = 0 Then iPos1 = Len(*Params(j)) + 1
 				If j = 0 AndAlso iPos > 0 Then
-					Param = Mid(Params(j), iPos + 1, iPos1 - iPos - 1)
-					Params(j) = ..Left(Params(j), iPos) & "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(Params(j), iPos1)
+					Param = Mid(*Params(j), iPos + 1, iPos1 - iPos - 1)
+					*Params(j) = ..Left(*Params(j), iPos) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(*Params(j), iPos1)
 				ElseIf iParamCount = UBound(Params) Then
-					If iPos1 = 0 Then iPos1 = Len(Params(j)) + 1
-					Param = ..Left(Params(j), iPos1 - 1)
-					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(Params(j), iPos1) 'WString(n, " ") &
+					If iPos1 = 0 Then iPos1 = Len(*Params(j)) + 1
+					Param = ..Left(*Params(j), iPos1 - 1)
+					*Params(j) = "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(*Params(j), iPos1) 'WString(n, " ") &
 				ElseIf iParamCount < UBound(Params) Then
-					Params(j) = "<a href=""" & LinkParse(0) & "~" & LinkParse(1) & "~" & GetCorrectParam(Params(j)) & "~" & sWord & """>" &  Params(j) & "</a>" 'WString(n, " ") &
+					*Params(j) = "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(*Params(j)) & "~" & sWord & """>" &  *Params(j) & "</a>" 'WString(n, " ") &
 				End If
 			End If
 		Next
 		Lines(i) = Join(Params(), ",")
 	Next
-	Dim As UString JoinedHint = Join(Lines(), !"\r")
-	If JoinedHint <> tb->txtCode.Hint Then
-		tb->txtCode.Hint = JoinedHint
+	Dim As WString Ptr JoinedHint = Join(Lines(), !"\r")
+	If JoinedHint <> 0 AndAlso *JoinedHint <> tb->txtCode.Hint Then
+		tb->txtCode.Hint = *JoinedHint
 		tb->txtCode.UpdateToolTip
 	End If
+	Deallocate(JoinedHint)
+	For i As Integer = 0 To UBound(Lines)
+		Deallocate(Lines(i))
+	Next
+	Erase Lines
+	For i As Integer = 0 To UBound(Params)
+		Deallocate(Params(i))
+	Next
+	Erase Params
+	For i As Integer = 0 To UBound(LinkParse)
+		Deallocate(LinkParse(i))
+	Next
+	Erase LinkParse
 End Sub
 
 'Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
@@ -8693,7 +8706,7 @@ End Sub
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
-	If bNotDesign OrElse FormClosing Then Exit Sub
+	If bNotDesign OrElse FormClosing OrElse txtCode.LinesCount > 50000 Then Exit Sub
 	If Not txtCode.SyntaxEdit Then 
 		If cboClass.Items.Count = 0 Then
 			cboClass.Items.Clear

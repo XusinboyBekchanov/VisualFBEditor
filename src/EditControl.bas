@@ -1667,6 +1667,23 @@ Namespace My.Sys.Forms
 	Property EditControl.SelText(ByRef Value As WString)
 		ChangeText Value, 0, "Matn qo`shildi"
 	End Property
+
+	Function EditControl.SelTextLength As Integer
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar,  iSelLen
+		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		For i As Integer = iSelStartLine To iSelEndLine
+			If i = iSelStartLine And i = iSelEndLine Then
+				iSelLen = iSelEndChar - iSelStartChar
+			ElseIf i = iSelStartLine Then
+				iSelLen = iSelStartChar + 1
+			ElseIf i = iSelEndLine Then
+				iSelLen += iSelEndChar
+			Else
+				iSelLen += Len(Lines(i))
+			End If
+		Next i
+		Return iSelLen
+	End Function
 	
 	Sub EditControl.CalculateLeftMargin
 		LeftMargin = Len(Str(LinesCount)) * dwCharX + dwCharY + 30 '5 * dwCharX
@@ -1680,6 +1697,7 @@ Namespace My.Sys.Forms
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0
 		Dim As Boolean InAsm = False, FileLoaded
+		Dim As Double  timeElapse = Timer
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
 		If Not FileExists(FileName) Then
@@ -1882,6 +1900,7 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
 		End If
+		If FileSize> 100000 Then pstBar->Panels[1]->Caption = ML("Elapsed time") &" (s):" & Format((Timer - timeElapse) , "#0.000")
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
