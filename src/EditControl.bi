@@ -628,6 +628,7 @@ Namespace My.Sys.Forms
 		Declare Function VisibleLinesCount(CodePane As Integer = -1) As Integer
 		Declare Function Lines(Index As Integer) ByRef As WString
 		Declare Function LineLength(Index As Integer) As Integer
+		Declare Function SelTextLength As Integer
 		Declare Property Text ByRef As WString
 		Declare Property Text(ByRef Value As WString)
 		Declare Property HintDropDown ByRef As WString
