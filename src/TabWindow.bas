@@ -5173,14 +5173,14 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 		*Lines(i) = ..Left(*Lines(i), iPos - 1) & *LinkParse(2) & Mid(*Lines(i), iPos2 + 4)
 		Split GetChangedCommas(Replace(*Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
-			*Params(j) = Replace(Replace(*Params(j), ";", ","), "`", "=")
+			WLet(Params(j), Replace(Replace(*Params(j), ";", ","), "`", "="))
 			iPos = InStr(*Params(j), "(")
 			iPos1 = InStr(*Params(j), ")")
 			If j = 0 AndAlso ((iSelEndChar = iSelEndCharFunc AndAlso iParamCount = 0) OrElse (iPos = 0 AndAlso UBound(Params) = 0 AndAlso Mid(*Params(0), InStr(LCase(*Params(0)), LCase(sWord)) + Len(sWord), 1) <> " ") OrElse (iParamCount - 1 >= UBound(Params))) Then 'AndAlso (Mid(*Params(0), InStr(LCase(*Params(0)), LCase(sWord)) + Len(sWord), 1) <> " " OrElse CBool(iSelEndChar = iSelEndCharFunc))) Then
 				iPos = InStr(LCase(*Params(j)), LCase(sWord))
 				If iPos > 0 Then
 					sWord = Mid(*Params(j), iPos, Len(sWord))
-					*Params(j) = ..Left(*Params(j), iPos - 1) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(*Params(j), iPos + Len(sWord))
+					WLet(Params(j), ..Left(*Params(j), iPos - 1) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & sWord & "~" & sWord & """>" & sWord & "</a>" & Mid(*Params(j), iPos + Len(sWord)))
 				End If
 			ElseIf iParamCount = j Then
 				n = Len(*Params(j)) - Len(LTrim(*Params(j)))
@@ -5189,13 +5189,13 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 				If iPos1 = 0 Then iPos1 = Len(*Params(j)) + 1
 				If j = 0 AndAlso iPos > 0 Then
 					Param = Mid(*Params(j), iPos + 1, iPos1 - iPos - 1)
-					*Params(j) = ..Left(*Params(j), iPos) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(*Params(j), iPos1)
+					WLet(Params(j), ..Left(*Params(j), iPos) & "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" &  Param & "</a>" & Mid(*Params(j), iPos1))
 				ElseIf iParamCount = UBound(Params) Then
 					If iPos1 = 0 Then iPos1 = Len(*Params(j)) + 1
 					Param = ..Left(*Params(j), iPos1 - 1)
-					*Params(j) = "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(*Params(j), iPos1) 'WString(n, " ") &
+					WLet(Params(j), "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(Param) & "~" & sWord & """>" & Param & "</a>" & Mid(*Params(j), iPos1)) 'WString(n, " ") &
 				ElseIf iParamCount < UBound(Params) Then
-					*Params(j) = "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(*Params(j)) & "~" & sWord & """>" &  *Params(j) & "</a>" 'WString(n, " ") &
+					WLet(Params(j), "<a href=""" & *LinkParse(0) & "~" & *LinkParse(1) & "~" & GetCorrectParam(*Params(j)) & "~" & sWord & """>" &  *Params(j) & "</a>") 'WString(n, " ") &
 				End If
 			End If
 		Next
