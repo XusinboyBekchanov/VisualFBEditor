@@ -9571,10 +9571,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If UBound(res1) > -1 Then
 										CurType = ..Left(CurType, Pos1 + Len(*res1(0)))
 									End If
-									For n As Integer = 0 To UBound(res1)
-										Deallocate res1(n)
-									Next n
-									Erase res1
+									'For n As Integer = 0 To UBound(res1)
+									'	Deallocate res1(n)
+									'Next n
+									'Erase res1
 								End If
 							Else
 								Split GetChangedCommas(b2), ",", res1()
