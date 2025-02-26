@@ -881,6 +881,7 @@ Operator TabWindow.Cast As TabPage Ptr
 End Operator
 
 Sub DeleteFromTypeElement(te As TypeElement Ptr)
+	If te->Elements.Count < 1 Then Return 
 	If te->ElementType <> E_Enum Then
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			DeleteFromTypeElement(te->Elements.Object(j))
@@ -5260,7 +5261,7 @@ End Sub
 '	Return sTemp
 'End Function
 
-Function GetChangedCommas(Value As String, FromSecond As Boolean = False) As String
+Function GetChangedCommas(ByRef Value As WString, FromSecond As Boolean = False) As String
 	Dim As String ch, Text
 	Dim As Boolean b, bQ
 	Dim As Integer iCount = IIf(FromSecond, -1, 0)
@@ -8170,10 +8171,6 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 									If UBound(res1) > -1 Then
 										CurType = ..Left(CurType, Pos1 + Len(*res1(0)))
 									End If
-									For n As Integer = 0 To UBound(res1)
-										Deallocate res1(n)
-									Next n
-									Erase res1
 								End If
 							Else
 								Split GetChangedCommas(b2), ",", res1()
@@ -9571,10 +9568,6 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If UBound(res1) > -1 Then
 										CurType = ..Left(CurType, Pos1 + Len(*res1(0)))
 									End If
-									'For n As Integer = 0 To UBound(res1)
-									'	Deallocate res1(n)
-									'Next n
-									'Erase res1
 								End If
 							Else
 								Split GetChangedCommas(b2), ",", res1()
@@ -12097,7 +12090,7 @@ Sub RunEmulator(Param As Any Ptr)
 					Split sOutput, Chr(10), res1()
 					For n As Integer = 0 To UBound(res1)
 						If i = 0 Then
-
+							AvdName = *res1(n)
 							If EndsWith(AvdName, Chr(13)) Then
 								AvdName = Left(AvdName, Len(AvdName) - 1)
 							End If
