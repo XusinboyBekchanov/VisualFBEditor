@@ -3072,7 +3072,7 @@ End Sub
 
 Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As Boolean
 	If tn = 0 Then Return True
-	If tn->ImageKey <> "Project" Then Return True
+	If tn->ImageKey <> "Project" AndAlso tn->ImageKey <> "MainProject" AndAlso tn->ImageKey <> "Opened" Then Return True
 	Dim tb As TabWindow Ptr
 	Dim As Boolean bProjectModified = EndsWith(tn->Text, "*")
 	If Not WithoutMessage Then
@@ -5389,12 +5389,12 @@ Function GetTypeLink(ByRef TypeName As String, ByVal bMarkDown As Boolean = Fals
 	If bMarkDown Then
 		If StartsWith(TypeName, "Const ") Then
 			NewTypeName = Trim(Mid(TypeName, 7))
-			Return "[`Const`](a href=""https://www.freebasic.net/wiki/KeyPgConst"")" & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(NewTypeName), "[`" & NewTypeName & "`]" & "(a href=""https://www.freebasic.net/wiki/KeyPg" & NewTypeName & """)", "[`" & NewTypeName & "`]")
+			Return "[`Const`](""https://www.freebasic.net/wiki/KeyPgConst"")" & IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(NewTypeName), "[`" & NewTypeName & "`]" & "(a href=""https://www.freebasic.net/wiki/KeyPg" & NewTypeName & """)", "[`" & NewTypeName & "`]")
 		Else
 			Dim As Integer posi = InStrRev(LCase(TypeName), " as ") + 4
 			If posi < 5 Then posi = 1
 			NewTypeName = Trim(Mid(TypeName, posi))
-			Return IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(NewTypeName), "[`" & NewTypeName & "`](a href=""https://www.freebasic.net/wiki/KeyPg" & NewTypeName & """)" , "[`" & NewTypeName & "`]")
+			Return IIf(pkeywords1 <> 0 AndAlso pkeywords1->Contains(NewTypeName), "[`" & NewTypeName & "`](""https://www.freebasic.net/wiki/KeyPg" & NewTypeName & """)" , "[`" & NewTypeName & "`]")
 		End If
 	Else
 		If StartsWith(TypeName, "Const ") Then
@@ -5541,13 +5541,33 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	' HTML STYLE
 	#if 0
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
+		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
+		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
+		Dim As Integer Posi
+		Dim As Dictionary ControlParentDict
+		If Dir(ExePath & "/Controls/MyFbFramework/ControlParent.csv") <> "" Then
+			ControlParentDict.LoadfromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
+		Else
+			ControlParentDict.Add "NULL", "NULL"
+		End If
+
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Comps.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
-			Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+			If tbi->ControlType = 0 Then
+				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
+				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(posi)->Text Else TmpControlName= ""
+				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+			Else
+				TmpControlName = Comps.Item(i)
+				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
+			End If
+
 			Print #Fn, ""
 			Print #Fn, "'''" & Comps.Item(i) & "''' - " & tbi->Comment
 			Print #Fn, ""
@@ -5581,6 +5601,23 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn1, "<h2>Definition</h2>"
 					Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 				End If
+				Posi = InStr(wikiTitle, ".")
+				If Posi > 0 Then
+					TmpControlChildName = Left(wikiTitle, Posi - 1)
+					TmpControlSubName = Mid(wikiTitle, Posi + 1)
+				Else
+					TmpControlChildName = ""
+					TmpControlSubName = wikiTitle
+				End If
+				
+				If Posi > 0 Then
+					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+					Else
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+					End If
+				End If
+
 				Print #Fn1, "<h2>Syntax</h2>"
 				Print #Fn1, "```fb"
 				Print #Fn1, te->Parameters
@@ -5589,6 +5626,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, GetTypeLink(te->TypeName)
 				Print #Fn1, "<h2>See also</h2>"
 				Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
+				If Trim(TmpControlChildName) <> "" Then Print #Fn1, "`" & TmpControlChildName & "`[[" & TmpControlChildName & ".mediawiki]]"
+				If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".mediawiki)"
 				CloseFile_(Fn1)
 			Next
 			Print #Fn, "</tbody>"
@@ -5622,6 +5661,22 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						Print #Fn1, "<h2>Definition</h2>"
 						Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 					End If
+					Posi = InStr(wikiTitle, ".")
+					If Posi > 0 Then
+						TmpControlChildName = Left(wikiTitle, Posi - 1)
+						TmpControlSubName = Mid(wikiTitle, Posi + 1)
+					Else
+						TmpControlChildName = ""
+						TmpControlSubName = wikiTitle
+					End If
+					If Posi > 0 Then
+						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+						Else
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+						End If
+					End If
+
 					Print #Fn1, "<h2>Syntax</h2>"
 					Print #Fn1, "```fb"
 					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters
@@ -5648,12 +5703,14 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					End If
 					Print #Fn1, "<h2>See also</h2>"
 					Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
+					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".mediawiki)"
 					CloseFile_(Fn1)
 				End If
 			Next
 			Print #Fn, "</tbody>"
 			Print #Fn, "</table>"
 			Print #Fn, "== Events =="
+			If FPropertyItems.Count > 0 Then
 			Print #Fn, "<table>"
 			Print #Fn, "<thead>"
 			Print #Fn, "<tr class=""header"">"
@@ -5682,6 +5739,22 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						Print #Fn1, "<h2>Definition</h2>"
 						Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 					End If
+						Posi = InStr(wikiTitle, ".")
+						If Posi > 0 Then
+							TmpControlChildName = Left(wikiTitle, Posi - 1)
+							TmpControlSubName = Mid(wikiTitle, Posi + 1)
+						Else
+							TmpControlChildName = ""
+							TmpControlSubName = wikiTitle
+						End If
+						If Posi > 0 Then
+							If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+								Print #Fn1,  "``" & TmpControlSubName & "``` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+							Else
+								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+							End If
+						End If
+
 					Print #Fn1, "<h2>Syntax</h2>"
 					Print #Fn1, "```fb"
 					Print #Fn1, te->Parameters
@@ -5709,9 +5782,13 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn1, ""
 					Print #Fn1, "<h2>See also</h2>"
 					Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
+					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
 					CloseFile_(Fn1)
 				End If
 			Next
+			Else
+				Print #Fn, "(No events defined for this component)"
+			End If
 			Print #Fn, "</tbody>"
 			Print #Fn, "</table>"
 			If tbi->OwnerNamespace <> "" Then
@@ -5726,10 +5803,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "<h2>" & Globals.Enums.Item(i) & " Enum</h2>"
+			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework, part of the freeBasic framework."
 			Print #Fn, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "<h2>Definition</h2>"
-				Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			End If
 			Print #Fn, "<h2>Fields</h2>"
 			Print #Fn, "<table>"
@@ -5776,6 +5854,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Next
 				Dim As Integer Fn = FreeFile_
 				Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn
+				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework, part of the freeBasic framework."
 				Print #Fn, tbi->Comment
 				Print #Fn, ""
 				If bNamespaces Then
@@ -5974,6 +6053,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, "<h2>Definition</h2>"
 				Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			End If
+			Print #Fn1, "`" & tbi->FullName & "` Is a global " & IIf(tbi->ElementType = ElementTypes.E_Function, "function", IIf(tbi->ElementType = ElementTypes.E_Sub, "sub", IIf(tbi->ElementType = ElementTypes.E_Define, "definition", IIf(tbi->ElementType = ElementTypes.E_Macro, "macro", "")))) & " within the MyFbFramework, part of the freeBasic framework."
 			Print #Fn1, "<h2>Syntax</h2>"
 			Print #Fn1, ""
 			Print #Fn1, "```fb"
@@ -6068,7 +6148,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & tbi->Name & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
-			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			Print #Fn,  "`" & tbi->Name & "` is a global variable in MyFbFramework, part of the freeBasic framework."
 			Print #Fn, ""
 			Print #Fn, "'''" & tbi->Name & "''' - " & tbi->Comment
 			Print #Fn, ""
@@ -6082,16 +6163,43 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 	#endif
 	' Markdown STYLE
+	'This is a component of the MyFbFramework, which is part of the freeBasic framework and belongs to the container control.
+	
+	'This is part of the freeBasic framework MyFbFramework. It belongs to the container control.
+	'This is part of the properties of the grid control. It belongs to the .
+	
+	'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
+	
+	
 	#if 0
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
-		Dim As String TmpName
+		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
+		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
+		Dim As Integer Posi
+		Dim As Dictionary ControlParentDict
+		If Dir(ExePath & "/Controls/MyFbFramework/ControlParent.csv") <> "" Then
+			ControlParentDict.LoadfromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
+		Else
+			ControlParentDict.Add "NULL", "NULL"
+		End If
+		
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Comps.Item(i) & ".md" For Output As #Fn
+			Print #Fn, "[TOC]"
 			Print #Fn, "## Definition"
-			Print #Fn, "Namespace: [^" & tbi->OwnerNamespace & "]"
+			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+			If tbi->ControlType = 0 Then
+				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
+				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(posi)->Text Else TmpControlName= ""
+				Print #Fn,  "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+			Else
+				TmpControlName = Comps.Item(i)
+				Print #Fn,  "`" & Comps.Item(i) & "` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
+			End If
 			Print #Fn, ""
 			Print #Fn, "`" & Comps.Item(i) & "` - " & tbi->Comment
 			Print #Fn, ""
@@ -6106,15 +6214,33 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				Print #Fn, "|[" & FPropertyItems.Item(j) & "](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+				If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 				Dim As Integer Fn1 = FreeFile_
 				Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-				Print #Fn1, "#" & wikiTitle & " Property" & "#"
+				Print #Fn1, "[TOC]"
+				Print #Fn1, "# " & wikiTitle & " Property"
 				Print #Fn1, te->Comment
-				
+				'This is part of the properties of the grid control.
 				If tbi->OwnerNamespace <> "" Then
 					Print #Fn1, "## Definition"
-					Print #Fn1, "Namespace: [" & tbi->OwnerNamespace & "]"
+					
+					Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+				End If
+				Posi = InStr(wikiTitle, ".")
+				If Posi > 0 Then
+					TmpControlChildName = Left(wikiTitle, Posi - 1)
+					TmpControlSubName = Mid(wikiTitle, Posi + 1)
+				Else
+					TmpControlChildName = ""
+					TmpControlSubName = wikiTitle
+				End If
+				
+				If Posi > 0 Then
+					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+						Print #Fn1,  "`" & TmpControlSubName & "` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+					Else
+						Print #Fn1,  "`" & TmpControlSubName & "` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+					End If
 				End If
 				Print #Fn1, "## Syntax"
 				Print #Fn1, "```freeBasic"
@@ -6123,8 +6249,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, "## Property Value"
 				Print #Fn1, GetTypeLink(te->TypeName, True)
 				Print #Fn1, "## See also"
-				TmpName = Left(te->DisplayName, InStr(te->DisplayName, ".") - 1)
-				Print #Fn1, "* [^" & tmpName & "]:[" & TmpName & "](" & TmpName & ".md)"
+				TmpControlChildName = Left(te->DisplayName, InStr(te->DisplayName, ".") - 1)
+				If Trim(TmpControlChildName) <> "" Then Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+				If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
 				CloseFile_(Fn1)
 			Next
 			Print #Fn, ""
@@ -6136,16 +6263,32 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				Print #Fn, "|[" & FPropertyItems.Item(j) & "](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+				If Trim(te->Comment, Any !"\r\n\t ") = "" Then Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 				If Not teList.Contains(te) Then
 					teList.Add te
 					Dim As Integer Fn1 = FreeFile_
 					Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-					Print #Fn1, "## " & wikiTitle & " Method"
+					Print #Fn1, "[TOC]"
+					Print #Fn1, "# " & wikiTitle & " Method"
 					Print #Fn1, te->Comment
 					If tbi->OwnerNamespace <> "" Then
-						Print #Fn1, "## Definition
-						Print #Fn1, "Namespace: [^" & tbi->OwnerNamespace & "]"
+						Print #Fn1, "## Definition"
+						If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+					End If
+					Posi = InStr(wikiTitle, ".")
+					If Posi > 0 Then
+						TmpControlChildName = Left(wikiTitle, Posi - 1)
+						TmpControlSubName = Mid(wikiTitle, Posi + 1)
+					Else
+						TmpControlChildName = ""
+						TmpControlSubName = wikiTitle
+					End If
+					If Posi > 0 Then
+						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+							Print #Fn1,  "`" & TmpControlSubName & "` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+						Else
+							Print #Fn1,  "`" & TmpControlSubName & "` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+						End If
 					End If
 					Print #Fn1, "##Syntax"
 					Print #Fn1, "```freeBasic"
@@ -6157,12 +6300,12 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
 						Print #Fn1, "##Parameters"
 						Print #Fn1, ""
-						Print #Fn1, "|'Part'|'Type'|'Description'|"
-						Print #Fn, "| :------------ | :------------ |"
+						Print #Fn1, "|Part|Type|Description|"
+						Print #Fn1, "| :------------ | :------------ |"
 						For k As Integer = 0 To te->Elements.Count - 1
 							If Trim(te->Elements.Item(k)) = "" Then Continue For
 							te1 = te->Elements.Object(k)
-							Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "`|" & Trim(te1->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te1->Comment, Any !"\r\n\t ") = "" Then Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & Trim(te1->Comment, Any !"\r\n\t ") & "|"
 						Next
 					End If
 					If te->ElementType = ElementTypes.E_Function Then
@@ -6171,63 +6314,83 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						Print #Fn1, GetTypeLink(te->TypeName, True)
 					End If
 					Print #Fn1, "## See also"
-					TmpName = Left(te->DisplayName, InStr(te->DisplayName, ".") - 1)
-					Print #Fn1, "* [^" & tmpName & "]:[" & TmpName & "](" & TmpName & ".md)"
+					Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
 					CloseFile_(Fn1)
 				End If
 			Next
 			Print #Fn, "## Events"
-			Print #Fn, "|Name|Description|"
-			Print #Fn, "| :------------ | :------------ |"
-			For j As Integer = 0 To FPropertyItems.Count - 1
-				te = FPropertyItems.Object(j)
-				If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
-				Var Pos1 = InStr(te->DisplayName, "[")
-				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				Print #Fn, "|[" & FPropertyItems.Item(j) & "](""" & wikiTitle & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-				If Not teList.Contains(te) Then
-					teList.Add te
-					Dim As Integer Fn1 = FreeFile_
-					Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-					Print #Fn1, "# " & wikiTitle & " Event"
-					Print #Fn1, te->Comment
-					If tbi->OwnerNamespace <> "" Then
-						Print #Fn1, "## Definition"
-						Print #Fn1, "Namespace: [" & tbi->OwnerNamespace & "]"
-					End If
-					Print #Fn1, "## Syntax"
-					Print #Fn1, "```freeBasic"
-					Print #Fn1, te->Parameters
-					Print #Fn1, "```"
-					Print #Fn1, ""
-					Pos1 = InStr(te->Parameters, "(")
-					If Pos1 > 0 Then
-						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-						Print #Fn1, "## Parameters"
+			If FPropertyItems.Count > 0 Then
+				Print #Fn, "|Name|Description|"
+				Print #Fn, "| :------------ | :------------ |"
+				For j As Integer = 0 To FPropertyItems.Count - 1
+					te = FPropertyItems.Object(j)
+					If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
+					Var Pos1 = InStr(te->DisplayName, "[")
+					If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+					If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+					If Not teList.Contains(te) Then
+						teList.Add te
+						Dim As Integer Fn1 = FreeFile_
+						Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
+						Print #Fn1, "[TOC]"
+						Print #Fn1, "# " & wikiTitle & " Event"
+						Print #Fn1, te->Comment
+						If tbi->OwnerNamespace <> "" Then
+							Print #Fn1, "## Definition"
+							Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`]"
+						End If
+						Posi = InStr(wikiTitle, ".")
+						If Posi > 0 Then
+							TmpControlChildName = Left(wikiTitle, Posi - 1)
+							TmpControlSubName = Mid(wikiTitle, Posi + 1)
+						Else
+							TmpControlChildName = ""
+							TmpControlSubName = wikiTitle
+						End If
+						If Posi > 0 Then
+							If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
+								Print #Fn1,  "`" & TmpControlSubName & "` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+							Else
+								Print #Fn1,  "`" & TmpControlSubName & "` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+							End If
+						End If
+						Print #Fn1, "## Syntax"
+						Print #Fn1, "```freeBasic"
+						Print #Fn1, te->Parameters
+						Print #Fn1, "```"
 						Print #Fn1, ""
-						Print #Fn1, "|'Part'|'Type'|'Description'|"
-						Print #Fn, "| :------------ | :------------ | :------------ |"
-						For k As Integer = 0 To te->Elements.Count - 1
-							If Trim(te->Elements.Item(k)) = "" Then Continue For
-							te1 = te->Elements.Object(k)
-							Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: `Designer.IsEmpty()`", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment)) & "|"
-						Next
-					End If
-					If StartsWith(LCase(te->TypeName), "function(") Then
+						Pos1 = InStr(te->Parameters, "(")
+						If Pos1 > 0 Then
+							SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
+							Print #Fn1, "## Parameters"
+							Print #Fn1, ""
+							Print #Fn1, "|Part|Type|Description|"
+							Print #Fn1, "| :------------ | :------------ | :------------ |"
+							For k As Integer = 0 To te->Elements.Count - 1
+								If Trim(te->Elements.Item(k)) = "" Then Continue For
+								te1 = te->Elements.Object(k)
+								If Trim(te1->Comment, Any !"\r\n\t ") = "" Then  Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: `Designer.IsEmpty()`", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment)) & "|"
+							Next
+						End If
+						If StartsWith(LCase(te->TypeName), "function(") Then
+							Print #Fn1, ""
+							Print #Fn1, "## Return Value"
+							Print #Fn1, GetTypeLink(te->TypeName, True)
+						End If
 						Print #Fn1, ""
-						Print #Fn1, "## Return Value"
-						Print #Fn1, GetTypeLink(te->TypeName, True)
+						Print #Fn1, "## See also"
+						Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
+						CloseFile_(Fn1)
 					End If
-					Print #Fn1, ""
-					Print #Fn1, "## See also"
-					TmpName = Left(te->DisplayName, InStr(te->DisplayName, ".") - 1)
-					Print #Fn1, "* [^" & tmpName & "]:[" & TmpName & "](" & TmpName & ".md)"
-					CloseFile_(Fn1)
-				End If
-			Next
+				Next
+			Else
+				Print #Fn, "(No events defined for this component)"
+			End If
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "## See also"
-				Print #Fn, "* [^" & tbi->OwnerNamespace & "]:[" & tbi->OwnerNamespace & "](" & tbi->OwnerNamespace & ".md)"
+				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
 			End If
 			CloseFile_(Fn)
 		Next i
@@ -6236,21 +6399,29 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".md" For Output As #Fn
+			Print #Fn, "[TOC]"
 			Print #Fn, "# " & Globals.Enums.Item(i) & " Enum"
+			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework, part of the freeBasic framework."
 			Print #Fn, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "## Definition"
-				Print #Fn, "Namespace: [^" & tbi->OwnerNamespace & "]"
+				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
 			End If
 			Print #Fn, "## Fields"
+			Print #Fn, "|Part|Description|"
 			Print #Fn, "| :------------ | :------------ |"
 			For j As Integer = 0 To tbi->Elements.Count - 1
 				te = tbi->Elements.Object(j)
-				Print #Fn, "|" & tbi->Elements.Item(j) & "|" & te->Value & "|" & te->Comment & "|"
+				If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|" & te->Comment & "|"
 			Next
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "## See also"
-				Print #Fn, "* [^" & tbi->OwnerNamespace & "]:[" & tbi->OwnerNamespace & "](" & tbi->OwnerNamespace & ".md)"
+				Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+				TmpControlChildName = "Control" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+				TmpControlChildName = "Form" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+				TmpControlChildName = "ContainerControl" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+				TmpControlChildName = "Panel" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
+				TmpControlChildName = "GroupBox" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
 			End If
 			CloseFile_(Fn)
 		Next i
@@ -6280,6 +6451,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Next
 				Dim As Integer Fn = FreeFile_
 				Open wikiFolder & tbi->FullName & ".md" For Output As #Fn
+				Print #Fn, "[TOC]"
+				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework, part of the freeBasic framework."
 				Print #Fn, tbi->Comment
 				Print #Fn, ""
 				If bNamespaces Then
@@ -6296,7 +6469,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							If Not Namespaces.Contains(te->Name) Then
 								Namespaces.Add te->Name
-								Print #Fn, "|[" & te->Name & "](""" & te->FullName & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+								Print #Fn, "|[`" & te->Name & "`](""" & te->FullName & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 							End If
 						Next
 					Next
@@ -6313,7 +6486,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 					Print #Fn, ""
@@ -6329,7 +6502,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> E_Enum Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6344,7 +6517,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6359,7 +6532,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6375,7 +6548,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							If te->Declaration Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6390,7 +6563,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> ElementTypes.E_Constant Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6405,7 +6578,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							te = tbi1->Elements.Object(j)
 							If te->ElementType <> ElementTypes.E_CommonVariable AndAlso te->ElementType <> ElementTypes.E_LocalVariable AndAlso te->ElementType <> ElementTypes.E_ExternVariable AndAlso te->ElementType <> ElementTypes.E_SharedVariable Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							Print #Fn, "|[" & te->Name & "](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
+							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
 						Next
 					Next
 				End If
@@ -6419,6 +6592,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->Declaration Then Continue For
 			Dim As Integer Fn1 = FreeFile_
 			Open wikiFolder & tbi->FullName & ".md" For Output As #Fn1
+			Print #Fn1, "[TOC]"
 			Print #Fn1, "## " & tbi->FullName & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", ""))))
 			Dim As UString Lines()
 			Split(tbi->Comment, Chr(13) & Chr(10), Lines())
@@ -6430,8 +6604,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			'Print #Fn1, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn1, "## Definition"
-				Print #Fn1, "Namespace: [^" & tbi->OwnerNamespace & "]"
+				Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
 			End If
+			Print #Fn1, "`" & tbi->FullName & "` Is a global " & IIf(tbi->ElementType = ElementTypes.E_Function, "function", IIf(tbi->ElementType = ElementTypes.E_Sub, "sub", IIf(tbi->ElementType = ElementTypes.E_Define, "definition", IIf(tbi->ElementType = ElementTypes.E_Macro, "macro", "")))) & " within the MyFbFramework, part of the freeBasic framework."
 			Print #Fn1, "## Syntax"
 			Print #Fn1, ""
 			Print #Fn1, "```freeBasic"
@@ -6443,7 +6618,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				SplitParameters tbi->Parameters, Pos1, Mid(tbi->Parameters, Pos1 + 1, Len(tbi->Parameters) - Pos1 - 1), tbi->FileName, tbi, tbi->StartLine, 0, ECLines, tbi->InCondition, tbi->Declaration, False
 				Print #Fn1, "## Parameters"
 				Print #Fn1, ""
-				Print #Fn1, "|'Part'|'Type'|'Description'|"
+				Print #Fn1, "|Part|Type|Description|"
 				Print #Fn1, "| :------------ | :------------ | :------------ |"
 				For k As Integer = 0 To tbi->Elements.Count - 1
 					te1 = tbi->Elements.Object(k)
@@ -6462,7 +6637,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						End If
 					Next
 					If Trim(tbi->Elements.Item(k)) = "" Then Continue For
-					Print #Fn1, "|`" & tbi->Elements.Item(k) & "`|`" & GetTypeLink(te1->TypeName, True) & "`|" & Trim(te1->Comment, Any !"\r\n\t ") & Trim(Comment, Any !"\r\n\t ") & "|"
+					If Trim(te1->Comment, Any !"\r\n\t ") = "" Then Print #Fn1, "|`" & tbi->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & Trim(te1->Comment, Any !"\r\n\t ") & Trim(Comment, Any !"\r\n\t ") & "|"
 				Next
 				
 			End If
@@ -6506,7 +6681,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn1, "## " & LTrim(Lines(kk), Any !"\t ")
 				ElseIf bSeeAlso Then
 					If Trim(Lines(kk), Any !"\t ") = "" Then Continue For
-					Print #Fn1, "[" & LTrim(Lines(kk), Any !"\t ") & "]" & "(" & LTrim(Lines(kk), Any !"\t ") & ".md)"
+					Print #Fn1, "[`" & LTrim(Lines(kk), Any !"\t ") & "`]" & "(" & LTrim(Lines(kk), Any !"\t ") & ".md)"
 				ElseIf bExample Then
 					Print #Fn1, Lines(kk)
 				Else
@@ -6515,7 +6690,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Next
 			If tbi->OwnerNamespace <> "" AndAlso Not bSeeAlso Then
 				Print #Fn1, "## See also"
-				Print #Fn1, "Namespace: [^" & te->OwnerNamespace & "]"
+				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
 			End If
 			CloseFile_(Fn1)
 		Next i
@@ -6525,8 +6700,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & tbi->Name & ".md" For Output As #Fn
+			Print #Fn, "[TOC]"
 			Print #Fn, "## Definition"
-			Print #Fn, "Namespace: " & tbi->OwnerNamespace
+			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+			Print #Fn,  "`" & tbi->Name & "` is a global variable in MyFbFramework, part of the freeBasic framework."
 			Print #Fn, ""
 			Print #Fn, "`" & tbi->Name & "` - " & tbi->Comment
 			Print #Fn, ""
@@ -6538,6 +6715,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, GetTypeLink(tbi->TypeName, True)
 			CloseFile_(Fn)
 		Next i
+		'Dim As Integer Fn = FreeFile_
+		'	Open wikiFolder & "ControlParent.csv" For Output As #Fn
+		'	Print #Fn, ControlParent
+		'	CloseFile_(Fn)
+		
 	#endif
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
@@ -7319,9 +7501,8 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList
-	
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Load Hot Keys")
 	LoadHotKeys
-	
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
 	miFile->Add(ML("&New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
 	miFile->Add("-")

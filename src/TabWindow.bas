@@ -5022,11 +5022,11 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			End If
 			Index = pGlobalFunctions->IndexOf(sWord)
 			If Index > -1 Then
-				Dim As WString Ptr res(Any)
 				For i As Integer = Index To pGlobalFunctions->Count - 1
 					te = pGlobalFunctions->Object(i)
 					If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
 						If CInt(Not ParametersList.Contains(te->Parameters)) Then
+							Dim As WString Ptr res(Any)
 							Split te->Parameters, !"\r", res()
 							For n As Integer = 0 To UBound(res)
 								Parameter = *res(n) 'te->Parameters
@@ -7231,7 +7231,8 @@ End Sub
 Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, ByRef InCondition As String, Declaration As Boolean, AddArgs As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
 	If Parameters <> "" Then
 		If CBool(ECLine <> 0) AndAlso AddArgs Then ECLine->Args.Add func
-		Dim As UString CurType, res1(Any), ElementValue
+		Dim As WString * 255 CurType, ElementValue
+		Dim As WString Ptr res1(Any)
 		Dim As Integer Pos1, Pos2, l, c, u = u1, uu, ct
 		For i As Integer = Pos5 To Len(bTrim) - 1
 			l += 1
@@ -7250,56 +7251,56 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 		uu = u
 		For n As Integer = 0 To UBound(res1)
 			u = uu
-			uu += Len(res1(n)) + 1
-			u += Len(res1(n)) - Len(LTrim(res1(n)))
-			res1(n) = Trim(Replace(res1(n), ";", ","))
-			Pos1 = InStr(res1(n), "=")
+			uu += Len(*res1(n)) + 1
+			u += Len(*res1(n)) - Len(LTrim(*res1(n)))
+			*res1(n) = Trim(Replace(*res1(n), ";", ","))
+			Pos1 = InStr(*res1(n), "=")
 			If Pos1 > 0 Then
-				ElementValue = Trim(Mid(res1(n), Pos1 + 1))
-				u += Len(res1(n)) - Len(LTrim(res1(n)))
-				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+				ElementValue = Trim(Mid(*res1(n), Pos1 + 1))
+				u += Len(*res1(n)) - Len(LTrim(*res1(n)))
+				*res1(n) = Trim(..Left(*res1(n), Pos1 - 1))
 			Else
 				ElementValue = ""
 			End If
-			Pos1 = InStr(LCase(res1(n)), " as ")
+			Pos1 = InStr(LCase(*res1(n)), " as ")
 			If Pos1 > 0 Then
-				CurType = Trim(Mid(res1(n), Pos1 + 4))
+				CurType = Trim(Mid(*res1(n), Pos1 + 4))
 				CurType = Replace(CurType, "`", "=")
 				'Pos2 = InStr(CurType, "*")  'David Change,  a As WString*2
-				'If Pos2 > 1 Then CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(res1(n), Pos1 + Len("as") + 2))
-				'If Pos1 > 0 Then 
-					u += Len(res1(n)) - Len(LTrim(res1(n)))
-					res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+				'If Pos2 > 1 Then CurType = Trim(Mid(*res1(n), Pos1 + Len("as") + 2, Pos2 - Pos1 - Len("as") - 1)) Else CurType = Trim(Mid(*res1(n), Pos1 + Len("as") + 2))
+				'If Pos1 > 0 Then
+				u += Len(*res1(n)) - Len(LTrim(*res1(n)))
+				*res1(n) = Trim(..Left(*res1(n), Pos1 - 1))
 				'End If
 			End If
 			Var te = _New( TypeElement)
-			If res1(n).ToLower.StartsWith("byref") Then
-				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
-				res1(n) = Trim(Mid(res1(n), 6))
+			If StartsWith(LCase(*res1(n)), "byref") Then
+				u += Len(*res1(n)) - Len(LTrim(Mid(*res1(n), 6)))
+				*res1(n) = Trim(Mid(*res1(n), 6))
 				te->ElementType = E_ByRefParameter
-			ElseIf res1(n).ToLower.StartsWith("byval") Then
-				u += Len(res1(n)) - Len(LTrim(Mid(res1(n), 6)))
-				res1(n) = Trim(Mid(res1(n), 6))
+			ElseIf StartsWith(LCase(*res1(n)), "byval") Then
+				u += Len(*res1(n)) - Len(LTrim(Mid(*res1(n), 6)))
+				*res1(n) = Trim(Mid(*res1(n), 6))
 				te->ElementType = E_ByValParameter
 			Else
 				te->ElementType = E_ByValParameter
 			End If
-			Pos1 = InStr(res1(n), "(")
+			Pos1 = InStr(*res1(n), "(")
 			If Pos1 > 0 Then
-				u += Len(res1(n)) - Len(LTrim(res1(n)))
-				res1(n) = Trim(..Left(res1(n), Pos1 - 1))
+				u += Len(*res1(n)) - Len(LTrim(*res1(n)))
+				*res1(n) = Trim(..Left(*res1(n), Pos1 - 1))
 			End If
-			u += Len(res1(n)) - Len(LTrim(res1(n).TrimAll))
-			res1(n) = res1(n).TrimAll
-			If (Not (CurType.ToLower.StartsWith("sub") OrElse CurType.ToLower.StartsWith("function"))) AndAlso LCase(CurType) <> "my.sys.object" Then
+			u += Len(*res1(n)) - Len(Trim(*res1(n)))
+			*res1(n) = Trim(*res1(n))
+			If (Not (StartsWith(LCase(CurType), "sub") OrElse StartsWith(LCase(CurType), "function"))) AndAlso LCase(CurType) <> "my.sys.object" Then
 				Pos1 = InStrRev(CurType, ".")
 				If Pos1 > 0 Then CurType = Mid(CurType, Pos1 + 1)
 			End If
-			te->Name = res1(n)
+			te->Name = *res1(n)
 			te->InCondition = InCondition
 			te->Declaration = Declaration
-			te->DisplayName = res1(n)
-			te->TypeIsPointer = CurType.ToLower.EndsWith(" pointer") OrElse CurType.ToLower.EndsWith(" ptr")
+			te->DisplayName = *res1(n)
+			te->TypeIsPointer = EndsWith(LCase(CurType), " pointer") OrElse EndsWith(LCase(CurType), " ptr")
 			'te->ElementType = IIf(StartsWith(LCase(te->TypeName), "sub("), "Event", "Property")
 			te->TypeName = CurType
 			te->TypeName = WithoutPointers(te->TypeName)
@@ -7308,8 +7309,8 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			te->StartLine = LineIndex
 			te->EndLine = LineIndex
 			te->StartChar = u
-			te->EndChar = u + Len(res1(n))
-			te->Parameters = res1(n) & " As " & CurType
+			te->EndChar = u + Len(*res1(n))
+			te->Parameters = *res1(n) & " As " & CurType
 			te->FileName = FileName
 			te->Tag = tb
 			SetLineAndCharParameters te, ECLines
