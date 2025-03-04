@@ -1870,7 +1870,9 @@ Namespace My.Sys.Forms
 					pBuff = 0
 					If OldFileEncoding = FileEncodings.Utf8 Then
 						Line Input #Fn, Buff
-						WLet(pBuff, FromUtf8(StrPtr(Buff)))
+						Dim As WString Ptr Temp = FromUtf8(StrPtr(Buff))
+						WLet(pBuff, *Temp)
+						WDeAllocate(Temp)
 					Else
 						LineInputWstr Fn, BuffRead, MaxChars
 						WLet(pBuff, *BuffRead)
@@ -1900,7 +1902,7 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
 		End If
-		pstBar->Panels[1]->Caption = ML("Elapsed time") &" (s):" & Format((Timer - timeElapse) , "#0.000")
+		pstBar->Panels[1]->Caption = ML("Elapsed time") & " (s):" & Format((Timer - timeElapse) , "#0.000")
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
@@ -7480,7 +7482,9 @@ Namespace My.Sys.Forms
 		
 		Sub EditControl_Commit(imcontext As GtkIMContext Ptr, sStr As ZString Ptr, ec As EditControl Ptr)
 			#ifdef __FB_WIN32__
-				ec->ChangeText FromUtf8(*sStr)
+				Dim As WString Ptr Temp = FromUtf8(*sStr)
+				ec->ChangeText *Temp
+				WDeAllocate(Temp)
 			#else
 				ec->ChangeText *sStr
 			#endif
