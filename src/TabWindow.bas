@@ -1954,10 +1954,10 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	If tb->Des->DesignControl = 0 Then Exit Sub
 	If Ctrl = 0 Then Exit Sub
 	Dim FLine As WString Ptr
-	Dim frmName As WString * 100
-	Dim frmTypeName As WString * 100
-	Dim CtrlName As WString * 100
-	Dim CtrlNameNew As WString * 100
+	Dim frmName As WString * 255
+	Dim frmTypeName As WString * 255
+	Dim CtrlName As WString * 255
+	Dim CtrlNameNew As WString * 255
 	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(Ctrl)
 	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
@@ -2091,12 +2091,12 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	If Cpnt = 0 Then Return 0
 	If tb->Des->DesignControl = 0 Then Return 0
 	'Dim As Integer iLeft, iTop, iWidth, iHeight
-	Dim frmName As WString * 100
-	Dim frmTypeName As WString * 100
-	Dim CtrlName As WString * 100
-	Dim CtrlNameBase As WString * 100
-	Dim BeforeCtrlName As WString * 100
-	Dim AfterCtrlName As WString * 100
+	Dim frmName As WString * 255
+	Dim frmTypeName As WString * 255
+	Dim CtrlName As WString * 255
+	Dim CtrlNameBase As WString * 255
+	Dim BeforeCtrlName As WString * 255
+	Dim AfterCtrlName As WString * 255
 	Dim As SymbolsType Ptr stDesignControl = tb->Des->Symbols(tb->Des->DesignControl)
 	Dim As SymbolsType Ptr st = tb->Des->Symbols(Cpnt)
 	Dim As SymbolsType Ptr stBeforeCtrl = tb->Des->Symbols(BeforeCtrl)
@@ -2251,7 +2251,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 					bWith = WithArgs.Count > 0 AndAlso WithArgs.Item(WithArgs.Count - 1) = CtrlName
 					Var p = InStr(ptxtCode->Lines(k), ".")
 					If p Then
-						If StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "setbounds ") Then
+						If StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "setbounds ") OrElse StartsWith(Trim(LCase(Mid(ptxtCode->Lines(k), p + 1)), Any !"\t "), "setbounds(") Then
 							n = k
 							If iLeft <> -1 AndAlso iTop <> -1 AndAlso iWidth <> -1 AndAlso iHeight <> - 1 Then
 								iLeft1 = iLeft
@@ -2262,7 +2262,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 								tb->Des->GetControlBounds(Cpnt, iLeft1, iTop1, iWidth1, iHeight1)
 							End If
 							CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
-							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p + 10) & iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
+							ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), p + 9) & " " &  iLeft1 & ", " & iTop1 & ", " & iWidth1 & ", " & iHeight1
 							'Ctrl2 = Cast(Control Ptr, Cpnt)
 							'.ReplaceLine i, ..Left(.Lines(i), p + Len(LCase(CtrlName)) + 10) & Ctrl2->Left & ", " & Ctrl2->Top & ", " & Ctrl2->Width & ", " & Ctrl2->Height
 							If LCase(PropertyName) = "left" OrElse LCase(PropertyName) = "top" OrElse LCase(PropertyName) = "width" OrElse LCase(PropertyName) = "height" Then t = True
@@ -9955,9 +9955,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 											End If
 										End If
 									End If
-								ElseIf LCase(Mid(*FLine, p + 1, 10)) = "setbounds " Then
+								ElseIf LCase(Mid(*FLine, p + 1, 10)) = "setbounds " OrElse LCase(Mid(*FLine, p + 1, 10)) = "setbounds(" Then
 									lLeft = 0: lTop = 0: lWidth = 0: lHeight = 0
-									sText = Mid(*FLine, p + 10)
+									p1 = InStr(p + 10, *FLine, "(")
+									If p1 > 0 Then 
+										sText = Trim(Mid(*FLine, p1 + 1))
+									Else
+										sText = Trim(Mid(*FLine, p + 10))
+									End If
 									p1 = InStr(sText, ",")
 									If p1 > 0 Then
 										lLeft = Val(..Left(sText, p1 - 1))
@@ -10235,6 +10240,10 @@ mnuCode.Add(ML("Define"), "", "Define", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Convert to Lowercase"), "", "ConvertToLowercase", @mClick)
 mnuCode.Add(ML("Convert to Uppercase"), "", "ConvertToUppercase", @mClick)
+mnuCode.Add(ML("Capitalize only the first letter"), "", "ConvertToUppercaseFirstLetter", @mClick)
+mnuCode.Add("-")
+mnuCode.Add(ML("Convert to Unicode Hex String"), "", "ConvertToHexStrUnicode", @mClick)
+mnuCode.Add(ML("Convert From Unicode Hex String"), "", "ConvertFromHexStrUnicode", @mClick)
 mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
 mnuCode.Add(ML("Format With Basis Word"), "", "FormatWithBasisWord", @mClick)
@@ -10981,7 +10990,7 @@ End Sub
 
 Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, ByRef ErrTitle As WString Ptr, ByRef ErrorLine As Integer) As UShort
 	Dim As Integer Pos0, Pos1, Pos2, Pos3 'David Change for ML
-	Dim As WString * 50 bFlagErr = ""
+	Dim As WString * 255 bFlagErr = ""
 	WLet(ErrFileName, "")
 	WLet(ErrTitle, sLine)
 	ErrorLine = 0
@@ -13375,6 +13384,193 @@ Sub TabWindow.ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine 
 		End If
 		_Deallocate(LineStr)
 		.Changed("ConvertToUppercase")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.ConvertToHexStrUnicode(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("ConvertToHexStrUnicode")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine :  iSelEndLine = EndLine
+			iSelStartChar = 1 : iSelEndChar = -1
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
+		Dim As WString Ptr LineStr, SelectedStr
+		WLet(LineStr, *FECLine->Text)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
+		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1))
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & ToHexStrUnicode(*SelectedStr)) : .ChangeCollapsibility iSelStartLine
+			End If
+			FECLine = .Content.Lines.Items[iSelEndLine]
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, 1, iSelEndChar))
+				WLet(FECLine->Text, ToHexStrUnicode(*SelectedStr) & Mid(*LineStr, iSelEndChar + 1)) : .ChangeCollapsibility iSelEndLine
+			End If
+		Else
+			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar))
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & ToHexStrUnicode(*SelectedStr) & Mid(*LineStr, iSelEndChar + 1)) : .ChangeCollapsibility iSelStartLine
+			End If
+		End If
+		If iSelEndLine > iSelStartLine + 1 Then
+			For j As Integer = iSelStartLine + 1 To iSelEndLine - 1
+				FECLine = .Content.Lines.Items[j]
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
+				WLet(SelectedStr, *FECLine->Text)
+				If Trim(*SelectedStr, Any !"\t ") <> "" AndAlso InStr(*SelectedStr, "\u") > 0 Then
+					WLet(FECLine->Text, ToHexStrUnicode(*SelectedStr)): .ChangeCollapsibility j
+				End If
+			Next
+		End If
+		_Deallocate(LineStr)
+		_Deallocate(SelectedStr)
+		.Changed("ConvertToHexStrUnicode")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.ConvertFromHexStrUnicode(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("ConvertFromHexStrUnicode")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine :  iSelEndLine = EndLine
+			iSelStartChar = 1 : iSelEndChar = -1
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
+		Dim As WString Ptr LineStr, SelectedStr
+		WLet(LineStr, *FECLine->Text)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
+		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1))
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & FromHexStrUnicode(*SelectedStr)) : .ChangeCollapsibility iSelStartLine
+			End If
+			FECLine = .Content.Lines.Items[iSelEndLine]
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, 1, iSelEndChar))
+				WLet(FECLine->Text, FromHexStrUnicode(*SelectedStr) & Mid(*LineStr, iSelEndChar + 1)) : .ChangeCollapsibility iSelEndLine
+			End If
+		Else
+			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar))
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & FromHexStrUnicode(*SelectedStr) & Mid(*LineStr, iSelEndChar + 1)) : .ChangeCollapsibility iSelStartLine
+			End If
+		End If
+		If iSelEndLine > iSelStartLine + 1 Then
+			For j As Integer = iSelStartLine + 1 To iSelEndLine - 1
+				FECLine = .Content.Lines.Items[j]
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
+				WLet(SelectedStr, *FECLine->Text)
+				If Trim(*SelectedStr, Any !"\t ") <> "" Then
+					WLet(FECLine->Text, FromHexStrUnicode(*SelectedStr)): .ChangeCollapsibility j
+				End If
+			Next
+		End If
+		_Deallocate(LineStr)
+		_Deallocate(SelectedStr)
+		.Changed("ConvertFromHexStrUnicode")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.ConvertToUppercaseFirstLetter(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("ConvertToUppercaseFirstLetter")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine :  iSelEndLine = EndLine
+			iSelStartChar = 1 : iSelEndChar = -1
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine = .Content.Lines.Items[iSelStartLine]
+		Dim As WString Ptr LineStr, SelectedStr
+		WLet(LineStr, *FECLine->Text)
+		FECLine->Ends.Clear
+		FECLine->EndsCompleted = False
+		If iSelStartLine >= 0 AndAlso iSelEndLine <> iSelStartLine Then
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1))
+				If ((*SelectedStr)[0] > 96 AndAlso (*SelectedStr)[0] < 123) Then (*SelectedStr)[0] = (*SelectedStr)[0] - 32
+				For i As Integer = 0 To Len(*SelectedStr) - 1
+					If (((*SelectedStr)[i + 1 ] > 96 AndAlso (*SelectedStr)[i + 1] < 123)) AndAlso (((*SelectedStr)[i] > 31 AndAlso (*SelectedStr)[i] < 48) OrElse ((*SelectedStr)[i] > 57 AndAlso (*SelectedStr)[i] < 65) OrElse ((*SelectedStr)[i] > 90 AndAlso (*SelectedStr)[i] < 97)) Then (*SelectedStr)[i + 1] = (*SelectedStr)[i + 1] - 32: .ChangeCollapsibility iSelStartLine
+				Next
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & *SelectedStr)
+			End If
+			FECLine = .Content.Lines.Items[iSelEndLine]
+			WLet(LineStr, *FECLine->Text)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, 1, iSelEndChar))
+				If ((*SelectedStr)[0] > 96 AndAlso (*SelectedStr)[0] < 123) Then (*SelectedStr)[0] = (*SelectedStr)[0] - 32
+				For i As Integer = 0 To Len(*SelectedStr) - 1
+					If (((*SelectedStr)[i + 1 ] > 96 AndAlso (*SelectedStr)[i + 1] < 123)) AndAlso (((*SelectedStr)[i] > 31 AndAlso (*SelectedStr)[i] < 48) OrElse ((*SelectedStr)[i] > 57 AndAlso (*SelectedStr)[i] < 65) OrElse ((*SelectedStr)[i] > 90 AndAlso (*SelectedStr)[i] < 97)) Then (*SelectedStr)[i + 1] = (*SelectedStr)[i + 1] - 32: .ChangeCollapsibility iSelEndLine
+				Next
+				WLet(FECLine->Text, *SelectedStr & Mid(*LineStr, iSelEndChar + 1))
+			End If
+		Else
+			If iSelEndChar = -1 Then iSelEndChar = Len(*LineStr)
+			If Trim(*LineStr, Any !"\t ") <> "" Then
+				WLet(SelectedStr, Mid(*LineStr, iSelStartChar + 1, iSelEndChar - iSelStartChar))
+				If ((*SelectedStr)[0] > 96 AndAlso (*SelectedStr)[0] < 123) Then (*SelectedStr)[0] = (*SelectedStr)[0] - 32
+				For i As Integer = 0 To Len(*SelectedStr) - 1
+					If (((*SelectedStr)[i + 1 ] > 96 AndAlso (*SelectedStr)[i + 1] < 123)) AndAlso (((*SelectedStr)[i] > 31 AndAlso (*SelectedStr)[i] < 48) OrElse ((*SelectedStr)[i] > 57 AndAlso (*SelectedStr)[i] < 65) OrElse ((*SelectedStr)[i] > 90 AndAlso (*SelectedStr)[i] < 97)) Then (*SelectedStr)[i + 1] = (*SelectedStr)[i + 1] - 32: .ChangeCollapsibility iSelStartLine
+				Next
+				WLet(FECLine->Text, Mid(*LineStr, 1, iSelStartChar) & *SelectedStr & Mid(*LineStr, iSelEndChar + 1))
+			End If
+		End If
+		If iSelEndLine > iSelStartLine + 1 Then
+			For j As Integer = iSelStartLine + 1 To iSelEndLine - 1
+				FECLine = .Content.Lines.Items[j]
+				FECLine->Ends.Clear
+				FECLine->EndsCompleted = False
+				WLet(SelectedStr, *FECLine->Text)
+				If Trim(*LineStr, Any !"\t ") <> "" Then
+					If ((*SelectedStr)[0] > 96 AndAlso (*SelectedStr)[0] < 123) Then (*SelectedStr)[0] = (*SelectedStr)[0] - 32
+					For i As Integer = 0 To Len(*SelectedStr) - 1
+						If (((*SelectedStr)[i + 1 ] > 96 AndAlso (*SelectedStr)[i + 1] < 123)) AndAlso (((*SelectedStr)[i] > 31 AndAlso (*SelectedStr)[i] < 48) OrElse ((*SelectedStr)[i] > 57 AndAlso (*SelectedStr)[i] < 65) OrElse ((*SelectedStr)[i] > 90 AndAlso (*SelectedStr)[i] < 97)) Then (*SelectedStr)[i + 1] = (*SelectedStr)[i + 1] - 32
+					Next
+					WLet(FECLine->Text, *SelectedStr): .ChangeCollapsibility j
+				End If
+			Next
+		End If
+		_Deallocate(LineStr)
+		_Deallocate(SelectedStr)
+		.Changed("ConvertToUppercaseFirstLetter")
 		.UpdateUnLock
 	End With
 End Sub
