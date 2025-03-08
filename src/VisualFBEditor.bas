@@ -574,7 +574,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
-		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
+		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType" '
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -587,6 +587,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "FormatWithBasisWord" :        tb->FormatWithBasisWord
 		Case "ConvertToLowercase":           tb->ConvertToLowercase
 		Case "ConvertToUppercase":           tb->ConvertToUppercase
+		Case "ConvertToHexStrUnicode":          tb->ConvertToHexStrUnicode
+		Case "ConvertFromHexStrUnicode":          tb->ConvertFromHexStrUnicode
+		Case "ConvertToUppercaseFirstLetter": tb->ConvertToUppercaseFirstLetter
 		Case "SplitHorizontally":           tb->txtCode.SplittedHorizontally = Not mnuSplitHorizontally->Checked
 		Case "SplitVertically":             tb->txtCode.SplittedVertically = Not mnuSplitVertically->Checked
 		Case "SplitUp", "SplitDown", "SplitLeft", "SplitRight":

@@ -261,6 +261,9 @@ Public:
 	Declare Sub FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub ConvertToLowercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub ConvertToUppercase(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub ConvertToUppercaseFirstLetter(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub ConvertFromHexStrUnicode(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub ConvertToHexStrUnicode(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub Comment
 	Declare Sub UnComment
 	Declare Sub Indent

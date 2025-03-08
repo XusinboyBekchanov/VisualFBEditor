@@ -257,6 +257,7 @@ Namespace VisualFBEditor
 			Select Case LCase(PropertyName)
 			Case Else: Return Base.WriteProperty(PropertyName, Value)
 			End Select
+			
 		End If
 		Return True
 	End Function
@@ -291,7 +292,7 @@ End Function
 'David Change For the comment of control's Properties
 Function MC(ByRef V As WString) ByRef As WString
 	If (Not gLocalProperties) Then Return V
-	Dim As WString * 100 TempV = ""
+	Dim As WString * 2048 TempV = ""
 	Dim As Integer Posi = InStrRev(V, ".")
 	TempV = IIf(Posi > 0, Mid(V, Posi + 1), V)
 	Dim As Integer tIndex = mcKeys.IndexOfKey(TempV) 'David Changed
@@ -303,25 +304,27 @@ Function MP(ByRef V As WString) ByRef As WString
 	If (Not gLocalProperties) OrElse LCase(App.CurLanguage) = "english" Then Return V
 	Dim As Integer tIndex = -1, tIndex2 = -1
 	If InStr(V,".") Then
-		Static As WString*50 TempWstr =""
-		Dim As UString LineParts(Any)
+		Static As WString * 2048 TempWstr = ""
+		Dim As WString Ptr LineParts(Any)
 		Split(V, ".", LineParts())
 		For k As Integer = 0 To UBound(LineParts)
-			tIndex = mpKeys.IndexOfKey(LineParts(k))
+			tIndex = mpKeys.IndexOfKey(*LineParts(k))
 			If tIndex >=0 Then
-				If k=0 Then
+				If k = 0 Then
 					TempWstr = mpKeys.Item(tIndex)->Text
 				Else
 					TempWstr &= "." & mpKeys.Item(tIndex)->Text
 				End If
 			Else
 				If k=0 Then
-					TempWstr = LineParts(k)
+					TempWstr = *LineParts(k)
 				Else
-					TempWstr &= "." & LineParts(k)
+					TempWstr &= "." & *LineParts(k)
 				End If
 			End If
+			Deallocate LineParts(k)
 		Next
+		Erase LineParts
 		If TempWstr = "" Then
 			Return V
 		Else
@@ -341,7 +344,6 @@ Function MP(ByRef V As WString) ByRef As WString
 	End If
 	Return V
 End Function
-
 
 Sub ToolGroupsToCursor()
 	tbToolBox.Groups.Item(0)->Buttons.Item(0)->Checked = True
