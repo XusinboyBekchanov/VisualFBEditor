@@ -467,10 +467,10 @@ Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As U
 End Function
 
 Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
-	Dim Posi As Long = InStrRev(FileName, Any "\/") 
+	Dim Posi As Long = InStrRev(FileName, Any "\/", Len(FileName) - 1)
 	If Posi <= 0 Then Return ""  
-	If Not WithSlash Then Posi -= 1  
-	Return Left(FileName, Posi)  
+	If Not WithSlash Then Posi -= 1
+	Return Left(FileName, Posi)
 End Function
 
 Function GetFileName(ByRef FileName As WString) As UString
