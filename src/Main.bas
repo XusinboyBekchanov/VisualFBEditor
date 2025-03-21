@@ -25,6 +25,7 @@
 #include once "mff/ProgressBar.bi"
 #include once "mff/ScrollBarControl.bi"
 #include once "mff/Label.bi"
+#include once "mff/LinkLabel.bi"
 #include once "mff/Panel.bi"
 #include once "mff/TrackBar.bi"
 #include once "mff/Clipboard.bi"
@@ -85,7 +86,7 @@ Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration
 Dim Shared As IniFile iniSettings, iniTheme
 Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
-Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
+Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbAIAgent, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
 Dim Shared As ListControl lstLeft
@@ -93,6 +94,7 @@ Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
 Dim Shared As ScrollBarControl scrLeft
 Dim Shared As Label lblLeft
+Dim Shared As LinkLabel lblAIAgent
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
@@ -113,6 +115,9 @@ Dim Shared As ReBar MainReBar
 	Dim Shared As PrintPreviewDialog PrintPreviewD
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
+#ifdef __USE_WINAPI__
+	Dim Shared As HWND CherryStudioHwnd
+#endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -129,12 +134,12 @@ Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuPro
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches, lvProfiler
 Dim Shared As ToolPalette tbToolBox
-Dim Shared As Panel pnlToolBox
+Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TextBox txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpAIAgent, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -3585,6 +3590,16 @@ End Sub
 		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 	End Sub
 #endif
+
+Sub pnlAIAgent_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+	#ifdef __USE_GTK__
+		
+	#elseif defined(__USE_WINAPI__)
+		If tabLeft.SelectedTabIndex = 2 AndAlso CherryStudioHwnd > 0 Then
+			If CherryStudioHwnd > 0 Then MoveWindow(CherryStudioHwnd, 0, 0, pnlAIAgent.ScaleX(NewWidth - 5), pnlAIAgent.ScaleY(NewHeight), True)
+		End If
+	#endif
+End Sub
 
 Function DirExists(ByRef DirPath As WString) As Integer
 	Const InAttr = fbReadOnly Or fbHidden Or fbSystem Or fbDirectory Or fbArchive
@@ -7477,6 +7492,16 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Suggestions", "Suggestions"
 	imgList.Add "DarkMode", "DarkMode"
 	imgList.Add "FindSymbol", "FindSymbol"
+	imgList.Add "AddComment", "AddComment"
+	imgList.Add "TracepointError", "TracepointError"
+	imgList.Add "Intellicode", "Intellicode"
+	imgList.Add "OptimizeCode", "OptimizeCode"
+	imgList.Add "AddComment", "AddComment"
+	imgList.Add "ConvertC", "ConvertC"
+	imgList.Add "Translate", "Translate"
+	imgList.Add "TranslateE", "TranslateE"
+	imgList.Add "WebBrowserItem", "WebBrowserItem"
+	
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
@@ -8153,6 +8178,27 @@ tbSearch->Child = @txtExplorer
 tbSearch->Expand = True
 tbExplorer.Buttons.Add tbsSeparator
 
+tbAIAgent.ImagesList = @imgList
+tbAIAgent.HotImagesList = @imgList
+'tbExplorer.DisabledImagesList = @imgList
+tbAIAgent.Flat = True
+tbAIAgent.Align = DockStyle.alTop
+tbAIAgent.AutoSize = True
+tbAIAgent.ExtraMargins.Right = tbLeft.Width
+tbAIAgent.Buttons.Add , "AddComment", , @mClick, "AIAddComment", , ML("Comment selected code"), True
+tbAIAgent.Buttons.Add , "OptimizeCode", , @mClick, "AIOptimizeCode", , ML("Optimize selected code"), True
+tbAIAgent.Buttons.Add , "Intellicode", , @mClick, "AIIntellicode", , ML("Generate code based on the requirements of the selected comment lines"), True
+tbAIAgent.Buttons.Add , "TracepointError", , @mClick, "AITracepointError", , ML("Explain the selected compiler error message"), True
+tbAIAgent.Buttons.Add , "WebBrowserItem", , @mClick, "AIWebBrowserItem", , ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis."), True
+tbAIAgent.Buttons.Add , "ConvertC", , @mClick, "AIConvertCtoFB", , ML("Convert the given C source code into equivalent FreeBasic source code."), True
+tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with MARKDOWN source code, translate the selected message to") & " " &  ML(App.CurLanguage), True
+tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
+tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
+
+'https://docs.cursor.com/get-started/welcome
+'https://zhuanlan.zhihu.com/p/23874722853
+tbAIAgent.Buttons.Add tbsSeparator
+
 Sub tbFormClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var bFlag = Cast(ToolButton Ptr, @Sender)->Checked
 	Select Case Sender.ToString
@@ -8600,20 +8646,31 @@ tvExplorer.ContextMenu = @mnuExplorer
 
 Sub tabLeft_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewIndex As Integer)
 	#ifdef __USE_GTK__
-		If tabLeft.TabPosition = tpLeft And pnlLeft.Width = 30 Then
+		If tabLeft.TabPosition = tpLeft AndAlso pnlLeft.Width = 30 Then
+			ShowLeft
+		End If
+	#elseif defined(__USE_WINAPI__)
+		If tabLeft.TabPosition = tpLeft AndAlso tabLeft.SelectedTabIndex <> -1 Then ShowLeft
+		If tabLeft.SelectedTabIndex = 2 Then
+			If CherryStudioHwnd = 0 Then
+				CherryStudioHwnd = FindWindow(NULL, "Cherry Studio")
+				If CherryStudioHwnd = 0 Then
+					'MsgBox("Cherry Studio not found!" & Chr(13, 10) & "Please run AI agent first！" )
+					ShowMessages("Cherry Studio not found! " & ExePath & "\Cherry Studio\Cherry Studio.exe" & ML("Please run AI agent first!")) 
+					Exit Sub
+				End If
+				SetParent(CherryStudioHwnd, pnlAIAgent.Handle)
+				SetWindowLong(CherryStudioHwnd, GWL_STYLE, WS_VISIBLE)
+				ShowWindow(CherryStudioHwnd, SW_NORMAL)
+				SetWindowPos(CherryStudioHwnd, HWND_TOP, 0, 0, pnlAIAgent.ScaleX(pnlAIAgent.Width - 5), pnlAIAgent.ScaleY(pnlAIAgent.Height), SWP_SHOWWINDOW)
+			End If
+			If CherryStudioHwnd > 0 Then MoveWindow(CherryStudioHwnd, 0, 0,  pnlAIAgent.ScaleX(pnlAIAgent.Width - 5), pnlAIAgent.ScaleY(pnlAIAgent.Height), True)
+		End If
 	#else
 		If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
+			ShowLeft
+		End If
 	#endif
-		ShowLeft
-		'		tabLeft.SetFocus
-		'		pnlLeft.Width = tabLeftWidth
-		'		pnlLeft.RequestAlign
-		'		splLeft.Visible = True
-		'		tbLeft.Visible = True
-		'		'#IfNDef __USE_GTK__
-		'		frmMain.RequestAlign
-		'		'#EndIf
-	End If
 End Sub
 
 Sub tabLeft_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
@@ -8632,7 +8689,7 @@ Sub pnlLeft_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, New
 	#ifdef __USE_GTK__
 		If pnlLeft.Width <> 30 Then tabLeftWidth = NewWidth ': tabLeft.Width = pnlLeft.Width
 	#else
-		If tabLeft.SelectedTabIndex <> -1 Then tabLeftWidth = pnlLeft.Width
+		If tabLeft.SelectedTabIndex <> -1 Then tabLeftWidth = pnlLeft.Width : tabLeftHeight = pnlLeft.Height
 	#endif
 End Sub
 
@@ -8657,7 +8714,94 @@ tpProject = tabLeft.AddTab(ML("Project"))
 
 tpToolbox = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
 tpToolbox->Name = "Toolbox"
+tpAIAgent = tabLeft.AddTab(ML("AI Agent")) ' ToolBox is better than "Form"
+tpAIAgent->Name = "AIAgent"
+tpAIAgent->Add @tbAIAgent
+tpAIAgent->Add @pnlAIAgent
 
+pnlAIAgent.Align = DockStyle.alClient
+pnlAIAgent.Width = tabLeftWidth
+pnlAIAgent.OnResize = @pnlAIAgent_Resize
+pnlAIAgent.Hint = ML("You'll also need to manually paste, edit, and submit it in the AI Agent's command window.") '"你还需要在命令窗口中手动粘贴、编辑和提交它。" 
+
+lblAIAgent.Name = "pnlLeft"
+lblAIAgent.Parent = @pnlAIAgent
+lblAIAgent.Width = tabLeftWidth / 2
+lblAIAgent.Height = pnlAIAgent.Height / 2
+lblAIAgent.Align = DockStyle.alClient
+lblAIAgent.Text = !"Download Cherry Studio from : <a href=""https://cherry-ai.com/download"">https://cherry-ai.com/download</a>\r\r " & _
+!"Free serverless APIs for development : <a href=""https://build.nvidia.com/deepseek-ai/deepseek-r1?api_key=true"">https://build.nvidia.com/deepseek-ai/deepseek-r1?api_key=true</a>\r\r" & _
+!"Chat Website: <a href=""https://chat.deepseek.com/"">https://chat.deepseek.com/</a>\r\r " & _
+ExePath & "\Cherry Studio\Cherry Studio.exe, Please move the Cherry Studio.exe to there!" & !"\r\r " & _
+ExePath & "\Help\AI prompt\KnowledgeBase\ , Please import the KnowledgeBase file first!" & !"\r\r " & _
+ML("You'll also need to manually paste, edit, and submit it in the AI Agent's command window.") & !"\r\r" & _
+ML("If the AI Agent is not visible after centering Cherry Studio, resize the window or switch to the Project Toolbox tab, then return to the AI Agent to refresh its position.")
+
+Sub RunAIAgent()
+	#ifdef __USE_WINAPI__
+		pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("AI Agent")
+		'Shell(ExePath & "/Cherry-Studio.exe")
+		'PipeCmd "", ExePath & "/Cherry-Studio.exe"
+		Dim pidl As ITEMIDLIST Ptr
+		Dim buffer As WString * MAX_PATH
+		Dim As WString Ptr bufferPtr
+		Dim As HRESULT hr = SHGetFolderLocation(NULL, CSIDL_APPDATA, NULL, 0, @pidl)
+		If SHGetPathFromIDList(pidl, @buffer) Then
+			CoTaskMemFree(pidl)
+			buffer = buffer & "\CherryStudio"
+			MkDir buffer
+			MkDir buffer & "\Data"
+			'If Dir(buffer & "\Data\KnowledgeBase\igaV01ARQ3qzSvaBJAwCx") = "" Then
+			'	FileCopy(ExePath & "\Cherry Studio\igaV01ARQ3qzSvaBJAwCx", buffer & "\Data\KnowledgeBase\igaV01ARQ3qzSvaBJAwCx")
+			'End If
+			If Dir(buffer & "\config.json") <> "" Then
+				Dim As FileEncodings FileEncoding
+				Dim As NewLineTypes NewLineType
+				bufferPtr = LoadFromFile(buffer & "\config.json", FileEncoding, NewLineType)
+				'"theme": "dark",
+				If g_darkModeSupported AndAlso g_darkModeEnabled Then
+					WLetEx(bufferPtr, Replace(*bufferPtr, """theme"": ""light""", """theme"": ""dark"""))
+					WLetEx(bufferPtr, Replace(*bufferPtr, """tray"": true", """tray"": false"))
+					SaveToFile(buffer & "\config.json", *bufferPtr, FileEncoding, NewLineType)
+				Else
+					WLetEx(bufferPtr, Replace(*bufferPtr, """theme"": ""dark""", """theme"": ""light"""))
+					SaveToFile(buffer & "\config.json", *bufferPtr, FileEncoding, NewLineType)
+				End If
+				Deallocate bufferPtr
+			Else
+				FileCopy(ExePath & "\Cherry Studio\config.json", buffer & "\config.json")
+			End If
+			If Dir(ExePath & "\Cherry Studio\Cherry Studio.exe") <> "" Then
+				'FileCopy(ExePath & "\Cherry-Studio.exe", buffer & "\Cherry Studio.exe"
+				Dim As WString Ptr Workdir, CmdL
+				Dim SInfo As STARTUPINFO
+				Dim PInfo As PROCESS_INFORMATION
+				SInfo.cb = Len(SInfo)
+				SInfo.dwFlags = STARTF_USESHOWWINDOW
+				SInfo.wShowWindow = SW_HIDE 'SW_NORMAL  ShowWindow(CherryStudioHwnd, SW_NORMAL)
+				Dim As DWORD pClass = CREATE_UNICODE_ENVIRONMENT Or DETACHED_PROCESS Or CREATE_NO_WINDOW
+				WLet(CmdL, ExePath & "\Cherry Studio\Cherry Studio.exe")
+				WLet(Workdir, ExePath & "\Cherry Studio")
+				If CreateProcessW(NULL, CmdL, ByVal NULL, ByVal NULL, False, pClass, NULL, Workdir, @SInfo, @PInfo) Then
+					'WaitForSingleObject PInfo.hProcess, INFINITE
+					'GetExitCodeProcess(PInfo.hProcess, @ExitCode)
+					'立即关闭句柄资源 (非阻塞模式)
+					CloseHandle(PInfo.hProcess)
+					'CloseHandle(PInfo.hThread)
+					WDeAllocate(Workdir)
+					WDeAllocate(CmdL)
+				Else
+					Dim As Integer Result = GetLastError()
+					ShowMessages(ML("Run AI Agent failed.") & ": " & GetLastError() & " - " & GetErrorString(Result))
+					WDeAllocate(Workdir)
+					WDeAllocate(CmdL)
+					Exit Sub
+				End If
+			End If
+		End If
+	#endif
+End Sub
+RunAIAgent
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
@@ -10862,6 +11006,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tabItemHeight = tabLeft.ItemHeight(0) + 4
 		pnlPropertyValue.SendToBack
 		pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
+		pnlAIAgent_Resize *pnlAIAgent.Designer, pnlAIAgent, pnlAIAgent.Width, pnlAIAgent.Height + 1
 	#endif
 	#ifdef __USE_WINAPI__
 		SetProp(frmMain.Handle, "VisualFBEditorApp", @VisualFBEditorApp)
@@ -11086,7 +11231,15 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tbBottom.Buttons.Item("RemoveWatch")->Visible = False
 		tbBottom.Buttons.Item("Update")->Visible = False
 	#else
-		
+		CherryStudioHwnd = FindWindow(NULL, "Cherry Studio")
+		If CherryStudioHwnd > 0 Then
+			'MsgBox("Cherry Studio not found!" & Chr(13, 10) & ML("Please run AI agent first!") )
+			'Exit Sub
+				SetParent(CherryStudioHwnd, pnlAIAgent.Handle)
+				SetWindowLong(CherryStudioHwnd, GWL_STYLE, WS_VISIBLE)
+				ShowWindow(CherryStudioHwnd, SW_NORMAL)
+				MoveWindow(CherryStudioHwnd, 0, 0,  pnlAIAgent.ScaleX(pnlAIAgent.Width - 5), pnlAIAgent.ScaleY(pnlAIAgent.Height), True)
+		End If
 	#endif
 	
 	pfSplash->CloseForm
@@ -11252,6 +11405,10 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	iniSettings.WriteString("MainWindow", "RecentSession", *RecentSession)
 	If mChangeLogEdited Then txtChangeLog.SaveToFile(ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log") '
 	UnLoadAddins
+	#ifdef __USE_WINAPI__
+		If CherryStudioHwnd > 0 Then SendMessage(CherryStudioHwnd, WM_CLOSE, 0, 0)
+		'SetParent(CherryStudioHwnd, NULL)
+	#endif
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _

@@ -1,0 +1,329 @@
+{
+  "MyFbFramework": {
+    "overview": {
+      "description": "MyFbFramework is a library for the FreeBasic programming language, commonly abbreviated as MFF. A forms building and drawing library for FreeBasic with VB.NET-like syntax",
+      "documentation_link": "Readme.md"
+    },
+    
+    "component": {
+      "controls": {
+        "count": 39,
+        "list": [
+          {"name": "Animate", "desc": "Displays AVI clips", "doc": "Animate.md"},
+          {"name": "Chart", "desc": "Interactive chart object", "doc": "Chart.md"},
+          {"name": "CheckBox", "desc": "Toggle selection control", "doc": "CheckBox.md"},
+          {"name": "CheckedListBox", "desc": "Displays a ListBox in which a check box is displayed to the left of each item.", "doc": "CheckedListBox.md"},
+          {"name": "ComboBoxEdit", "desc": "Combines the features of a TextBox and a ListControl.", "doc": "ComboBoxEdit.md"},
+          {"name": "ComboBoxEx", "desc": "ComboBoxEx is an enhanced version of ComboBoxEdit, inheriting its core functionality while adding advanced features such as the ability to display images for each item.", "doc": "ComboBoxEx.md"},
+          {"name": "CommandButton", "desc": "Looks like a push button and is used to begin, interrupt, or end a process.", "doc": "CommandButton.md"},
+          {"name": "DateTimePicker", "desc": "Represents a Windows control that allows the user to select a date and a time and to display the date and time with a specified format.", "doc": "DateTimePicker.md"},
+          {"name": "Grid", "desc": "Defines a flexible grid area that consists of columns and rows.", "doc": "Grid.md"},
+          {"name": "Header", "desc": "A header control is a window that is usually positioned above columns of text or numbers.", "doc": "Header.md"},
+          {"name": "HotKey", "desc": "A hot key control is a window that enables the user to enter a combination of keystrokes to be used as a hot key.", "doc": "HotKey.md"},
+          {"name": "HScrollBar", "desc": "Provides a horizontal scroll bar for easy navigation through long lists of items.", "doc": "HScrollBar.md"},
+          {"name": "ImageBox", "desc": "Displays a graphic.", "doc": "ImageBox.md"},
+          {"name": "IPAddress", "desc": "An Internet Protocol (IP) address control allows the user to enter an IP address in an easily understood format.", "doc": "IPAddress.md"},
+          {"name": "Label", "desc": "Displays text that a user can't change directly.", "doc": "Label.md"},
+          {"name": "LinkLabel", "desc": "Represents a label control that can display hyperlinks.", "doc": "LinkLabel.md"},
+          {"name": "ListControl", "desc": "Displays a list of items from which the user can select one or more.", "doc": "ListControl.md"},
+          {"name": "ListView", "desc": "Represents a control that displays a list of data items.", "doc": "ListView.md"},
+          {"name": "MonthCalendar", "desc": "Represents a control that enables the user to select a date using a visual monthly calendar display.", "doc": "MonthCalendar.md"},
+          {"name": "NumericUpDown", "desc": "Represents a spin box (also known as an up-down control) that displays numeric values.", "doc": "NumericUpDown.md"},
+          {"name": "OpenFileControl", "desc": "Represents a box for choosing files.", "doc": "OpenFileControl.md"},
+          {"name": "PrintPreviewControl", "desc": "Represents the raw preview part of print previewing, without any dialog boxes or buttons.", "doc": "PrintPreviewControl.md"},
+          {"name": "ProgressBar", "desc": "A progress bar is a window that an application can use to indicate the progress of a lengthy operation.", "doc": "ProgressBar.md"},
+          {"name": "RadioButton", "desc": "Displays an option that can be turned on or off.", "doc": "RadioButton.md"},
+          {"name": "RichTextBox", "desc": "The RichTextBox control enables you to display or edit flow content including paragraphs, images, tables, and more.", "doc": "RichTextBox.md"},
+          {"name": "ScrollBarControl", "desc": "Provides a horizontal and a vertical scroll bar for easy navigation through long lists of items.", "doc": "ScrollBarControl.md"},
+          {"name": "SearchBox", "desc": "A subclass of TextBox that has been tailored for use as a search textbox.", "doc": "SearchBox.md"},
+          {"name": "Splitter", "desc": "Represents a splitter control that enables the user to resize docked controls.", "doc": "Splitter.md"},
+          {"name": "StatusBar", "desc": "A status bar is a horizontal window at the bottom of a parent window in which an application can display various kinds of status information.", "doc": "StatusBar.md"},
+          {"name": "TextBox", "desc": "Displays information entered at design time by the user, or in code at run time.", "doc": "TextBox.md"},
+          {"name": "ToolBar", "desc": "A toolbar is a control that contains one or more buttons.", "doc": "ToolBar.md"},
+          {"name": "ToolPalette", "desc": "A tool palette with categories.", "doc": "ToolPalette.md"},
+          {"name": "ToolTips", "desc": "An element in which, when hovering over a marker or region element or component, a text box displays information about that element.", "doc": "ToolTips.md"},
+          {"name": "TrackBar", "desc": "A trackbar is a window that contains a slider (sometimes called a thumb) in a channel, and optional tick marks.", "doc": "TrackBar.md"},
+          {"name": "TreeListView", "desc": "Combines the features of a TreeView and a ListView.", "doc": "TreeListView.md"},
+          {"name": "TreeView", "desc": "Represents a control that displays hierarchical data in a tree structure that has items that can expand and collapse.", "doc": "TreeView.md"}, 
+          {"name": "UpDown", "desc": "An up-down control is a pair of arrow buttons that the user can click to increment or decrement a value, such as a scroll position or a number displayed in a companion control (called a buddy window).", "doc": "UpDown.md"},
+          {"name": "VScrollBar", "desc": "Provides a vertical scroll bar.", "doc": "VScrollBar.md"},
+          {"name": "WebBrowser", "desc": "Enables the user to navigate Web pages inside your form.", "doc": "WebBrowser.md"}
+        ]
+      },
+      
+      "containers": {
+        "count": 13,
+        "list": [
+          {"name": "Form", "desc": "Application window", "doc": "Form.md"},
+          {"name": "GroupBox", "desc": "Control grouping container", "doc": "GroupBox.md"},
+          {"name": "HorizontalBox", "desc": "Arranges items in a horizontal row.", "doc": "HorizontalBox.md"},
+          {"name": "PagePanel", "desc": "Used to organize controls on hidden panels.", "doc": "PagePanel.md"},
+          {"name": "PageScroller", "desc": "The PageScroller control is used to scroll a panel along with the components placed on it.", "doc": "PageScroller.md"},
+          {"name": "Panel", "desc": "Used to group collections of controls.", "doc": "Panel.md"},
+          {"name": "Picture", "desc": "Displays a graphic from a bitmap, icon or metafile.", "doc": "Picture.md"},
+          {"name": "ReBar", "desc": "A Rebar control acts as a container for child windows. It can contain one or more bands, and each band can have any combination of a gripper bar, a bitmap, a text label, and one child window.", "doc": "ReBar.md"},
+          {"name": "ScrollControl", "desc": "A container that makes its child scrollable.", "doc": "ScrollControl.md"},
+          {"name": "TabControl", "desc": "Represents a control that contains multiple items that share the same space on the screen.", "doc": "TabControl.md"},
+          {"name": "TabPage", "desc": "Represents a single tab page in a TabControl.", "doc": "TabPage.md"},
+          {"name": "UserControl", "desc": "Provides an empty control that can be used to create other controls. A Control authored in VisualFBEditor", "doc": "UserControl.md"},
+          {"name": "VerticalBox", "desc": "Arranges items in a vertical column.", "doc": "VerticalBox.md"}
+       ]
+      },
+    
+      "components": {
+        "count": 10,
+        "list": [
+          {"name": "HTTPConnection","desc": "Constructs a connection to the host (port) as given in the url.", "doc": "HTTPConnection.md"}, 
+          {"name": "HTTPServer", "desc": "Implements a simple HTTP server.", "doc": "HTTPServer.md"},
+          {"name": "ImageList", "desc": "An image list is a collection of images of the same size, each of which can be referred to by its index.", "doc": "ImageList.md"},
+          {"name": "MainMenu", "desc": "Represents the menu structure of a form.", "doc": "MainMenu.md"},
+          {"name": "MariaDBBox", "desc": "A container that provides a pre-installed and configured environment for working with the MariaDB database.", "doc": "MariaDBBox.md"},
+          {"name": "PopUpMenu", "desc": "Represents a context menu.", "doc": "PopUpMenu.md"},
+          {"name": "PrintDocument", "desc": "Defines a reusable object that sends output to a printer, when printing.", "doc": "PrintDocument.md"},
+          {"name": "Printer", "desc": "Enables you to communicate with a system printer (initially the default printer).", "doc": "Printer.md"},
+          {"name": "SQLite3Component", "desc": "A component that facilitates integration with the SQLite3 database.", "doc": "SQLite3Component.md"}, 
+          {"name": "TimerComponent", "desc": "A control which can execute code at regular intervals by causing a Timer event.", "doc": "TimerComponent.md"}
+        ]
+      },
+  
+    "dialogs": {
+        "count": 8,
+        "list": [
+          {"name": "ColorDialog", "desc": "Color selection dialog", "doc": "ColorDialog.md"},
+          {"name": "OpenFileDialog", "desc": "File open dialog", "doc": "OpenFileDialog.md"},
+          {"name": "FolderBrowserDialog", "desc": "Prompts the user to select a folder.", "doc": "FolderBrowserDialog.md"},
+          {"name": "FontDialog", "desc": "Prompts the user to choose a font from among those installed on the local computer.", "doc": "FontDialog.md"},
+          {"name": "PageSetupDialog", "desc": "Enables users to change page-related print settings, including margins and paper orientation.", "doc": "PageSetupDialog.md"}, 
+          {"name": "PrintDialog", "desc": "Lets users select a printer and choose which sections of the document to print from an application.", "doc": "PrintDialog.md"},
+          {"name": "PrintPreviewDialog", "desc": "Represents the raw preview part of print previewing from an application.", "doc": "PrintPreviewDialog.md"},
+          {"name": "SaveFileDialog", "desc": "Prompts the user to select a location for saving a file.", "doc": "SaveFileDialog.md"}
+        ]
+      }
+   },
+    "code_standards": {
+      "project_structure": {
+        "ide_tools": [
+          {"name": "VisualFBEditor", "doc": "VisualFBEditor IDE Environment.md"},
+          {"name": "MyFbFramework", "doc": "Readme.md"},
+          {"name": "MFF", "doc": "Readme.md"}
+        ],
+        "extensions": {
+          "project": ".vfp",
+          "project_group": ".vfs"
+        }
+      },
+     "string_handling": {
+      "index_access": "mainString[n]",
+      "prohibited": "pointer conversion"
+    },
+    
+    "declarations": {
+      "dim_statements": {
+        "explicit_typing": "required"
+      }
+    },
+    
+    "gui_framework": {
+      "default": {
+        "name": "MyFbFramework (MFF)",
+        "languages": "FreeBasic",
+        "documentation": "Readme.md"
+      },
+      "control_cross_reference": {
+        "table": [
+          {
+            "control": "CommandButton",
+            "mff_name": "CommandButton",
+            "vb_name": "CommandButton",
+            "vbnet_name": "Button"
+          },
+          {
+            "control": "RadioButton",
+            "mff_name": "RadioButton",
+            "vb_name": "OptionButton",
+            "vbnet_name": "RadioButton"
+          },
+          {
+            "control": "LinkLabel",
+            "mff_name": "LinkLabel",
+            "vb_name": "Label",
+            "vbnet_name": "LinkLabel"
+          },
+          {
+            "control": "ComboBoxEdit",
+            "mff_name": "ComboBoxEdit",
+            "vb_name": "ComboBox",
+            "vbnet_name": "ComboBox"
+          },
+          {
+            "control": "ComboBoxEditEx",
+            "mff_name": "ComboBoxEditEx",
+            "vb_name": "ComboBox",
+            "vbnet_name": "ComboBox"
+          },
+          {
+            "control": "ListControl",
+            "mff_name": "ListControl",
+            "vb_name": "ListBox",
+            "vbnet_name": "ListBox"
+          },
+          {
+            "control": "NumericUpDown",
+            "mff_name": "NumericUpDown",
+            "vb_name": "None",
+            "vbnet_name": "NumericUpDown"
+          },
+          {
+            "control": "PictureBox",
+            "mff_name": "Picture",
+            "vb_name": "PictureBox",
+            "vbnet_name": "PictureBox"
+          },
+          {
+            "control": "Menu",
+            "mff_name": "MainMenu",
+            "vb_name": "Menu",
+            "vbnet_name": "MenuStrip"
+          },
+          {
+            "control": "GroupBox",
+            "mff_name": "GroupBox",
+            "vb_name": "Frame",
+            "vbnet_name": "GroupBox"
+          },
+          {
+            "control": "HorizontalBox",
+            "mff_name": "HorizontalBox",
+            "vb_name": "None",
+            "vbnet_name": "FlowLayoutPanel"
+          },
+          {
+            "control": "VerticalBox",
+            "mff_name": "VerticalBox",
+            "vb_name": "None",
+            "vbnet_name": "FlowLayoutPanel"
+          },
+          {
+            "control": "OpenFileDialog",
+            "mff_name": "OpenFileDialog",
+            "vb_name": "CommonDialog",
+            "vbnet_name": "OpenFileDialog"
+          },
+          {
+            "control": "SaveFileDialog",
+            "mff_name": "SaveFileDialog",
+            "vb_name": "CommonDialog",
+            "vbnet_name": "SaveFileDialog"
+          },
+          {
+            "control": "ColorDialog",
+            "mff_name": "ColorDialog",
+            "vb_name": "CommonDialog",
+            "vbnet_name": "ColorDialog"
+          },
+          {
+            "control": "FolderBrowserDialog",
+            "mff_name": "FolderBrowserDialog",
+            "vb_name": "None",
+            "vbnet_name": "FolderBrowserDialog"
+          }
+        ],
+        "reference_doc": "MyFbFramework VB VB.NET Control Cross-Reference Table.md"
+      }
+    }
+      "preprocessor": {
+        "directives": [
+          "#include once \"mff/Form.bi\"",
+          "#include once \"mff/<ControlName>.bi\""
+        ],
+        "common_errors": {
+          "ERR_MISSING_HASH": {
+            "description": "Missing # prefix in directives",
+            "auto_correct": {
+              "pattern": "^\\s*(include|ifdef|endif|cmdline|define)\\b",
+              "replacement": "#$1"
+            },
+            "examples": {
+              "invalid": "include once \"mff/Form.bi\"",
+              "valid": "#include once \"mff/Form.bi\""
+            }
+          }
+        }
+      },
+  
+    "form_templates": {
+      "file_structure": {
+        "preprocessor_directives": [
+          "#if defined(__FB_MAIN__)",
+          "#if defined(__FB_MAIN__)",
+          "#endif",
+          "#include once \"mff/Form.bi\""
+        ],
+        "form_definition": {
+          "type_declaration": {
+            "extends": "Form",
+            "event_handlers": [
+              "Declare Sub Form_Click",
+              "Declare Sub Control_Event"
+            ],
+            "constructor": [
+              "Declare constructor"
+            ],
+            "controls": ["Dim As CheckBox CheckBox1"]
+          }
+         },
+        "constructor": {
+            "app_settings": {
+              "language_config": "ExePath & \"/Languages/\""
+            },
+            "control_configuration": {
+                  "required_properties": ["Name", "Designer", "Parent"],
+                  "initialization": {
+                     "with_statement": {
+                          "preferred": true,
+                          "nesting": "avoided"
+                       },
+                   "properties": ["Name", "Designer", "Parent", "Text", "SetBounds"],
+                   "event_bindings": ["OnClick", "OnCreate"]
+                    }
+                  }
+              },
+        "application_start": {
+          "required_directive": "#if _MAIN_FILE_ == __FILE__",
+          "dark_mode": "App.DarkMode = True",
+          "execution_flow": ["Form.Show", "App.Run"]
+        }
+      },
+      "event_handling": {
+         "external_implementation": [  
+         "Declare event handlers OUTSIDE form class:",  
+         "Sub [ControlName]_Click(Sender As Control)",  
+         "Ensure event handlers match the subroutine signatures used in Cast function."  
+       ],  
+       "event Binding Syntax": [  
+         "CastSubByRef` is not recognized as a valid macro or function",  
+         "Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @[ControlName]_Click)",  
+         "Add the required parenthesis pair after the Sub declaration, Match parameter types between declarations and casts"  
+       ],  
+      "menu_specific": [
+        "Use MenuItem.Tag property for command identification",
+        "Handle multiple commands with SELECT CASE structure"
+      ]
+    },
+    "code_structure_example": {
+      "code_structure_example": {  
+    "header": "'#Region \"Form\"\n #if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)\n  #define __MAIN_FILE__\n  #ifdef __FB_WIN32__\n   #cmdline \"Form1.rc\"\n  #endif  Const _MAIN_FILE_ = __FILE__\n #endif\n #include once \"mff/Form.bi\"\n #include once \"mff/CommandButton.bi\"\n \n Using My.Sys.Forms\n",  
+    "form_type": " Type Form1Type Extends Form\n  Declare Sub CommandButton1_Click(ByRef Sender As Control)\n  Declare Sub CommandButton1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)\n  Declare Constructor\n   Dim As CommandButton CommandButton1(1)\n End Type\n ",  
+    "constructor": "\n Constructor Form1Type\n  #if _MAIN_FILE_ = __FILE__\n   With App\n    .CurLanguagePath = ExePath & \"/Languages/\"\n    .CurLanguage = My.Sys.Language\n   End With\n  #endif\n  ' Form1\n  With This\n   .Name = \"Form1\"\n   .Text = \"Form1\"\n   .Designer = @This\n   .SetBounds 0, 0, 350, 300\n  End With\n  ' CommandButton1(0)\n  With CommandButton1(0)\n   .Name = \"CommandButton1(0)\"\n   .Text = \"CommandButton1(0)\"\n   .TabIndex = 0\n   .SetBounds 42, 93, 121, 32\n   .Designer = @This\n   .OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)\n   .OnPaint = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas), @CommandButton1_Paint)\n   .Parent = @This\n  End With\n  ' CommandButton1(1)\n  With CommandButton1(1)\n   .Name = \"CommandButton1(1)\"\n   .Text = \"CommandButton1(0)\"\n   .TabIndex = 1\n   .ControlIndex = 0\n   .SetBounds 168, 95, 121, 32\n   .Designer = @This\n   .Parent = @This\n  End With\n End Constructor\n ",
+    "application_start": " Dim Shared Form1 As Form1Type\n \n #if _MAIN_FILE_ = __FILE__\n  App.DarkMode = True\n  Form1.MainForm = True\n  Form1.Show\n  App.Run\n #endif\n '#End Region\n"
+  },  
+  "external_handler": {  
+    "click_handler": "Private Sub Form1Type.CommandButton1_Click(ByRef Sender As Control)\n Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, \"(\") + 1))\nEnd Sub",  
+    "paint_handler": "Private Sub Form1Type.CommandButton1_Paint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)\n Dim As Integer Index = Val(Mid(Sender.Name, InStrRev(Sender.Name, \"(\") + 1))\nEnd Sub\n"  
+  }  
+    } 
+    }
+  }
+ }
+ }
+}
