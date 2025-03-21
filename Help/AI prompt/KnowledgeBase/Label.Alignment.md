@@ -1,0 +1,14 @@
+[TOC]
+# Label.Alignment Property
+
+## Definition
+Namespace: [`My.Sys.Forms`](My.Sys.Forms.md)
+`Alignment` is property of the Label control, part of the freeBasic framework MyFbFramework.
+## Syntax
+```freeBasic
+Alignment As AlignmentConstants
+```
+## Property Value
+[`AlignmentConstants`]
+## See also
+[`Label`](Label.md)

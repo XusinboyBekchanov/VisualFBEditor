@@ -1,0 +1,14 @@
+[TOC]
+# Form.Enabled Property
+Returns/sets a value that determines whether an object can respond to user-generated events (Windows, Linux).
+## Definition
+Namespace: [`My.Sys.Forms`](My.Sys.Forms.md)
+`Enabled` is property of the Form control, part of the freeBasic framework MyFbFramework.
+## Syntax
+```freeBasic
+Enabled As Boolean
+```
+## Property Value
+[`Boolean`]("https://www.freebasic.net/wiki/KeyPgBoolean")
+## See also
+[`Form`](Form.md)

@@ -333,7 +333,7 @@ Declare Sub CloseAllTabs(WithoutCurrent As Boolean = False)
 Declare Sub UpdateAllTabWindows
 Declare Sub RunHelp(Param As Any Ptr)
 
-Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight
+Common Shared As Integer tabLeftWidth, tabLeftHeight, tabRightWidth, tabBottomHeight
 Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
