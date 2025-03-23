@@ -85,9 +85,9 @@ Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration
 Dim Shared As IniFile iniSettings, iniTheme
 Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
-Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
+Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbAIAgent, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
 Dim Shared As StatusBar stBar
-Dim Shared As Splitter splLeft, splRight, splBottom, splProperties, splEvents
+Dim Shared As Splitter splLeft, splRight, splBottom, splAIAgent, splProperties, splEvents
 Dim Shared As ListControl lstLeft
 Dim Shared As CheckBox chkLeft
 Dim Shared As RadioButton radButton
@@ -122,8 +122,8 @@ Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Termin
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue, txtExpand
-Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent
+Dim Shared As TextBox txtPropertyValue, txtExpand, txtAIRequest
+Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
@@ -134,7 +134,7 @@ Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
 Dim Shared As TextBox txtChangeLog ' Add Change Log
-Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler
+Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler, tpAIAgent
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
 Dim Shared As Integer miRecentMax =20 'David Changed
@@ -8762,6 +8762,94 @@ tpToolbox->Add @tbForm
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
 
+tpAIAgent = tabLeft.AddTab(ML("AI Agent"))
+
+tbAIAgent.ImagesList = @imgList
+tbAIAgent.HotImagesList = @imgList
+tbAIAgent.Flat = True
+tbAIAgent.Align = DockStyle.alTop
+tbAIAgent.AutoSize = True
+tbAIAgent.ExtraMargins.Right = tbLeft.Width
+tbAIAgent.Buttons.Add , "Eraser", , @mClick, "EraseAIAgent", , ML("Erase AI Agent"), True
+tbAIAgent.Buttons.Add tbsSeparator
+
+txtAIAgent.Align = DockStyle.alClient
+txtAIAgent.Multiline = True
+txtAIAgent.ReadOnly = True
+txtAIAgent.WordWraps = True
+txtAIAgent.MaxLength = 0
+txtAIAgent.ScrollBars = ScrollBarsType.Vertical
+
+#include once "mff/HTTP.bi"
+Dim Shared bInAIThread As Boolean
+
+Sub AIRequest(Param As Any Ptr)
+	Dim As HTTPConnection HTTPConnection1
+	HTTPConnection1.Host = "openrouter.ai"
+	HTTPConnection1.Port = 443
+	Dim As HTTPRequest Request
+	Dim As HTTPResponce Responce
+	Request.ResourceAddress = "api/v1/chat/completions"
+	Dim As String api_key = "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"
+	Dim As String site_url = "<YOUR_SITE_URL>"
+	Dim As String site_name = "<YOUR_SITE_NAME>"
+	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions"
+	Dim As String post_data = _
+	"{""model"": ""deepseek/deepseek-r1:free"", " & _
+	"""messages"": [{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
+	Dim As String header1 = "Content-Type: application/json"
+	Dim As String header2 = "Authorization: Bearer " + api_key
+	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
+	Request.Body = post_data
+	txtAIRequest.Text = ""
+	HTTPConnection1.CallMethod("POST", Request, Responce)
+	Dim As Integer iPos1 = InStr(Responce.Body, ",""content"":""")
+	Dim As Integer iPos2 = InStrRev(Responce.Body, """,""refusal""")
+	Dim As String Buff = Replace(Replace(Replace(Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12), "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """") & !"\r\n"
+	Dim As UString Body
+	Dim As WString Ptr Temp = FromUtf8(StrPtr(Buff))
+	Body = *Temp
+	WDeAllocate(Temp)
+	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	For i As Integer = 0 To Len(Body)
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelText = Mid(Body, i, 1)
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.ScrollToCaret
+	Next
+	'txtAIAgent.SelText = Replace(Replace(Replace(Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12), "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """") & !"\r\n"
+	bInAIThread = False
+End Sub
+
+Sub txtAIRequest_OnActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+	If bInAIThread Then Return
+	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkHlBkColor
+	txtAIAgent.SelAlignment = AlignmentConstants.taRight
+	txtAIAgent.SelText = txtAIRequest.Text & !"\r\n"
+	txtAIAgent.ScrollToCaret
+	bInAIThread = True
+	ThreadCreate(@AIRequest)
+End Sub
+
+txtAIRequest.Align = DockStyle.alBottom
+txtAIRequest.Height = 50
+txtAIRequest.WordWraps = True
+txtAIRequest.OnActivate = @txtAIRequest_OnActivate
+
+splAIAgent.Align = SplitterAlignmentConstants.alBottom
+
+tpAIAgent->Add @tbAIAgent
+tpAIAgent->Add @txtAIRequest
+tpAIAgent->Add @splAIAgent
+tpAIAgent->Add @txtAIAgent
+
 Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -9306,7 +9394,7 @@ lvProperties.OnCellEditing = @lvProperties_CellEditing
 lvProperties.OnCellEdited = @lvProperties_CellEdited
 lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
 lvEvents.Align = DockStyle.alClient
-lvEvents.Sort = ssSortAscending
+lvEvents.SortOrder = ssSortAscending
 lvEvents.Columns.Add ML("Event"), , 70
 lvEvents.Columns.Add ML("Value"), , -2
 lvEvents.OnSelectedItemChanged = @lvEvents_SelectedItemChanged
