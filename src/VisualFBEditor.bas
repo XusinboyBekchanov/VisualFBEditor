@@ -52,7 +52,7 @@
 #define APP_TITLE "Visual FB Editor"
 #define VER_MAJOR "1"
 #define VER_MINOR "3"
-#define VER_PATCH "6"
+#define VER_PATCH "7"
 #define VER_BUILD "0"
 Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
