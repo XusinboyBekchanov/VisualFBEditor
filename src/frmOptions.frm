@@ -1701,7 +1701,7 @@ pfOptions = @fOptions
 			.Align = DockStyle.alTop
 			.TabIndex = 152
 			.Constraints.Height = 21
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 10, 81, 145, 21
 			.Parent = @grbThemes
 		End With
@@ -2868,6 +2868,100 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @pnlCodeEditorHoverTime
 		End With
+		' grbAIAgent
+		With grbAIAgent
+			.Name = "grbAIAgent"
+			.Text = ML("AI Agent")
+			.TabIndex = 256
+			.Align = DockStyle.alTop
+			.AutoSize = False
+			.ControlIndex = 0
+			.ExtraMargins.Top = 5
+			.SetBounds 0, 66, 417, 127
+			.Designer = @This
+			.Parent = @pnlHelp
+		End With
+		' lblAIAgentHost
+		With lblAIAgentHost
+			.Name = "lblAIAgentHost"
+			.Text = ML("Host") & ":"
+			.TabIndex = 257
+			.Caption = ML("Host") & ":"
+			.SetBounds 12, 19, 80, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentHost
+		With txtAIAgentHost
+			.Name = "txtAIAgentHost"
+			.Text = ""
+			.TabIndex = 258
+			.SetBounds 102, 16, 300, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentPort
+		With lblAIAgentPort
+			.Name = "lblAIAgentPort"
+			.Text = ML("Port") & ":"
+			.TabIndex = 259
+			.ControlIndex = 0
+			.Caption = ML("Port") & ":"
+			.SetBounds 12, 69, 80, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentPort
+		With txtAIAgentPort
+			.Name = "txtAIAgentPort"
+			.TabIndex = 260
+			.ControlIndex = 2
+			.Text = ""
+			.SetBounds 102, 66, 300, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentAPIKey
+		With lblAIAgentAPIKey
+			.Name = "lblAIAgentAPIKey"
+			.Text = ML("API Key") & ":"
+			.TabIndex = 261
+			.ControlIndex = 0
+			.Caption = ML("API Key") & ":"
+			.SetBounds 12, 94, 80, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentAPIKey
+		With txtAIAgentAPIKey
+			.Name = "txtAIAgentAPIKey"
+			.TabIndex = 262
+			.ControlIndex = 3
+			.Text = ""
+			.SetBounds 102, 91, 300, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentAddress
+		With lblAIAgentAddress
+			.Name = "lblAIAgentAddress"
+			.Text = ML("Address") & ":"
+			.TabIndex = 263
+			.ControlIndex = 0
+			.Caption = ML("Address") & ":"
+			.SetBounds 12, 44, 80, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentAddress
+		With txtAIAgentAddress
+			.Name = "txtAIAgentAddress"
+			.TabIndex = 264
+			.ControlIndex = 2
+			.SetBounds 102, 41, 300, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
@@ -3201,6 +3295,10 @@ Sub frmOptions.LoadSettings()
 		WLet(.oldInterfFontName, *InterfaceFontName)
 		.InterfFontSize = InterfaceFontSize
 		.oldInterfFontSize = InterfaceFontSize
+		.txtAIAgentHost.Text = AIAgentHost
+		.txtAIAgentAddress.Text = AIAgentAddress
+		.txtAIAgentPort.Text = Str(AIAgentPort)
+		.txtAIAgentAPIKey.Text = AIAgentAPIKey
 		.oldDisplayMenuIcons = DisplayMenuIcons
 		.oldDarkMode = DarkMode
 		.lblInterfaceFont.Font.Name = *InterfaceFontName
@@ -3654,6 +3752,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		EditorFontSize = .EditFontSize
 		WLet(InterfaceFontName, * (.InterfFontName))
 		InterfaceFontSize = .InterfFontSize
+		AIAgentHost = .txtAIAgentHost.Text
+		AIAgentAddress = .txtAIAgentAddress.Text
+		AIAgentPort = Val(.txtAIAgentPort.Text)
+		AIAgentAPIKey = .txtAIAgentAPIKey.Text
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolBar = .chkShowMainToolbar.Checked
 		DarkMode = .chkDarkMode.Checked
@@ -3846,6 +3948,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteInteger "Options", "EditorFontSize", EditorFontSize
 		piniSettings->WriteString "Options", "InterfaceFontName", *InterfaceFontName
 		piniSettings->WriteInteger "Options", "InterfaceFontSize", InterfaceFontSize
+		piniSettings->WriteString "Options", "AIAgentHost", AIAgentHost
+		piniSettings->WriteString "Options", "AIAgentAddress", AIAgentAddress
+		piniSettings->WriteString "Options", "AIAgentAPIKey", AIAgentAPIKey
+		piniSettings->WriteInteger "Options", "AIAgentPort", AIAgentPort
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolBar
 		piniSettings->WriteBool "Options", "DarkMode", DarkMode

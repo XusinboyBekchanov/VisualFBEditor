@@ -7142,6 +7142,10 @@ Sub LoadSettings
 		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma"))
 		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
 	#endif
+	AIAgentHost = iniSettings.ReadString("Options", "AIAgentHost", "openrouter.ai")
+	AIAgentAddress = iniSettings.ReadString("Options", "AIAgentAddress", "api/v1/chat/completions")
+	AIAgentPort = iniSettings.ReadInteger("Options", "AIAgentPort", 443)
+	AIAgentAPIKey = iniSettings.ReadString("Options", "AIAgentAPIKey", "")
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
@@ -8785,12 +8789,12 @@ Dim Shared bInAIThread As Boolean
 
 Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPConnection HTTPConnection1
-	HTTPConnection1.Host = "openrouter.ai"
-	HTTPConnection1.Port = 443
+	HTTPConnection1.Host = AIAgentHost
+	HTTPConnection1.Port = AIAgentPort
 	Dim As HTTPRequest Request
 	Dim As HTTPResponce Responce
-	Request.ResourceAddress = "api/v1/chat/completions"
-	Dim As String api_key = "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"
+	Request.ResourceAddress = AIAgentAddress
+	Dim As String api_key = AIAgentAPIKey
 	Dim As String site_url = "<YOUR_SITE_URL>"
 	Dim As String site_name = "<YOUR_SITE_NAME>"
 	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions"

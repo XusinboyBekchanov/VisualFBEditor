@@ -168,8 +168,8 @@ Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
-Common Shared As Integer LoadFunctionsCount
-Common Shared As String  UseDefine
+Common Shared As Integer LoadFunctionsCount, AIAgentPort
+Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey
 'CurLanguage
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
