@@ -10554,7 +10554,7 @@ Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender A
 		bEnabled = True
 		bEnabledPanel = True
 		bEnabledIndentAndOutdent = True
-	Case "TextBox", "ComboBoxEdit", "ComboBoxEx"
+	Case "TextBox", "RichTextBox", "ComboBoxEdit", "ComboBoxEx"
 		bEnabled = True
 	End Select
 	Select Case ActiveForm->ActiveControl
