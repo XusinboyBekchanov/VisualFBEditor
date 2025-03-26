@@ -7009,7 +7009,7 @@ Sub LoadSettings
 			Debug.Print "Info->ModelName=" & Info->ModelName
 			Info->Host = iniSettings.ReadString("AIAgents", "Host_" & WStr(i), "openrouter.ai")
 			Info->Address = iniSettings.ReadString("AIAgents", "Address_" & WStr(i), "api/v1/chat/completions")
-			Info->APIKey = iniSettings.ReadString("AIAgents", "APIKey_" & WStr(i), "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")
+			Info->APIKey = iniSettings.ReadString("AIAgents", "APIKey_" & WStr(i), "sk-or-v1-XXXXXX")
 			Info->Response_Format = iniSettings.ReadString("AIAgents", "Response_Format_" & WStr(i), "")
 			Info->Temperature = iniSettings.ReadFloat("AIAgents", "Temperature_" & WStr(i), 0.6)
 			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
@@ -8894,20 +8894,16 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPRequest Request
 	Dim As HTTPResponce Responce
 	Request.ResourceAddress = AIAgentAddress
-	AIAgentAPIKey = "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"
-	Dim As String api_key = AIAgentAPIKey
-	'"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" ' "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" '
-	'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
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
 	Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free   ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
-	Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions" ' "https://integrate.api.nvidia.com/v1/chat/completions"    ' "https://openrouter.ai/api/v1/chat/completions"
+	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions" ' "https://integrate.api.nvidia.com/v1/chat/completions"    ' "https://openrouter.ai/api/v1/chat/completions"
 	Dim As String post_data = _
-	"{""model"": ""deepseek/deepseek-r1:free"", " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
+	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
-	Dim As String header2 = "Authorization: Bearer " + api_key
+	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = post_data
 	txtAIRequest.Text = ""
