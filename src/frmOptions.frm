@@ -2877,26 +2877,28 @@ pfOptions = @fOptions
 			.AutoSize = False
 			.ControlIndex = 0
 			.ExtraMargins.Top = 5
-			.SetBounds 0, 66, 417, 127
+			.SetBounds 0, 197, 420, 212
 			.Designer = @This
 			.Parent = @pnlHelp
 		End With
-		' lblAIAgentHost
-		With lblAIAgentHost
-			.Name = "lblAIAgentHost"
-			.Text = ML("Host") & ":"
-			.TabIndex = 257
-			.Caption = ML("Host") & ":"
-			.SetBounds 12, 19, 80, 20
+		' lblAIAgentName
+		With lblAIAgentName
+			.Name = "lblAIAgentName"
+			.Text = ML("Name") & ":"
+			.TabIndex = 258
+			.Align = DockStyle.alNone
+			.Alignment = AlignmentConstants.taRight
+			.ID = 3245
+			.SetBounds 9, 41, 84, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
-		' txtAIAgentHost
-		With txtAIAgentHost
-			.Name = "txtAIAgentHost"
+		' txtAIAgentName
+		With txtAIAgentName
+			.Name = "txtAIAgentName"
 			.Text = ""
-			.TabIndex = 258
-			.SetBounds 102, 16, 300, 20
+			.TabIndex = 259
+			.SetBounds 100, 41, 305, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
@@ -2904,20 +2906,21 @@ pfOptions = @fOptions
 		With lblAIAgentPort
 			.Name = "lblAIAgentPort"
 			.Text = ML("Port") & ":"
-			.TabIndex = 259
+			.TabIndex = 260
 			.ControlIndex = 0
 			.Caption = ML("Port") & ":"
-			.SetBounds 12, 69, 80, 20
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 9, 127, 84, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
 		' txtAIAgentPort
 		With txtAIAgentPort
 			.Name = "txtAIAgentPort"
-			.TabIndex = 260
+			.TabIndex = 261
 			.ControlIndex = 2
 			.Text = ""
-			.SetBounds 102, 66, 300, 20
+			.SetBounds 101, 123, 44, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
@@ -2925,20 +2928,21 @@ pfOptions = @fOptions
 		With lblAIAgentAPIKey
 			.Name = "lblAIAgentAPIKey"
 			.Text = ML("API Key") & ":"
-			.TabIndex = 261
+			.TabIndex = 262
 			.ControlIndex = 0
 			.Caption = ML("API Key") & ":"
-			.SetBounds 12, 94, 80, 20
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 9, 152, 84, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
 		' txtAIAgentAPIKey
 		With txtAIAgentAPIKey
 			.Name = "txtAIAgentAPIKey"
-			.TabIndex = 262
+			.TabIndex = 263
 			.ControlIndex = 3
 			.Text = ""
-			.SetBounds 102, 91, 300, 20
+			.SetBounds 100, 149, 305, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
@@ -2946,19 +2950,161 @@ pfOptions = @fOptions
 		With lblAIAgentAddress
 			.Name = "lblAIAgentAddress"
 			.Text = ML("Address") & ":"
-			.TabIndex = 263
+			.TabIndex = 264
 			.ControlIndex = 0
 			.Caption = ML("Address") & ":"
-			.SetBounds 12, 44, 80, 20
+			.SetBounds 209, 95, 75, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
 		' txtAIAgentAddress
 		With txtAIAgentAddress
 			.Name = "txtAIAgentAddress"
-			.TabIndex = 264
+			.TabIndex = 265
 			.ControlIndex = 2
-			.SetBounds 102, 41, 300, 20
+			.SetBounds 286, 95, 120, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentTemperature
+		With lblAIAgentTemperature
+			.Name = "lblAIAgentTemperature"
+			.Text = ML("Temperature") & ":"
+			.TabIndex = 266
+			.ControlIndex = 2
+			.SetBounds 153, 124, 80, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' chkAIAgentStream
+		With chkAIAgentStream
+			.Name = "chkAIAgentStream"
+			.Text = "Stream"
+			.TabIndex = 267
+			.Checked = True
+			.Caption = "Stream"
+			.SetBounds 347, 124, 58, 17
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgenDefaultModel
+		With lblAIAgenDefaultModel
+			.Name = "lblAIAgenDefaultModel"
+			.Text = ML("Default Model") & ": "
+			.TabIndex = 0
+			.ControlIndex = 0
+			.Alignment = AlignmentConstants.taRight
+			.ID = 3246
+			.SetBounds 9, 21, 84, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' cboAIAgent
+		With cboAIAgent
+			.Name = "cboAIAgent"
+			.Text = "cboAIAgent"
+			.TabIndex = 268
+			.Parent = @grbAIAgent
+			.ControlIndex = 11
+			.ID = 2376
+			.ItemHeight = 13
+			.SetBounds 100, 18, 305, 16
+			.Designer = @This
+			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @cboAIAgent_Selected)
+			.Parent = @grbAIAgent
+		End With
+		' cmdAddAIAgent
+		With cmdAddAIAgent
+			.Name = "cmdAddAIAgent"
+			.Text = ML("&Add")
+			.TabIndex = 269
+			.SetBounds 12, 175, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdAddAIAgent_Click)
+			.Parent = @grbAIAgent
+		End With
+		' cmdChangeAIAgent
+		With cmdChangeAIAgent
+			.Name = "cmdChangeAIAgent"
+			.Text = ML("Change")
+			.TabIndex = 270
+			.SetBounds 110, 175, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdChangeAIAgent_Click)
+			.Parent = @grbAIAgent
+		End With
+		' cmdClearAIAgent
+		With cmdClearAIAgent
+			.Name = "cmdClearAIAgent"
+			.Text = ML("&Clear")
+			.TabIndex = 271
+			.SetBounds 306, 175, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdClearAIAgent_Click)
+			.Parent = @grbAIAgent
+		End With
+		' cmdRemoveAIAgent
+		With cmdRemoveAIAgent
+			.Name = "cmdRemoveAIAgent"
+			.Text = ML("&Remove")
+			.TabIndex = 272
+			.SetBounds 208, 175, 97, 24
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdRemoveAIAgent_Click)
+			.Parent = @grbAIAgent
+		End With
+		
+		' txtAIAgentTemperature
+		With txtAIAgentTemperature
+			.Name = "txtAIAgentTemperature"
+			.Text = "0.6"
+			.TabIndex = 275
+			.MaxValue = 0
+			.Position = -2147483648
+			.Thousands = True
+			.DecimalPlaces = 0
+			.SetBounds 242, 124, 41, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentHost
+		With txtAIAgentHost
+			.Name = "txtAIAgentHost"
+			.TabIndex = 275
+			.ControlIndex = 1
+			.SetBounds 100, 95, 103, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentHost
+		With lblAIAgentHost
+			.Name = "lblAIAgentHost"
+			.Text = ML("Host") & ":"
+			.TabIndex = 276
+			.ControlIndex = 0
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 9, 95, 84, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' lblAIAgentModelName
+		With lblAIAgentModelName
+			.Name = "lblAIAgentModelName"
+			.Text = ML("Model Name")
+			.TabIndex = 277
+			.ControlIndex = 0
+			.Caption = "Model Name"
+			.Alignment = AlignmentConstants.taRight
+			.SetBounds 9, 68, 84, 20
+			.Designer = @This
+			.Parent = @grbAIAgent
+		End With
+		' txtAIAgentModelName
+		With txtAIAgentModelName
+			.Name = "txtAIAgentModelName"
+			.TabIndex = 278
+			.ControlIndex = 2
+			.SetBounds 100, 68, 305, 20
 			.Designer = @This
 			.Parent = @grbAIAgent
 		End With
@@ -3167,6 +3313,16 @@ Sub frmOptions.LoadSettings()
 		Next
 		.cboCompiler32.ItemIndex = Max(0, .cboCompiler32.IndexOf(*DefaultCompiler32))
 		.cboCompiler64.ItemIndex = Max(0, .cboCompiler64.IndexOf(*DefaultCompiler64))
+		.cboAIAgent.Clear
+		.cboAIAgent.AddItem ML("(not selected)")
+		Dim As Integer Index = 0
+		Debug.Print  "pAIAgents->Count=" & pAIAgents->Count
+		For i As Integer = 0 To pAIAgents->Count - 1
+			.cboAIAgent.AddItem pAIAgents->Item(i)->Key
+			Debug.Print  pAIAgents->Item(i)->Key & " M=" & Cast( ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName & " " &  *CurrentAIAgent
+			If pAIAgents->Item(i)->Key = *CurrentAIAgent Then Index = .cboAIAgent.ItemCount - 1
+		Next
+		.cboAIAgent.ItemIndex = Index
 		.cboMakeTool.Clear
 		.lvMakeToolPaths.ListItems.Clear
 		.cboMakeTool.AddItem ML("(not selected)")
@@ -3295,6 +3451,8 @@ Sub frmOptions.LoadSettings()
 		WLet(.oldInterfFontName, *InterfaceFontName)
 		.InterfFontSize = InterfaceFontSize
 		.oldInterfFontSize = InterfaceFontSize
+		.txtAIAgentName.Text = *CurrentAIAgent
+		.txtAIAgentModelName.Text = AIAgentModelName
 		.txtAIAgentHost.Text = AIAgentHost
 		.txtAIAgentAddress.Text = AIAgentAddress
 		.txtAIAgentPort.Text = Str(AIAgentPort)
@@ -3752,10 +3910,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		EditorFontSize = .EditFontSize
 		WLet(InterfaceFontName, * (.InterfFontName))
 		InterfaceFontSize = .InterfFontSize
-		AIAgentHost = .txtAIAgentHost.Text
-		AIAgentAddress = .txtAIAgentAddress.Text
-		AIAgentPort = Val(.txtAIAgentPort.Text)
-		AIAgentAPIKey = .txtAIAgentAPIKey.Text
 		DisplayMenuIcons = .chkDisplayIcons.Checked
 		ShowMainToolBar = .chkShowMainToolbar.Checked
 		DarkMode = .chkDarkMode.Checked
@@ -3779,9 +3933,47 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			CloseFile_(Fn)
 			pfrmMain->Menu->ParentWindow = pfrmMain
 		End If
+		Dim i As Integer = 0
+		
+		If *DefaultAIAgent <> IIf(.cboAIAgent.ItemIndex = 0, "", .cboAIAgent.Text) OrElse Not pAIAgents->ContainsKey(*CurrentAIAgent) Then
+			WLet(DefaultAIAgent, IIf(.cboAIAgent.ItemIndex = 0, "", .cboAIAgent.Text))
+			WLet(CurrentAIAgent, *DefaultAIAgent)
+		End If
+		piniSettings->WriteString "AIAgents", "DefaultAIAgent", *DefaultAIAgent
+		For i As Integer = 0 To pAIAgents->Count - 1
+			piniSettings->WriteString "AIAgents", "Version_" & WStr(i), Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Name
+			piniSettings->WriteString "AIAgents", "ModelName_" & WStr(i), Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
+			piniSettings->WriteString "AIAgents", "Host_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Host
+			piniSettings->WriteString "AIAgents", "Address_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Address
+			piniSettings->WriteString "AIAgents", "APIKey_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
+			piniSettings->WriteString "AIAgents", "Response_Format_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Response_Format
+			piniSettings->WriteFloat "AIAgents", "Temperature_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature
+			piniSettings->WriteFloat "AIAgents", "Top_P_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Top_P
+			piniSettings->WriteBool "AIAgents", "Stream_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream
+			If *CurrentAIAgent = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Name Then
+				AIAgentModelName = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
+				AIAgentHost = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Host
+				AIAgentAddress  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Address 
+				AIAgentAPIKey = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
+				AIAgentTemperature = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature
+				AIAgentStream  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream  
+			End If
+		Next
+		i = pAIAgents->Count
+		Do Until piniSettings->KeyExists("AIAgents", "Version_" & WStr(i)) = -1
+			piniSettings->KeyRemove "AIAgents", "Version_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "ModelName_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Host_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Address_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "APIKey_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Response_Format_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Temperature_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Top_P_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Stream_" & WStr(i)
+			i += 1
+		Loop
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
 		piniSettings->WriteString "Compilers", "DefaultCompiler64", *DefaultCompiler64
-		Dim i As Integer = 0
 		For i As Integer = 0 To pCompilers->Count - 1
 			piniSettings->WriteString "Compilers", "Version_" & WStr(i), pCompilers->Item(i)->Key
 			piniSettings->WriteString "Compilers", "Path_" & WStr(i), pCompilers->Item(i)->Text
@@ -3948,10 +4140,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteInteger "Options", "EditorFontSize", EditorFontSize
 		piniSettings->WriteString "Options", "InterfaceFontName", *InterfaceFontName
 		piniSettings->WriteInteger "Options", "InterfaceFontSize", InterfaceFontSize
-		piniSettings->WriteString "Options", "AIAgentHost", AIAgentHost
-		piniSettings->WriteString "Options", "AIAgentAddress", AIAgentAddress
-		piniSettings->WriteString "Options", "AIAgentAPIKey", AIAgentAPIKey
-		piniSettings->WriteInteger "Options", "AIAgentPort", AIAgentPort
+		
 		piniSettings->WriteBool "Options", "DisplayMenuIcons", DisplayMenuIcons
 		piniSettings->WriteBool "Options", "ShowMainToolbar", ShowMainToolBar
 		piniSettings->WriteBool "Options", "DarkMode", DarkMode
@@ -4219,9 +4408,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " " & _
-	"in function " & ZGet(Erfn()) & " " & _
-	"in module " & ZGet(Ermn())
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Private Sub frmOptions.Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
@@ -5005,6 +5194,61 @@ Private Sub frmOptions.cmdClearHelps_Click(ByRef Designer As My.Sys.Object, ByRe
 		.cboHelp.AddItem ML("(not selected)")
 		.cboHelp.ItemIndex = 0
 	End With
+End Sub
+
+Private Sub frmOptions.cmdAddAIAgent_Click(ByRef Sender As Control)
+	With fOptions
+		Dim As Integer ItemIndex = pAIAgents->IndexOf(.txtAIAgentName.Text)
+		If ItemIndex <> -1 Then
+			MsgBox ML("This version is exists!")
+			Return
+		End If
+		Dim As ModelInfo Ptr Info = _New(ModelInfo)
+		Info->Name = .txtAIAgentName.Text
+		Info->ModelName = .txtAIAgentModelName.Text
+		Info->Host = .txtAIAgentHost.Text
+		Info->Address = .txtAIAgentAddress.Text
+		Info->APIKey = .txtAIAgentAPIKey.Text
+		'.txtAIAgentResponse_Format.Text = Info->Response_Format
+		Info->Temperature = Val(.txtAIAgentTemperature.Text)
+		'.txtAIAgentTop_P.Text = Info->Top_P
+		Info->Stream = .chkAIAgentStream.Checked
+		pAIAgents->Add .txtAIAgentName.Text, Info->Host, Info
+	End With
+End Sub
+
+Private Sub frmOptions.cmdRemoveAIAgent_Click(ByRef Sender As Control)
+	With fOptions
+		Dim As Integer ItemIndex = pAIAgents->IndexOf(.txtAIAgentName.Text)
+		pAIAgents->Remove ItemIndex
+		cboAIAgent.RemoveItem ItemIndex + 1
+	End With
+End Sub
+
+Private Sub frmOptions.cmdChangeAIAgent_Click(ByRef Sender As Control)
+	With fOptions
+		Dim As Integer ItemIndex = pAIAgents->IndexOf(.txtAIAgentName.Text)
+		If pAIAgents = 0 OrElse pAIAgents->Count < 1 Then Return
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->Name = .txtAIAgentName.Text
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->ModelName = .txtAIAgentModelName.Text
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->Host = .txtAIAgentHost.Text
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->Address = .txtAIAgentAddress.Text
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->APIKey = .txtAIAgentAPIKey.Text
+		'.txtAIAgentResponse_Format.Text = Info->Response_Format
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->Temperature = Val(.txtAIAgentTemperature.Text)
+		'.txtAIAgentTop_P.Text = Info->Top_P
+		Cast(ModelInfo Ptr, pAIAgents->Item(ItemIndex)->Object)->Stream = .chkAIAgentStream.Checked
+	End With
+End Sub
+
+Private Sub frmOptions.cmdClearAIAgent_Click(ByRef Sender As Control)
+	With fOptions
+		.lvHelpPaths.ListItems.Clear
+		.cboAIAgent.Clear
+		.cboAIAgent.AddItem ML("(not selected)")
+		.cboAIAgent.ItemIndex = 0
+	End With
+	pAIAgents->Clear
 End Sub
 
 Private Sub frmOptions.cmdInterfaceFont_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
@@ -6233,4 +6477,19 @@ End Sub
 
 Private Sub frmOptions.lvConfigurations_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeConfiguration_Click cmdChangeConfiguration
+End Sub
+Private Sub frmOptions.cboAIAgent_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
+	With fOptions
+		If pAIAgents = 0 OrElse pAIAgents->Count < 1 OrElse ItemIndex < 1 Then Return
+		.txtAIAgentName.Text = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Name
+		.txtAIAgentModelName.Text = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->ModelName
+		.txtAIAgentHost.Text = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Host
+		.txtAIAgentAddress.Text = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Address
+		.txtAIAgentAPIKey.Text = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->APIKey
+		.txtAIAgentPort.Text = Str(Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Port)
+		'.txtAIAgentResponse_Format.Text = Info->Response_Format
+		.txtAIAgentTemperature.Text = Str(Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Temperature)
+		'.txtAIAgentTop_P.Text = Info->Top_P
+		.chkAIAgentStream.Checked = Cast( ModelInfo Ptr, pAIAgents->Item(ItemIndex - 1)->Object)->Stream
+	End With
 End Sub

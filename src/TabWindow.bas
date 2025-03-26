@@ -9539,7 +9539,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Var Pos2 = InStr(LCase(b2), "), @")
 								'b2 = Trim(Mid(b0Trim, InStr(b0Trim, " ")))
 							End If
-							Dim As WString * 255 CurType, ElementValue
+							Dim As WString * 2048 CurType, ElementValue
 							Dim As WString Ptr res1(Any)
 							Dim As Boolean bShared, bOldAs
 							'Pos1 = InStr(b2, "'")
@@ -9684,7 +9684,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								End If
 								If te->ElementType = E_Event Then
-									Dim As WString * 255 bTrim = CurType
+									Dim As WString * 2048 bTrim = CurType
 									Pos2 = InStrRev(bTrim, ")")
 									Pos5 = InStr(bTrim, "(")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -9692,7 +9692,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								ElseIf StartsWith(LCase(te->Value), "cast(sub(") Then
 									te->ElementType = ElementTypes.E_ByRefParameter
-									Dim As WString * 255 bTrim = te->Value
+									Dim As WString * 2048 bTrim = te->Value
 									Pos5 = 9
 									Pos2 = InStr(Pos5 + 1, bTrim, ")")
 									If Pos2 > 0 AndAlso Pos5 > 0 Then
@@ -10022,7 +10022,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			#endif
 			If Des->SelectedControls.Count > 1 Then Des->MoveDots Des->SelectedControl, False
 		End If
-	Dim As WString * 255 PropertyName, TempWS
+		Dim As WString * 2048 PropertyName, TempWS
 		For i As Integer = 0 To plvProperties->Nodes.Count - 1
 			PropertyName = GetItemText(plvProperties->Nodes.Item(i))
 			TempWS = ReadObjProperty(Des->SelectedControl, PropertyName)

@@ -132,7 +132,7 @@ Common Shared As TreeListView Ptr plvProperties, plvEvents
 Common Shared As ImageList Ptr pimgList, pimgListTools
 Common Shared As ProgressBar Ptr pprProgress
 Common Shared As CommandButton Ptr pbtnPropertyValue
-Common Shared As TextBox Ptr ptxtPropertyValue
+Common Shared As TextBox Ptr ptxtPropertyValue, ptxtAIRequest
 Common Shared As ToolBar Ptr ptbStandard
 Common Shared As ToolButton Ptr SelectedTool
 Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
@@ -169,14 +169,15 @@ Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
 Common Shared As Integer LoadFunctionsCount, AIAgentPort
-Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey
-'CurLanguage
+Common Shared As Boolean AIAgentStream
+Common Shared As Double  AIAgentTop_P, AIAgentTemperature '介于 0 和 2 之间.
+Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentName
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables
 Common Shared As WString Ptr ProjectsPath, LastOpenPath, CommandPromptFolder
 Common Shared As WString Ptr DefaultHelp, HelpPath, KeywordsHelpPath, AsmKeywordsHelpPath, DefaultBuildConfiguration
-Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
+Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2, DefaultAIAgent, CurrentAIAgent
 Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, GDBDebugger32, GDBDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64
 Common Shared As WString Ptr MakeToolPath1, MakeToolPath2, Debugger32Path, Debugger64Path, GDBDebugger32Path, GDBDebugger64Path, TerminalPath, Compiler32Path, Compiler64Path
@@ -207,6 +208,18 @@ Type ToolType
 	Declare Function GetCommand(ByRef FileName As WString = "", WithoutProgram As Boolean = False) As UString
 End Type
 
+Type ModelInfo
+	Name As String
+	Host As String
+	Address As String
+	APIKey As String
+	ModelName As String
+	Port As Integer
+	Stream As Boolean
+	Temperature As Single '介于 0 和 2 之间.
+	Top_P As Single ' 《=1
+	Response_Format As String 'json_object
+End Type
 'Type FileType
 '	FileName As UString
 '	DateChanged As Double
@@ -226,7 +239,7 @@ Common Shared As List Ptr pTools, pControlLibraries
 Common Shared As WStringOrStringList Ptr pComps, pGlobalNamespaces, pGlobalTypes, pGlobalEnums, pGlobalDefines, pGlobalFunctions, pGlobalTypeProcedures, pGlobalArgs
 Common Shared As WStringList Ptr pAddIns, pIncludeFiles, pLoadPaths, pIncludePaths, pLibraryPaths
 'Common Shared As WStringList Ptr pLocalTypes, pLocalEnums, pLocalProcedures, pLocalFunctions, pLocalFunctionsOthers, pLocalArgs,
-Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals, pOtherEditors
+Common Shared As Dictionary Ptr pHelps, pCompilers, pMakeTools, pDebuggers, pTerminals, pOtherEditors, pAIAgents
 
 Enum LoadParam
 	OnlyFilePath

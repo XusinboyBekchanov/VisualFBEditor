@@ -25,6 +25,7 @@
 #include once "mff/ProgressBar.bi"
 #include once "mff/ScrollBarControl.bi"
 #include once "mff/Label.bi"
+#include once "mff/LinkLabel.bi"
 #include once "mff/Panel.bi"
 #include once "mff/TrackBar.bi"
 #include once "mff/Clipboard.bi"
@@ -118,18 +119,18 @@ Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctions
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, mpKeys, mcKeys
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, AIAgents, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue, txtExpand, txtAIRequest
-Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent
+Dim Shared As TextBox txtPropertyValue, txtExpand
+Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent, txtAIRequest
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches, lvProfiler
 Dim Shared As ToolPalette tbToolBox
-Dim Shared As Panel pnlToolBox
+Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -154,6 +155,7 @@ pDebuggers = @Debuggers
 pTerminals = @Terminals
 pOtherEditors = @OtherEditors
 pHelps = @Helps
+pAIAgents = @AIAgents
 plvSearch = @lvSearch
 plvToDo = @lvToDo '
 ptbStandard = @tbStandard
@@ -4268,7 +4270,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						Comment = ""
 					ElseIf CInt(StartsWith(bTrimLCase, "as ")) OrElse CInt(StartsWith(bTrimLCase, "const ")) OrElse InStr(bTrimLCase, " as ") Then
 						Dim As WString * 2048 b2 = bTrim
-						Dim As WString * 255 CurType, ElementValue, TypeComment
+						Dim As WString * 2048 CurType, ElementValue, TypeComment
 						Dim As WString Ptr res1(Any)
 						Dim As Integer uu, ct
 						Dim As Boolean bOldAs
@@ -4810,7 +4812,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase, "extern ")) OrElse _
 						CInt(StartsWith(bTrimLCase, "var "))) Then
 						Dim As WString * 2048 b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
-						Dim As WString * 255 CurType, ElementValue
+						Dim As WString * 2048 CurType, ElementValue
 						Dim As WString Ptr res1(Any)
 						Dim As Boolean bShared, bOldAs
 						Pos1 = InStr(b2, "'")
@@ -6981,12 +6983,15 @@ End Sub
 Sub LoadSettings
 	Dim As UString Temp
 	Dim As ToolType Ptr Tool
+	Dim As ModelInfo Ptr Info
 	Dim i As Integer = 0
+	WLet(DefaultAIAgent, iniSettings.ReadString("AIAgents", "DefaultAIAgent", "deepseek/deepseek-chat-v3-0324:free OpenRouter"))
+	WLet(CurrentAIAgent, *DefaultAIAgent)
 	cboBuildConfiguration.AddItem ML("No options")
-	Do Until iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
+	Do Until iniSettings.KeyExists("AIAgents", "Version_" & WStr(i)) + iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -8
+		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -9
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then
 			Tool = _New(ToolType)
@@ -6994,6 +6999,30 @@ Sub LoadSettings
 			Tool->Path = iniSettings.ReadString("Compilers", "Path_" & WStr(i), "")
 			Tool->Parameters = iniSettings.ReadString("Compilers", "Command_" & WStr(i), "")
 			Compilers.Add Temp, Tool->Path, Tool
+		End If
+		Temp = iniSettings.ReadString("AIAgents", "Version_" & WStr(i), "")
+		If i = 0 AndAlso Temp = "" Then Temp = "deepseek/deepseek-chat-v3-0324:free OpenRouter"
+		If Temp <> "" Then
+			Info = _New(ModelInfo)
+			Info->Name = Temp
+			Info->ModelName = iniSettings.ReadString("AIAgents", "ModelName_" & WStr(i), "deepseek/deepseek-chat-v3-0324:free")
+			Debug.Print "Info->ModelName=" & Info->ModelName
+			Info->Host = iniSettings.ReadString("AIAgents", "Host_" & WStr(i), "openrouter.ai")
+			Info->Address = iniSettings.ReadString("AIAgents", "Address_" & WStr(i), "api/v1/chat/completions")
+			Info->APIKey = iniSettings.ReadString("AIAgents", "APIKey_" & WStr(i), "sk-or-v1-XXXXXX")
+			Info->Response_Format = iniSettings.ReadString("AIAgents", "Response_Format_" & WStr(i), "")
+			Info->Temperature = iniSettings.ReadFloat("AIAgents", "Temperature_" & WStr(i), 0.6)
+			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
+			Info->Stream = iniSettings.ReadBool("AIAgents", "Stream_" & WStr(i), True)
+			AIAgents.Add Temp, Info->Host, Tool
+			If *CurrentAIAgent = Temp Then
+				AIAgentModelName = Info->ModelName
+				AIAgentHost = Info->Host
+				AIAgentAddress  = Info->Address
+				AIAgentAPIKey = Info->APIKey
+				AIAgentTemperature = Info->Temperature
+				AIAgentStream  = Info->Stream
+			End If
 		End If
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
 		If Temp <> "" Then
@@ -7028,6 +7057,7 @@ Sub LoadSettings
 			Tool->Extensions = iniSettings.ReadString("OtherEditors", "Extensions_" & WStr(i), "")
 			OtherEditors.Add Temp, Tool->Path, Tool
 		End If
+		
 		Temp = iniSettings.ReadString("Helps", "Version_" & WStr(i), "")
 		If Temp <> "" Then Helps.Add Temp, iniSettings.ReadString("Helps", "Path_" & WStr(i), "")
 		Temp = iniSettings.ReadString("BuildConfigurations", "Name_" & WStr(i), "")
@@ -7142,10 +7172,6 @@ Sub LoadSettings
 		WLet(InterfaceFontName, iniSettings.ReadString("Options", "InterfaceFontName", "Tahoma"))
 		InterfaceFontSize = iniSettings.ReadInteger("Options", "InterfaceFontSize", 8)
 	#endif
-	AIAgentHost = iniSettings.ReadString("Options", "AIAgentHost", "openrouter.ai")
-	AIAgentAddress = iniSettings.ReadString("Options", "AIAgentAddress", "api/v1/chat/completions")
-	AIAgentPort = iniSettings.ReadInteger("Options", "AIAgentPort", 443)
-	AIAgentAPIKey = iniSettings.ReadString("Options", "AIAgentAPIKey", "")
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
@@ -7481,6 +7507,16 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Suggestions", "Suggestions"
 	imgList.Add "DarkMode", "DarkMode"
 	imgList.Add "FindSymbol", "FindSymbol"
+	imgList.Add "AddComment", "AddComment"
+	imgList.Add "TracepointError", "TracepointError"
+	imgList.Add "Intellicode", "Intellicode"
+	imgList.Add "OptimizeCode", "OptimizeCode"
+	imgList.Add "AddComment", "AddComment"
+	imgList.Add "ConvertC", "ConvertC"
+	imgList.Add "Translate", "Translate"
+	imgList.Add "TranslateE", "TranslateE"
+	imgList.Add "WebBrowserItem", "WebBrowserItem"
+	
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
 	'imgListD.Add "BreakD", "Break"
@@ -7504,6 +7540,7 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "UserControl32", "UserControl32"
 	imgList32.Add "Form32", "Form32"
 	imgList32.Add "Form3D32", "Form3D32"
+	imgList32.Add "FormRC", "FormRC"
 	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList
@@ -8661,7 +8698,14 @@ tpProject = tabLeft.AddTab(ML("Project"))
 
 tpToolbox = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
 tpToolbox->Name = "Toolbox"
+tpAIAgent = tabLeft.AddTab(ML("AI Agent")) ' ToolBox is better than "Form"
+tpAIAgent->Name = "AIAgent"
+tpAIAgent->Add @tbAIAgent
+tpAIAgent->Add @pnlAIAgent
 
+pnlAIAgent.Align = DockStyle.alClient
+pnlAIAgent.Width = tabLeftWidth
+'pnlAIAgent.OnResize = @pnlAIAgent_Resize
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
@@ -8760,13 +8804,12 @@ txtForm.OnChange = @txtForm_Change
 
 tpToolbox->Add @pnlToolBox 'tbToolBox
 tpToolbox->Add @tbForm
+
 'tpToolbox->Style = tpToolbox->Style Or ES_AUTOVSCROLL or WS_VSCROLL
 
 'pnlLeft.Width = 153
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
-
-tpAIAgent = tabLeft.AddTab(ML("AI Agent"))
 
 tbAIAgent.ImagesList = @imgList
 tbAIAgent.HotImagesList = @imgList
@@ -8774,11 +8817,36 @@ tbAIAgent.Flat = True
 tbAIAgent.Align = DockStyle.alTop
 tbAIAgent.AutoSize = True
 tbAIAgent.ExtraMargins.Right = tbLeft.Width
-tbAIAgent.Buttons.Add , "Eraser", , @mClick, "EraseAIAgent", , ML("Erase AI Agent"), True
+tbAIAgent.Buttons.Add , "AddComment", , @mClick, "AIAddComment", , ML("Comment selected code"), True
+tbAIAgent.Buttons.Add , "OptimizeCode", , @mClick, "AIOptimizeCode", , ML("Optimize selected code"), True
+tbAIAgent.Buttons.Add , "Intellicode", , @mClick, "AIIntellicode", , ML("Generate code based on the requirements of the selected comment lines"), True
+tbAIAgent.Buttons.Add , "TracepointError", , @mClick, "AITracepointError", , ML("Explain the selected compiler error message"), True
+tbAIAgent.Buttons.Add , "WebBrowserItem", , @mClick, "AIWebBrowserItem", , ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis."), True
+tbAIAgent.Buttons.Add , "ConvertC", , @mClick, "AIConvertCtoFB", , ML("Convert the given C source code into equivalent FreeBasic source code."), True
+tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with MARKDOWN source code, translate the selected message to") & " " &  ML(App.CurLanguage), True
+tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
+tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
 tbAIAgent.Buttons.Add tbsSeparator
+'
+'txtAIThink.Align = DockStyle.alClient
+'txtAIThink.Parent = @pnlAIAgent
+'txtAIThink.TextRTF = "{\urtf1\b    \b0\par    }"
+'txtAIThink.Multiline = True
+'txtAIThink.Font.Size = 11
+'txtAIThink.ReadOnly = True
+'txtAIThink.Height = 100
+'txtAIThink.WordWraps = True
+'txtAIThink.MaxLength = 0
+'txtAIThink.ScrollBars = ScrollBarsType.Vertical
+'splAIThink.Parent = @pnlAIAgent
+'splAIThink.Align = SplitterAlignmentConstants.alBottom
 
 txtAIAgent.Align = DockStyle.alClient
+txtAIAgent.Parent = @pnlAIAgent
+txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
+txtAIAgent.Font.Name = *EditorFontName
+txtAIAgent.Font.Size = EditorFontSize
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8838,6 +8906,51 @@ Sub txtAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConn
 	ThreadsLeave
 End Sub
 
+Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
+	ThreadsEnter
+	Dim As WString Ptr BodyZStringPtr = FromUtf8(StrPtr(Buffer))
+	If BodyZStringPtr = 0 Then Return
+	Dim As WString Ptr Buff()
+	Dim As Integer iPos1, iPos2, BuffCount = Split(*BodyZStringPtr, "data: ", Buff())
+	If BuffCount < 1 Then Return
+	For i As Integer = 0 To BuffCount - 1
+		If Trim(*Buff(i)) = "" Then Continue For
+		Debug.Print *Buff(i)
+		If InStr(*Buff(i), "chat.completion.chunk") Then
+			iPos1 = InStr(*Buff(i), ",""reasoning"":""")
+			If iPos1 > 0 Then
+				iPos2 = InStr(iPos1, *Buff(i), """},""finish_reason""")
+				If iPos2 Then
+					txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+					txtAIAgent.SelEnd = txtAIAgent.SelStart
+					txtAIAgent.SelText =  Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """")
+				End If
+			Else
+				iPos1 = InStr(*Buff(i), ",""content"":""")
+				If iPos1 > 0 Then
+					iPos2 = InStr(iPos1, *Buff(i), """},""")
+					If iPos2 Then
+						txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+						txtAIAgent.SelEnd = txtAIAgent.SelStart
+						txtAIAgent.SelText = Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """")
+					End If
+				End If
+			End If
+		Else
+			ShowMessages(*Buff(i))
+			'If InStr(*Buff(i), "[DONE]") Then  txtAIRequest.Enabled = True
+		End If
+		If InStr(*Buff(i), "[DONE]") OrElse InStr(*Buff(i), "{""error""") Then
+			txtAIRequest.Enabled = True
+			txtAIRequest.SetFocus
+		End If
+		Deallocate Buff(i)
+	Next
+	Erase Buff
+	Deallocate BodyZStringPtr
+	ThreadsLeave
+End Sub
+
 Sub AIRequest(Param As Any Ptr)
 	bInAIThread = True
 	Dim As HTTPConnection HTTPConnection1
@@ -8846,6 +8959,66 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPRequest Request
 	Dim As HTTPResponce Responce
 	Request.ResourceAddress = AIAgentAddress
+	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
+	Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free   ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
+	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions" ' "https://integrate.api.nvidia.com/v1/chat/completions"    ' "https://openrouter.ai/api/v1/chat/completions"
+	Dim As String post_data = _
+	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
+	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
+	"""messages"": [" & _
+	"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
+	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
+	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
+	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
+	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
+	Request.Body = post_data
+	txtAIRequest.Text = ""
+	If AIAgentStream Then
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelBackColor = darkHlBkColor
+		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.ScrollToCaret
+		HTTPConnection1.OnReceive= @AIAgent_OnReceive
+	End If
+	HTTPConnection1.CallMethod("POST", Request, Responce)
+	If Not AIAgentStream Then
+		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
+		If Temp = 0 Then Return
+		Debug.Print *Temp
+		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
+		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
+		WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """"))
+		
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.SelBackColor = darkHlBkColor
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.ScrollToCaret
+		txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		
+		iPos1 = InStrRev(*Temp, ",""content"":""")
+		iPos2 = InStrRev(*Temp, """,""refusal""")
+		WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """"))
+		
+		txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.ScrollToCaret
+		txtAIRequest.Enabled = True
+		txtAIRequest.SetFocus
+		WDeAllocate(Temp)
+	End If
+	
 	Dim As String api_key = AIAgentAPIKey
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
 	Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free  ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
@@ -8872,35 +9045,55 @@ Sub AIRequest(Param As Any Ptr)
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelText =  !"\r\n\r\n"
+
 	bInAIThread = False
 End Sub
 
 Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
-	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
+
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelText = !"\r\n" & "User" & !"\r\n" & Date & " " & Time & !"\r\n"
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkBkColor
+	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
+	txtAIAgent.ScrollToCaret
+	
 	txtAIAgent.SelAlignment = AlignmentConstants.taRight
 	txtAIAgent.SelText =  txtAIRequest.Text & !"\r\n\r\n"
 	txtAIAgent.ScrollToEnd
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 	Messages.Add "user", ToUtf8(Replace(Replace(Replace(txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n"))
+
 	bInAIThread = True
+	txtAIRequest.Enabled = False
+	ClearMessages
 	ThreadCreate(@AIRequest)
 End Sub
 
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
+txtAIRequest.Parent = @pnlAIAgent
+txtAIRequest.Font.Name = *EditorFontName
+txtAIRequest.Font.Size = EditorFontSize
+txtAIRequest.ScrollBars = ScrollBarsType.Vertical
+txtAIRequest.Multiline= True
 txtAIRequest.WordWraps = True
+
 txtAIRequest.OnActivate = @txtAIRequest_Activate
+ptxtAIRequest = @txtAIRequest
+splAIAgent.Parent = @pnlAIAgent
 
 splAIAgent.Align = SplitterAlignmentConstants.alBottom
 
-tpAIAgent->Add @tbAIAgent
-tpAIAgent->Add @txtAIRequest
-tpAIAgent->Add @splAIAgent
-tpAIAgent->Add @txtAIAgent
-
+'tpAIAgent->Add @tbAIAgent
+'tpAIAgent->Add @txtAIRequest
+'tpAIAgent->Add @splAIAgent
+'tpAIAgent->Add @txtAIAgent
 Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -11490,6 +11683,8 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(CurrentMakeTool2)
 	WDeAllocate(MakeToolPath1)
 	WDeAllocate(MakeToolPath2)
+	WDeAllocate(DefaultAIAgent)
+	WDeAllocate(CurrentAIAgent)
 	WDeAllocate(DefaultDebugger32)
 	WDeAllocate(DefaultDebugger64)
 	WDeAllocate(GDBDebugger32)
