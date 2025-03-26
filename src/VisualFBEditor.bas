@@ -575,7 +575,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
 		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType" '
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AIConvertCtoFB", "AITranslate", "AITranslateE", "AIWebBrowserItem", "AIRelease"
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -650,6 +650,42 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			#endif
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
+		Case "AIRelease"
+			#ifdef __USE_WINAPI__
+				
+			#endif
+		Case "AITracepointError"
+			'If lvProblems.ListItems.Count < 1 Then
+			'	Return
+			'Else
+				ptxtAIRequest->Text = ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " & ML("Explain the selected compiler error message") & ": " & lvProblems.SelectedItem->Text(0) & Chr(13, 10) & "```freeBasic" & Chr(13, 10) & tb->txtCode.Lines(Val(lvProblems.SelectedItem->Text(1)) - 1) & Chr(13, 10) & "```"
+				ptxtAIRequest->Update
+				ptxtAIRequest->SetFocus
+			'End If
+			
+		Case "AIIntellicode"
+			ptxtAIRequest->Text = ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " & ML("Generate code based on the requirements of the selected comment lines") & ": " & Chr(13, 10) & "```freeBasic" & Chr(13, 10) & tb->txtCode.SelText & Chr(13, 10) & "```"
+			ptxtAIRequest->Update
+			ptxtAIRequest->SetFocus
+		Case "AIAddComment" '"AIOptimizeCode", "AIIntellicode" , "AITracepointError", "AIRelease"
+			ptxtAIRequest->Text = ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " & ML("Comment selected code") & ": " & Chr(13, 10) & "```freeBasic" & Chr(13, 10) & tb->txtCode.SelText & Chr(13, 10) & "```"
+			ptxtAIRequest->SetFocus
+		Case "AIOptimizeCode"
+			ptxtAIRequest->Text = ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " & ML("Optimize selected code") & ": " & Chr(13, 10) & "```freeBasic" & Chr(13, 10) & tb->txtCode.SelText & Chr(13, 10) & "```"
+			ptxtAIRequest->SetFocus
+		Case "AIConvertCtoFB"
+			ptxtAIRequest->Text = ML("Convert the given C source code into equivalent FreeBasic source code.") & " " & ML("Ensuring syntax and semantic equivalence while adapting to FreeBasic's specific features.") & Chr(13, 10) & "```C" & Chr(13, 10) & "       " & Chr(13, 10) & "```"
+			ptxtAIRequest->SetFocus
+		Case "AITranslate"
+			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML(App.CurLanguage) & Chr(13, 10) & "```MARKDOWN" & Chr(13, 10) & tb->txtCode.SelText & Chr(13, 10) & "```"
+			ptxtAIRequest->Update
+			ptxtAIRequest->SetFocus
+		Case "AITranslateE"
+			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English") & Chr(13, 10) & "```MARKDOWN" & Chr(13, 10) & tb->txtCode.SelText & Chr(13, 10) & "```"
+			ptxtAIRequest->SetFocus
+		Case "AIWebBrowserItem"
+			ptxtAIRequest->Text = ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis.")
+			ptxtAIRequest->SetFocus
 		Case "SetNextStatement":
 			ClearThreadsWindow
 			Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
