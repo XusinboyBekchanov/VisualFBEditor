@@ -119,12 +119,12 @@ Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctions
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
 Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
-Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, mpKeys, mcKeys, AIAgents 
+Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, AIAgents, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue, txtExpand, txtAIRequest
-Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent
+Dim Shared As TextBox txtPropertyValue, txtExpand
+Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent, txtAIRequest
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32
@@ -8827,12 +8827,26 @@ tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with
 tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
 tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
 tbAIAgent.Buttons.Add tbsSeparator
+'
+'txtAIThink.Align = DockStyle.alClient
+'txtAIThink.Parent = @pnlAIAgent
+'txtAIThink.TextRTF = "{\urtf1\b    \b0\par    }"
+'txtAIThink.Multiline = True
+'txtAIThink.Font.Size = 11
+'txtAIThink.ReadOnly = True
+'txtAIThink.Height = 100
+'txtAIThink.WordWraps = True
+'txtAIThink.MaxLength = 0
+'txtAIThink.ScrollBars = ScrollBarsType.Vertical
+'splAIThink.Parent = @pnlAIAgent
+'splAIThink.Align = SplitterAlignmentConstants.alBottom
 
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
-txtAIAgent.Font.Size = 11
+txtAIAgent.Font.Name = *EditorFontName
+txtAIAgent.Font.Size = EditorFontSize
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8875,7 +8889,7 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 			ShowMessages(*Buff(i))
 			'If InStr(*Buff(i), "[DONE]") Then  txtAIRequest.Enabled = True
 		End If
-		If InStr(*Buff(i), "[DONE]") Then
+		If InStr(*Buff(i), "[DONE]") OrElse InStr(*Buff(i), "{""error""") Then
 			txtAIRequest.Enabled = True
 			txtAIRequest.SetFocus
 		End If
@@ -8901,7 +8915,7 @@ Sub AIRequest(Param As Any Ptr)
 	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & _
-	"{""role"": ""system"", ""content"": """ & ToUtf8("Answer in Simplified Chinese without special instructions." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
+	"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
 	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
@@ -8915,7 +8929,7 @@ Sub AIRequest(Param As Any Ptr)
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		txtAIAgent.SelBackColor = darkHlBkColor
 		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
-		'txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.SelBackColor = darkBkColor
 		txtAIAgent.ScrollToCaret
 		HTTPConnection1.OnReceive= @AIAgent_OnReceive
 	End If
@@ -8936,6 +8950,7 @@ Sub AIRequest(Param As Any Ptr)
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
 		txtAIAgent.ScrollToCaret
+		txtAIAgent.SelBackColor = darkBkColor
 		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -8958,13 +8973,17 @@ End Sub
 
 Sub txtAIRequest_OnActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
-	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
-	txtAIAgent.SelAlignment = AlignmentConstants.taRight
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelText = !"\r\n" & "User" & !"\r\n" & Date & " " & Time & !"\r\n"
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
 	txtAIAgent.ScrollToCaret
-	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	
 	bInAIThread = True
 	txtAIRequest.Enabled = False
 	ClearMessages
@@ -8974,6 +8993,9 @@ End Sub
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
 txtAIRequest.Parent = @pnlAIAgent
+txtAIRequest.Font.Name = *EditorFontName
+txtAIRequest.Font.Size = EditorFontSize
+txtAIRequest.ScrollBars = ScrollBarsType.Vertical
 txtAIRequest.Multiline= True
 txtAIRequest.WordWraps = True
 txtAIRequest.OnActivate = @txtAIRequest_OnActivate
