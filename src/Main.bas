@@ -8900,7 +8900,9 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String post_data = _
 	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"""messages"": [" & _
+	"{""role"": ""system"", ""content"": """ & ToUtf8("Answer in Simplified Chinese without special instructions." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
+	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
