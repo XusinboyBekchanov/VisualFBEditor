@@ -7006,15 +7006,15 @@ Sub LoadSettings
 			Info = _New(ModelInfo)
 			Info->Name = Temp
 			Info->ModelName = iniSettings.ReadString("AIAgents", "ModelName_" & WStr(i), "deepseek/deepseek-chat-v3-0324:free")
-			Debug.Print "Info->ModelName=" & Info->ModelName
 			Info->Host = iniSettings.ReadString("AIAgents", "Host_" & WStr(i), "openrouter.ai")
+			Info->Port = iniSettings.ReadInteger("AIAgents", "Port_" & WStr(i), 443)
 			Info->Address = iniSettings.ReadString("AIAgents", "Address_" & WStr(i), "api/v1/chat/completions")
 			Info->APIKey = iniSettings.ReadString("AIAgents", "APIKey_" & WStr(i), "sk-or-v1-XXXXXX")
 			Info->Response_Format = iniSettings.ReadString("AIAgents", "Response_Format_" & WStr(i), "")
 			Info->Temperature = iniSettings.ReadFloat("AIAgents", "Temperature_" & WStr(i), 0.6)
 			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
 			Info->Stream = iniSettings.ReadBool("AIAgents", "Stream_" & WStr(i), True)
-			AIAgents.Add Temp, Info->Host, Tool
+			AIAgents.Add Temp, Info->Host, Info
 			If *CurrentAIAgent = Temp Then
 				AIAgentModelName = Info->ModelName
 				AIAgentHost = Info->Host
@@ -8845,8 +8845,8 @@ txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
-txtAIAgent.Font.Name = *EditorFontName
-txtAIAgent.Font.Size = EditorFontSize
+'txtAIAgent.Font.Name = *EditorFontName
+'txtAIAgent.Font.Size = EditorFontSize
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8859,7 +8859,12 @@ Dim Shared AssistantsAnswers As String
 Dim Shared AIBold As Boolean
 
 Sub txtAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
+	?Buffer
 	ThreadsEnter
+	If InStr(Buffer, "chat.completion.chunk") = 0 Then
+		ShowMessages(Buffer)
+		Return
+	End If
 	Dim As WString Ptr BodyWStringPtr
 	Dim As WString Ptr Buff(), BuffFormat()
 	Dim As String Content, AssistantsAnswer
@@ -8867,7 +8872,7 @@ Sub txtAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConn
 	For i As Integer = 0 To UBound(Buff)
 		If Trim(*Buff(i)) = "" Then Continue For
 		Dim As Integer iPos1 = InStr(*Buff(i), ",""content"":""")
-		Dim As Integer iPos2 = InStrRev(*Buff(i), """,""reasoning""")
+		Dim As Integer iPos2 = InStrRev(*Buff(i), """},""")
 		Dim As Integer iPos3 = InStr(*Buff(i), ",""reasoning"":""")
 		Dim As Integer iPos4 = InStrRev(*Buff(i), """},""finish_reason""")
 		Content = ""
@@ -8906,50 +8911,50 @@ Sub txtAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConn
 	ThreadsLeave
 End Sub
 
-Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
-	ThreadsEnter
-	Dim As WString Ptr BodyZStringPtr = FromUtf8(StrPtr(Buffer))
-	If BodyZStringPtr = 0 Then Return
-	Dim As WString Ptr Buff()
-	Dim As Integer iPos1, iPos2, BuffCount = Split(*BodyZStringPtr, "data: ", Buff())
-	If BuffCount < 1 Then Return
-	For i As Integer = 0 To BuffCount - 1
-		If Trim(*Buff(i)) = "" Then Continue For
-		Debug.Print *Buff(i)
-		If InStr(*Buff(i), "chat.completion.chunk") Then
-			iPos1 = InStr(*Buff(i), ",""reasoning"":""")
-			If iPos1 > 0 Then
-				iPos2 = InStr(iPos1, *Buff(i), """},""finish_reason""")
-				If iPos2 Then
-					txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-					txtAIAgent.SelEnd = txtAIAgent.SelStart
-					txtAIAgent.SelText =  Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """")
-				End If
-			Else
-				iPos1 = InStr(*Buff(i), ",""content"":""")
-				If iPos1 > 0 Then
-					iPos2 = InStr(iPos1, *Buff(i), """},""")
-					If iPos2 Then
-						txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-						txtAIAgent.SelEnd = txtAIAgent.SelStart
-						txtAIAgent.SelText = Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """")
-					End If
-				End If
-			End If
-		Else
-			ShowMessages(*Buff(i))
-			'If InStr(*Buff(i), "[DONE]") Then  txtAIRequest.Enabled = True
-		End If
-		If InStr(*Buff(i), "[DONE]") OrElse InStr(*Buff(i), "{""error""") Then
-			txtAIRequest.Enabled = True
-			txtAIRequest.SetFocus
-		End If
-		Deallocate Buff(i)
-	Next
-	Erase Buff
-	Deallocate BodyZStringPtr
-	ThreadsLeave
-End Sub
+'Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
+'	ThreadsEnter
+'	Dim As WString Ptr BodyZStringPtr = FromUtf8(StrPtr(Buffer))
+'	If BodyZStringPtr = 0 Then Return
+'	Dim As WString Ptr Buff()
+'	Dim As Integer iPos1, iPos2, BuffCount = Split(*BodyZStringPtr, "data: ", Buff())
+'	If BuffCount < 1 Then Return
+'	For i As Integer = 0 To BuffCount - 1
+'		If Trim(*Buff(i)) = "" Then Continue For
+'		Debug.Print *Buff(i)
+'		If InStr(*Buff(i), "chat.completion.chunk") Then
+'			iPos1 = InStr(*Buff(i), ",""reasoning"":""")
+'			If iPos1 > 0 Then
+'				iPos2 = InStr(iPos1, *Buff(i), """},""finish_reason""")
+'				If iPos2 Then
+'					txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+'					txtAIAgent.SelEnd = txtAIAgent.SelStart
+'					txtAIAgent.SelText =  Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """")
+'				End If
+'			Else
+'				iPos1 = InStr(*Buff(i), ",""content"":""")
+'				If iPos1 > 0 Then
+'					iPos2 = InStr(iPos1, *Buff(i), """},""")
+'					If iPos2 Then
+'						txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+'						txtAIAgent.SelEnd = txtAIAgent.SelStart
+'						txtAIAgent.SelText = Replace(Replace(Replace(Mid(*Buff(i), iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """")
+'					End If
+'				End If
+'			End If
+'		Else
+'			ShowMessages(*Buff(i))
+'			'If InStr(*Buff(i), "[DONE]") Then  txtAIRequest.Enabled = True
+'		End If
+'		If InStr(*Buff(i), "[DONE]") OrElse InStr(*Buff(i), "{""error""") Then
+'			txtAIRequest.Enabled = True
+'			txtAIRequest.SetFocus
+'		End If
+'		Deallocate Buff(i)
+'	Next
+'	Erase Buff
+'	Deallocate BodyZStringPtr
+'	ThreadsLeave
+'End Sub
 
 Sub AIRequest(Param As Any Ptr)
 	bInAIThread = True
@@ -8959,65 +8964,65 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPRequest Request
 	Dim As HTTPResponce Responce
 	Request.ResourceAddress = AIAgentAddress
-	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
-	Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free   ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
+	'Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
+	'Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free   ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
 	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions" ' "https://integrate.api.nvidia.com/v1/chat/completions"    ' "https://openrouter.ai/api/v1/chat/completions"
-	Dim As String post_data = _
-	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
-	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [" & _
-	"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
-	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
-	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
-	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
-	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
-	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
-	Request.Body = post_data
-	txtAIRequest.Text = ""
-	If AIAgentStream Then
-		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelBackColor = darkHlBkColor
-		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
-		txtAIAgent.SelBackColor = darkBkColor
-		txtAIAgent.ScrollToCaret
-		HTTPConnection1.OnReceive= @AIAgent_OnReceive
-	End If
-	HTTPConnection1.CallMethod("POST", Request, Responce)
-	If Not AIAgentStream Then
-		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
-		If Temp = 0 Then Return
-		Debug.Print *Temp
-		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
-		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
-		WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """"))
-		
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-		txtAIAgent.SelBackColor = darkHlBkColor
-		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
-		txtAIAgent.ScrollToCaret
-		txtAIAgent.SelBackColor = darkBkColor
-		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
-		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		
-		iPos1 = InStrRev(*Temp, ",""content"":""")
-		iPos2 = InStrRev(*Temp, """,""refusal""")
-		WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """"))
-		
-		txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.ScrollToCaret
-		txtAIRequest.Enabled = True
-		txtAIRequest.SetFocus
-		WDeAllocate(Temp)
-	End If
+	'Dim As String post_data = _
+	'"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1   deepseek/deepseek-chat-v3-0324:free
+	'"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
+	'"""messages"": [" & _
+	'"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
+	'"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	'"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
+	'Dim As String header1 = "Content-Type: application/json; charset=utf-8"
+	'Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
+	'Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
+	'Request.Body = post_data
+	'txtAIRequest.Text = ""
+	'If AIAgentStream Then
+	'	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	'	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	'	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'	txtAIAgent.SelBackColor = darkHlBkColor
+	'	txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+	'	txtAIAgent.SelBackColor = darkBkColor
+	'	txtAIAgent.ScrollToCaret
+	'	HTTPConnection1.OnReceive= @AIAgent_OnReceive
+	'End If
+	'HTTPConnection1.CallMethod("POST", Request, Responce)
+	'If Not AIAgentStream Then
+	'	Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
+	'	If Temp = 0 Then Return
+	'	Debug.Print *Temp
+	'	Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
+	'	Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
+	'	WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14), "\r", !"\r"), "\n", !"\n"), "\""", """"))
+	'	
+	'	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	'	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	'	txtAIAgent.SelBackColor = darkHlBkColor
+	'	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	'	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'	txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+	'	txtAIAgent.ScrollToCaret
+	'	txtAIAgent.SelBackColor = darkBkColor
+	'	txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
+	'	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	'	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'	
+	'	iPos1 = InStrRev(*Temp, ",""content"":""")
+	'	iPos2 = InStrRev(*Temp, """,""refusal""")
+	'	WLet(Buff, Replace(Replace(Replace(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12), "\r", !"\r"), "\n", !"\n"), "\""", """"))
+	'	
+	'	txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
+	'	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	'	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'	txtAIAgent.ScrollToCaret
+	'	txtAIRequest.Enabled = True
+	'	txtAIRequest.SetFocus
+	'	WDeAllocate(Temp)
+	'End If
 	
 	Dim As String api_key = AIAgentAPIKey
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
@@ -9028,14 +9033,15 @@ Sub AIRequest(Param As Any Ptr)
 		messagesText = messagesText & IIf(messagesText = "", "", ", ") & "{""role"": """ & Messages.Item(i)->Key & """, ""content"": """ & Messages.Item(i)->Text & """}"
 	Next i
 	Dim As String post_data = _
-	"{""model"": ""deepseek/deepseek-r1:free"", " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1
-	"""stream"": true, " & _
+	"{""model"": """ & AIAgentModelName & """, " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1
+	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & messagesText & "], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + api_key
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = post_data
+	
 	txtAIRequest.Text = ""
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 	AssistantsAnswers = ""
@@ -9051,18 +9057,18 @@ End Sub
 
 Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
+	
+	'txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	'txtAIAgent.SelText = !"\r\n" & "User" & !"\r\n" & Date & " " & Time & !"\r\n"
+	'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	'txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'txtAIAgent.SelBackColor = darkBkColor
+	'txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
+	'txtAIAgent.ScrollToCaret
+	
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
-
-	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.SelText = !"\r\n" & "User" & !"\r\n" & Date & " " & Time & !"\r\n"
-	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	txtAIAgent.SelBackColor = darkBkColor
-	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
-	txtAIAgent.ScrollToCaret
-	
 	txtAIAgent.SelAlignment = AlignmentConstants.taRight
 	txtAIAgent.SelText =  txtAIRequest.Text & !"\r\n\r\n"
 	txtAIAgent.ScrollToEnd
@@ -9070,7 +9076,7 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	Messages.Add "user", ToUtf8(Replace(Replace(Replace(txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n"))
 
 	bInAIThread = True
-	txtAIRequest.Enabled = False
+	'txtAIRequest.Enabled = False
 	ClearMessages
 	ThreadCreate(@AIRequest)
 End Sub
@@ -9078,10 +9084,10 @@ End Sub
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
 txtAIRequest.Parent = @pnlAIAgent
-txtAIRequest.Font.Name = *EditorFontName
-txtAIRequest.Font.Size = EditorFontSize
+'txtAIRequest.Font.Name = *EditorFontName
+'txtAIRequest.Font.Size = EditorFontSize
 txtAIRequest.ScrollBars = ScrollBarsType.Vertical
-txtAIRequest.Multiline= True
+txtAIRequest.Multiline = True
 txtAIRequest.WordWraps = True
 
 txtAIRequest.OnActivate = @txtAIRequest_Activate
@@ -9094,6 +9100,7 @@ splAIAgent.Align = SplitterAlignmentConstants.alBottom
 'tpAIAgent->Add @txtAIRequest
 'tpAIAgent->Add @splAIAgent
 'tpAIAgent->Add @txtAIAgent
+
 Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -11765,6 +11772,11 @@ Sub OnProgramQuit() Destructor
 	For i As Integer = 0 To pOtherEditors->Count - 1
 		Tool = pOtherEditors->Item(i)->Object
 		_Delete(Tool)
+	Next i
+	Dim As ModelInfo Ptr Model
+	For i As Integer = 0 To pAIAgents->Count - 1
+		Model = pAIAgents->Item(i)->Object
+		_Delete(Model)
 	Next i
 	Dim As WStringOrStringList Ptr keywordlist
 	For i As Integer = 0 To KeywordLists.Count - 1
