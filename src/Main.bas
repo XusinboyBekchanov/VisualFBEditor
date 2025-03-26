@@ -66,7 +66,7 @@ Dim Shared As Boolean bQuitting
 			EnumWindows(@EnumWindowsProc, Cast(LPARAM, StrPtr(FileFromCommandLine)))
 		End If
 	End If
-		
+	
 	InitDarkMode
 	'setDarkMode(True, True)
 #endif
@@ -468,13 +468,13 @@ End Function
 
 Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
 	Dim Posi As Long = InStrRev(FileName, Any "\/", Len(FileName) - 1)
-	If Posi <= 0 Then Return ""  
+	If Posi <= 0 Then Return ""
 	If Not WithSlash Then Posi -= 1
 	Return Left(FileName, Posi)
 End Function
 
 Function GetFileName(ByRef FileName As WString) As UString
-	Dim Posi As Long = InStrRev(FileName, Any "\/:") 
+	Dim Posi As Long = InStrRev(FileName, Any "\/:")
 	If Posi > 0 Then
 		Return Mid(FileName, Posi + 1)
 	Else
@@ -687,42 +687,42 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 			Next
 		End If
-			Dim CtlLibrary As Library Ptr
-			For i As Integer = 0 To ControlLibraries.Count - 1
-				CtlLibrary = ControlLibraries.Item(i)
-				If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
-					If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
-						WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
-					Else
-						WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
-					End If
-					Dim As UString LibFolder
-					#ifdef __FB_WIN32__
-						#ifdef __FB_ARM__
-							LibFolder = CtlLibrary->Lib64ArmFolder
-						#else
-							If Bit32 Then
-								LibFolder = CtlLibrary->Lib32Folder
-							Else
-								LibFolder = CtlLibrary->Lib64Folder
-							End If
-						#endif
+		Dim CtlLibrary As Library Ptr
+		For i As Integer = 0 To ControlLibraries.Count - 1
+			CtlLibrary = ControlLibraries.Item(i)
+			If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
+				If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
+					WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
+				Else
+					WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
+				End If
+				Dim As UString LibFolder
+				#ifdef __FB_WIN32__
+					#ifdef __FB_ARM__
+						LibFolder = CtlLibrary->Lib64ArmFolder
 					#else
 						If Bit32 Then
-							LibFolder = CtlLibrary->LibX32Folder
+							LibFolder = CtlLibrary->Lib32Folder
 						Else
-							LibFolder = CtlLibrary->LibX64Folder
+							LibFolder = CtlLibrary->Lib64Folder
 						End If
 					#endif
-					If LibFolder <> "" Then
-						If EndsWith(LibFolder, Slash) Then
-							WAdd CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """"
-						Else
-							WAdd CompileWith, " -p """ & LibFolder & """"
-						End If
+				#else
+					If Bit32 Then
+						LibFolder = CtlLibrary->LibX32Folder
+					Else
+						LibFolder = CtlLibrary->LibX64Folder
+					End If
+				#endif
+				If LibFolder <> "" Then
+					If EndsWith(LibFolder, Slash) Then
+						WAdd CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """"
+					Else
+						WAdd CompileWith, " -p """ & LibFolder & """"
 					End If
 				End If
-			Next
+			End If
+		Next
 		
 		For i As Integer = 0 To pIncludePaths->Count - 1
 			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
@@ -940,7 +940,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						If Not bErrorInfo Then
 							ThreadsEnter()
 							ShowMessages(Buff, False)
-								ThreadsLeave()
+							ThreadsLeave()
 							bFlagErr = SplitError(Buff, ErrFileName, ErrTitle, iLine)
 							If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
 								If bFlagErr = 2 Then
@@ -1011,7 +1011,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					If CBool(FirstErrFlag < 2) AndAlso CBool(InStr(sBuffer, "compiling:")) Then sBuffer += Chr(10) : FirstErrFlag += 1: BufferSize = 2048
 					Pos1 = InStrRev(sBuffer, Chr(10))
 					If Pos1 > 0 Then
-							sOutput += Left(sBuffer, Pos1 - 1)
+						sOutput += Left(sBuffer, Pos1 - 1)
 						Dim res() As WString Ptr
 						If CBool(InStr(sOutput, "GoRC.exe' terminated with exit code") > 0) OrElse CBool(InStr(sOutput, "of Resource Script ") > 0) Then
 							sOutput = Replace(sOutput, Chr(13, 10), " ")
@@ -1044,7 +1044,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									Else
 										NumberInfo += 1
 									End If
-								
+									
 								End If
 								If bFlagErr >= 0 AndAlso *ErrFileName <> "" AndAlso iLine> 0 Then
 									If InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
@@ -2068,7 +2068,7 @@ Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList
 	If i <> -1 Then MRUFilesFolders.Remove i
 	MRUFilesFolders.Add FileFolderName_
 	miRecentFilesFolders->Clear
-	For i = 0 To MRUFilesFolders.Count - 1 
+	For i = 0 To MRUFilesFolders.Count - 1
 		miRecentFilesFolders->Add(MRUFilesFolders.Item(i), "", MRUFilesFolders.Item(i), @mClickMRU, , i)
 	Next
 	miRecentFilesFolders->Add("-")
@@ -2201,7 +2201,7 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 		For i As Integer = 0 To tvExplorer.Nodes.Count - 1
 			tn1 = tvExplorer.Nodes.Item(i)
 			ee = tn1->Tag
-			If ee = 0 Then 
+			If ee = 0 Then
 				For j As Integer = 0 To TabPanels.Count - 1
 					Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
 					For i As Integer = 0 To ptabCode->TabCount - 1
@@ -2860,7 +2860,7 @@ Sub RemoveFileFromProject
 			Dim As ExplorerElement Ptr ee
 			ee = New ExplorerElement
 			ee = tn->Tag
-			If ee->FileName> 0 AndAlso Dir(*ee->FileName) <> "" Then 
+			If ee->FileName> 0 AndAlso Dir(*ee->FileName) <> "" Then
 				'Move the file to temp folds.
 				FileCopy(*ee->FileName, ExePath + "/Temp/" + GetFileName(*ee->FileName))
 				Kill *ee->FileName
@@ -3281,9 +3281,9 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 End Sub
 
 #ifdef __FB_WIN32__
-Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #else
-Sub TimerProc()
+	Sub TimerProc()
 #endif
 	If fntab < 0 Or fcurlig < 1 Then Exit Sub
 	If source(fntab) = "" Then Exit Sub
@@ -3688,7 +3688,7 @@ Function DeleteSpaces(b As String) As String
 End Function
 
 Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
-	If StartsWith(FileName, FromFile) Then 
+	If StartsWith(FileName, FromFile) Then
 		Dim As UString Path = Mid(FileName, Len(FromFile) + 1)
 		If StartsWith(Path, "\") OrElse StartsWith(Path, "/") Then Path = Mid(Path, 2)
 		Return Path
@@ -3734,8 +3734,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			File->FileName = Path
 			IncludeFiles.Add Path, File
 		End If
-	'ElseIf CurFileItem <> 0 AndAlso IncludeFiles.Contains(Path, , , , Idx) Then
-	'	IncludeFiles.Object(Idx) = CurFileItem
+		'ElseIf CurFileItem <> 0 AndAlso IncludeFiles.Contains(Path, , , , Idx) Then
+		'	IncludeFiles.Object(Idx) = CurFileItem
 	End If
 	If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
 		OldFile->Includes.Object(Idx) = File
@@ -5052,7 +5052,7 @@ Sub LoadHelp
 			Line Input #Fn, Buff
 			If Trim(Buff) = "" Then Continue Do
 			If StartsWith(Buff, "---") Then
-				If StartsWith(Buff, "------------ KeyWin32AbnormalTermination") Then 
+				If StartsWith(Buff, "------------ KeyWin32AbnormalTermination") Then
 					pFunctions = @GlobalFunctionsHelp
 				End If
 				bStart = True : bDescriptionStart = False : bReturnValueStart = False
@@ -5552,7 +5552,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Else
 			ControlParentDict.Add "NULL", "NULL"
 		End If
-
+		
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
@@ -5569,7 +5569,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
 				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
-
+			
 			Print #Fn, ""
 			Print #Fn, "'''" & Comps.Item(i) & "''' - " & tbi->Comment
 			Print #Fn, ""
@@ -5619,7 +5619,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 					End If
 				End If
-
+				
 				Print #Fn1, "<h2>Syntax</h2>"
 				Print #Fn1, "```fb"
 				Print #Fn1, te->Parameters
@@ -5678,7 +5678,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 						End If
 					End If
-
+					
 					Print #Fn1, "<h2>Syntax</h2>"
 					Print #Fn1, "```fb"
 					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters
@@ -5713,34 +5713,34 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, "</table>"
 			Print #Fn, "== Events =="
 			If FPropertyItems.Count > 0 Then
-			Print #Fn, "<table>"
-			Print #Fn, "<thead>"
-			Print #Fn, "<tr class=""header"">"
-			Print #Fn, "<th>Name</th>"
-			Print #Fn, "<th>Description</th>"
-			Print #Fn, "</tr>"
-			Print #Fn, "</thead>"
-			Print #Fn, "<tbody>"
-			For j As Integer = 0 To FPropertyItems.Count - 1
-				te = FPropertyItems.Object(j)
-				If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
-				Var Pos1 = InStr(te->DisplayName, "[")
-				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				Print #Fn, "<tr class=""event"">"
-				Print #Fn, "<td><a href=""" & wikiTitle & """>" & FPropertyItems.Item(j) & "</a></td>"
-				'Print #Fn, "<td>[[" & wikiTitle & "|" & FPropertyItems.Item(j) & "]]</td>"
-				Print #Fn, "<td>" & te->Comment & "</td>"
+				Print #Fn, "<table>"
+				Print #Fn, "<thead>"
+				Print #Fn, "<tr class=""header"">"
+				Print #Fn, "<th>Name</th>"
+				Print #Fn, "<th>Description</th>"
 				Print #Fn, "</tr>"
-				If Not teList.Contains(te) Then
-					teList.Add te
-					Dim As Integer Fn1 = FreeFile_
-					Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
-					Print #Fn1, "<h2>" & wikiTitle & " Event" & "</h2>"
-					Print #Fn1, te->Comment
-					If tbi->OwnerNamespace <> "" Then
-						Print #Fn1, "<h2>Definition</h2>"
-						Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
-					End If
+				Print #Fn, "</thead>"
+				Print #Fn, "<tbody>"
+				For j As Integer = 0 To FPropertyItems.Count - 1
+					te = FPropertyItems.Object(j)
+					If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
+					Var Pos1 = InStr(te->DisplayName, "[")
+					If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+					Print #Fn, "<tr class=""event"">"
+					Print #Fn, "<td><a href=""" & wikiTitle & """>" & FPropertyItems.Item(j) & "</a></td>"
+					'Print #Fn, "<td>[[" & wikiTitle & "|" & FPropertyItems.Item(j) & "]]</td>"
+					Print #Fn, "<td>" & te->Comment & "</td>"
+					Print #Fn, "</tr>"
+					If Not teList.Contains(te) Then
+						teList.Add te
+						Dim As Integer Fn1 = FreeFile_
+						Open wikiFolder & wikiTitle & ".mediawiki" For Output As #Fn1
+						Print #Fn1, "<h2>" & wikiTitle & " Event" & "</h2>"
+						Print #Fn1, te->Comment
+						If tbi->OwnerNamespace <> "" Then
+							Print #Fn1, "<h2>Definition</h2>"
+							Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
+						End If
 						Posi = InStr(wikiTitle, ".")
 						If Posi > 0 Then
 							TmpControlChildName = Left(wikiTitle, Posi - 1)
@@ -5756,38 +5756,38 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 							End If
 						End If
-
-					Print #Fn1, "<h2>Syntax</h2>"
-					Print #Fn1, "```fb"
-					Print #Fn1, te->Parameters
-					Print #Fn1, "```"
-					Print #Fn1, ""
-					Pos1 = InStr(te->Parameters, "(")
-					If Pos1 > 0 Then
-						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-						Print #Fn1, "<h2>Parameters</h2>"
-						Print #Fn1, "{|"
-						Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
-						For k As Integer = 0 To te->Elements.Count - 1
-							If Trim(te->Elements.Item(k)) = "" Then Continue For
-							te1 = te->Elements.Object(k)
-							Print #Fn1, "|-"
-							Print #Fn1, "|<code>" & te->Elements.Item(k) & "</code>||" & GetTypeLink(te1->TypeName) & "||" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: <code>Designer.IsEmpty()</code>", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment))
-						Next
-						Print #Fn1, "|}"
-					End If
-					If StartsWith(LCase(te->TypeName), "function(") Then
+						
+						Print #Fn1, "<h2>Syntax</h2>"
+						Print #Fn1, "```fb"
+						Print #Fn1, te->Parameters
+						Print #Fn1, "```"
 						Print #Fn1, ""
-						Print #Fn1, "<h2>Return Value</h2>"
-						Print #Fn1, GetTypeLink(te->TypeName)
+						Pos1 = InStr(te->Parameters, "(")
+						If Pos1 > 0 Then
+							SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
+							Print #Fn1, "<h2>Parameters</h2>"
+							Print #Fn1, "{|"
+							Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
+							For k As Integer = 0 To te->Elements.Count - 1
+								If Trim(te->Elements.Item(k)) = "" Then Continue For
+								te1 = te->Elements.Object(k)
+								Print #Fn1, "|-"
+								Print #Fn1, "|<code>" & te->Elements.Item(k) & "</code>||" & GetTypeLink(te1->TypeName) & "||" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: <code>Designer.IsEmpty()</code>", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment))
+							Next
+							Print #Fn1, "|}"
+						End If
+						If StartsWith(LCase(te->TypeName), "function(") Then
+							Print #Fn1, ""
+							Print #Fn1, "<h2>Return Value</h2>"
+							Print #Fn1, GetTypeLink(te->TypeName)
+						End If
+						Print #Fn1, ""
+						Print #Fn1, "<h2>See also</h2>"
+						Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
+						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
+						CloseFile_(Fn1)
 					End If
-					Print #Fn1, ""
-					Print #Fn1, "<h2>See also</h2>"
-					Print #Fn1, "* [[" & Left(te->DisplayName, InStr(te->DisplayName, ".") - 1) & "]]"
-					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
-					CloseFile_(Fn1)
-				End If
-			Next
+				Next
 			Else
 				Print #Fn, "(No events defined for this component)"
 			End If
@@ -7153,7 +7153,7 @@ Sub LoadSettings
 	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
 	ProjectAutoSuggestions = False
-
+	
 	If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
 		*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
 	End If
@@ -7179,7 +7179,7 @@ Sub LoadSettings
 	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
 	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
 	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")	
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")
 	LoadKeyWords
 	LoadTheme
 	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
@@ -8786,8 +8786,60 @@ txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
 #include once "mff/HTTP.bi"
 Dim Shared bInAIThread As Boolean
+Dim Shared Messages As Dictionary
+Dim Shared AssistantsAnswers As String
+Dim Shared AIBold As Boolean
+
+Sub txtAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
+	ThreadsEnter
+	Dim As WString Ptr BodyWStringPtr
+	Dim As WString Ptr Buff(), BuffFormat()
+	Dim As String Content, AssistantsAnswer
+	Dim As Integer iPos1, iPos2, BuffCount = Split(Buffer, "data: ", Buff())
+	For i As Integer = 0 To UBound(Buff)
+		If Trim(*Buff(i)) = "" Then Continue For
+		Dim As Integer iPos1 = InStr(*Buff(i), ",""content"":""")
+		Dim As Integer iPos2 = InStrRev(*Buff(i), """,""reasoning""")
+		Dim As Integer iPos3 = InStr(*Buff(i), ",""reasoning"":""")
+		Dim As Integer iPos4 = InStrRev(*Buff(i), """},""finish_reason""")
+		Content = ""
+		If iPos1 <> 0 AndAlso iPos2 <> 0 Then
+			AssistantsAnswer = Mid(*Buff(i), iPos1 + 12, iPos2 - iPos1 - 12)
+			AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
+			Content = Replace(Replace(Replace(AssistantsAnswer, "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """")
+		End If
+		If iPos3 <> 0 AndAlso iPos4 <> 0 Then
+			AssistantsAnswer = Mid(*Buff(i), iPos3 + 14, iPos4 - iPos3 - 14)
+			AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
+			Content = Content & Replace(Replace(Replace(AssistantsAnswer, "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """")
+		End If
+		BodyWStringPtr = FromUtf8(StrPtr(Content))
+		If BodyWStringPtr = 0 Then Continue For
+		Split(*BodyWStringPtr, "**", BuffFormat())
+		For j As Integer = 0 To UBound(BuffFormat)
+			txtAIAgent.SelStart = Len(txtAIAgent.Text)
+			txtAIAgent.SelEnd = txtAIAgent.SelStart
+			txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+			If j > 0 Then
+				AIBold = Not AIBold
+				txtAIAgent.SelBold = AIBold
+			End If
+			txtAIAgent.SelText = *BuffFormat(j)
+			Deallocate BuffFormat(j)
+			If Not txtAIAgent.Focused Then
+				txtAIAgent.ScrollToEnd
+			End If
+		Next j
+		Erase BuffFormat
+		Deallocate Buff(i)
+		Deallocate BodyWStringPtr
+	Next
+	Erase Buff
+	ThreadsLeave
+End Sub
 
 Sub AIRequest(Param As Any Ptr)
+	bInAIThread = True
 	Dim As HTTPConnection HTTPConnection1
 	HTTPConnection1.Host = AIAgentHost
 	HTTPConnection1.Port = AIAgentPort
@@ -8795,49 +8847,44 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPResponce Responce
 	Request.ResourceAddress = AIAgentAddress
 	Dim As String api_key = AIAgentAPIKey
-	Dim As String site_url = "<YOUR_SITE_URL>"
-	Dim As String site_name = "<YOUR_SITE_NAME>"
-	'Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions"
+	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
+	Dim As String site_name = "VisualFBEditor" ' qwen/qwq-32b:free  ’google/gemini-2.0-flash-thinking-exp:free    ’deepseek/deepseek-r1:free
+	Dim As String api_url = "https://openrouter.ai/api/v1/chat/completions" ' "https://integrate.api.nvidia.com/v1/chat/completions"    ' "https://openrouter.ai/api/v1/chat/completions"
+	Dim As String messagesText
+	For i As Integer = 0 To Messages.Count - 1
+		messagesText = messagesText & IIf(messagesText = "", "", ", ") & "{""role"": """ & Messages.Item(i)->Key & """, ""content"": """ & Messages.Item(i)->Text & """}"
+	Next i
 	Dim As String post_data = _
-	"{""model"": ""deepseek/deepseek-r1:free"", " & _
-	"""messages"": [{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"{""model"": ""deepseek/deepseek-r1:free"", " & _    ' "{""model"": ""deepseek/deepseek-r1:free"", " & _    deepseek-ai/deepseek-r1
+	"""stream"": true, " & _
+	"""messages"": [" & messagesText & "], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
-	Dim As String header1 = "Content-Type: application/json"
+	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + api_key
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = post_data
 	txtAIRequest.Text = ""
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	AssistantsAnswers = ""
+	HTTPConnection1.OnReceive = @txtAIAgent_Receive
 	HTTPConnection1.CallMethod("POST", Request, Responce)
-	Dim As Integer iPos1 = InStr(Responce.Body, ",""content"":""")
-	Dim As Integer iPos2 = InStrRev(Responce.Body, """,""refusal""")
-	Dim As String Buff = Replace(Replace(Replace(Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12), "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """") & !"\r\n"
-	Dim As UString Body
-	Dim As WString Ptr Temp = FromUtf8(StrPtr(Buff))
-	Body = *Temp
-	WDeAllocate(Temp)
+	Messages.Add "assistant", AssistantsAnswers
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	For i As Integer = 0 To Len(Body)
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelText = Mid(Body, i, 1)
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.ScrollToCaret
-	Next
-	'txtAIAgent.SelText = Replace(Replace(Replace(Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12), "\r\n", !"\r\n"), "\n", !"\r\n"), "\""", """") & !"\r\n"
+	txtAIAgent.SelText =  !"\r\n\r\n"
 	bInAIThread = False
 End Sub
 
-Sub txtAIRequest_OnActivate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
 	txtAIAgent.SelAlignment = AlignmentConstants.taRight
-	txtAIAgent.SelText = txtAIRequest.Text & !"\r\n"
-	txtAIAgent.ScrollToCaret
+	txtAIAgent.SelText =  txtAIRequest.Text & !"\r\n\r\n"
+	txtAIAgent.ScrollToEnd
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	Messages.Add "user", ToUtf8(Replace(Replace(Replace(txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n"))
 	bInAIThread = True
 	ThreadCreate(@AIRequest)
 End Sub
@@ -8845,7 +8892,7 @@ End Sub
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
 txtAIRequest.WordWraps = True
-txtAIRequest.OnActivate = @txtAIRequest_OnActivate
+txtAIRequest.OnActivate = @txtAIRequest_Activate
 
 splAIAgent.Align = SplitterAlignmentConstants.alBottom
 
@@ -9695,7 +9742,7 @@ Sub lvProfiler_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Tre
 	Pos1 = InStr(ItemText, " [")
 	If Pos1 > 0 Then ItemText = Left(ItemText, Pos1 - 1)
 	Pos1 = InStrRev(ItemText, ".")
-	If Pos1 > 0 Then 
+	If Pos1 > 0 Then
 		FuncName = Mid(ItemText, Pos1 + 1)
 	Else
 		FuncName = ItemText
@@ -9886,12 +9933,12 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then Exit Sub
 	If tb = tbOld Then Exit Sub
-'	pLocalTypes = @tb->Types
-'	pLocalEnums = @tb->Enums
-'	pLocalProcedures = @tb->Procedures
-'	pLocalFunctions = @tb->Functions
-'	pLocalFunctionsOthers = @tb->FunctionsOthers
-'	pLocalArgs = @tb->Args
+	'	pLocalTypes = @tb->Types
+	'	pLocalEnums = @tb->Enums
+	'	pLocalProcedures = @tb->Procedures
+	'	pLocalFunctions = @tb->Functions
+	'	pLocalFunctionsOthers = @tb->FunctionsOthers
+	'	pLocalArgs = @tb->Args
 	If tb->tn Then tb->tn->SelectItem
 	For i As Integer = 3 To miWindow->Count - 1
 		If miWindow->Item(i) > 0 AndAlso tb->mi > 0 Then miWindow->Item(i)->Checked = miWindow->Item(i) = tb->mi
@@ -9935,7 +9982,7 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 		miForm->Enabled = False
 		miCodeAndForm->Enabled = False
 		miGotoCodeForm->Enabled = False
-		tb->tbrTop.Buttons.Item("Form")->Enabled = False 
+		tb->tbrTop.Buttons.Item("Form")->Enabled = False
 		tb->tbrTop.Buttons.Item("CodeAndForm")->Enabled = False
 		tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 		'SetRightClosedStyle True, True
@@ -10209,7 +10256,7 @@ lvSuggestions.OnItemActivate = @lvSuggestions_ItemActivate
 
 Sub lvSearch_ItemActivate(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal itemIndex As Integer)
 	Dim Item As ListViewItem Ptr = lvSearch.ListItems.Item(itemIndex)
-    gSearchItemIndex = itemIndex
+	gSearchItemIndex = itemIndex
 	SelectSearchResult(Item->Text(3), Val(Item->Text(1)), Val(Item->Text(2)), Len(lvSearch.Text), Item->Tag)
 	If pfFind->Visible Then 'David Change
 		pfFind->Caption = ML("Find")+": " + WStr(gSearchItemIndex+1) + " of " + WStr(lvSearch.ListItems.Count)
@@ -11469,10 +11516,10 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(RunArguments)
 	WDeAllocate(Debug32Arguments)
 	WDeAllocate(Debug64Arguments)
-	WDeAllocate(RecentFiles) 
-	WDeAllocate(RecentFile) 
-	WDeAllocate(RecentProject) 
-	WDeAllocate(RecentFolder) 
+	WDeAllocate(RecentFiles)
+	WDeAllocate(RecentFile)
+	WDeAllocate(RecentProject)
+	WDeAllocate(RecentFolder)
 	WDeAllocate(RecentSession)
 	WDeAllocate(DefaultHelp)
 	WDeAllocate(HelpPath)
