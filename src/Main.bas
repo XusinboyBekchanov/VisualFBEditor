@@ -8936,7 +8936,7 @@ Sub AIRequest(Param As Any Ptr)
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & _
 	"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
-	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIAgent.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIRequest.Text & !"\r\n" & txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
