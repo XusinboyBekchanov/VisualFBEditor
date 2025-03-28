@@ -23,6 +23,7 @@
 #include once "mff/TextBox.bi"
 #include once "mff/StatusBar.bi" 'David Change
 #include once "mff/IniFile.bi"
+#include once "mff/HTTP.bi"
 #ifndef __USE_GTK__
 	#include once "mff/PageSetupDialog.bi"
 	#include once "mff/PrintDialog.bi"
@@ -129,7 +130,7 @@ Common Shared As SaveFileDialog Ptr pSaveD
 Common Shared As ListView Ptr plvSearch, plvToDo
 Common Shared As StatusBar Ptr pstBar 'David Changed
 Common Shared As TreeListView Ptr plvProperties, plvEvents
-Common Shared As ImageList Ptr pimgList, pimgListTools
+Common Shared As ImageList Ptr pimgList, pimgListTools, pimgListAIProviders32, pimgListAIModels32
 Common Shared As ProgressBar Ptr pprProgress
 Common Shared As CommandButton Ptr pbtnPropertyValue
 Common Shared As TextBox Ptr ptxtPropertyValue, ptxtAIRequest
@@ -140,7 +141,7 @@ Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, mnuUseProfiler, miHelps, miXizmat, miWindow
 Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
-
+Common Shared As HTTPConnection Ptr pHTTPAIAgent
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoSuggestions, ProjectAutoSuggestions
@@ -214,6 +215,7 @@ Type ModelInfo
 	Address As String
 	APIKey As String
 	ModelName As String
+	Provider As String
 	Port As Integer
 	Stream As Boolean
 	Temperature As Single '介于 0 和 2 之间.
