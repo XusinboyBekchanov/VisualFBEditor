@@ -84,7 +84,7 @@ pfSplash->Show
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
-Dim Shared As ComboBoxEdit cboBuildConfiguration
+Dim Shared As ComboBoxEdit cboBuildConfiguration, cboAIAgentModels
 Dim Shared As IniFile iniSettings, iniTheme
 Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbAIAgent, tbProperties, tbEvents, tbBottom, tbLeft, tbRight
@@ -7020,6 +7020,7 @@ Sub LoadSettings
 			Info->Temperature = iniSettings.ReadFloat("AIAgents", "Temperature_" & WStr(i), 0.6)
 			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
 			Info->Stream = iniSettings.ReadBool("AIAgents", "Stream_" & WStr(i), True)
+			cboAIAgentModels.AddItem(Temp)
 			AIAgents.Add Temp, Info->Host, Info
 			If *CurrentAIAgent = Temp Then
 				AIAgentModelName = Info->ModelName
@@ -7028,6 +7029,7 @@ Sub LoadSettings
 				AIAgentAPIKey = Info->APIKey
 				AIAgentTemperature = Info->Temperature
 				AIAgentStream  = Info->Stream
+				cboAIAgentModels.Text = Temp
 			End If
 		End If
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
@@ -8816,7 +8818,24 @@ tpToolbox->Add @tbForm
 'pnlLeft.Width = 153
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
-
+Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	Dim As Integer Index = pAIAgents->IndexOfKey(cboAIAgentModels.Text)
+	If Index < 0 Then
+		ShowMessages("AIAgents not found! ") & cboAIAgentModels.Text
+		Return
+	End If
+	Dim As ModelInfo Ptr Info = Cast(ModelInfo Ptr, pAIAgents->Item(Index)->Object)
+	If Info Then
+		WLet(DefaultAIAgent, Info->Name)
+		WLet(CurrentAIAgent, Info->Name)
+		AIAgentModelName = Info->ModelName
+		AIAgentHost = Info->Host
+		AIAgentAddress  = Info->Address
+		AIAgentAPIKey = Info->APIKey
+		AIAgentTemperature = Info->Temperature
+		AIAgentStream  = Info->Stream
+	End If
+End Sub
 tbAIAgent.ImagesList = @imgList
 tbAIAgent.HotImagesList = @imgList
 tbAIAgent.Flat = True
@@ -8833,7 +8852,11 @@ tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with
 tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
 tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
 tbAIAgent.Buttons.Add tbsSeparator
-
+Var tbAIModels = tbAIAgent.Buttons.Add(tbsCustom)
+tbAIModels->Child = @cboAIAgentModels
+tbAIModels->Expand = True
+tbAIAgent.Buttons.Add tbsSeparator
+cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
@@ -8869,13 +8892,25 @@ Else
 	" **Event Handling Patterns** Use controlName_eventName format for handlers. Declare event handlers OUTSIDE form class." & _
 	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
 End If
-Function EscapeJsonForPrompt(ByVal s As String) As String
-	Dim As String result = s
+Function EscapeJsonForPrompt(ByRef s As WString) As String
+	Dim As UString result
+	
+	result = Replace(s, "\#", "~#")
+	result = Replace(result, "\n", "~n")
+	result = Replace(result, "\r", "~r")
+	result = Replace(result, "\""", "~@")
+	
 	result = Replace(result, "\", "\\")
 	result = Replace(result, """", "\""")
 	result = Replace(result, "'", "\'")
 	result = Replace(result, Chr(10), "\n")
 	result = Replace(result, Chr(13), "\r")
+	
+	result = Replace(result, "~#", "\#")
+	result = Replace(result, "~n", "\n")
+	result = Replace(result, "~r", "\r")
+	result = Replace(result, "~@", "\""")
+	
 	Return result
 End Function
 Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
@@ -8944,7 +8979,7 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 			End If
 		Else
 			ShowMessages(*Buff(i))
-			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "{""error""") > 0) OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
+			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 			End If
