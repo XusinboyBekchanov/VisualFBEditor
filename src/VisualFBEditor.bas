@@ -653,6 +653,13 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "AIRelease"
 			#ifdef __USE_WINAPI__
 				
+					If CBool(pHTTPAIAgent <> 0) AndAlso pHTTPAIAgent->Abort Then 
+						ptxtAIRequest->Enabled = True 
+					Else 
+						pHTTPAIAgent->Abort = True
+						ptxtAIRequest->Enabled = True
+					End If
+					ptxtAIRequest->SetFocus
 			#endif
 		Case "AITracepointError"
 			If lvProblems.ListItems.Count < 1 Then
