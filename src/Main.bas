@@ -8845,31 +8845,64 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
-Dim Shared bInAIThread As Boolean
+Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk
 Dim Shared Messages As Dictionary
-Dim Shared AssistantsAnswers As String
-Dim Shared As Boolean AIBold, bInThingk, bInNOTThingk
-'Declare Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
-
+Dim Shared As WString Ptr AISystem_PromoptPtr
+Dim Shared As String AIBodyBufferSave
+Dim Shared As WStringList AIMessages
+If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
+	AISystem_PromoptPtr = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
+Else
+	WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. Following is MyFbFramework GUI forms guidelines." & _
+	"The MyFbFramework framework includes 39 controls: Animate, Chart, CheckBox, CheckedListBox, ComboBoxEdit, ComboBoxEx, CommandButton, DateTimePicker, Grid, Header, HotKey, HScrollBar, ImageBox, IPAddress, Label, LinkLabel, ListControl, ListView, MonthCalendar, NumericUpDown, OpenFileControl, PrintPreviewControl, ProgressBar, RadioButton, RichTextBox, ScrollBarControl, SearchBox, Splitter, StatusBar, TextBox, ToolBar, ToolPalette, ToolTips, TrackBar, TreeListView, TreeView, UpDown, VScrollBar, WebBrowser," & _
+	" includes 13 Containers: Form, GroupBox, HorizontalBox, PagePanel, PageScroller, Panel, Picture, ReBar, ScrollControl, TabControl, TabPage, VerticalBox, UserControl," & _
+	" includes 10 Components: HTTPConnection, HTTPServer, ImageList, MainMenu, PopUpMenu, PrintDocument, Printer, SQLite3Component, TimerComponent," & _
+	" includes 8 Dialogs: ColorDialog, FolderBrowserDialog, FontDialog, OpenFileDialog, PageSetupDialog, PrintDialog, PrintPreviewDialog, SaveFileDialog." & _
+	" These project files use the .vfp extension. Multiple `.vfp` files can be combined into `.vfs` project groups." & _
+	" Avoid FreeBasic keywords (e.g., `Width`, `Height`, `Left`, `Pos`). Instead, use prefixes like `_` or `i` for differentiation." & _
+	" Use standard For loops instead of unsupported for each. " & _
+	" Mandatory explicit typing in `Dim` statements " & _
+	" Mandatory use [MyFbFramework](Readme.md) (MFF) as default GUI framework when unspecified." & _
+	" **Naming Convention** Required header preprocessor directive `#include once ""mff/<Component>.bi""` " & _
+	" Draw through `[Canvas](Canvas.md)` property of visible containers." & _
+	" `OnPaint` handlers must include: must accept the `ByRef Canvas As My.Sys.Drawing.Canvas` parameter to ensure correct graphic context delivery. \n" & _
+	" **Event Handling Patterns** Use controlName_eventName format for handlers. Declare event handlers OUTSIDE form class." & _
+	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
+End If
+Function EscapeJsonForPrompt(ByVal s As String) As String
+	Dim As String result = s
+	result = Replace(result, "\", "\\")
+	result = Replace(result, """", "\""")
+	result = Replace(result, "'", "\'")
+	result = Replace(result, Chr(10), "\n")
+	result = Replace(result, Chr(13), "\r")
+	Return result
+End Function
 Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	ThreadsEnter
-	Dim As WString Ptr BodyZStringPtr = FromUtf8(StrPtr(Buffer))
+	'ShowMessages(Buffer) Sometimes got party of the string
+	'AIBodyBufferSave &= Buffer
+	'If Right(Trim(Buffer), 1) <> "}" OrElse Left(Trim(Buffer), 1) <> "d" Then Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
 	Dim As String ContentStart(0 To 3) = {"""content"":""",        """content"":""",               """content"":""",                ",""content"":"""}
 	Dim As String ContentEnd(0 To 3) = {""",""reasoning"":null",   """,""reasoning_content"":null", """},""finish_reason""",       """,""tool_calls"":"  }
 	Dim As String ReasoningStart(0 To 2) = {",""reasoning"":""",     ",""reasoning_content"":""",       ",""reasoning_content"":"""}
 	Dim As String ReasoningEnd(0 To 2) = {"""},""finish_reason""", """,""role"":""" ,               """},"""}
+	Dim As WString Ptr BodyZStringPtr = FromUtf8(StrPtr(Buffer))
 	If BodyZStringPtr = 0 Then Return
+	AIBodyBufferSave= ""
 	Dim As WString Ptr Buff()
 	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*BodyZStringPtr, "data: ", Buff())
+	Dim As Boolean binReason
 	If BuffCount < 1 Then Return
 	For i As Integer = 0 To BuffCount - 1
 		If Trim(*Buff(i)) = "" OrElse InStr(*Buff(i), "??????") Then Continue For
-		'Print the JSON string if decoding failed.
+		'Print the JSON string if decoding fails.
 		'ShowMessages(*Buff(i))
 		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
 			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
+			binReason = False
 			For k = 0 To UBound(ReasoningStart)
 				iPos1 = InStr(LCase(*Buff(i)), ReasoningStart(k))
 				If iPos1 > 0 Then 'For think model
@@ -8879,8 +8912,9 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 							bInNOTThingk = True
 							txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 							txtAIAgent.SelEnd = txtAIAgent.SelStart
-							txtAIAgent.SelText =  !"\r\n</think>\r\n"
+							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
+						binReason = True
 						txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 						txtAIAgent.SelEnd = txtAIAgent.SelStart
 						txtAIAgent.SelText = Replace(Replace(Replace(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))), "\r", !"\r"), "\n", !"\n"), "\""", """")
@@ -8888,6 +8922,7 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 					End If
 				End If
 			Next
+			If Not binReason Then
 			For k = 0 To UBound(ContentStart)
 				iPos1 = InStr(LCase(*Buff(i)), ContentStart(k))
 				If iPos1 > 0 Then
@@ -8897,7 +8932,7 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 							bInThingk = True
 							txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 							txtAIAgent.SelEnd = txtAIAgent.SelStart
-							txtAIAgent.SelText =  !"\r\n<think>\r\n"
+								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 						End If
 						txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 						txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -8906,6 +8941,7 @@ Sub AIAgent_OnReceive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConne
 					End If
 				End If
 			Next
+			End If
 		Else
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "{""error""") > 0) OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
@@ -8929,14 +8965,14 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As HTTPRequest Request
 	Dim As HTTPResponce Responce
 	Request.ResourceAddress = AIAgentAddress
-	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor" '"<YOUR_SITE_URL>"
+	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor" 
 	Dim As String post_data = _
 	"{""model"": """ & AIAgentModelName & """, " & _    
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & _
-	"{""role"": ""system"", ""content"": """ & ToUtf8("Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.")) & """}, " & _
-	"{""role"": ""user"", ""content"": """ & ToUtf8(Replace(Replace(Replace(txtAIRequest.Text, """", "\"""), !"\r\n", "\r\n"), !"\n", "\r\n")) & """}], " & _
+	"{""role"": ""system"", ""content"": """ & ToUtf8(EscapeJsonForPrompt(*AISystem_PromoptPtr)) & """}, " & _
+	"{""role"": ""user"", ""content"": """ & ToUtf8(EscapeJsonForPrompt(txtAIRequest.Text)) & """}], " & _
 	"""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}"
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
@@ -11476,6 +11512,7 @@ End Sub
 
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
+	_Deallocate(AISystem_PromoptPtr)
 	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
 		SaveSession(True)
 	End If
