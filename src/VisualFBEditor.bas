@@ -807,7 +807,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
 	Case "EraseImmediateWindow":            txtImmediate.Text = ""
-	Case "EraseAIAgent":                    txtAIAgent.Text = "": Messages.Clear
+	Case "EraseAIAgent":                    txtAIAgent.Text = "": AIMessages.Clear: AIMessages.Add "system", ToUtf8(EscapeJsonForPrompt(*AISystem_PromoptPtr))
 	Case "Update":                          
 		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
