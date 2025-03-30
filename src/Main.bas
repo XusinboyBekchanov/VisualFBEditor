@@ -133,6 +133,11 @@ Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThread
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As HTTPConnection HTTPAIAgent
+Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold
+Dim Shared As String AIBodyBufferSave, AssistantsAnswers
+Dim Shared As Dictionary AIMessages
+Dim Shared As WString Ptr AISystem_PromoptPtr
+Dim Shared As String AIPostData, AIPostData_1st
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -8873,42 +8878,45 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
-Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold
-Dim Shared As WString Ptr AISystem_PromoptPtr
-Dim Shared As String AIBodyBufferSave, AssistantsAnswers
-Dim Shared As Dictionary AIMessages
-
-Function EscapeJsonForPrompt(ByRef s As WString) As UString
-	Dim As UString result
+Function EscapeJsonForPrompt(ByRef iText As WString) As String
+	Dim As WString Ptr result
+	WLet(result, Replace(iText, "\#", "~#"))
+	WLet(result, Replace(*result, "\n", "~n"))
+	WLet(result, Replace(*result, "\r", "~r"))
+	WLet(result, Replace(*result, "\""", "~@"))
+	WLet(result, Replace(*result, !"\t", "    "))
 	
-	result = Replace(s, "\#", "~#")
-	result = Replace(result, "\n", "~n")
-	result = Replace(result, "\r", "~r")
-	result = Replace(result, "\""", "~@")
+	WLet(result, Replace(*result, "\", "\\"))
+	WLet(result, Replace(*result, """", "\"""))
+	WLet(result, Replace(*result, Chr(10), "\n"))
+	WLet(result, Replace(*result, Chr(13), "\r"))
 	
-	result = Replace(result, "\", "\\")
-	result = Replace(result, """", "\""")
-	result = Replace(result, "'", "\'")
-	result = Replace(result, Chr(10), "\n")
-	result = Replace(result, Chr(13), "\r")
-	
-	result = Replace(result, "~#", "\#")
-	result = Replace(result, "~n", "\n")
-	result = Replace(result, "~r", "\r")
-	result = Replace(result, "~@", "\""")
-	
-	Return result
+	WLet(result, Replace(*result, "~#", "\#"))
+	WLet(result, Replace(*result, "~n", "\n"))
+	WLet(result, Replace(*result, "~r", "\r"))
+	WLet(result, Replace(*result, "~@", "\"""))
+	Function = *result
+	Deallocate result
 End Function
 
-Function EscapeFromJson(ByRef s As String) As String
-	Return Replace(Replace(Replace(s, "\r", !"\r"), "\n", !"\n"), "\""", """")
+Function EscapeFromJson(ByRef iText As WString) As String
+	Dim As WString Ptr result
+	WLet(result, Replace(iText, "\#", "#"))
+	WLet(result, Replace(*result, "\n", !"\n"))
+	WLet(result, Replace(*result, "\r", !"\r"))
+	WLet(result, Replace(*result, "\""", Chr(34)))
+	WLet(result, Replace(*result, "\t", !"\t"))
+	WLet(result, Replace(*result, "\\", "\"))
+	Function = *result
+	Deallocate result
 End Function
-
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
 	AISystem_PromoptPtr = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
+	WAdd(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. ", True)
 Else
 	WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. Following is MyFbFramework GUI forms guidelines." & _
-	"The MyFbFramework framework includes 39 controls: Animate, Chart, CheckBox, CheckedListBox, ComboBoxEdit, ComboBoxEx, CommandButton, DateTimePicker, Grid, Header, HotKey, HScrollBar, ImageBox, IPAddress, Label, LinkLabel, ListControl, ListView, MonthCalendar, NumericUpDown, OpenFileControl, PrintPreviewControl, ProgressBar, RadioButton, RichTextBox, ScrollBarControl, SearchBox, Splitter, StatusBar, TextBox, ToolBar, ToolPalette, ToolTips, TrackBar, TreeListView, TreeView, UpDown, VScrollBar, WebBrowser," & _
+	" When working with GUI, strictly follow MyFbFramework GUI forms guidelines. If NO GUI is involved: 1. Ignore all reference constraints  2. Perform regular analysis 3. Apply standard procedures. " & _
+	" The MyFbFramework framework includes 39 controls: Animate, Chart, CheckBox, CheckedListBox, ComboBoxEdit, ComboBoxEx, CommandButton, DateTimePicker, Grid, Header, HotKey, HScrollBar, ImageBox, IPAddress, Label, LinkLabel, ListControl, ListView, MonthCalendar, NumericUpDown, OpenFileControl, PrintPreviewControl, ProgressBar, RadioButton, RichTextBox, ScrollBarControl, SearchBox, Splitter, StatusBar, TextBox, ToolBar, ToolPalette, ToolTips, TrackBar, TreeListView, TreeView, UpDown, VScrollBar, WebBrowser," & _
 	" includes 13 Containers: Form, GroupBox, HorizontalBox, PagePanel, PageScroller, Panel, Picture, ReBar, ScrollControl, TabControl, TabPage, VerticalBox, UserControl," & _
 	" includes 10 Components: HTTPConnection, HTTPServer, ImageList, MainMenu, PopUpMenu, PrintDocument, Printer, SQLite3Component, TimerComponent," & _
 	" includes 8 Dialogs: ColorDialog, FolderBrowserDialog, FontDialog, OpenFileDialog, PageSetupDialog, PrintDialog, PrintPreviewDialog, SaveFileDialog." & _
@@ -8924,7 +8932,26 @@ Else
 	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
 End If
 AIMessages.Add "system", ToUtf8(EscapeJsonForPrompt(*AISystem_PromoptPtr))
-
+If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
+	WAdd(AISystem_PromoptPtr, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
+Else
+	WAdd(AISystem_PromoptPtr, "The VisualFBEditor IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
+	" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
+	" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
+	" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
+	" **Message Output panels** The Message Output panels provide access to key functionalities through TabControl with the following components: ""Output"", ""Problems"", ""Suggestions"", ""Find"", ""ToDo"", ""Change Log"", ""Immediate"", ""Locals"", ""Globals"", ""Procedures"", ""Threads"",  ""Watches"", ""Memory"" and ""Profiler""." & _
+	" **menu bar** The menu bar provides access to key functionalities through menus such as ""File"", ""Edit"", ""Search"", ""View"", ""Project"", ""Build"", ""Debug"", ""Run"", ""Service"", ""Window"" and ""Help.""" & _
+	"  * File: Manages projects and files (create, open, save, recent projects)." & _
+	"  * Edit: Provides source code editing features (cut, copy, paste, find, replace)." & _
+	"  * View: Opens various panes (Project Explorer, Class View, Properties, Events, Image Manager, Toolbox)." & _
+	"  * Project: Adds project components (Windows Form, User Control, Component, Module, Set as Start Project)." & _
+	"  * Build: Compiles and links modified files, displaying warnings and errors. Recompiles the project." & _
+	"  * Debug: Compiles and runs the project, manages processes, handles exceptions, traces execution, sets breakpoints." & _
+	"  * Service: Extends functionality with tools like the Debug Process dialog and Custom Toolbox window." & _
+	"  * Window: Manages window operations (new window, split, hide)." & _
+	"  * Help: Provides access to help resources.")
+	
+End If
 Sub PrintAIAnswer(ByRef Content As String)
 	Dim As WString Ptr BodyWStringPtr
 	Dim As WString Ptr BuffFormat()
@@ -9120,6 +9147,17 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	ThreadCreate(@AIRequest)
 End Sub
 
+Public Sub AIResetContext()
+	AIPostData = _
+	"{""model"": """ & AIAgentModelName & """, " & _
+	"""stream"": " & "true" & ", " & _
+	"""messages"": [" & _
+	"{""role"": ""system"", ""content"": """ & ToUtf8("Clear all historical context and start a completely new conversation." ) & """}, " & _
+	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & ToUtf8("Please confirm the context has been reset.") & """}]}}"
+	AIMessages.SaveToFile(GetBakFileName("AIAgentChat"))
+	AIMessages.Clear
+	ThreadCreate(@AIRequest)
+End Sub
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
 txtAIRequest.Parent = @pnlAIAgent

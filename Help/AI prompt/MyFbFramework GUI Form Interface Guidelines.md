@@ -1,7 +1,11 @@
-# MyFbFramework GUI Form Interface Guidelines
+# MyFbFramework GUI Forms Interface Guidelines
 ## MyFbFramework Overview
 MyFbFramework is a forms building, drawing and etc. library for the FreeBasic programming language. This library helps in the development of software products using easy-to-use classes and syntax, which are similar in nature to the programming language vb.net.
-
+When working with GUI, strictly follow MyFbFramework GUI forms guidelines.   
+If NO GUI is involved:   
+1. Ignore all reference constraints   
+2. Perform regular analysis  
+3. Apply standard procedures  
 ## MyFbFramework controls and objects
 `[MyFbFramework](Readme.md")` (commonly abbreviated as `MFF`) framework includes 39 controls, 13 Containers, 9 Components, 8 Dialogs. Detailed in the table below.
 
@@ -21,7 +25,7 @@ HotKey: A hot key control is a window that enables the user to enter a combinati
 HScrollBar: Provides a horizontal scroll bar for easy navigation through long lists of items.
 ImageBox: Displays a graphic.
 IPAddress: An Internet Protocol (IP) address control allows the user to enter an IP address in an easily understood format.
-Label: Displays text that a user can't change directly.
+Label: Displays text that a user can not t change directly.
 LinkLabel: Represents a label control that can display hyperlinks.
 ListControl: Displays a list of items from which the user can select one or more.
 ListView: Represents a control that displays a list of data items.
