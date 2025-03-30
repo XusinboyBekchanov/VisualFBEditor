@@ -9075,7 +9075,7 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
-	Request.Body = ToUtf8(AIPostData)
+	Request.Body = AIPostData
 	txtAIRequest.Text = ""
 	AssistantsAnswers = ""
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
@@ -9102,9 +9102,9 @@ Sub AIRequest(Param As Any Ptr)
 		End If
 		iPos1 = InStrRev(Responce.Body, ",""content"":""")
 		iPos2 = InStrRev(Responce.Body, """,""refusal""")
-		AssistantsAnswer = EscapeFromJson(Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12))
+		AssistantsAnswer = Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12)
 		AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
-		Content = Content & AssistantsAnswer
+		Content = Content & EscapeFromJson(AssistantsAnswer)
 		PrintAIAnswer Content
 		'txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
@@ -9128,7 +9128,7 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.SelText = txtAIRequest.Text & !"\r\n"
 	txtAIAgent.ScrollToEnd
-	AIMessages.Add "user", EscapeJsonForPrompt(txtAIRequest.Text)
+	AIMessages.Add "user", ToUtf8(EscapeJsonForPrompt(txtAIRequest.Text))
 	bInAIThread = True
 	'txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
