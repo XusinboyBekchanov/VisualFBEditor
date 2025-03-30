@@ -8925,6 +8925,30 @@ Else
 End If
 AIMessages.Add "system", ToUtf8(EscapeJsonForPrompt(*AISystem_PromoptPtr))
 
+Sub PrintAIAnswer(ByRef Content As String)
+	Dim As WString Ptr BodyWStringPtr
+	Dim As WString Ptr BuffFormat()
+	BodyWStringPtr = FromUtf8(StrPtr(Content))
+	If BodyWStringPtr = 0 Then Return
+	Split(*BodyWStringPtr, "**", BuffFormat())
+	For j As Integer = 0 To UBound(BuffFormat)
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		If j > 0 Then
+			AIBold = Not AIBold
+			txtAIAgent.SelBold = AIBold
+		End If
+		txtAIAgent.SelText = *BuffFormat(j)
+		Deallocate BuffFormat(j)
+		If Not txtAIAgent.Focused Then
+			txtAIAgent.ScrollToEnd
+		End If
+	Next j
+	Erase BuffFormat
+	Deallocate BodyWStringPtr
+End Sub
+
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	ThreadsEnter
 	'ShowMessages(Buffer) Sometimes got party of the string
@@ -8937,7 +8961,6 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As String ReasoningEnd(0 To 2) = {"""},""finish_reason""", """,""role"":""" ,               """},"""}
 	AIBodyBufferSave = ""
 	Dim As ZString Ptr Buff()
-	Dim As WString Ptr BuffFormat()
 	Dim As String Content, AssistantsAnswer
 	Dim As Integer k, iPos1, iPos2, BuffCount = Split(Buffer, "data: ", Buff())
 	Dim As Boolean binReason
@@ -8947,7 +8970,6 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 		'Print the JSON string if decoding fails.
 		'ShowMessages(*Buff(i))
 		If InStr(*Buff(i), "chat.completion.chunk") Then
-			Dim As WString Ptr BodyWStringPtr
 			'Skip the empty
 			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
 			binReason = False
@@ -8999,25 +9021,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					End If
 				Next
 			End If
-			BodyWStringPtr = FromUtf8(StrPtr(Content))
-			If BodyWStringPtr = 0 Then Continue For
-			Split(*BodyWStringPtr, "**", BuffFormat())
-			For j As Integer = 0 To UBound(BuffFormat)
-				txtAIAgent.SelStart = Len(txtAIAgent.Text)
-				txtAIAgent.SelEnd = txtAIAgent.SelStart
-				txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-				If j > 0 Then
-					AIBold = Not AIBold
-					txtAIAgent.SelBold = AIBold
-				End If
-				txtAIAgent.SelText = *BuffFormat(j)
-				Deallocate BuffFormat(j)
-				If Not txtAIAgent.Focused Then
-					txtAIAgent.ScrollToEnd
-				End If
-			Next j
-			Erase BuffFormat
-			Deallocate BodyWStringPtr
+			PrintAIAnswer Content
 		Else
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
@@ -9035,6 +9039,7 @@ Sub AIRequest(Param As Any Ptr)
 	bInAIThread = True
 	bInThingk = False
 	bInNOTThingk = False
+	AIBold = False
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -9069,28 +9074,24 @@ Sub AIRequest(Param As Any Ptr)
 	End If
 	HTTPAIAgent.CallMethod("POST", Request, Responce)
 	If Not AIAgentStream Then
-		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
-		If Temp = 0 Then Return
 		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
 		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
-		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14)))
-		
-		txtAIAgent.SelBackColor = darkBkColor
-		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
-		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		
-		iPos1 = InStrRev(*Temp, ",""content"":""")
-		iPos2 = InStrRev(*Temp, """,""refusal""")
-		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
-		
-		txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.ScrollToEnd
+		Dim As String Content, AssistantsAnswer
+		If iPos1 <> 0 AndAlso iPos2 <> 0 Then
+			AssistantsAnswer = Mid(Responce.Body, iPos1 + 14, iPos2 - iPos1 - 14)
+			AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
+			If AssistantsAnswer <> "" Then
+				Content = Content & !"<Think>\r\n" & EscapeFromJson(AssistantsAnswer) & !"</Think>\r\n"
+			End If
+		End If
+		iPos1 = InStrRev(Responce.Body, ",""content"":""")
+		iPos2 = InStrRev(Responce.Body, """,""refusal""")
+		AssistantsAnswer = Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12)
+		AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
+		Content = Content & EscapeFromJson(AssistantsAnswer)
+		PrintAIAnswer Content
 		'txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
-		WDeAllocate(Temp)
 	End If
 	AIMessages.Add "assistant", AssistantsAnswers
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
