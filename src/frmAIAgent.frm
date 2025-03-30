@@ -51,7 +51,7 @@
 			.WindowState = WindowStates.wsNormal
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedSingle
-			.SetBounds 0, 0, 518, 259
+			.SetBounds 0, 0, 528, 259
 		End With
 		' lblAIAgentName
 		With lblAIAgentName
@@ -60,7 +60,7 @@
 			.TabIndex = 0
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 0
-			.SetBounds 3, 11, 80, 20
+			.SetBounds 13, 15, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -71,7 +71,7 @@
 			.TabIndex = 1
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
-			.SetBounds 3, 68, 80, 20
+			.SetBounds 13, 75, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -82,7 +82,7 @@
 			.TabIndex = 2
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 2
-			.SetBounds 3, 95, 80, 20
+			.SetBounds 13, 102, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -93,7 +93,7 @@
 			.TabIndex = 3
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 3
-			.SetBounds 3, 127, 80, 20
+			.SetBounds 13, 131, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -104,7 +104,7 @@
 			.TabIndex = 4
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 4
-			.SetBounds 3, 152, 80, 20
+			.SetBounds 13, 158, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -113,7 +113,7 @@
 			.Name = "txtAIAgentAPIKey"
 			.TabIndex = 5
 			.ControlIndex = 5
-			.SetBounds 90, 149, 405, 20
+			.SetBounds 100, 155, 411, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -124,7 +124,7 @@
 			.TabIndex = 6
 			.ControlIndex = 5
 			.Text = "443"
-			.SetBounds 91, 123, 44, 18
+			.SetBounds 100, 127, 54, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -134,7 +134,9 @@
 			.Text = ML("Temperature") & ":"
 			.TabIndex = 7
 			.ControlIndex = 7
-			.SetBounds 143, 124, 80, 20
+			.Alignment = AlignmentConstants.taRight
+			.ID = 1021
+			.SetBounds 163, 130, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -146,7 +148,7 @@
 			.ControlIndex = 8
 			.DecimalPlaces = 1
 			.MaxValue = 0
-			.SetBounds 232, 124, 49, 20
+			.SetBounds 252, 127, 49, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -157,7 +159,7 @@
 			.TabIndex = 10
 			.Checked = True
 			.ControlIndex = 9
-			.SetBounds 339, 124, 58, 17
+			.SetBounds 319, 127, 58, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -168,7 +170,7 @@
 			.Style = cbDropDown
 			.TabIndex = 11
 			.ControlIndex = 9
-			.SetBounds 309, 96, 185, 20
+			.SetBounds 320, 100, 191, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -180,7 +182,7 @@
 			.ControlIndex = 8
 			.Alignment = AlignmentConstants.taRight
 			.ID = 4129
-			.SetBounds 233, 95, 71, 20
+			.SetBounds 243, 102, 71, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -191,7 +193,7 @@
 			.Style = cbDropDown
 			.TabIndex = 13
 			.ControlIndex = 12
-			.SetBounds 90, 95, 132, 20
+			.SetBounds 100, 99, 132, 21
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -201,7 +203,7 @@
 			.TabIndex = 15
 			.ControlIndex = 3
 			.Enabled = False
-			.SetBounds 91, 11, 336, 20
+			.SetBounds 100, 15, 346, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -211,7 +213,7 @@
 			.Text = ML("OK")
 			.TabIndex = 16
 			.ControlIndex = 6
-			.SetBounds 240, 185, 112, 24
+			.SetBounds 269, 195, 112, 24
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
 			.Parent = @This
@@ -222,7 +224,7 @@
 			.Text = ML("Cancel")
 			.TabIndex = 17
 			.ControlIndex = 0
-			.SetBounds 370, 185, 112, 24
+			.SetBounds 399, 195, 112, 24
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdCancel_Click)
 			.Parent = @This
@@ -234,7 +236,7 @@
 			.TabIndex = 18
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
-			.SetBounds 3, 40, 80, 20
+			.SetBounds 13, 44, 80, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -246,7 +248,7 @@
 			.TabIndex = 21
 			'.ImagesList = pimgListAIModels32
 			.ControlIndex = 15
-			.SetBounds 91, 68, 405, 18
+			.SetBounds 100, 72, 411, 21
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cboAIAgentModelName_Change)
 			.Parent = @This
@@ -258,7 +260,7 @@
 			.Style = cbDropDown
 			'.ImagesList = pimgListAIProviders32
 			.TabIndex = 19
-			.SetBounds 91, 40, 405, 18
+			.SetBounds 100, 44, 411, 21
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cboAIAgentProvider_Change)
 			.Parent = @This
@@ -297,7 +299,7 @@
 			.Checked = True
 			.ControlIndex = 9
 			.Caption = "Auto"
-			.SetBounds 436, 11, 58, 17
+			.SetBounds 456, 15, 53, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkAIAgentAuto_Click)
 			.Parent = @This
@@ -379,8 +381,12 @@ End Sub
 
 Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	txtAIAgentAPIKey.Enabled = chkAIAgentAuto.Checked
+	Dim As UString Temp = cboAIAgentPort.Text
+	cboAIAgentPort.Clear
+	cboAIAgentPort.Text = Temp
 	cboAIAgentPort.AddItem "80"
 	cboAIAgentPort.AddItem "443"
+	Temp = cboAIAgentModelName.Text
 	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
 	If Dir(tmpName) = "" Then MkDir tmpName
 	tmpName = ExePath & "/Resources/AIAgent/ModelName.ini"
@@ -396,7 +402,8 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		End With
 		cboAIAgentModelName.SaveToFile(tmpName)
 	End If
-	
+	cboAIAgentModelName.Text = Temp
+	Temp = cboAIAgentHost.Text
 	tmpName = ExePath & "/Resources/AIAgent/Host.ini"
 	If Dir(tmpName) <> "" Then
 		cboAIAgentHost.LoadFromFile(tmpName)
@@ -417,7 +424,8 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		End With
 		cboAIAgentHost.SaveToFile(tmpName)
 	End If
-	
+	cboAIAgentHost.Text = Temp
+	Temp = cboAIAgentAddress.Text
 	tmpName = ExePath & "/Resources/AIAgent/Address.ini"
 	If Dir(tmpName) <> "" Then
 		cboAIAgentAddress.LoadFromFile(tmpName)
@@ -430,6 +438,8 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		End With
 		cboAIAgentAddress.SaveToFile(tmpName)
 	End If
+	cboAIAgentAddress.Text = Temp
+	Temp = cboAIAgentProvider.Text
 	tmpName = ExePath & "/Resources/AIAgent/Provider.ini"
 	If Dir(tmpName) <> "" Then
 		cboAIAgentProvider.LoadFromFile(tmpName)
@@ -450,4 +460,5 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		End With
 		cboAIAgentProvider.SaveToFile(tmpName)
 	End If
+	cboAIAgentProvider.Text = Temp
 End Sub
