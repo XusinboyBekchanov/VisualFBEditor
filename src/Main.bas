@@ -8878,7 +8878,7 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
-Function EscapeJsonForPrompt(ByRef iText As WString) As String
+Function EscapeJsonForPrompt(ByRef iText As WString) As UString
 	Dim As WString Ptr result
 	WLet(result, Replace(iText, "\#", "~#"))
 	WLet(result, Replace(*result, "\n", "~n"))
@@ -8899,17 +8899,17 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Deallocate result
 End Function
 
-Function EscapeFromJson(ByRef iText As WString) As String
-	Dim As WString Ptr result
-	WLet(result, Replace(iText, "\#", "#"))
-	WLet(result, Replace(*result, "\n", !"\n"))
-	WLet(result, Replace(*result, "\r", !"\r"))
-	WLet(result, Replace(*result, "\""", Chr(34)))
-	WLet(result, Replace(*result, "\t", !"\t"))
-	WLet(result, Replace(*result, "\\", "\"))
-	Function = *result
-	Deallocate result
+Function EscapeFromJson(ByRef iText As String) As String
+	Dim As String result
+	result = Replace(iText, "\#", "#")
+	result = Replace(result, "\n", !"\n")
+	result = Replace(result, "\r", !"\r")
+	result = Replace(result, "\""", Chr(34))
+	result = Replace(result, "\t", !"\t")
+	result = Replace(result, "\\", "\")
+	Function = result
 End Function
+
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
 	AISystem_PromoptPtr = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
 	WAdd(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. ", True)
