@@ -9007,14 +9007,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If iPos2 Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
-							'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-							'txtAIAgent.SelEnd = txtAIAgent.SelStart
-							'txtAIAgent.SelText =  !"\r\n<think>\r\n"
+							PrintAIAnswer(!"\r\n<think>\r\n")
 						End If
 						binReason = True
-						'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-						'txtAIAgent.SelEnd = txtAIAgent.SelStart
-						'txtAIAgent.SelText = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))))
 						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
 						Exit For
 					End If
@@ -9028,14 +9023,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						If iPos2 > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
-								'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-								'txtAIAgent.SelEnd = txtAIAgent.SelStart
-								'txtAIAgent.SelText =  !"\r\n</think>\r\n"
+								PrintAIAnswer(!"\r\n</think>\r\n")
 							End If
-							'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-							'txtAIAgent.SelEnd = txtAIAgent.SelStart
-							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
-							'txtAIAgent.SelText =  *BodyWStringPtr
+							WLet(BodyWStringPtr, EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
 							AIAssistantsAnswers  &= *BodyWStringPtr
 							Exit For
 						End If
@@ -9049,7 +9039,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				If CBool(InStr(*Buff(i), "[DONE]") > 0) Then
 					AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
 				Else
-					'AIMessages.Remove AIMessages.Count - 1
+					If AIMessages.Item(AIMessages.Count - 1)->Text = "No answer." Then AIMessages.Remove AIMessages.Count - 1
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -9169,8 +9159,8 @@ Public Sub AIResetContext()
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
 	"""messages"": [" & _
-	"{""role"": ""system"", ""content"": """ & ToUtf8("Clear all historical context and start a completely new conversation." ) & """}, " & _
-	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & ToUtf8("Please confirm the context has been reset.") & """}]}}"
+	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation." & """}, " & _
+	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & "Please confirm the context has been reset." & """}]}}"
 	AIMessages.SaveToFile(GetBakFileName("AIAgentChat"))
 	AIMessages.Clear
 	txtAIAgent.Text = ""
