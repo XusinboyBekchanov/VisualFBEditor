@@ -9053,7 +9053,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 End Sub
 
 Sub AIRequest(Param As Any Ptr)
-bInAIThread = True
+	bInAIThread = True
 	bInThingk = False
 	bInNOTThingk = False
 	AIBold = False
@@ -9067,15 +9067,14 @@ bInAIThread = True
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = ToUtf8(AIPostData)
 	txtAIRequest.Text = ""
-	AssistantsAnswers = ""
-
-		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelBackColor = darkHlBkColor
-		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
-		txtAIAgent.SelBackColor = darkBkColor
-		txtAIAgent.ScrollToEnd
+	AIAssistantsAnswers = ""
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkHlBkColor
+	txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+	txtAIAgent.SelBackColor = darkBkColor
+	txtAIAgent.ScrollToEnd
 	If AIAgentStream Then
 		HTTPAIAgent.OnReceive= @HTTPAIAgent_Receive
 	End If
@@ -9163,8 +9162,8 @@ Public Sub AIResetContext()
 	AIMessages.SaveToFile(GetBakFileName("AIAgentChat"))
 	AIMessages.Clear
 	txtAIAgent.Text = ""
-	txtAIRequest.Enabled = True 
-	HTTPAIAgent.Abort = True 
+	txtAIRequest.Enabled = True
+	HTTPAIAgent.Abort = True
 	ThreadCreate(@AIRequest)
 End Sub
 txtAIRequest.Align = DockStyle.alBottom
