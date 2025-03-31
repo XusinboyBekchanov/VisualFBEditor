@@ -3864,6 +3864,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			piniSettings->WriteBool "AIAgents", "Stream_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream
 			If *CurrentAIAgent = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Name Then
 				AIAgentModelName = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
+				AIAgentProvider = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Provider
 				AIAgentHost = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Host
 				AIAgentAddress  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Address 
 				AIAgentAPIKey = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey

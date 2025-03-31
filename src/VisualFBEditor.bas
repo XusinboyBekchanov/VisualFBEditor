@@ -575,7 +575,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		End If
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
 		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AIConvertCtoFB", "AITranslate", "AITranslateE", "AIWebBrowserItem", "AIRelease"
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AINewChat", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AIConvertCtoFB", "AITranslate", "AITranslateE", "AIWebBrowserItem", "AIRelease"
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -651,16 +651,16 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
 		Case "AIRelease"
-			#ifdef __USE_WINAPI__
-				
-					If CBool(pHTTPAIAgent <> 0) AndAlso pHTTPAIAgent->Abort Then 
-						ptxtAIRequest->Enabled = True 
-					Else 
-						pHTTPAIAgent->Abort = True
-						ptxtAIRequest->Enabled = True
-					End If
-					ptxtAIRequest->SetFocus
-			#endif
+		
+				If CBool(pHTTPAIAgent <> 0) AndAlso pHTTPAIAgent->Abort Then 
+					ptxtAIRequest->Enabled = True 
+				Else 
+					pHTTPAIAgent->Abort = True
+					ptxtAIRequest->Enabled = True
+				End If
+				ptxtAIRequest->SetFocus
+		Case "AINewChat"
+			AIResetContext
 		Case "AITracepointError"
 			If lvProblems.ListItems.Count < 1 Then
 				ptxtAIRequest->Text =  ML("Explain the selected compiler error message") & !":\r\n" & "```freeBasic" & !"\r\n" & !"\r\n" & "```"
@@ -807,7 +807,6 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
 	Case "EraseImmediateWindow":            txtImmediate.Text = ""
-	Case "EraseAIAgent":                    txtAIAgent.Text = "": AIMessages.Clear: AIMessages.Add "system", ToUtf8(EscapeJsonForPrompt(*AISystem_PromoptPtr))
 	Case "Update":                          
 		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
@@ -1004,4 +1003,3 @@ MsgBox ErrDescription(Err) & " (" & Err & ") " & _
 	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
 	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
 	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
- 

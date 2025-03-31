@@ -134,10 +134,10 @@ Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As HTTPConnection HTTPAIAgent
 Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold
-Dim Shared As String AIBodyBufferSave, AssistantsAnswers
+Dim Shared As String AIAssistantsAnswers
 Dim Shared As Dictionary AIMessages
 Dim Shared As WString Ptr AISystem_PromoptPtr
-Dim Shared As String AIPostData, AIPostData_1st
+Dim Shared As String AIPostData
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -7029,6 +7029,7 @@ Sub LoadSettings
 			AIAgents.Add Temp, Info->Host, Info
 			If *CurrentAIAgent = Temp Then
 				AIAgentModelName = Info->ModelName
+				AIAgentProvider = Info->Provider
 				AIAgentHost = Info->Host
 				AIAgentAddress  = Info->Address
 				AIAgentAPIKey = Info->APIKey
@@ -7520,6 +7521,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Suggestions", "Suggestions"
 	imgList.Add "DarkMode", "DarkMode"
 	imgList.Add "FindSymbol", "FindSymbol"
+	imgList.Add "NewChat", "NewChat"
 	imgList.Add "AddComment", "AddComment"
 	imgList.Add "TracepointError", "TracepointError"
 	imgList.Add "Intellicode", "Intellicode"
@@ -8835,6 +8837,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		WLet(DefaultAIAgent, Info->Name)
 		WLet(CurrentAIAgent, Info->Name)
 		AIAgentModelName = Info->ModelName
+		AIAgentProvider = Info->Provider
 		AIAgentHost = Info->Host
 		AIAgentAddress  = Info->Address
 		AIAgentAPIKey = Info->APIKey
@@ -8849,6 +8852,7 @@ tbAIAgent.Flat = True
 tbAIAgent.Align = DockStyle.alTop
 tbAIAgent.AutoSize = True
 tbAIAgent.ExtraMargins.Right = tbLeft.Width
+tbAIAgent.Buttons.Add , "NewChat", , @mClick, "AINewChat", , ML("New Chat"), True
 tbAIAgent.Buttons.Add , "AddComment", , @mClick, "AIAddComment", , ML("Comment selected code"), True
 tbAIAgent.Buttons.Add , "OptimizeCode", , @mClick, "AIOptimizeCode", , ML("Optimize selected code"), True
 tbAIAgent.Buttons.Add , "Intellicode", , @mClick, "AIIntellicode", , ML("Generate code based on the requirements of the selected comment lines"), True
@@ -8858,15 +8862,12 @@ tbAIAgent.Buttons.Add , "ConvertC", , @mClick, "AIConvertCtoFB", , ML("Convert t
 tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with MARKDOWN source code, translate the selected message to") & " " &  ML(App.CurLanguage), True
 tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
 tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
-tbAIAgent.Buttons.Add , "Eraser", , @mClick, "EraseAIAgent", , ML("Erase"), True
 tbAIAgent.Buttons.Add tbsSeparator
 Var tbAIModels = tbAIAgent.Buttons.Add(tbsCustom)
 tbAIModels->Child = @cboAIAgentModels
 tbAIModels->Expand = True
 tbAIAgent.Buttons.Add tbsSeparator
-
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
-
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
@@ -8899,20 +8900,21 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As UString
 	Deallocate result
 End Function
 
-Function EscapeFromJson(ByRef iText As String) As String
-	Dim As String result
-	result = Replace(iText, "\#", "#")
-	result = Replace(result, "\n", !"\n")
-	result = Replace(result, "\r", !"\r")
-	result = Replace(result, "\""", Chr(34))
-	result = Replace(result, "\t", !"\t")
-	result = Replace(result, "\\", "\")
-	Function = result
+Function EscapeFromJson(ByRef iText As WString) As String
+	Dim As WString Ptr result
+	WLet(result, Replace(iText, "\#", "#"))
+	WLet(result, Replace(*result, "\n", !"\n"))
+	WLet(result, Replace(*result, "\r", !"\r"))
+	WLet(result, Replace(*result, "\""", Chr(34)))
+	WLet(result, Replace(*result, "\t", !"\t"))
+	WLet(result, Replace(*result, "\\", "\"))
+	Function = *result
+	Deallocate result
 End Function
 
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
 	AISystem_PromoptPtr = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
-	WAdd(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. ", True)
+	WAdd(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert.  \n 1. Use the provided MyFbFramework (MFF) knowledge base (<context></context>) as your only source of information. \n 2. If the knowledge base contains relevant information, answer directly based on it. <context>", True)
 Else
 	WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. Following is MyFbFramework GUI forms guidelines." & _
 	" When working with GUI, strictly follow MyFbFramework GUI forms guidelines. If NO GUI is involved: 1. Ignore all reference constraints  2. Perform regular analysis 3. Apply standard procedures. " & _
@@ -8931,7 +8933,7 @@ Else
 	" **Event Handling Patterns** Use controlName_eventName format for handlers. Declare event handlers OUTSIDE form class." & _
 	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
 End If
-AIMessages.Add "system", EscapeJsonForPrompt(*AISystem_PromoptPtr)
+
 If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
 	WAdd(AISystem_PromoptPtr, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
 Else
@@ -8952,12 +8954,11 @@ Else
 	"  * Help: Provides access to help resources.")
 	
 End If
-Sub PrintAIAnswer(ByRef Content As String)
-	Dim As WString Ptr BodyWStringPtr
+
+Sub PrintAIAnswer(ByRef Content As WString)
 	Dim As WString Ptr BuffFormat()
-	BodyWStringPtr = FromUtf8(StrPtr(Content))
-	If BodyWStringPtr = 0 Then Return
-	Split(*BodyWStringPtr, "**", BuffFormat())
+	If Trim(Content) = "" Then Return
+	Split(Content, "**", BuffFormat())
 	For j As Integer = 0 To UBound(BuffFormat)
 		txtAIAgent.SelStart = Len(txtAIAgent.Text)
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -8973,7 +8974,6 @@ Sub PrintAIAnswer(ByRef Content As String)
 		End If
 	Next j
 	Erase BuffFormat
-	Deallocate BodyWStringPtr
 End Sub
 
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
@@ -8986,21 +8986,20 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As String ContentEnd(0 To 3) = {""",""reasoning"":null",   """,""reasoning_content"":null", """},""finish_reason""",       """,""tool_calls"":"  }
 	Dim As String ReasoningStart(0 To 2) = {",""reasoning"":""",     ",""reasoning_content"":""",       ",""reasoning_content"":"""}
 	Dim As String ReasoningEnd(0 To 2) = {"""},""finish_reason""", """,""role"":""" ,               """},"""}
-	AIBodyBufferSave = ""
-	Dim As ZString Ptr Buff()
-	Dim As String Content, AssistantsAnswer
-	Dim As Integer k, iPos1, iPos2, BuffCount = Split(Buffer, "data: ", Buff())
+	Dim As WString Ptr BodyWStringPtr = FromUtf8(StrPtr(Buffer))
+	If BodyWStringPtr = 0 Then Return
+	Dim As WString Ptr Buff()
+	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*BodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
 	If BuffCount < 1 Then Return
 	For i As Integer = 0 To BuffCount - 1
-		If Trim(*Buff(i)) = "" OrElse InStr(*Buff(i), "??????") Then Continue For
+		If Trim(*Buff(i)) = "" Then Continue For
 		'Print the JSON string if decoding fails.
 		'ShowMessages(*Buff(i))
 		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
 			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
 			binReason = False
-			Content = ""
 			For k = 0 To UBound(ReasoningStart)
 				iPos1 = InStr(LCase(*Buff(i)), ReasoningStart(k))
 				If iPos1 > 0 Then 'For think model
@@ -9008,18 +9007,15 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If iPos2 Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
-							Content = Content & !"\r\n<think>\r\n"
 							'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 							'txtAIAgent.SelEnd = txtAIAgent.SelStart
 							'txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						binReason = True
-						AssistantsAnswer = Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))
-						AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
-						Content = Content & EscapeFromJson(AssistantsAnswer)
 						'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 						'txtAIAgent.SelEnd = txtAIAgent.SelStart
-						'txtAIAgent.SelText = EscapeFromJson(AssistantsAnswer)
+						'txtAIAgent.SelText = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))))
+						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
 						Exit For
 					End If
 				End If
@@ -9032,41 +9028,44 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						If iPos2 > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
-								If bInNOTThingk Then Content = Content & !"\r\n</think>\r\n"
 								'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 								'txtAIAgent.SelEnd = txtAIAgent.SelStart
 								'txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							AssistantsAnswer = Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))
-							AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
-							Content = Content & EscapeFromJson(AssistantsAnswer)
 							'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 							'txtAIAgent.SelEnd = txtAIAgent.SelStart
-							'txtAIAgent.SelText =  EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
+							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
+							'txtAIAgent.SelText =  *BodyWStringPtr
+							AIAssistantsAnswers  &= *BodyWStringPtr
 							Exit For
 						End If
 					End If
 				Next
 			End If
-			PrintAIAnswer Content
+			PrintAIAnswer(*BodyWStringPtr)
 		Else
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
-				'txtAIRequest.Enabled = True
+				If CBool(InStr(*Buff(i), "[DONE]") > 0) Then
+					AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+				Else
+					'AIMessages.Remove AIMessages.Count - 1
+				End If
+				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 			End If
 		End If
 		Deallocate Buff(i)
 	Next
 	Erase Buff
+	Deallocate BodyWStringPtr
 	ThreadsLeave
 End Sub
 
 Sub AIRequest(Param As Any Ptr)
-	bInAIThread = True
+bInAIThread = True
 	bInThingk = False
 	bInNOTThingk = False
-	AIBold = False
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -9075,44 +9074,53 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
-	Request.Body = AIPostData
+	Request.Body = ToUtf8(AIPostData)
 	txtAIRequest.Text = ""
-	AssistantsAnswers = ""
-	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	txtAIAgent.SelBackColor = darkHlBkColor
-	txtAIAgent.SelText = *CurrentAIAgent & !"\r\n\r\n"
-	txtAIAgent.SelBackColor = darkBkColor
-	txtAIAgent.ScrollToEnd
 	If AIAgentStream Then
-		HTTPAIAgent.OnReceive = @HTTPAIAgent_Receive
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelBackColor = darkHlBkColor
+		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.ScrollToEnd
+		HTTPAIAgent.OnReceive= @HTTPAIAgent_Receive
 	End If
 	HTTPAIAgent.CallMethod("POST", Request, Responce)
 	If Not AIAgentStream Then
+		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
+		If Temp = 0 Then Return
+		'Debug.Print *Temp
 		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
 		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
-		Dim As String Content, AssistantsAnswer
-		If iPos1 <> 0 AndAlso iPos2 <> 0 Then
-			AssistantsAnswer = Mid(Responce.Body, iPos1 + 14, iPos2 - iPos1 - 14)
-			AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
-			If AssistantsAnswer <> "" Then
-				Content = Content & !"<Think>\r\n" & EscapeFromJson(AssistantsAnswer) & !"</Think>\r\n"
-			End If
-		End If
-		iPos1 = InStrRev(Responce.Body, ",""content"":""")
-		iPos2 = InStrRev(Responce.Body, """,""refusal""")
-		AssistantsAnswer = Mid(Responce.Body, iPos1 + 12, iPos2 - iPos1 - 12)
-		AssistantsAnswers = AssistantsAnswers & AssistantsAnswer
-		Content = Content & EscapeFromJson(AssistantsAnswer)
-		PrintAIAnswer Content
-		'txtAIRequest.Enabled = True
+		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14)))
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.SelBackColor = darkHlBkColor
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.ScrollToCaret
+		txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		
+		iPos1 = InStrRev(*Temp, ",""content"":""")
+		iPos2 = InStrRev(*Temp, """,""refusal""")
+		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
+		
+		'txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
+		'txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		'txtAIAgent.SelEnd = txtAIAgent.SelStart
+		'txtAIAgent.ScrollToCaret
+		PrintAIAnswer(*Buff)
+		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
+		WDeAllocate(Buff)
+		WDeAllocate(Temp)
 	End If
-	AIMessages.Add "assistant", AssistantsAnswers
-	txtAIAgent.SelStart = Len(txtAIAgent.Text)
-	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	txtAIAgent.SelText =  !"\r\n\r\n"
 	bInAIThread = False
 End Sub
 
@@ -9121,28 +9129,37 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
-	txtAIAgent.SelAlignment = AlignmentConstants.taRight
-	txtAIAgent.SelText = ML("User") & " " & Date & " " & Time & !"\r\n\r\n"
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelText = !"\r\n\r\n" & ML("User") & " " & Date & " " & Time
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkBkColor
-	txtAIAgent.SelText = txtAIRequest.Text & !"\r\n"
+	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
 	txtAIAgent.ScrollToEnd
-	AIMessages.Add "user", ToUtf8(EscapeJsonForPrompt(txtAIRequest.Text))
+	
 	bInAIThread = True
-	'txtAIRequest.Enabled = False
+	txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor"
-	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentName),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "}")
-	Dim As String messagesText
-	For i As Integer = 0 To AIMessages.Count - 1
-		messagesText = messagesText & IIf(messagesText = "", "", ", ") & "{""role"": """ & AIMessages.Item(i)->Key & """, ""content"": """ & AIMessages.Item(i)->Text & """}"
-	Next i
+	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "]}")
+	
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [" & messagesText & "]" & ExtraHeaders
-	
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & EscapeJsonForPrompt(*AISystem_PromoptPtr) & """},"
+	If AIMessages.Count > 0 Then
+		AIPostData  &= "{""role"": ""user"", ""content"": """ &  AIMessages.Item(0)->Text & """}"
+		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ &  EscapeJsonForPrompt(AIMessages.Item(0)->Text) & """}"
+		For i As Integer = 1 To AIMessages.Count - 1
+			AIPostData  &= ", {""role"": ""user"", ""content"": """ &  AIMessages.Item(i)->Key & """}"
+			AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(i)->Text) & """}"
+		Next
+		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
+	Else
+		AIPostData  &= "{""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
+	End If
+	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "No answer.")
+	AIAssistantsAnswers = ""
 	ClearMessages
 	ThreadCreate(@AIRequest)
 End Sub
@@ -9156,13 +9173,16 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & ToUtf8("Please confirm the context has been reset.") & """}]}}"
 	AIMessages.SaveToFile(GetBakFileName("AIAgentChat"))
 	AIMessages.Clear
+	txtAIAgent.Text = ""
+	txtAIRequest.Enabled = True 
+	HTTPAIAgent.Abort = True 
 	ThreadCreate(@AIRequest)
 End Sub
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
 txtAIRequest.Parent = @pnlAIAgent
-'txtAIRequest.Font.Name = *EditorFontName
-'txtAIRequest.Font.Size = EditorFontSize
+txtAIRequest.Font.Name = *EditorFontName
+txtAIRequest.Font.Size = EditorFontSize
 txtAIRequest.ScrollBars = ScrollBarsType.Vertical
 txtAIRequest.Multiline= True
 txtAIRequest.WordWraps = True
@@ -10671,7 +10691,7 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 		tpOutput->SelectTab
 	End If
 	Dim As Integer AddingTextLength = Len(msg & WChr(13) & WChr(10))
-	If txtOutput.GetTextLength + AddingTextLength > 64000 Then
+	If txtOutput.GetTextLength + AddingTextLength > 964000 Then
 		txtOutput.Text = Mid(txtOutput.Text, txtOutput.GetCharIndexFromLine(txtOutput.GetLineFromCharIndex(AddingTextLength) + 1))
 	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
