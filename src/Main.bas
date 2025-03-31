@@ -9056,6 +9056,7 @@ Sub AIRequest(Param As Any Ptr)
 bInAIThread = True
 	bInThingk = False
 	bInNOTThingk = False
+	AIBold = False
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -9066,7 +9067,8 @@ bInAIThread = True
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = ToUtf8(AIPostData)
 	txtAIRequest.Text = ""
-	If AIAgentStream Then
+	AssistantsAnswers = ""
+
 		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -9074,6 +9076,7 @@ bInAIThread = True
 		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
 		txtAIAgent.SelBackColor = darkBkColor
 		txtAIAgent.ScrollToEnd
+	If AIAgentStream Then
 		HTTPAIAgent.OnReceive= @HTTPAIAgent_Receive
 	End If
 	HTTPAIAgent.CallMethod("POST", Request, Responce)
@@ -9101,10 +9104,6 @@ bInAIThread = True
 		iPos2 = InStrRev(*Temp, """,""refusal""")
 		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
 		
-		'txtAIAgent.SelText = !"\r\n" & !"\r\n" & *Buff
-		'txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		'txtAIAgent.SelEnd = txtAIAgent.SelStart
-		'txtAIAgent.ScrollToCaret
 		PrintAIAnswer(*Buff)
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
@@ -10681,7 +10680,7 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 		tpOutput->SelectTab
 	End If
 	Dim As Integer AddingTextLength = Len(msg & WChr(13) & WChr(10))
-	If txtOutput.GetTextLength + AddingTextLength > 964000 Then
+	If txtOutput.GetTextLength + AddingTextLength > 64000 Then
 		txtOutput.Text = Mid(txtOutput.Text, txtOutput.GetCharIndexFromLine(txtOutput.GetLineFromCharIndex(AddingTextLength) + 1))
 	End If
 	txtOutput.SetSel txtOutput.GetTextLength, txtOutput.GetTextLength
