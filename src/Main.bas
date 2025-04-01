@@ -8823,7 +8823,6 @@ tpToolbox->Add @tbForm
 'pnlLeft.Width = 153
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
-
 Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim As Integer Index = pAIAgents->IndexOfKey(cboAIAgentModels.Text)
 	If Index < 0 Then
@@ -8952,12 +8951,11 @@ WAdd(AIPostDataPtr_2nd, "The VisualFBEditor (commonly abbreviated as `VFBE`) IDE
 	
 'End If
 WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & _
-"You are FreeBasic programming expert. Your responses must follow these rules: \n 1. Use the provided MyFbFramework (MFF) knowledge base (<context></context>) as your only source of information. \n" & _
-"2. If the knowledge base contains relevant information, answer directly based on it or ignore the constraints of the provided references and perform regular analysis.")
+"You are FreeBasic programming expert. Use the provided MyFbFramework (MFF) knowledge base (<context></context>)\n")
 
 Sub PrintAIAnswer(ByRef Content As WString)
 	Dim As WString Ptr BuffFormat()
-	 Content = "" Then Return
+	If Content = "" Then Return
 	Split(Content, "**", BuffFormat())
 	For j As Integer = 0 To UBound(BuffFormat)
 		txtAIAgent.SelStart = Len(txtAIAgent.Text)
