@@ -7526,7 +7526,6 @@ Sub CreateMenusAndToolBars
 	imgList.Add "TracepointError", "TracepointError"
 	imgList.Add "Intellicode", "Intellicode"
 	imgList.Add "OptimizeCode", "OptimizeCode"
-	imgList.Add "AddComment", "AddComment"
 	imgList.Add "ConvertC", "ConvertC"
 	imgList.Add "Translate", "Translate"
 	imgList.Add "TranslateE", "TranslateE"
@@ -9136,7 +9135,7 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & "{""role"": ""system"", ""content"": """ & EscapeJsonForPrompt(*AISystem_PromoptPtr) & """},"
 	If AIMessages.Count > 0 Then
-		AIPostData  &= "{""role"": ""user"", ""content"": """ &  AIMessages.Item(0)->Text & """}"
+		AIPostData  &= " {""role"": ""user"", ""content"": """ &  AIMessages.Item(0)->Key & """}"
 		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ &  EscapeJsonForPrompt(AIMessages.Item(0)->Text) & """}"
 		For i As Integer = 1 To AIMessages.Count - 1
 			AIPostData  &= ", {""role"": ""user"", ""content"": """ &  AIMessages.Item(i)->Key & """}"
@@ -9159,7 +9158,7 @@ Public Sub AIResetContext()
 	"""messages"": [" & _
 	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation." & """}, " & _
 	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & "Please confirm the context has been reset." & """}]}}"
-	AIMessages.SaveToFile(GetBakFileName("AIAgentChat"))
+	AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIAgentChat.log"))
 	AIMessages.Clear
 	txtAIAgent.Text = ""
 	txtAIRequest.Enabled = True
