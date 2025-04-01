@@ -114,6 +114,10 @@ Declare Function HK(Key As String, Default As String = "", WithSpace As Boolean 
 Declare Function MP(ByRef V As WString) ByRef As WString
 Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
 Declare Function MC(ByRef V As WString) ByRef As WString
+Declare Sub AIResetContext()
+Declare Sub AIRequest(Param As Any Ptr)
+Declare Function EscapeJsonForPrompt(ByRef iText As WString) As String
+Declare Function EscapeFromJson(ByRef iText As WString) As String
 Declare Sub PopupClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 Declare Sub mClick(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
@@ -154,7 +158,7 @@ Common Shared As Boolean CreateNonStaticEventHandlers, CreateFormTypesWithoutTyp
 Common Shared As Boolean PlaceStaticEventHandlersAfterTheConstructor, CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
 Common Shared As Boolean LimitDebug, DisplayWarningsInDebug, TurnOnEnvironmentVariables
 Common Shared As Boolean UseDebugger, ParameterInfoShow
-Common Shared As Boolean CompileGUI
+Common Shared As Boolean CompileGUI, bAIAgentFirstRun
 Common Shared As Boolean mFormFindInFile
 Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
@@ -172,7 +176,7 @@ Common Shared As Integer LastOpenedFileType
 Common Shared As Integer LoadFunctionsCount, AIAgentPort
 Common Shared As Boolean AIAgentStream
 Common Shared As Double  AIAgentTop_P, AIAgentTemperature '介于 0 和 2 之间.
-Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentName
+Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables
