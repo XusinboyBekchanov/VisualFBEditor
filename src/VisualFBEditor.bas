@@ -651,13 +651,10 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
 		Case "AIRelease"
-		
-				If CBool(pHTTPAIAgent <> 0) AndAlso pHTTPAIAgent->Abort Then 
-					ptxtAIRequest->Enabled = True 
-				Else 
+				If pHTTPAIAgent <> 0 Then 
 					pHTTPAIAgent->Abort = True
-					ptxtAIRequest->Enabled = True
 				End If
+				ptxtAIRequest->Enabled = True
 				ptxtAIRequest->SetFocus
 		Case "AINewChat"
 			AIResetContext

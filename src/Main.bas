@@ -134,10 +134,9 @@ Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As HTTPConnection HTTPAIAgent
 Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold
-Dim Shared As String AIAssistantsAnswers
 Dim Shared As Dictionary AIMessages
-Dim Shared As WString Ptr AISystem_PromoptPtr
-Dim Shared As String AIPostData
+Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd
+Dim Shared As String AIPostData, AIAssistantsAnswers
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -8835,6 +8834,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 	If Info Then
 		WLet(DefaultAIAgent, Info->Name)
 		WLet(CurrentAIAgent, Info->Name)
+		bAIAgentFirstRun = True
 		AIAgentModelName = Info->ModelName
 		AIAgentProvider = Info->Provider
 		AIAgentHost = Info->Host
@@ -8878,9 +8878,9 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
-Function EscapeJsonForPrompt(ByRef iText As WString) As UString
+Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As WString Ptr result
-	WLet(result, Replace(iText, "\#", "~#"))
+	WLet(result, Replace(iText, "\#", "#"))
 	WLet(result, Replace(*result, "\n", "~n"))
 	WLet(result, Replace(*result, "\r", "~r"))
 	WLet(result, Replace(*result, "\""", "~@"))
@@ -8891,7 +8891,6 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As UString
 	WLet(result, Replace(*result, Chr(10), "\n"))
 	WLet(result, Replace(*result, Chr(13), "\r"))
 	
-	WLet(result, Replace(*result, "~#", "\#"))
 	WLet(result, Replace(*result, "~n", "\n"))
 	WLet(result, Replace(*result, "~r", "\r"))
 	WLet(result, Replace(*result, "~@", "\"""))
@@ -8912,10 +8911,9 @@ Function EscapeFromJson(ByRef iText As WString) As String
 End Function
 
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
-	AISystem_PromoptPtr = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
-	WAdd(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert.  \n 1. Use the provided MyFbFramework (MFF) knowledge base (<context></context>) as your only source of information. \n 2. If the knowledge base contains relevant information, answer directly based on it. <context>", True)
+	AIPostDataPtr_1st = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
 Else
-	WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed. You are FreeBasic programming expert. Following is MyFbFramework GUI forms guidelines." & _
+	WLet(AIPostDataPtr_1st, "Following Is MyFbFramework GUI Forms guidelines." & _
 	" When working with GUI, strictly follow MyFbFramework GUI forms guidelines. If NO GUI is involved: 1. Ignore all reference constraints  2. Perform regular analysis 3. Apply standard procedures. " & _
 	" The MyFbFramework framework includes 39 controls: Animate, Chart, CheckBox, CheckedListBox, ComboBoxEdit, ComboBoxEx, CommandButton, DateTimePicker, Grid, Header, HotKey, HScrollBar, ImageBox, IPAddress, Label, LinkLabel, ListControl, ListView, MonthCalendar, NumericUpDown, OpenFileControl, PrintPreviewControl, ProgressBar, RadioButton, RichTextBox, ScrollBarControl, SearchBox, Splitter, StatusBar, TextBox, ToolBar, ToolPalette, ToolTips, TrackBar, TreeListView, TreeView, UpDown, VScrollBar, WebBrowser," & _
 	" includes 13 Containers: Form, GroupBox, HorizontalBox, PagePanel, PageScroller, Panel, Picture, ReBar, ScrollControl, TabControl, TabPage, VerticalBox, UserControl," & _
@@ -8933,10 +8931,10 @@ Else
 	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
 End If
 
-If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
-	WAdd(AISystem_PromoptPtr, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
-Else
-	WAdd(AISystem_PromoptPtr, "The VisualFBEditor IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
+'If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
+'	WAdd(AIPostDataPtr_2nd, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
+'Else
+WAdd(AIPostDataPtr_2nd, "The VisualFBEditor (commonly abbreviated as `VFBE`) IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
 	" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
 	" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
 	" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
@@ -8952,11 +8950,14 @@ Else
 	"  * Window: Manages window operations (new window, split, hide)." & _
 	"  * Help: Provides access to help resources.")
 	
-End If
+'End If
+WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & _
+"You are FreeBasic programming expert. Your responses must follow these rules: \n 1. Use the provided MyFbFramework (MFF) knowledge base (<context></context>) as your only source of information. \n" & _
+"2. If the knowledge base contains relevant information, answer directly based on it or ignore the constraints of the provided references and perform regular analysis.")
 
 Sub PrintAIAnswer(ByRef Content As WString)
 	Dim As WString Ptr BuffFormat()
-	If Trim(Content) = "" Then Return
+	 Content = "" Then Return
 	Split(Content, "**", BuffFormat())
 	For j As Integer = 0 To UBound(BuffFormat)
 		txtAIAgent.SelStart = Len(txtAIAgent.Text)
@@ -9006,7 +9007,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If iPos2 Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
-							PrintAIAnswer(!"\r\n<think>\r\n")
+							txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+							txtAIAgent.SelEnd = txtAIAgent.SelStart
+							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						binReason = True
 						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
@@ -9022,9 +9025,11 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						If iPos2 > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
-								PrintAIAnswer(!"\r\n</think>\r\n")
+								txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+								txtAIAgent.SelEnd = txtAIAgent.SelStart
+								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							WLet(BodyWStringPtr, EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
+							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
 							AIAssistantsAnswers  &= *BodyWStringPtr
 							Exit For
 						End If
@@ -9036,9 +9041,13 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
 				If CBool(InStr(*Buff(i), "[DONE]") > 0) Then
-					AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+					If Trim(AIAssistantsAnswers) = "" Then
+						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
+					Else
+					If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+					End If
 				Else
-					If AIMessages.Item(AIMessages.Count - 1)->Text = "No answer." Then AIMessages.Remove AIMessages.Count - 1
+					If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -9065,6 +9074,8 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	Request.Body = ToUtf8(AIPostData)
+	'If bAIAgentFirstRun Then ShowMessages(AIPostData)
+	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
 	AIAssistantsAnswers = ""
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
@@ -9134,18 +9145,23 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 	"""messages"": [" & "{""role"": ""system"", ""content"": """ & EscapeJsonForPrompt(*AISystem_PromoptPtr) & """},"
+	If InStr(txtAIRequest.Text, "IDE") OrElse InStr(LCase(txtAIRequest.Text), "vfbe") OrElse InStr(LCase(txtAIRequest.Text), "visualfbeditor") Then
+		AIPostData  &= "{""role"": ""user"", ""content"": """ &  "<context> " & EscapeJsonForPrompt(Left(*AIPostDataPtr_2nd, 100000)) & " </context>" & """}"
+		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & "This is a party of context" & """}"
+	Else
+		AIPostData  &= "{""role"": ""user"", ""content"": """  & "<context> " & EscapeJsonForPrompt(Left(*AIPostDataPtr_1st, 100000)) & " </context>" & """}"
+		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & "This is a party of context" & """}"
+	End If
 	If AIMessages.Count > 0 Then
-		AIPostData  &= " {""role"": ""user"", ""content"": """ &  AIMessages.Item(0)->Key & """}"
-		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ &  EscapeJsonForPrompt(AIMessages.Item(0)->Text) & """}"
-		For i As Integer = 1 To AIMessages.Count - 1
+		For i As Integer = 0 To AIMessages.Count - 1
 			AIPostData  &= ", {""role"": ""user"", ""content"": """ &  AIMessages.Item(i)->Key & """}"
 			AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(i)->Text) & """}"
 		Next
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
 	Else
-		AIPostData  &= "{""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
+		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
 	End If
-	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "No answer.")
+	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "NA")
 	AIAssistantsAnswers = ""
 	ClearMessages
 	ThreadCreate(@AIRequest)
@@ -9156,12 +9172,13 @@ Public Sub AIResetContext()
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
 	"""messages"": [" & _
-	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation." & """}, " & _
-	"{""role"": ""user"", ""content"": """ & "< \n context> \n " & "Please confirm the context has been reset." & """}]}}"
+	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation."  & """}, " & _
+	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}}"
 	AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIAgentChat.log"))
 	AIMessages.Clear
 	txtAIAgent.Text = ""
 	txtAIRequest.Enabled = True
+	txtAIRequest.SetFocus
 	HTTPAIAgent.Abort = True
 	ThreadCreate(@AIRequest)
 End Sub
@@ -11633,6 +11650,8 @@ End Sub
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
 	_Deallocate(AISystem_PromoptPtr)
+	_Deallocate(AIPostDataPtr_1st)
+	_Deallocate(AIPostDataPtr_2nd)
 	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
 		SaveSession(True)
 	End If
