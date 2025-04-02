@@ -124,8 +124,8 @@ Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Termin
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
 Dim Shared As CommandButton btnPropertyValue
-Dim Shared As TextBox txtPropertyValue, txtExpand
-Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent, txtAIRequest
+Dim Shared As TextBox txtPropertyValue, txtExpand, txtAIRequest
+Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent
 Dim Shared As ComboBoxEdit cboPropertyValue
 Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32, imgListAIProviders32, imgListAIModels32
@@ -9011,6 +9011,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						End If
 						binReason = True
 						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
+						PrintAIAnswer(*BodyWStringPtr)
 						Exit For
 					End If
 				End If
@@ -9029,12 +9030,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							End If
 							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
 							AIAssistantsAnswers  &= *BodyWStringPtr
+							PrintAIAnswer(*BodyWStringPtr)
 							Exit For
 						End If
 					End If
 				Next
 			End If
-			PrintAIAnswer(*BodyWStringPtr)
 		Else
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
@@ -9122,6 +9123,8 @@ End Sub
 
 Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
+	If Trim(txtAIRequest.Text) = "" Then Return
+	txtAIRequest.Text = Trim(txtAIRequest.Text, Any !"\t\r\n ")
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
