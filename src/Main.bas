@@ -8905,6 +8905,10 @@ Function EscapeFromJson(ByRef iText As WString) As String
 	WLet(result, Replace(*result, "\""", Chr(34)))
 	WLet(result, Replace(*result, "\t", !"\t"))
 	WLet(result, Replace(*result, "\\", "\"))
+	WLet(result, Replace(*result, "\u0026", "&"))
+	WLet(result, Replace(*result, "\u003e", ">"))
+	WLet(result, Replace(*result, "\u003c", "<"))
+	WLet(result, Replace(*result, "\\", "\"))
 	Function = *result
 	Deallocate result
 End Function
@@ -9175,8 +9179,12 @@ Public Sub AIResetContext()
 	"""messages"": [" & _
 	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation."  & """}, " & _
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}}"
-	AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIAgentChat.log"))
-	AIMessages.Clear
+	
+	If AIMessages.Count > 0 Then
+		AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIChat" & FormatFileName(Left(AIMessages.Item(0)->Key, 30)) & ".Log"))
+		AIMessages.Clear
+	End If
+	
 	txtAIAgent.Text = ""
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
