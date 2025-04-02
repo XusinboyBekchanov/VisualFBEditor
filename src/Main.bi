@@ -117,7 +117,7 @@ Declare Function MC(ByRef V As WString) ByRef As WString
 Declare Sub AIResetContext()
 Declare Sub AIRequest(Param As Any Ptr)
 Declare Function EscapeJsonForPrompt(ByRef iText As WString) As String
-Declare Function EscapeFromJson(ByRef iText As WString) As String
+Declare Function EscapeFromJson(ByRef iText As WString) As UString
 Declare Sub PopupClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 Declare Sub mClick(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)

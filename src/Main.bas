@@ -8893,11 +8893,11 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	WLet(result, Replace(*result, "~n", "\n"))
 	WLet(result, Replace(*result, "~r", "\r"))
 	WLet(result, Replace(*result, "~@", "\"""))
-	Function = *result
+	Function = ToUtf8(*result)
 	Deallocate result
 End Function
 
-Function EscapeFromJson(ByRef iText As WString) As String
+Function EscapeFromJson(ByRef iText As WString) As UString
 	Dim As WString Ptr result
 	WLet(result, Replace(iText, "\#", "#"))
 	WLet(result, Replace(*result, "\n", !"\n"))
@@ -9076,7 +9076,8 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
-	Request.Body = ToUtf8(AIPostData)
+	Debug.Print AIPostData
+	Request.Body = AIPostData
 	'If bAIAgentFirstRun Then ShowMessages(AIPostData)
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
@@ -9089,7 +9090,7 @@ Sub AIRequest(Param As Any Ptr)
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.ScrollToEnd
 	If AIAgentStream Then
-		HTTPAIAgent.OnReceive= @HTTPAIAgent_Receive
+		HTTPAIAgent.OnReceive = @HTTPAIAgent_Receive
 	End If
 	HTTPAIAgent.CallMethod("POST", Request, Responce)
 	If Not AIAgentStream Then
@@ -9117,7 +9118,7 @@ Sub AIRequest(Param As Any Ptr)
 		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
 		
 		PrintAIAnswer(*Buff)
-		txtAIRequest.Enabled = True
+		'txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		WDeAllocate(Buff)
 		WDeAllocate(Temp)
@@ -9141,10 +9142,10 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	txtAIAgent.ScrollToEnd
 	
 	bInAIThread = True
-	txtAIRequest.Enabled = False
+	'txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor"
-	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "]}")
+	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "}")
 	
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
@@ -9162,9 +9163,9 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 			AIPostData  &= ", {""role"": ""user"", ""content"": """ &  AIMessages.Item(i)->Key & """}"
 			AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(i)->Text) & """}"
 		Next
-		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
+		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	Else
-		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}" & ExtraHeaders
+		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
 	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "NA")
 	AIAssistantsAnswers = ""
