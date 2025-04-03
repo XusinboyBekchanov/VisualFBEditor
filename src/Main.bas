@@ -8897,7 +8897,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Deallocate result
 End Function
 
-Function EscapeFromJson(ByRef iText As WString) As UString
+Function EscapeFromJson(ByRef iText As WString) As String
 	Dim As WString Ptr result
 	WLet(result, Replace(iText, "\#", "#"))
 	WLet(result, Replace(*result, "\n", !"\n"))
@@ -8978,6 +8978,12 @@ Sub PrintAIAnswer(ByRef Content As WString)
 	Erase BuffFormat
 End Sub
 
+
+Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest)
+	txtAIRequest.Enabled = True
+	txtAIRequest.SetFocus
+End Sub
+HTTPAIAgent.OnComplete = @HTTPAIAgent_Complete
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	ThreadsEnter
 	'ShowMessages(Buffer) Sometimes got party of the string
@@ -9043,14 +9049,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 		Else
 			ShowMessages(*Buff(i))
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
-				If CBool(InStr(*Buff(i), "[DONE]") > 0) Then
+				If InStr(*Buff(i), "[DONE]") > 0 Then
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
 					If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
 					End If
-				Else
-					If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -9076,7 +9080,8 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header1 = "Content-Type: application/json; charset=utf-8"
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
-	Debug.Print AIPostData
+	'Debug.Print AIPostData
+	Debug.Print ToUtf8(txtAIRequest.Text)
 	Request.Body = AIPostData
 	'If bAIAgentFirstRun Then ShowMessages(AIPostData)
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
@@ -9182,7 +9187,7 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIChat" & FormatFileName(Left(AIMessages.Item(0)->Key, 30)) & ".Log"))
+		AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIChat" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & ".Log"))
 		AIMessages.Clear
 	End If
 	
