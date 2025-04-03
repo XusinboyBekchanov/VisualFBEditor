@@ -8893,7 +8893,17 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	WLet(result, Replace(*result, "~n", "\n"))
 	WLet(result, Replace(*result, "~r", "\r"))
 	WLet(result, Replace(*result, "~@", "\"""))
-	Function = ToUtf8(*result)
+	'Strange issue
+	#ifdef __USE_WINAPI__
+		Dim CodePage As Integer = GetACP()
+		If CodePage= 936 Then
+			Function = *result
+		Else
+			Function = ToUtf8(*result)
+		End If
+	#else
+		Function = ToUtf8(*result)
+	#endif
 	Deallocate result
 End Function
 
@@ -8934,30 +8944,55 @@ Else
 	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
 End If
 
-'If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
-'	WAdd(AIPostDataPtr_2nd, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
-'Else
+If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
+	WAdd(AIPostDataPtr_2nd, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
+Else
 WAdd(AIPostDataPtr_2nd, "The VisualFBEditor (commonly abbreviated as `VFBE`) IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
-	" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
-	" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
-	" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
-	" **Message Output panels** The Message Output panels provide access to key functionalities through TabControl with the following components: ""Output"", ""Problems"", ""Suggestions"", ""Find"", ""ToDo"", ""Change Log"", ""Immediate"", ""Locals"", ""Globals"", ""Procedures"", ""Threads"",  ""Watches"", ""Memory"" and ""Profiler""." & _
-	" **menu bar** The menu bar provides access to key functionalities through menus such as ""File"", ""Edit"", ""Search"", ""View"", ""Project"", ""Build"", ""Debug"", ""Run"", ""Service"", ""Window"" and ""Help.""" & _
-	"  * File: Manages projects and files (create, open, save, recent projects)." & _
-	"  * Edit: Provides source code editing features (cut, copy, paste, find, replace)." & _
-	"  * View: Opens various panes (Project Explorer, Class View, Properties, Events, Image Manager, Toolbox)." & _
-	"  * Project: Adds project components (Windows Form, User Control, Component, Module, Set as Start Project)." & _
-	"  * Build: Compiles and links modified files, displaying warnings and errors. Recompiles the project." & _
-	"  * Debug: Compiles and runs the project, manages processes, handles exceptions, traces execution, sets breakpoints." & _
-	"  * Service: Extends functionality with tools like the Debug Process dialog and Custom Toolbox window." & _
-	"  * Window: Manages window operations (new window, split, hide)." & _
-	"  * Help: Provides access to help resources.")
-	
-'End If
+" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
+" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
+" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
+" **Message Output panels** The Message Output panels provide access to key functionalities through TabControl with the following components: ""Output"", ""Problems"", ""Suggestions"", ""Find"", ""ToDo"", ""Change Log"", ""Immediate"", ""Locals"", ""Globals"", ""Procedures"", ""Threads"",  ""Watches"", ""Memory"" and ""Profiler""." & _
+" **menu bar** The menu bar provides access to key functionalities through menus such as ""File"", ""Edit"", ""Search"", ""View"", ""Project"", ""Build"", ""Debug"", ""Run"", ""Service"", ""Window"" and ""Help.""" & _
+"  * File: Manages projects and files (create, open, save, recent projects)." & _
+"  * Edit: Provides source code editing features (cut, copy, paste, find, replace)." & _
+"  * View: Opens various panes (Project Explorer, Class View, Properties, Events, Image Manager, Toolbox)." & _
+"  * Project: Adds project components (Windows Form, User Control, Component, Module, Set as Start Project)." & _
+"  * Build: Compiles and links modified files, displaying warnings and errors. Recompiles the project." & _
+"  * Debug: Compiles and runs the project, manages processes, handles exceptions, traces execution, sets breakpoints." & _
+"  * Service: Extends functionality with tools like the Debug Process dialog and Custom Toolbox window." & _
+"  * Window: Manages window operations (new window, split, hide)." & _
+"  * Help: Provides access to help resources.")
+
+End If
 WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & _
 "You are FreeBasic programming expert. Use the provided MyFbFramework (MFF) knowledge base (<context></context>)\n")
-
-Sub PrintAIAnswer(ByRef Content As WString)
+' 定义各AI平台的最大分块大小常量
+Const OPENAI_MAX_CHUNK = 4096       ' OpenAI标准模型
+Const DEEPSEEK_MAX_CHUNK = 4000     ' DeepSeek标准模型
+Const CLAUDE_MAX_CHUNK = 100000     ' Claude 100K上下文
+Const MISTRAL_MAX_CHUNK = 32000     ' Mistral 32K上下文
+Const OLLAMA_MAX_CHUNK = 4096       ' Ollama本地模型
+Const OPENROUTER_MAX_CHUNK = 8192    ' OpenRouter通用限制
+' 获取当前AI平台的最大分块大小
+Function AIGetMaxChunkSize() As Integer
+	Select Case LCase(AIAgentProvider)
+	Case "openai", "gpt"
+		Return OPENAI_MAX_CHUNK
+	Case "deepseek"
+		Return DEEPSEEK_MAX_CHUNK
+	Case "anthropic", "claude"
+		Return CLAUDE_MAX_CHUNK
+	Case "mistral"
+		Return MISTRAL_MAX_CHUNK
+	Case "ollama"
+		Return OLLAMA_MAX_CHUNK
+	Case "openrouter"
+		Return OPENROUTER_MAX_CHUNK
+	Case Else
+		Return 4000 ' 默认值
+	End Select
+End Function
+Sub AIPrintAnswer(ByRef Content As WString)
 	Dim As WString Ptr BuffFormat()
 	If Content = "" Then Return
 	Split(Content, "**", BuffFormat())
@@ -8978,6 +9013,83 @@ Sub PrintAIAnswer(ByRef Content As WString)
 	Erase BuffFormat
 End Sub
 
+Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
+	' Validate overlap parameter
+	If Overlap >= chunkSize Then
+		Overlap = chunkSize \ 10
+	End If
+	
+	' Initialize variables
+	Dim As Integer TextLength = Len(iText)
+	If TextLength = 0 Then
+		ReDim Chunks(0)
+		Chunks(0) = ""
+		Exit Sub
+	End If
+	
+	' Calculate estimated chunks with a safer margin
+	Dim As Integer EstimatedChunks = (TextLength \ (chunkSize - Overlap)) + 2
+	ReDim Chunks(EstimatedChunks - 1)
+	Dim ChunkCount As Integer = 0
+	
+	' Pre-defined break characters   \ n r . 92 110 114 46
+	Dim As Boolean bFound
+	Dim As Integer startPos = 1
+	Dim As Integer endPos, lastGoodPos, currentChar, prevChar
+	' Main splitting loop
+	Do While startPos <= TextLength
+		' Calculate end position
+		endPos = startPos + chunkSize - 1
+		If endPos >= TextLength Then endPos = TextLength
+		' Find natural break point
+		lastGoodPos = endPos
+		bFound = False
+		For i As Integer = endPos To startPos Step -1
+			currentChar = iText[i]
+			prevChar = iText[i - 1]
+			' Check for 92 + \n \r (newline/carriage return) combinations
+			If prevChar = 92 Then
+				If currentChar = 110 Or currentChar = 114 Then
+					lastGoodPos = i + 1
+					bFound = True
+					Exit For
+				End If
+			End If
+		Next
+		If Not bFound Then
+			' Check for ". " combinations
+			For i As Integer = endPos To startPos Step -1
+				If (prevChar = 46 AndAlso currentChar = 32) OrElse currentChar = 13 OrElse currentChar = 10  Then
+					lastGoodPos = i + 1
+					bFound = True
+					Exit For
+				End If
+			Next
+		End If
+		If Not bFound Then lastGoodPos = endPos
+		If ChunkCount > 20 Then Exit Do
+		' Ensure we don't go before start position
+		If lastGoodPos < startPos Then lastGoodPos = endPos
+		' Store the chunk
+		' Resize array if needed
+		If ChunkCount > UBound(Chunks) Then
+			ReDim Preserve Chunks(ChunkCount + EstimatedChunks)
+		End If
+		Chunks(ChunkCount) = Mid(iText, startPos, lastGoodPos - startPos + 1)
+		If endPos >= TextLength Then Exit Do
+		ChunkCount += 1
+		' Adjust start position with overlap
+		startPos = lastGoodPos - Overlap + 1
+	Loop
+	
+	' Adjust array to actual size
+	If ChunkCount > 0 Then
+		ReDim Preserve Chunks(ChunkCount - 1)
+	Else
+		ReDim Chunks(0)
+		Chunks(0) = ""
+	End If
+End Sub
 
 Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest)
 	txtAIRequest.Enabled = True
@@ -9021,7 +9133,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						End If
 						binReason = True
 						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
-						PrintAIAnswer(*BodyWStringPtr)
+						AIPrintAnswer(*BodyWStringPtr)
 						Exit For
 					End If
 				End If
@@ -9040,7 +9152,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							End If
 							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
 							AIAssistantsAnswers  &= *BodyWStringPtr
-							PrintAIAnswer(*BodyWStringPtr)
+							AIPrintAnswer(*BodyWStringPtr)
 							Exit For
 						End If
 					End If
@@ -9053,7 +9165,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
-					If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
 					End If
 				End If
 				txtAIRequest.Enabled = True
@@ -9081,9 +9193,17 @@ Sub AIRequest(Param As Any Ptr)
 	Dim As String header2 = "Authorization: Bearer " + AIAgentAPIKey
 	Request.Headers = header1 & !"\r\n" & header2 & !"\r\n"
 	'Debug.Print AIPostData
-	Debug.Print ToUtf8(txtAIRequest.Text)
-	Request.Body = AIPostData
-	'If bAIAgentFirstRun Then ShowMessages(AIPostData)
+	'Strange issue
+	#ifdef __USE_WINAPI__
+		Dim CodePage As Integer = GetACP()
+		If CodePage= 936 Then
+			Request.Body = ToUtf8(AIPostData)
+		Else
+			Request.Body = AIPostData
+		End If
+	#else
+		Request.Body = AIPostData
+	#endif
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
 	AIAssistantsAnswers = ""
@@ -9122,7 +9242,7 @@ Sub AIRequest(Param As Any Ptr)
 		iPos2 = InStrRev(*Temp, """,""refusal""")
 		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
 		
-		PrintAIAnswer(*Buff)
+		AIPrintAnswer(*Buff)
 		'txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		WDeAllocate(Buff)
@@ -9133,7 +9253,7 @@ End Sub
 
 Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then Return
-	If Trim(txtAIRequest.Text) = "" Then Return
+	If Trim(txtAIRequest.Text, Any !"\t\n\r ") = "" Then Return
 	txtAIRequest.Text = Trim(txtAIRequest.Text, Any !"\t\r\n ")
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -9147,31 +9267,69 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	txtAIAgent.ScrollToEnd
 	
 	bInAIThread = True
-	'txtAIRequest.Enabled = False
+	txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor"
 	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "}")
-	
+	Dim As Integer MaxChunkSize = AIGetMaxChunkSize()
+	Dim As Integer ChunkThreshold, ChunkOverlap, MaxChunks
+	Dim As String UserChunks(), AssistantChunks()
+	ChunkThreshold = MaxChunkSize * 0.55  ' 代码需要更小分块
+	If ChunkThreshold < 512 Then ChunkThreshold = 512    '确保最小值
+	ChunkOverlap = ChunkThreshold * 0.08        ' 代码需要更大重叠
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [" & "{""role"": ""system"", ""content"": """ & EscapeJsonForPrompt(*AISystem_PromoptPtr) & """},"
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & Left(EscapeJsonForPrompt(*AISystem_PromoptPtr), MaxChunkSize) & "\n This is a special mode for handling oversized conversations, all messages will be sent in chunks." & """}"
 	If InStr(txtAIRequest.Text, "IDE") OrElse InStr(LCase(txtAIRequest.Text), "vfbe") OrElse InStr(LCase(txtAIRequest.Text), "visualfbeditor") Then
-		AIPostData  &= "{""role"": ""user"", ""content"": """ &  "<context> " & EscapeJsonForPrompt(Left(*AIPostDataPtr_2nd, 100000)) & " </context>" & """}"
-		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & "This is a party of context" & """}"
+		If Len(*AIPostDataPtr_2nd) > MaxChunkSize Then
+			AISplitText(" <context> " & EscapeJsonForPrompt(*AIPostDataPtr_2nd & " </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
+			MaxChunks = UBound(UserChunks) + 1
+			For i As Integer = 0 To UBound(UserChunks)
+				AIPostData &= ", {""role"": ""system"", ""content"": ""[Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+			Next
+		Else
+			AIPostData  &= ", {""role"": ""system"", ""content"": """ &  "<context> " & EscapeJsonForPrompt(*AIPostDataPtr_2nd) & " </context>" & """}"
+		End If
 	Else
-		AIPostData  &= "{""role"": ""user"", ""content"": """  & "<context> " & EscapeJsonForPrompt(Left(*AIPostDataPtr_1st, 100000)) & " </context>" & """}"
-		AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & "This is a party of context" & """}"
+		If Len(*AIPostDataPtr_1st) > MaxChunkSize Then
+			AISplitText(" <context> " & EscapeJsonForPrompt(*AIPostDataPtr_1st & " </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
+			MaxChunks = UBound(UserChunks) + 1
+			For i As Integer = 0 To UBound(UserChunks)
+				AIPostData &= ", {""role"": ""system"", ""content"": ""[Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+			Next
+		Else
+			AIPostData  &= ", {""role"": ""system"", ""content"": """  & "<context> " & EscapeJsonForPrompt(*AIPostDataPtr_1st) & " </context>" & """}"
+		End If
 	End If
 	If AIMessages.Count > 0 Then
-		For i As Integer = 0 To AIMessages.Count - 1
-			AIPostData  &= ", {""role"": ""user"", ""content"": """ &  AIMessages.Item(i)->Key & """}"
-			AIPostData  &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(i)->Text) & """}"
+		For j As Integer = 0 To AIMessages.Count - 1
+			If Len(AIMessages.Item(j)->Key) > MaxChunkSize OrElse Len(AIMessages.Item(j)->Text) > MaxChunkSize Then
+				AISplitText(EscapeJsonForPrompt(AIMessages.Item(j)->Key), UserChunks(), ChunkThreshold, ChunkOverlap)
+				AISplitText(EscapeJsonForPrompt(AIMessages.Item(j)->Text), AssistantChunks(), ChunkThreshold, ChunkOverlap)
+				MaxChunks = Max(UBound(UserChunks), UBound(AssistantChunks)) + 1
+				ReDim Preserve UserChunks(MaxChunks - 1)
+				ReDim Preserve AssistantChunks(MaxChunks - 1)
+				For i As Integer = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
+					AIPostData &= ", {""role"": ""user"", ""content"": ""[User message chunk " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+					AIPostData &= ", {""role"": ""assistant"", ""content"": ""[AI response chunk " & (i + 1) & "/" & (MaxChunks) & "] " & AssistantChunks(i) & """}"
+				Next
+			Else
+				AIPostData &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Key) & """}"
+				AIPostData &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Text) & """}"
+			End If
 		Next
-		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
+	End If
+	If Len(txtAIRequest.Text) > MaxChunkSize Then
+		AISplitText(EscapeJsonForPrompt(txtAIRequest.Text), UserChunks(), ChunkThreshold, ChunkOverlap)
+		For i As Integer = 0 To UBound(UserChunks) 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
+			AIPostData &= ", {""role"": ""user"", ""content"": ""[Part " & (i + 1) & "/" & (UBound(UserChunks) + 1) & "] " & UserChunks(i) & """}"
+			AIPostData &= ", {""role"": ""assistant"", ""content"": ""[Received part " & (i + 1) & "/" & (UBound(UserChunks) + 1) & "] - please send next segment: " & """}"
+		Next
 	Else
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
+	
 	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "NA")
 	AIAssistantsAnswers = ""
 	ClearMessages
@@ -9188,9 +9346,9 @@ Public Sub AIResetContext()
 	
 	If AIMessages.Count > 0 Then
 		AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIChat" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & ".Log"))
+		ShowMessages("The conversation context was saved to " & ExePath & "\Temp\AIChat")
 		AIMessages.Clear
 	End If
-	
 	txtAIAgent.Text = ""
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
@@ -9210,10 +9368,6 @@ ptxtAIRequest = @txtAIRequest
 splAIAgent.Parent = @pnlAIAgent
 splAIAgent.Align = SplitterAlignmentConstants.alBottom
 
-'tpAIAgent->Add @tbAIAgent
-'tpAIAgent->Add @txtAIRequest
-'tpAIAgent->Add @splAIAgent
-'tpAIAgent->Add @txtAIAgent
 Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
