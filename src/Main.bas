@@ -35,6 +35,7 @@
 #include once "mff/PointerList.bi"
 #include once "mff/ReBar.bi"
 #include once "mff/HTTP.bi"
+#include once "fbthread.bi"
 #include once "vbcompat.bi"
 
 Using My.Sys.Forms
@@ -133,9 +134,11 @@ Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThread
 Dim Shared As ToolPalette tbToolBox
 Dim Shared As Panel pnlToolBox, pnlAIAgent
 Dim Shared As HTTPConnection HTTPAIAgent
-Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold
-Dim Shared As Dictionary AIMessages
-Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd
+Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold, AIPostDataFirstTime
+Dim Shared As Dictionary AIMessages, AIContext
+Dim Shared As WStringList AIIncludeFileNameList
+Dim Shared As Any Ptr AIThread
+Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr
 Dim Shared As String AIPostData, AIAssistantsAnswers
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
@@ -484,12 +487,14 @@ Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) A
 	Return Left(FileName, Posi)
 End Function
 
-Function GetFileName(ByRef FileName As WString) As UString
-	Dim Posi As Long = InStrRev(FileName, Any "\/:")
+Function GetFileName(ByRef FileName As WString, WithExtension As Boolean = True) As UString
+	Dim As Long nPos, Posi = InStrRev(FileName, Any "\/:")
+	nPos = InStrRev(FileName, ".")
+	If nPos < 1 OrElse nPos < Posi Then nPos = Len(FileName)
 	If Posi > 0 Then
-		Return Mid(FileName, Posi + 1)
+		Return IIf(WithExtension, Mid(FileName, Posi + 1), Mid(FileName, Posi + 1, nPos - Posi - 1))
 	Else
-		Return FileName
+		Return IIf(WithExtension, FileName, Mid(FileName, 1, nPos - 1))
 	End If
 End Function
 
@@ -5816,7 +5821,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "<h2>" & Globals.Enums.Item(i) & " Enum</h2>"
-			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework, part of the freeBasic framework."
+			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework."
 			Print #Fn, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "<h2>Definition</h2>"
@@ -5867,7 +5872,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Next
 				Dim As Integer Fn = FreeFile_
 				Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn
-				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework."
 				Print #Fn, tbi->Comment
 				Print #Fn, ""
 				If bNamespaces Then
@@ -6182,558 +6187,163 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	'This is part of the properties of the grid control. It belongs to the .
 	
 	'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
-	
-	
-	#if 0
+	#if 1
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
-		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
+		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName, StringToC, tmpDefinition
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
 		Dim As Integer Posi
+		Dim As Boolean bNotEmpty
 		Dim As Dictionary ControlParentDict
+		Dim As WString Ptr FileContentPtr, FileContentPtr1, FileContentEmpty
+		Dim As FileEncodings FileEncoding = FileEncodings.Utf8
+		Dim As NewLineTypes NewLineType, NewLineType1
 		If Dir(ExePath & "/Controls/MyFbFramework/ControlParent.csv") <> "" Then
-			ControlParentDict.LoadfromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
+			ControlParentDict.LoadFromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
 		Else
 			ControlParentDict.Add "NULL", "NULL"
 		End If
-		
 		For i = 0 To Comps.Count - 1
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			Dim As Integer Fn = FreeFile_
-			Open wikiFolder & Comps.Item(i) & ".md" For Output As #Fn
-			Print #Fn, "[TOC]"
-			Print #Fn, "## Definition"
-			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
-				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(posi)->Text Else TmpControlName= ""
-				Print #Fn,  "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
+				tmpDefinition = "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
-				Print #Fn,  "`" & Comps.Item(i) & "` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
-				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
+				tmpDefinition = "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
+				tmpDefinition &= "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
-			Print #Fn, ""
-			Print #Fn, "`" & Comps.Item(i) & "` - " & tbi->Comment
-			Print #Fn, ""
-			Print #Fn, "## Properties"
-			Print #Fn, "|Name|Description|"
-			Print #Fn, "| :------------ | :------------ |"
+			
+			WAdd(FileContentPtr, Chr(13, 10) & "## " & Comps.Item(i))
+			WAdd(FileContentPtr, Chr(13, 10) & "### Definition")
+			If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace & " ")
 			FPropertyItems.Clear
 			TabWindow.FillProperties Comps.Item(i)
 			FPropertyItems.Sort
+			WAdd(FileContentPtr, Chr(13, 10))
+			WAdd(FileContentPtr, Chr(13, 10) & "`" & Comps.Item(i) & "` - " & IIf(Trim(tbi->Comment) <> "", WStr(tbi->Comment), WStr(tmpDefinition)))
+			WAdd(FileContentPtr, Chr(13, 10))
+			bNotEmpty = False
+			WAdd(FileContentPtr, Chr(13, 10) & "### Properties")
+			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-				Dim As Integer Fn1 = FreeFile_
-				Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-				Print #Fn1, "[TOC]"
-				Print #Fn1, "# " & wikiTitle & " Property"
-				Print #Fn1, te->Comment
-				'This is part of the properties of the grid control.
-				If tbi->OwnerNamespace <> "" Then
-					Print #Fn1, "## Definition"
-					
-					Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-				End If
-				Posi = InStr(wikiTitle, ".")
-				If Posi > 0 Then
-					TmpControlChildName = Left(wikiTitle, Posi - 1)
-					TmpControlSubName = Mid(wikiTitle, Posi + 1)
-				Else
-					TmpControlChildName = ""
-					TmpControlSubName = wikiTitle
-				End If
-				
-				If Posi > 0 Then
-					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-						Print #Fn1,  "`" & TmpControlSubName & "` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
-					Else
-						Print #Fn1,  "`" & TmpControlSubName & "` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
-					End If
-				End If
-				Print #Fn1, "## Syntax"
-				Print #Fn1, "```freeBasic"
-				Print #Fn1, te->Parameters
-				Print #Fn1, "```"
-				Print #Fn1, "## Property Value"
-				Print #Fn1, GetTypeLink(te->TypeName, True)
-				Print #Fn1, "## See also"
-				TmpControlChildName = Left(te->DisplayName, InStr(te->DisplayName, ".") - 1)
-				If Trim(TmpControlChildName) <> "" Then Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-				If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
-				CloseFile_(Fn1)
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & te->Parameters & "`|")
+				bNotEmpty = True
 			Next
-			Print #Fn, ""
-			Print #Fn, "## Methods"
-			Print #Fn, "|Name|Description|"
-			Print #Fn, "| :------------ | :------------ |"
+			If bNotEmpty Then
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
+			Else
+				WAdd(FileContentPtr, Chr(13, 10) & "(No properties defined)")
+			End If
+			
+			WAdd(FileContentPtr, Chr(13, 10))
+			bNotEmpty = False
+			WAdd(FileContentPtr, Chr(13, 10) & "### Methods")
+			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				If Trim(te->Comment, Any !"\r\n\t ") = "" Then Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-				If Not teList.Contains(te) Then
-					teList.Add te
-					Dim As Integer Fn1 = FreeFile_
-					Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-					Print #Fn1, "[TOC]"
-					Print #Fn1, "# " & wikiTitle & " Method"
-					Print #Fn1, te->Comment
-					If tbi->OwnerNamespace <> "" Then
-						Print #Fn1, "## Definition"
-						If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-					End If
-					Posi = InStr(wikiTitle, ".")
-					If Posi > 0 Then
-						TmpControlChildName = Left(wikiTitle, Posi - 1)
-						TmpControlSubName = Mid(wikiTitle, Posi + 1)
-					Else
-						TmpControlChildName = ""
-						TmpControlSubName = wikiTitle
-					End If
-					If Posi > 0 Then
-						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-							Print #Fn1,  "`" & TmpControlSubName & "` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
-						Else
-							Print #Fn1,  "`" & TmpControlSubName & "` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
-						End If
-					End If
-					Print #Fn1, "##Syntax"
-					Print #Fn1, "```freeBasic"
-					Print #Fn1, IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters
-					Print #Fn1, "```"
-					Print #Fn1, ""
-					Pos1 = InStr(te->Parameters, "(")
-					If Pos1 > 0 Then
-						SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-						Print #Fn1, "##Parameters"
-						Print #Fn1, ""
-						Print #Fn1, "|Part|Type|Description|"
-						Print #Fn1, "| :------------ | :------------ |"
-						For k As Integer = 0 To te->Elements.Count - 1
-							If Trim(te->Elements.Item(k)) = "" Then Continue For
-							te1 = te->Elements.Object(k)
-							If Trim(te1->Comment, Any !"\r\n\t ") = "" Then Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & Trim(te1->Comment, Any !"\r\n\t ") & "|"
-						Next
-					End If
-					If te->ElementType = ElementTypes.E_Function Then
-						Print #Fn1, ""
-						Print #Fn1, "## Return Value"
-						Print #Fn1, GetTypeLink(te->TypeName, True)
-					End If
-					Print #Fn1, "## See also"
-					Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
-					CloseFile_(Fn1)
-				End If
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters & "`|")
+				bNotEmpty = True
 			Next
-			Print #Fn, "## Events"
-			If FPropertyItems.Count > 0 Then
-				Print #Fn, "|Name|Description|"
-				Print #Fn, "| :------------ | :------------ |"
-				For j As Integer = 0 To FPropertyItems.Count - 1
-					te = FPropertyItems.Object(j)
-					If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
-					Var Pos1 = InStr(te->DisplayName, "[")
-					If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-					If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & FPropertyItems.Item(j) & "`](""" & wikiTitle & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-					If Not teList.Contains(te) Then
-						teList.Add te
-						Dim As Integer Fn1 = FreeFile_
-						Open wikiFolder & wikiTitle & ".md" For Output As #Fn1
-						Print #Fn1, "[TOC]"
-						Print #Fn1, "# " & wikiTitle & " Event"
-						Print #Fn1, te->Comment
-						If tbi->OwnerNamespace <> "" Then
-							Print #Fn1, "## Definition"
-							Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`]"
-						End If
-						Posi = InStr(wikiTitle, ".")
-						If Posi > 0 Then
-							TmpControlChildName = Left(wikiTitle, Posi - 1)
-							TmpControlSubName = Mid(wikiTitle, Posi + 1)
-						Else
-							TmpControlChildName = ""
-							TmpControlSubName = wikiTitle
-						End If
-						If Posi > 0 Then
-							If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-								Print #Fn1,  "`" & TmpControlSubName & "` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
-							Else
-								Print #Fn1,  "`" & TmpControlSubName & "` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
-							End If
-						End If
-						Print #Fn1, "## Syntax"
-						Print #Fn1, "```freeBasic"
-						Print #Fn1, te->Parameters
-						Print #Fn1, "```"
-						Print #Fn1, ""
-						Pos1 = InStr(te->Parameters, "(")
-						If Pos1 > 0 Then
-							SplitParameters te->Parameters, Pos1, Mid(te->Parameters, Pos1 + 1, Len(te->Parameters) - Pos1 - 1), te->FileName, te, te->StartLine, 0, ECLines, te->InCondition, te->Declaration, False
-							Print #Fn1, "## Parameters"
-							Print #Fn1, ""
-							Print #Fn1, "|Part|Type|Description|"
-							Print #Fn1, "| :------------ | :------------ | :------------ |"
-							For k As Integer = 0 To te->Elements.Count - 1
-								If Trim(te->Elements.Item(k)) = "" Then Continue For
-								te1 = te->Elements.Object(k)
-								If Trim(te1->Comment, Any !"\r\n\t ") = "" Then  Print #Fn1, "|`" & te->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & IIf(te1->Name = "Designer", "The designer of the object that received the signal. When an object is created without a designer, the designer will be empty. This can be checked with the command: `Designer.IsEmpty()`", IIf(te1->Name = "Sender", "The object which received the signal", te1->Comment)) & "|"
-							Next
-						End If
-						If StartsWith(LCase(te->TypeName), "function(") Then
-							Print #Fn1, ""
-							Print #Fn1, "## Return Value"
-							Print #Fn1, GetTypeLink(te->TypeName, True)
-						End If
-						Print #Fn1, ""
-						Print #Fn1, "## See also"
-						Print #Fn1, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then Print #Fn1, "[`" & TmpControlName & "`](" & TmpControlName & ".md)"
-						CloseFile_(Fn1)
-					End If
-				Next
+			If bNotEmpty Then
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
 			Else
-				Print #Fn, "(No events defined for this component)"
+				WAdd(FileContentPtr, Chr(13, 10) & "(No methods defined)")
 			End If
-			If tbi->OwnerNamespace <> "" Then
-				Print #Fn, "## See also"
-				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+			bNotEmpty = False
+			WAdd(FileContentPtr, Chr(13, 10) & "### Events")
+			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
+			For j As Integer = 0 To FPropertyItems.Count - 1
+				te = FPropertyItems.Object(j)
+				If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
+				Var Pos1 = InStr(te->DisplayName, "[")
+				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & te->Parameters & "`|")
+				bNotEmpty = True
+			Next
+			If bNotEmpty Then
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
+			Else
+				WAdd(FileContentPtr, Chr(13, 10) & "(No events defined)")
 			End If
-			CloseFile_(Fn)
+			'SaveToFile(wikiFolder & Comps.Item(i) & ".md", *FileContentPtr, FileEncoding, NewLineType)
+			'If tbi->ControlType <> 0 Then
+				'Debug.Print Comps.Item(i)
+				AIContext.Add(Comps.Item(i), *FileContentPtr)
+			'End If
+			Deallocate FileContentPtr : FileContentPtr = 0
 		Next i
+		WLet(FileContentPtr, "## " & "Globals Enums")
 		For i = 0 To Globals.Enums.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			Dim As Integer Fn = FreeFile_
-			Open wikiFolder & Globals.Enums.Item(i) & ".md" For Output As #Fn
-			Print #Fn, "[TOC]"
-			Print #Fn, "# " & Globals.Enums.Item(i) & " Enum"
-			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework, part of the freeBasic framework."
-			Print #Fn, tbi->Comment
+			WAdd(FileContentPtr, Chr(13, 10) & "### " & Globals.Enums.Item(i) & " Enum")
+			WAdd(FileContentPtr, Chr(13, 10) &  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework.")
+			WAdd(FileContentPtr, Chr(13, 10) & tbi->Comment)
 			If tbi->OwnerNamespace <> "" Then
-				Print #Fn, "## Definition"
-				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
+				WAdd(FileContentPtr, Chr(13, 10) & "#### Definition")
+				If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace)
 			End If
-			Print #Fn, "## Fields"
-			Print #Fn, "|Part|Description|"
-			Print #Fn, "| :------------ | :------------ |"
+			WAdd(FileContentPtr, Chr(13, 10) & "#### Fields")
+			WAdd(FileContentPtr, Chr(13, 10) & "|Name|Description|Syntax|")
+			WAdd(FileContentPtr, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To tbi->Elements.Count - 1
 				te = tbi->Elements.Object(j)
-				If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|" & te->Comment & "|"
+				WAdd(FileContentPtr, Chr(13, 10) & "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|`" & te->Comment & "`|")
 			Next
-			If tbi->OwnerNamespace <> "" Then
-				Print #Fn, "## See also"
-				Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-				TmpControlChildName = "Control" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-				TmpControlChildName = "Form" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-				TmpControlChildName = "ContainerControl" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-				TmpControlChildName = "Panel" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-				TmpControlChildName = "GroupBox" : Print #Fn, "[`" & TmpControlChildName & "`](" & TmpControlChildName & ".md)"
-			End If
-			CloseFile_(Fn)
 		Next i
-		For i = 0 To Globals.Namespaces.Count - 1
-			tbi = Cast(TypeElement Ptr, Globals.Namespaces.Object(i))
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			If Not teList.Contains(tbi) Then
-				teList.Add tbi
-				Dim As Boolean bNamespaces, bTypes, bEnums, bDefines, bMacros, bMethods, bConstants, bVariables
-				For ii As Integer = 0 To Globals.Namespaces.Count - 1
-					tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-					If tbi1->CtlLibrary <> MFFCtlLibrary Then Continue For
-					If tbi1->Name <> tbi->Name Then Continue For
-					For j As Integer = 0 To tbi1->Elements.Count - 1
-						te = tbi1->Elements.Object(j)
-						Select Case te->ElementType
-						Case E_Namespace: bNamespaces = True
-						Case E_Type, E_TypeCopy, E_Class, E_Union: bTypes = True
-						Case E_Enum: bEnums = True
-						Case E_Define: bDefines = True
-						Case E_Macro: bMacros = True
-						Case E_Function, E_Sub: bMethods = True
-						Case E_Constant: bConstants = True
-						Case E_CommonVariable, E_LocalVariable, E_ExternVariable, E_SharedVariable: bVariables = True
-						End Select
-					Next
-				Next
-				Dim As Integer Fn = FreeFile_
-				Open wikiFolder & tbi->FullName & ".md" For Output As #Fn
-				Print #Fn, "[TOC]"
-				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework, part of the freeBasic framework."
-				Print #Fn, tbi->Comment
-				Print #Fn, ""
-				If bNamespaces Then
-					Dim As WStringList Namespaces
-					Print #Fn, "## Namespaces"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Namespace Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Not Namespaces.Contains(te->Name) Then
-								Namespaces.Add te->Name
-								Print #Fn, "|[`" & te->Name & "`](""" & te->FullName & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-							End If
-						Next
-					Next
-					Print #Fn, ""
-				End If
-				If bTypes Then
-					Print #Fn, "## Types"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-					Print #Fn, ""
-				End If
-				If bEnums Then
-					Print #Fn, "## Enums"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Enum Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				If bDefines Then
-					Print #Fn, "## Defines"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				If bMacros Then
-					Print #Fn, "## Macros"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				If bMethods Then
-					Print #Fn, "## Methods"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If te->Declaration Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->fullName & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				If bConstants Then
-					Print #Fn, "## Constants"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_Constant Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"")|" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				If bVariables Then
-					Print #Fn, "## Variables"
-					Print #Fn, "|Name|Comment|"
-					Print #Fn, "| :------------ | :------------ |"
-					For ii As Integer = 0 To Globals.Namespaces.Count - 1
-						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
-						For j As Integer = 0 To tbi1->Elements.Count - 1
-							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_CommonVariable AndAlso te->ElementType <> ElementTypes.E_LocalVariable AndAlso te->ElementType <> ElementTypes.E_ExternVariable AndAlso te->ElementType <> ElementTypes.E_SharedVariable Then Continue For
-							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
-							If Trim(te->Comment, Any !"\r\n\t ") = "" Then  Print #Fn, "|[`" & te->Name & "`](""" & te->Name & ".md"") |" & Trim(te->Comment, Any !"\r\n\t ") & "|"
-						Next
-					Next
-				End If
-				CloseFile_(Fn)
-			End If
-		Next i
+		'SaveToFile(wikiFolder & "Globals Enums.md", *FileContentPtr, FileEncoding, NewLineType)
+		AIContext.Add("Globals Enums", *FileContentPtr)
+		Deallocate FileContentPtr : FileContentPtr = 0
+		Deallocate FileContentPtr1 : FileContentPtr1 = 0
+		WLet(FileContentPtr1, "## Globals Procedures")
+		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|")
+		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |")
 		For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->Declaration Then Continue For
-			Dim As Integer Fn1 = FreeFile_
-			Open wikiFolder & tbi->FullName & ".md" For Output As #Fn1
-			Print #Fn1, "[TOC]"
-			Print #Fn1, "## " & tbi->FullName & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", ""))))
-			Dim As UString Lines()
-			Split(tbi->Comment, Chr(13) & Chr(10), Lines())
-			Dim iLine As Integer
-			Do While iLine <= UBound(Lines) AndAlso Trim(Lines(iLine), Any !"\t ") <> "Parameters" AndAlso Trim(Lines(iLine), Any !"\t ") <> "Return Value" AndAlso Trim(Lines(iLine), Any !"\t ") <> "See also"
-				Print #Fn1, LTrim(Lines(iLine), Any !"\t ")
-				iLine += 1
-			Loop
-			'Print #Fn1, tbi->Comment
-			If tbi->OwnerNamespace <> "" Then
-				Print #Fn1, "## Definition"
-				Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-			End If
-			Print #Fn1, "`" & tbi->FullName & "` Is a global " & IIf(tbi->ElementType = ElementTypes.E_Function, "function", IIf(tbi->ElementType = ElementTypes.E_Sub, "sub", IIf(tbi->ElementType = ElementTypes.E_Define, "definition", IIf(tbi->ElementType = ElementTypes.E_Macro, "macro", "")))) & " within the MyFbFramework, part of the freeBasic framework."
-			Print #Fn1, "## Syntax"
-			Print #Fn1, ""
-			Print #Fn1, "```freeBasic"
-			Print #Fn1, IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters
-			Print #Fn1, "```"
-			Print #Fn1, ""
-			Var Pos1 = InStr(tbi->Parameters, "(")
-			If Pos1 > 0 Then
-				SplitParameters tbi->Parameters, Pos1, Mid(tbi->Parameters, Pos1 + 1, Len(tbi->Parameters) - Pos1 - 1), tbi->FileName, tbi, tbi->StartLine, 0, ECLines, tbi->InCondition, tbi->Declaration, False
-				Print #Fn1, "## Parameters"
-				Print #Fn1, ""
-				Print #Fn1, "|Part|Type|Description|"
-				Print #Fn1, "| :------------ | :------------ | :------------ |"
-				For k As Integer = 0 To tbi->Elements.Count - 1
-					te1 = tbi->Elements.Object(k)
-					Dim As UString Comment = IIf(te1->Value = "", "Required. ", "Optional. ")
-					Dim As Boolean bFinded
-					For kk As Integer = iLine To UBound(Lines)
-						If LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k)) Then
-							bFinded = True
-						ElseIf bFinded Then
-							If Trim(Lines(kk), Any !"\t ") = "Return Value" OrElse Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" OrElse (k < tbi->Elements.Count - 1 AndAlso LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k + 1))) Then
-								iLine = kk
-								Exit For
-							Else
-								Comment = Comment & IIf(Comment = "", "", "    ") & Trim(Lines(kk), Any !"\t ")
-							End If
-						End If
-					Next
-					If Trim(tbi->Elements.Item(k)) = "" Then Continue For
-					If Trim(te1->Comment, Any !"\r\n\t ") = "" Then Print #Fn1, "|`" & tbi->Elements.Item(k) & "`|" & GetTypeLink(te1->TypeName, True) & "|" & Trim(te1->Comment, Any !"\r\n\t ") & Trim(Comment, Any !"\r\n\t ") & "|"
-				Next
-				
-			End If
-			If tbi->ElementType = ElementTypes.E_Function Then
-				Print #Fn1, ""
-				Print #Fn1, "## Return Value"
-				Print #Fn1, GetTypeLink(tbi->TypeName, True)
-				Print #Fn1, ""
-				Dim bFinded As Boolean
-				For kk As Integer = iLine To UBound(Lines)
-					If Trim(Lines(kk), Any !"\t ") = "Return Value" Then
-						bFinded = True
-					ElseIf bFinded Then
-						If Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" Then
-							iLine = kk
-							Exit For
-						Else
-							Print #Fn1, Trim(Lines(kk), Any !"\t ")
-						End If
-					End If
-				Next
-			End If
-			Dim As Boolean bSeeAlso, bExample
-			For kk As Integer = iLine To UBound(Lines)
-				If LTrim(Lines(kk), Any !"\t ") = "Remarks" Then
-					If bExample Then
-						Print #Fn1, "```"
-						bExample = False
-					End If
-					Print #Fn1, "## " & LTrim(Lines(kk), Any !"\t ")
-				ElseIf LTrim(Lines(kk), Any !"\t ") = "Example" Then
-					bExample = True
-					Print #Fn1, "## " & LTrim(Lines(kk), Any !"\t ")
-					Print #Fn1, "```freeBasic"
-				ElseIf LTrim(Lines(kk), Any !"\t ") = "See also" Then
-					If bExample Then
-						Print #Fn1, "```"
-						bExample = False
-					End If
-					bSeeAlso = True
-					Print #Fn1, "## " & LTrim(Lines(kk), Any !"\t ")
-				ElseIf bSeeAlso Then
-					If Trim(Lines(kk), Any !"\t ") = "" Then Continue For
-					Print #Fn1, "[`" & LTrim(Lines(kk), Any !"\t ") & "`]" & "(" & LTrim(Lines(kk), Any !"\t ") & ".md)"
-				ElseIf bExample Then
-					Print #Fn1, Lines(kk)
-				Else
-					Print #Fn1, LTrim(Lines(kk), Any !"\t ")
-				End If
-			Next
-			If tbi->OwnerNamespace <> "" AndAlso Not bSeeAlso Then
-				Print #Fn1, "## See also"
-				If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn1, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-			End If
-			CloseFile_(Fn1)
+			WAdd(FileContentPtr1, Chr(13, 10) & "|" & Replace(tbi->FullName, "My.Sys.Forms.", "") & "|" & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "|" )
+			WAdd(FileContentPtr1, "|`" & IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters & "`|")
 		Next i
-		For i = 0 To Globals.Args.Count - 1
-			tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
-			If tbi->Name <> "App" AndAlso tbi->Name <> "Clipboard" AndAlso tbi->Name <> "DebugWindowHandle" AndAlso tbi->Name <> "DefaultFont" Then Continue For
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			Dim As Integer Fn = FreeFile_
-			Open wikiFolder & tbi->Name & ".md" For Output As #Fn
-			Print #Fn, "[TOC]"
-			Print #Fn, "## Definition"
-			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [`" & tbi->OwnerNamespace & "`](" & tbi->OwnerNamespace & ".md)"
-			Print #Fn,  "`" & tbi->Name & "` is a global variable in MyFbFramework, part of the freeBasic framework."
-			Print #Fn, ""
-			Print #Fn, "`" & tbi->Name & "` - " & tbi->Comment
-			Print #Fn, ""
-			Print #Fn, "```freeBasic"
-			Print #Fn, tbi->Parameters
-			Print #Fn, "```"
-			Print #Fn, ""
-			Print #Fn, "## Property Value"
-			Print #Fn, GetTypeLink(tbi->TypeName, True)
-			CloseFile_(Fn)
-		Next i
-		'Dim As Integer Fn = FreeFile_
-		'	Open wikiFolder & "ControlParent.csv" For Output As #Fn
-		'	Print #Fn, ControlParent
-		'	CloseFile_(Fn)
-		
+		'SaveToFile(wikiFolder & "Globals Procedures.md", *FileContentPtr1, FileEncoding, NewLineType)
+		AIContext.Add("Globals Procedures", *FileContentPtr1)
+		Deallocate FileContentPtr1 : FileContentPtr1 = 0
+		'WLet(FileContentPtr1, "## Globals Args")
+		'For i = 0 To Globals.Args.Count - 1
+		'	tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
+		'	If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "### " & tbi->Name)
+		'	WAdd(FileContentPtr, Chr(13, 10) & "#### Definition")
+		'	If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr1, Chr(13, 10) & "Namespace:  " & tbi->OwnerNamespace)
+		'	WAdd(FileContentPtr1, Chr(13, 10) &  "`" & tbi->Name & "` is a global variable in MyFbFramework.")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "`" & tbi->Name & "` - " & tbi->Comment)
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "#### Syntax")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "```FreeBasic")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & tbi->Parameters)
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "```")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & "#### Property Value")
+		'	WAdd(FileContentPtr1, Chr(13, 10) & GetTypeLink(tbi->TypeName, True))
+		'Next i
+		'SaveToFile(wikiFolder & "Globals Args.md", *FileContentPtr1, FileEncoding, NewLineType)
+		'Deallocate FileContentPtr1 : FileContentPtr1 = 0
 	#endif
+	
+
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
@@ -7035,6 +6645,8 @@ Sub LoadSettings
 				AIAgentTemperature = Info->Temperature
 				AIAgentStream  = Info->Stream
 				cboAIAgentModels.Text = Temp
+				AIPostDataFirstTime= True
+				AIIncludeFileNameList.Clear
 			End If
 		End If
 		Temp = iniSettings.ReadString("MakeTools", "Version_" & WStr(i), "")
@@ -8841,6 +8453,8 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		AIAgentAPIKey = Info->APIKey
 		AIAgentTemperature = Info->Temperature
 		AIAgentStream  = Info->Stream
+		AIPostDataFirstTime = True
+		AIIncludeFileNameList.Clear
 	End If
 End Sub
 
@@ -8877,26 +8491,29 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
+
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As WString Ptr result
-	WLet(result, Replace(iText, "\#", "#"))
-	WLet(result, Replace(*result, "\n", "~n"))
-	WLet(result, Replace(*result, "\r", "~r"))
-	WLet(result, Replace(*result, "\""", "~@"))
-	WLet(result, Replace(*result, !"\t", "    "))
-	
-	WLet(result, Replace(*result, "\", "\\"))
+	WLet(result, Replace(iText, "\", "\\"))
 	WLet(result, Replace(*result, """", "\"""))
+	WLet(result, Replace(*result, Chr(8), "\b"))
+	WLet(result, Replace(*result, Chr(12), "\f"))
 	WLet(result, Replace(*result, Chr(10), "\n"))
 	WLet(result, Replace(*result, Chr(13), "\r"))
+	WLet(result, Replace(*result, Chr(9), "    "))
 	
-	WLet(result, Replace(*result, "~n", "\n"))
-	WLet(result, Replace(*result, "~r", "\r"))
-	WLet(result, Replace(*result, "~@", "\"""))
-	'Strange issue
+	' 可选：转义控制字符（0-31）
+	Dim As Integer i
+	For i = 0 To 31
+		If i <> 8 And i <> 9 And i <> 10 And i <> 12 And i <> 13 Then
+			WLet(result, Replace(*result, Chr(i), "\u" & Hex(i, 4)))
+		End If
+	Next
+	
+	' ?????? issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
-		If CodePage= 936 Then
+		If CodePage = 936 Then ' GBK
 			Function = *result
 		Else
 			Function = ToUtf8(*result)
@@ -8904,23 +8521,37 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	#else
 		Function = ToUtf8(*result)
 	#endif
-	Deallocate result
+	
+	Deallocate(result)
 End Function
 
 Function EscapeFromJson(ByRef iText As WString) As String
 	Dim As WString Ptr result
-	WLet(result, Replace(iText, "\#", "#"))
-	WLet(result, Replace(*result, "\n", !"\n"))
-	WLet(result, Replace(*result, "\r", !"\r"))
-	WLet(result, Replace(*result, "\""", Chr(34)))
-	WLet(result, Replace(*result, "\t", !"\t"))
-	WLet(result, Replace(*result, "\\", "\"))
-	WLet(result, Replace(*result, "\u0026", "&"))
-	WLet(result, Replace(*result, "\u003e", ">"))
-	WLet(result, Replace(*result, "\u003c", "<"))
-	WLet(result, Replace(*result, "\\", "\"))
+	WLet(result, iText)
+	
+	' 反转义Unicode序列（如\u0026）
+	Dim As Integer charCode, Posi = InStr(*result, "\u")
+	Dim As String hexVal
+	While Posi > 0
+		If Len(*result) >= Posi + 5 Then
+			hexVal = Mid(*result, Posi + 2, 4)
+			charCode = Val("&h" & hexVal)
+			WLet(result, Left(*result, Posi - 1) & Chr(charCode) & Mid(*result, Posi + 6))
+		End If
+		Posi = InStr(Posi + 1, *result, "\u")
+	Wend
+	
+	' 反转义标准JSON特殊字符
+	WLet(result, Replace(*result, "\""", """"))  ' 双引号
+	WLet(result, Replace(*result, "\\", "\"))    ' 反斜杠
+	WLet(result, Replace(*result, "\/", "/"))    ' 斜杠
+	WLet(result, Replace(*result, "\b", Chr(8))) ' 退格
+	WLet(result, Replace(*result, "\f", Chr(12)))' 换页
+	WLet(result, Replace(*result, "\n", Chr(10)))' 换行
+	WLet(result, Replace(*result, "\r", Chr(13)))' 回车
+	WLet(result, Replace(*result, "\t", "    ")) ' 制表符
 	Function = *result
-	Deallocate result
+	Deallocate(result)
 End Function
 
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
@@ -8947,25 +8578,28 @@ End If
 If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
 	WAdd(AIPostDataPtr_2nd, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
 Else
-WAdd(AIPostDataPtr_2nd, "The VisualFBEditor (commonly abbreviated as `VFBE`) IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
-" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
-" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
-" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
-" **Message Output panels** The Message Output panels provide access to key functionalities through TabControl with the following components: ""Output"", ""Problems"", ""Suggestions"", ""Find"", ""ToDo"", ""Change Log"", ""Immediate"", ""Locals"", ""Globals"", ""Procedures"", ""Threads"",  ""Watches"", ""Memory"" and ""Profiler""." & _
-" **menu bar** The menu bar provides access to key functionalities through menus such as ""File"", ""Edit"", ""Search"", ""View"", ""Project"", ""Build"", ""Debug"", ""Run"", ""Service"", ""Window"" and ""Help.""" & _
-"  * File: Manages projects and files (create, open, save, recent projects)." & _
-"  * Edit: Provides source code editing features (cut, copy, paste, find, replace)." & _
-"  * View: Opens various panes (Project Explorer, Class View, Properties, Events, Image Manager, Toolbox)." & _
-"  * Project: Adds project components (Windows Form, User Control, Component, Module, Set as Start Project)." & _
-"  * Build: Compiles and links modified files, displaying warnings and errors. Recompiles the project." & _
-"  * Debug: Compiles and runs the project, manages processes, handles exceptions, traces execution, sets breakpoints." & _
-"  * Service: Extends functionality with tools like the Debug Process dialog and Custom Toolbox window." & _
-"  * Window: Manages window operations (new window, split, hide)." & _
-"  * Help: Provides access to help resources.")
-
+	WAdd(AIPostDataPtr_2nd, "The VisualFBEditor (commonly abbreviated as `VFBE`) IDE's main window includes a title bar, menu bar, and toolbar at the top; Project Explorer, Toolbox, and AI agent panels on the left; a message output panels at the bottom; and Properties and Events panels on the right." & _
+	" **title bar** The title bar displays the current project name, application name, and working status. VisualFBEditor operates in three states:" & _
+	" * Operational: Activated by selecting ""Run"" or ""Debug"" menu. Displays the project's runtime results. Returns to the design state via the ""Stop Debugging"" button." & _
+	" * Interrupted: Indicates a program interruption. Returns to the design state via the ""Stop Debugging"" button." & _
+	" **Message Output panels** The Message Output panels provide access to key functionalities through TabControl with the following components: ""Output"", ""Problems"", ""Suggestions"", ""Find"", ""ToDo"", ""Change Log"", ""Immediate"", ""Locals"", ""Globals"", ""Procedures"", ""Threads"",  ""Watches"", ""Memory"" and ""Profiler""." & _
+	" **menu bar** The menu bar provides access to key functionalities through menus such as ""File"", ""Edit"", ""Search"", ""View"", ""Project"", ""Build"", ""Debug"", ""Run"", ""Service"", ""Window"" and ""Help.""" & _
+	"  * File: Manages projects and files (create, open, save, recent projects)." & _
+	"  * Edit: Provides source code editing features (cut, copy, paste, find, replace)." & _
+	"  * View: Opens various panes (Project Explorer, Class View, Properties, Events, Image Manager, Toolbox)." & _
+	"  * Project: Adds project components (Windows Form, User Control, Component, Module, Set as Start Project)." & _
+	"  * Build: Compiles and links modified files, displaying warnings and errors. Recompiles the project." & _
+	"  * Debug: Compiles and runs the project, manages processes, handles exceptions, traces execution, sets breakpoints." & _
+	"  * Service: Extends functionality with tools like the Debug Process dialog and Custom Toolbox window." & _
+	"  * Window: Manages window operations (new window, split, hide)." & _
+	"  * Help: Provides access to help resources.")
+	
 End If
 WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses unless otherwise instructed." & _
 "You are FreeBasic programming expert. Use the provided MyFbFramework (MFF) knowledge base (<context></context>)\n")
+AIContext.Add("MyFbFramework (MFF) GUI Form Interface Guidelines", *AIPostDataPtr_1st)
+AIContext.Add("VisualFBEditor (VFBE) IDE Environment", *AIPostDataPtr_2nd)
+
 ' 定义各AI平台的最大分块大小常量
 Const OPENAI_MAX_CHUNK = 4096       ' OpenAI标准模型
 Const DEEPSEEK_MAX_CHUNK = 4000     ' DeepSeek标准模型
@@ -8993,30 +8627,33 @@ Function AIGetMaxChunkSize() As Integer
 	End Select
 End Function
 Sub AIPrintAnswer(ByRef Content As WString)
-	Dim As WString Ptr BuffFormat()
+	'Dim As WString Ptr BuffFormat()
+	Dim As Integer j
 	If Content = "" Then Return
-	Split(Content, "**", BuffFormat())
-	For j As Integer = 0 To UBound(BuffFormat)
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-		If j > 0 Then
-			AIBold = Not AIBold
-			txtAIAgent.SelBold = AIBold
-		End If
-		txtAIAgent.SelText = *BuffFormat(j)
-		Deallocate BuffFormat(j)
-		If Not txtAIAgent.Focused Then
-			txtAIAgent.ScrollToEnd
-		End If
-	Next j
-	Erase BuffFormat
+	'Split(Content, "**", BuffFormat())
+	'For j As Integer = 0 To UBound(BuffFormat)
+	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	'txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	j = InStr(Content, "**")
+	If j > 0 Then
+		AIBold = Not AIBold
+		txtAIAgent.SelBold = AIBold
+	End If
+	txtAIAgent.SelText = Content
+	If CBool(InStr(Content, "# ")) OrElse CBool(InStr(Content, "```")) OrElse StartsWith(Content, " - ") OrElse CBool(InStr(Content, Chr(10))) Then AIBold = False
+	'Deallocate BuffFormat(j)
+	If Not txtAIAgent.Focused Then
+		txtAIAgent.ScrollToEnd
+	End If
+	'Next j
+	'Erase BuffFormat
 End Sub
 
 Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
 	' Validate overlap parameter
-	If Overlap >= chunkSize Then
-		Overlap = chunkSize \ 10
+	If Overlap >= chunkSize  OrElse Overlap < 0 Then
+		Overlap = chunkSize \ 20
 	End If
 	
 	' Initialize variables
@@ -9091,31 +8728,45 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 	End If
 End Sub
 
-Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest)
-	txtAIRequest.Enabled = True
-	txtAIRequest.SetFocus
+Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
+	If Responce.StatusCode > 400 Then
+		ShowMessages(Responce.StatusCode & "  " & Responce.Body) 
+		txtAIRequest.Enabled = True
+		txtAIRequest.SetFocus
+	End If
 End Sub
+
 HTTPAIAgent.OnComplete = @HTTPAIAgent_Complete
+AIPostDataFirstTime = True
+
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
-	ThreadsEnter
-	'ShowMessages(Buffer) Sometimes got party of the string
-	'AIBodyBufferSave &= Buffer
-	'If Right(Trim(Buffer), 1) <> "}" OrElse Left(Trim(Buffer), 1) <> "d" Then Return
+	'ShowMessages(Buffer) ' Sometimes got party of the string   'data: [DONE] ': OPENROUTER PROCESSING
+	Dim As WString Ptr tmpBodyWStrPtr = FromUtf8(StrPtr(Buffer))
+	If tmpBodyWStrPtr = 0 Then Return
+	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
+	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
+	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
+	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
+	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+	End If
+	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
 	Dim As String ContentStart(0 To 3) = {"""content"":""",        """content"":""",               """content"":""",                ",""content"":"""}
 	Dim As String ContentEnd(0 To 3) = {""",""reasoning"":null",   """,""reasoning_content"":null", """},""finish_reason""",       """,""tool_calls"":"  }
 	Dim As String ReasoningStart(0 To 2) = {",""reasoning"":""",     ",""reasoning_content"":""",       ",""reasoning_content"":"""}
 	Dim As String ReasoningEnd(0 To 2) = {"""},""finish_reason""", """,""role"":""" ,               """},"""}
-	Dim As WString Ptr BodyWStringPtr = FromUtf8(StrPtr(Buffer))
-	If BodyWStringPtr = 0 Then Return
+	
 	Dim As WString Ptr Buff()
-	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*BodyWStringPtr, "data: ", Buff())
+	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
-	If BuffCount < 1 Then Return
+	If BuffCount < 1 Then
+		Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+		Deallocate(tmpBodyWStrPtr)
+		Return
+	End If
+	ThreadsEnter
 	For i As Integer = 0 To BuffCount - 1
 		If Trim(*Buff(i)) = "" Then Continue For
-		'Print the JSON string if decoding fails.
-		'ShowMessages(*Buff(i))
 		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
 			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
@@ -9132,8 +8783,8 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						binReason = True
-						WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
-						AIPrintAnswer(*BodyWStringPtr)
+						WLet(AIBodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
+						AIPrintAnswer(*AIBodyWStringPtr)
 						Exit For
 					End If
 				End If
@@ -9150,32 +8801,38 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 								txtAIAgent.SelEnd = txtAIAgent.SelStart
 								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							WLet(BodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
-							AIAssistantsAnswers  &= *BodyWStringPtr
-							AIPrintAnswer(*BodyWStringPtr)
+							WLet(AIBodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
+							AIAssistantsAnswers  &= *AIBodyWStringPtr
+							AIPrintAnswer(*AIBodyWStringPtr)
 							Exit For
 						End If
 					End If
 				Next
 			End If
+			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 		Else
-			ShowMessages(*Buff(i))
-			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse StartsWith(*Buff(i), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") < 1) OrElse HTTPAIAgent.Abort Then
+			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
+			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
+				ShowMessages(*Buff(i))
 				If InStr(*Buff(i), "[DONE]") > 0 Then
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text ="[**AI Response:**] " & AIAssistantsAnswers
 					End If
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
+				Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			Else
+				WLet(AIBodyWStringPtr, *Buff(i))
 			End If
 		End If
 		Deallocate Buff(i)
 	Next
 	Erase Buff
-	Deallocate BodyWStringPtr
+	Deallocate AIBodyWStringPtr
+	Deallocate(tmpBodyWStrPtr)
 	ThreadsLeave
 End Sub
 
@@ -9184,6 +8841,7 @@ Sub AIRequest(Param As Any Ptr)
 	bInThingk = False
 	bInNOTThingk = False
 	AIBold = False
+	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -9221,7 +8879,6 @@ Sub AIRequest(Param As Any Ptr)
 	If Not AIAgentStream Then
 		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
 		If Temp = 0 Then Return
-		'Debug.Print *Temp
 		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
 		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
 		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14)))
@@ -9251,7 +8908,8 @@ Sub AIRequest(Param As Any Ptr)
 	bInAIThread = False
 End Sub
 
-Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
+	If Key <> 13 Then Return
 	If bInAIThread Then Return
 	If Trim(txtAIRequest.Text, Any !"\t\n\r ") = "" Then Return
 	txtAIRequest.Text = Trim(txtAIRequest.Text, Any !"\t\r\n ")
@@ -9271,37 +8929,69 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor"
 	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "}")
+	'监控反馈：
+	'记录每次API调用的实际token使用量 自动调整后续分块大小:
+	'If lastTokenUsage > MaxChunkSize * 0.9 Then
 	Dim As Integer MaxChunkSize = AIGetMaxChunkSize()
 	Dim As Integer ChunkThreshold, ChunkOverlap, MaxChunks
 	Dim As String UserChunks(), AssistantChunks()
-	ChunkThreshold = MaxChunkSize * 0.55  ' 代码需要更小分块
+	
+	'AICalculateChunkParameters(ChunkThreshold, ChunkOverlap, MaxChunkSize)
+	ChunkThreshold = MaxChunkSize * 0.8  ' 代码需要更小分块
 	If ChunkThreshold < 512 Then ChunkThreshold = 512    '确保最小值
-	ChunkOverlap = ChunkThreshold * 0.08        ' 代码需要更大重叠
+	ChunkOverlap = 0       ' 代码需要更大重叠??????
+	Dim As WString * MAX_PATH FileName , IncludeFile
+	Dim As WString Ptr ControlBIContentPtr
+	Dim As Integer ControlBIIndex
+	Dim As String ContentType
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [" & "{""role"": ""system"", ""content"": """ & Left(EscapeJsonForPrompt(*AISystem_PromoptPtr), MaxChunkSize) & "\n This is a special mode for handling oversized conversations, all messages will be sent in chunks." & """}"
-	If InStr(txtAIRequest.Text, "IDE") OrElse InStr(LCase(txtAIRequest.Text), "vfbe") OrElse InStr(LCase(txtAIRequest.Text), "visualfbeditor") Then
-		If Len(*AIPostDataPtr_2nd) > MaxChunkSize Then
-			AISplitText(" <context> " & EscapeJsonForPrompt(*AIPostDataPtr_2nd & " </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
-			MaxChunks = UBound(UserChunks) + 1
-			For i As Integer = 0 To UBound(UserChunks)
-				AIPostData &= ", {""role"": ""system"", ""content"": ""[Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
-			Next
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to sent file in chunks." & """}"
+	
+	' Find the control in txtAIRequest.Text
+	ContentType= "Markdown "
+	Dim As Boolean bShouldSend
+	Dim As Integer  AIContextCount = AIContext.Count - 1
+	For j As Integer = 0 To AIContextCount
+		FileName = AIContext.Item(j)->Key
+		bShouldSend = False
+		'If InStr(FileName, "MyFbFramework") Then
+		'	If InStr(txtAIRequest.Text, "MyFbFramework") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "MFF") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "Interface") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "GUI ") > 0 Then bShouldSend = True
+		'
+		If j = 0 Then
+			bShouldSend = True 'MyFbFramework must be send
 		Else
-			AIPostData  &= ", {""role"": ""system"", ""content"": """ &  "<context> " & EscapeJsonForPrompt(*AIPostDataPtr_2nd) & " </context>" & """}"
+			If InStr(FileName, "VisualFBEditor") Then
+				If InStr(txtAIRequest.Text, "VisualFBEditor") > 0 Then bShouldSend = True
+				If InStr(txtAIRequest.Text, "VFBE") > 0 Then bShouldSend = True
+				If InStr(txtAIRequest.Text, "IDE") > 0 Then bShouldSend = True
+			Else
+				bShouldSend = InStr(txtAIRequest.Text, FileName)
+			End If
 		End If
-	Else
-		If Len(*AIPostDataPtr_1st) > MaxChunkSize Then
-			AISplitText(" <context> " & EscapeJsonForPrompt(*AIPostDataPtr_1st & " </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
-			MaxChunks = UBound(UserChunks) + 1
-			For i As Integer = 0 To UBound(UserChunks)
-				AIPostData &= ", {""role"": ""system"", ""content"": ""[Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
-			Next
-		Else
-			AIPostData  &= ", {""role"": ""system"", ""content"": """  & "<context> " & EscapeJsonForPrompt(*AIPostDataPtr_1st) & " </context>" & """}"
+		If bShouldSend AndAlso CBool(AIIncludeFileNameList.Count < 1 OrElse Not AIIncludeFileNameList.Contains(FileName)) Then
+			WLet(ControlBIContentPtr, AIContext.Item(j)->Text)
+			ContentType= "Markdown "
+			If ControlBIContentPtr <> 0 AndAlso Trim(*ControlBIContentPtr) <> "" Then
+				If Len(*ControlBIContentPtr) > MaxChunkSize Then
+					AISplitText(" <context> ```" & ContentType & EscapeJsonForPrompt(*ControlBIContentPtr & " ``` </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
+					MaxChunks = UBound(UserChunks) + 1
+					For i As Integer = 0 To MaxChunks - 1
+						AIPostData &= ", {""role"": ""system"", ""content"": ""[" & FileName & " Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+					Next
+				Else
+					AIPostData &= ", {""role"": ""system"", ""content"": """  & " <context> ```" & ContentType & EscapeJsonForPrompt(*ControlBIContentPtr) & " ``` </context> " & """}"
+				End If
+				AIIncludeFileNameList.Add(AIContext.Item(j)->Key)
+			End If
+			Deallocate ControlBIContentPtr : ControlBIContentPtr = 0
+			Erase UserChunks
 		End If
-	End If
+	Next
 	If AIMessages.Count > 0 Then
 		For j As Integer = 0 To AIMessages.Count - 1
 			If Len(AIMessages.Item(j)->Key) > MaxChunkSize OrElse Len(AIMessages.Item(j)->Text) > MaxChunkSize Then
@@ -9311,60 +9001,85 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 				ReDim Preserve UserChunks(MaxChunks - 1)
 				ReDim Preserve AssistantChunks(MaxChunks - 1)
 				For i As Integer = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
-					AIPostData &= ", {""role"": ""user"", ""content"": ""[User message chunk " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
-					AIPostData &= ", {""role"": ""assistant"", ""content"": ""[AI response chunk " & (i + 1) & "/" & (MaxChunks) & "] " & AssistantChunks(i) & """}"
+					AIPostData &= ", {""role"": ""user"", ""content"": ""[User chunk " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+					AIPostData &= ", {""role"": ""assistant"", ""content"": ""[AI chunk " & (i + 1) & "/" & (MaxChunks) & "] " & AssistantChunks(i) & """}"
 				Next
 			Else
 				AIPostData &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Key) & """}"
 				AIPostData &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Text) & """}"
 			End If
 		Next
+		Erase UserChunks
 	End If
 	If Len(txtAIRequest.Text) > MaxChunkSize Then
 		AISplitText(EscapeJsonForPrompt(txtAIRequest.Text), UserChunks(), ChunkThreshold, ChunkOverlap)
-		For i As Integer = 0 To UBound(UserChunks) 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
-			AIPostData &= ", {""role"": ""user"", ""content"": ""[Part " & (i + 1) & "/" & (UBound(UserChunks) + 1) & "] " & UserChunks(i) & """}"
-			AIPostData &= ", {""role"": ""assistant"", ""content"": ""[Received part " & (i + 1) & "/" & (UBound(UserChunks) + 1) & "] - please send next segment: " & """}"
+		MaxChunks = UBound(UserChunks) + 1
+		For i As Integer = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
+			If i <> MaxChunks - 1 Then
+				AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+				AIPostData &= ", {""role"": ""assistant"", ""content"": ""[**Received** part " & (i + 1) & "/" & (MaxChunks) & "] - please send next segment: " & """}"
+			Else
+				AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}]" & ExtraHeaders
+			End If
 		Next
 	Else
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
 	
-	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "NA")
+	AIMessages.Add("[**User Question:**] " & txtAIRequest.Text, "NA")
 	AIAssistantsAnswers = ""
 	ClearMessages
-	ThreadCreate(@AIRequest)
+	Erase UserChunks
+	Erase AssistantChunks
+	If AIThread Then ThreadDetach(AIThread)
+	AIThread = ThreadCreate(@AIRequest)
+End Sub
+
+Public Sub AIRelease()
+	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
+	Sleep(500)
+	If AIThread Then ThreadDetach(AIThread)
+	txtAIRequest.Enabled = True
+	txtAIRequest.SetFocus
 End Sub
 
 Public Sub AIResetContext()
+	txtAIAgent.Text = " "
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
 	"""messages"": [" & _
 	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation."  & """}, " & _
-	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}}"
+	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(GetBakFileName(ExePath & "\Temp\AIChat" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & ".Log"))
-		ShowMessages("The conversation context was saved to " & ExePath & "\Temp\AIChat")
+		AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
+		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "\AIChat")
 		AIMessages.Clear
 	End If
-	txtAIAgent.Text = ""
+	AIIncludeFileNameList.Clear
+	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
 	HTTPAIAgent.Abort = True
-	ThreadCreate(@AIRequest)
+	Sleep(500)
+	If AIThread Then ThreadDetach(AIThread)
+	AIThread = ThreadCreate(@AIRequest)
 End Sub
+
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
+txtAIRequest.MaxLength = 128000
 txtAIRequest.Parent = @pnlAIAgent
 txtAIRequest.Font.Name = *EditorFontName
 txtAIRequest.Font.Size = EditorFontSize
 txtAIRequest.ScrollBars = ScrollBarsType.Vertical
 txtAIRequest.Multiline= True
+txtAIRequest.WantReturn = False
 txtAIRequest.WordWraps = True
-txtAIRequest.OnActivate = @txtAIRequest_Activate
+txtAIRequest.OnKeyPress = @txtAIRequest_KeyPress
 ptxtAIRequest = @txtAIRequest
+AIPostDataFirstTime = True
 splAIAgent.Parent = @pnlAIAgent
 splAIAgent.Align = SplitterAlignmentConstants.alBottom
 
@@ -11826,6 +11541,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	End If
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
+	If AIMessages.Count > 0 Then AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
 		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
