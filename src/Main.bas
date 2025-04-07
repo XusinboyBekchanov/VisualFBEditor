@@ -5821,7 +5821,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "<h2>" & Globals.Enums.Item(i) & " Enum</h2>"
-			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework, part of the freeBasic framework."
+			Print #Fn,  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework."
 			Print #Fn, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn, "<h2>Definition</h2>"
@@ -5872,7 +5872,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Next
 				Dim As Integer Fn = FreeFile_
 				Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn
-				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn,  "`" & tbi->FullName & "` is a global namespaces within the MyFbFramework."
 				Print #Fn, tbi->Comment
 				Print #Fn, ""
 				If bNamespaces Then
@@ -8729,7 +8729,7 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 End Sub
 
 Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
-	If Responce.StatusCode > 0 Then
+	If Responce.StatusCode > 400 Then
 		ShowMessages(Responce.StatusCode & "  " & Responce.Body) 
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
@@ -8746,7 +8746,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
-	If InStr(Str(*tmpBodyWStrPtr) , "}]}") < 1 OrElse InStr(Str(*tmpBodyWStrPtr), "data:") < 1 Then Deallocate(tmpBodyWStrPtr) : Return
+	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
+	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+	End If
 	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
 	Dim As String ContentStart(0 To 3) = {"""content"":""",        """content"":""",               """content"":""",                ",""content"":"""}
@@ -8758,7 +8760,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
 	If BuffCount < 1 Then
-		Deallocate AIBodyWStringPtr
+		Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 		Deallocate(tmpBodyWStrPtr)
 		Return
 	End If
@@ -8807,6 +8809,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					End If
 				Next
 			End If
+			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 		Else
 			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
 			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
@@ -8820,6 +8823,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
+				Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			Else
+				WLet(AIBodyWStringPtr, *Buff(i))
 			End If
 		End If
 		Deallocate Buff(i)
@@ -8835,7 +8841,7 @@ Sub AIRequest(Param As Any Ptr)
 	bInThingk = False
 	bInNOTThingk = False
 	AIBold = False
-	Deallocate AIBodyWStringPtr
+	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -8894,7 +8900,7 @@ Sub AIRequest(Param As Any Ptr)
 		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
 		
 		AIPrintAnswer(*Buff)
-		txtAIRequest.Enabled = True
+		'txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		WDeAllocate(Buff)
 		WDeAllocate(Temp)
@@ -9047,7 +9053,7 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(GetBakFileName(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md"))
+		AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
 		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "\AIChat")
 		AIMessages.Clear
 	End If
@@ -11535,7 +11541,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	End If
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
-	If AIMessages.Count > 0 Then AIMessages.SaveToFile(GetBakFileName(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md"))
+	If AIMessages.Count > 0 Then AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
 		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
