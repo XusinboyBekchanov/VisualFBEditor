@@ -9026,7 +9026,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
 	
-	AIMessages.Add("[**User question:**] " & txtAIRequest.Text, "NA")
+	AIMessages.Add("[**User Question:**] " & txtAIRequest.Text, "NA")
 	AIAssistantsAnswers = ""
 	ClearMessages
 	Erase UserChunks
