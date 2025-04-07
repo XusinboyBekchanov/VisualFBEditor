@@ -8818,7 +8818,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = AIAssistantsAnswers
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text ="[**AI Response:**] " & AIAssistantsAnswers
 					End If
 				End If
 				txtAIRequest.Enabled = True
@@ -9026,7 +9026,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
 	
-	AIMessages.Add(EscapeJsonForPrompt(txtAIRequest.Text), "NA")
+	AIMessages.Add("[**User question:**] " & txtAIRequest.Text, "NA")
 	AIAssistantsAnswers = ""
 	ClearMessages
 	Erase UserChunks
