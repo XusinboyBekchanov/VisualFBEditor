@@ -8525,7 +8525,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Deallocate(result)
 End Function
 
-Function EscapeFromJson(ByRef iText As WString) As String
+Function EscapeFromJson(ByRef iText As WString) As UString
 	Dim As WString Ptr result
 	WLet(result, iText)
 	
