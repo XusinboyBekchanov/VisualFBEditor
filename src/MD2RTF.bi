@@ -76,7 +76,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 						' Check word boundaries
 						If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
 							(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
-							WAdd(rtfiText, "\cf7 " & keyWordsArr(j) & "\cf11" & "\highlight" & AIColorBK)
+							WAdd(rtfiText, "\cf7 " & keyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
 							i += kwLen
 							Continue While
 						End If
