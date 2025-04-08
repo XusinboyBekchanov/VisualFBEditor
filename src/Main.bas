@@ -36,6 +36,7 @@
 #include once "mff/ReBar.bi"
 #include once "mff/HTTP.bi"
 #include once "fbthread.bi"
+#include once "MD2RTF.bi"
 #include once "vbcompat.bi"
 
 Using My.Sys.Forms
@@ -138,7 +139,7 @@ Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold, AIPostDataFi
 Dim Shared As Dictionary AIMessages, AIContext
 Dim Shared As WStringList AIIncludeFileNameList
 Dim Shared As Any Ptr AIThread
-Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr
+Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr
 Dim Shared As String AIPostData, AIAssistantsAnswers
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
@@ -5582,7 +5583,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
-				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
 				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
 			
@@ -8484,8 +8485,9 @@ txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
-'txtAIAgent.Font.Name = *EditorFontName
-'txtAIAgent.Font.Size = EditorFontSize
+txtAIAgent.Font.Name = *EditorFontName
+txtAIAgent.Font.Size = EditorFontSize
+AIEditorFontName= *EditorFontName
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8818,8 +8820,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text ="[**AI Response:**] " & AIAssistantsAnswers
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
 					End If
+					Deallocate AIBodyWStringPtr
+					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
+					txtAIAgent.TextRTF = *AIBodyWStringPtr
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -8864,6 +8870,7 @@ Sub AIRequest(Param As Any Ptr)
 	#endif
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
+	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
 	AIAssistantsAnswers = ""
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
