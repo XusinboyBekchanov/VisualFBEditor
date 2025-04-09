@@ -4,20 +4,68 @@ Declare Function ProcessTable(lines() As WString Ptr, ByRef i As Integer) As Str
 Declare Function ProcessImage(ByRef imgPath As WString) As String
 Declare Function ProcessInlineStyles(ByRef iText As WString) As String
 Declare Function IsAlphaChar(ByRef c As String) As Boolean
+Declare Function RTFToPts(ByVal rtfSize As Integer) As Integer  
+Declare Function PtsToRTF(ByVal pts As Integer) As Integer  
+Declare Function RGBToRTF(ByVal r As Integer, ByVal g As Integer, ByVal b As Integer) As String  
+Declare Function RTFToRGB(ByVal rtfColor As String) As Long
 Declare Function EscapeRTF(ByRef iText As WString) As String
 Declare Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
-Dim Shared As String AIColorBK, AIColorFore  ', AIRTF_HEADER, AIEditorFontName
+Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
 'Dim Shared As Boolean g_darkModeSupported, g_darkModeEnabled
 Function IsAlphaChar(ByRef c As String) As Boolean
 	Dim ascVal As Integer = Asc(c)
 	Return (ascVal >= 65 And ascVal <= 90) Or (ascVal >= 97 And ascVal <= 122) Or (ascVal >= 48 And ascVal <= 57) Or (ascVal = 95)
 End Function
+' RTF to Pounds (Half Pounds → Pounds)  
+Function RTFToPts(ByVal rtfSize As Integer) As Integer  
+    Return rtfSize \ 2  
+End Function  
 
+' Pounds to RTF（Pounds → Half Pounds）  
+Function PtsToRTF(ByVal pts As Integer) As Integer  
+    Return pts * 2  
+End Function  
+
+' RGB to RTF Color Table 
+Function RGBToRTF(ByVal r As Integer, ByVal g As Integer, ByVal b As Integer) As String  
+    Return "\red" & Str(r) & "\green" & Str(g) & "\blue" & Str(b) & ";"  
+End Function  
+
+' RTF Color Table to RGB (Input：\red255\green0\blue0;)  
+Function RTFToRGB(ByVal rtfColor As String) As Long  
+    Dim As Integer r, g, b  
+    Dim As Integer p1, p2, p3  
+    
+    ' 提取红色分量  
+    p1 = InStr(rtfColor, "\red")  
+    p2 = InStr(p1 + 1, rtfColor, "\")  
+    If p1 > 0 And p2 > p1 Then  
+        r = Val(Mid(rtfColor, p1 + 4, p2 - (p1 + 4)))  
+    End If  
+    
+    ' 提取绿色分量  
+    p1 = InStr(rtfColor, "\green")  
+    p2 = InStr(p1 + 1, rtfColor, "\")  
+    If p1 > 0 And p2 > p1 Then  
+        g = Val(Mid(rtfColor, p1 + 6, p2 - (p1 + 6)))  
+    End If  
+    
+    ' 提取蓝色分量  
+    p1 = InStr(rtfColor, "\blue")  
+    p2 = InStr(p1 + 1, rtfColor, ";")  
+    If p1 > 0 And p2 > p1 Then  
+        b = Val(Mid(rtfColor, p1 + 5, p2 - (p1 + 5)))  
+    End If  
+    
+    Return RGB(r, g, b) 
+End Function  
+
+' 示例使用  
 ' Main function: VB code to RTF (with syntax highlighting)
 Function freeBasicToRTF(ByRef vbCode As WString) As String
 	' Enhanced keyword list
 	Dim As String keyWordsArr(0 To 21) = {"Sub", "Function", "Dim", "As", "If", "Then", "Else", "End", "For", "Next", "Do", "Loop", "While", "Wend", "Select", "Case", "Const", "True", "False", "Integer", "String", "Boolean"}
-	'pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2
+	''pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2
 	'Debug.Print "pkeywords0"
 	'For k As Integer = 0 To (pkeywords0->count - 1)
 	'	Debug.Print pkeywords0->Item(k)
@@ -69,6 +117,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 		
 		' Handle keyWordsArr (blue)
 		If Not inString AndAlso Not inComment Then
+			
 			For j As Integer = 0 To UBound(keyWordsArr)
 				Dim As Integer kwLen = Len(keyWordsArr(j))
 				If (i + kwLen - 1) <= n Then
@@ -76,7 +125,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 						' Check word boundaries
 						If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
 							(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
-							WAdd(rtfiText, "\cf7 " & keyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+							WAdd(rtfiText, "\cf7 " & keyWordsArr(j) & " \cf12" & "\highlight" & AIColorBK)
 							i += kwLen
 							Continue While
 						End If
@@ -116,13 +165,20 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	"\red128\green0\blue128;" & _    ' 8: Purple
 	"\red255\green255\blue255;" & _ ' 9: White (background)
 	"\red48\green48\blue48;" & _    ' 10: Dark gray (background)
+	RGBToRTF(GetRed(NormalText.Foreground), GetGreen(NormalText.Foreground), GetBlue(NormalText.Foreground)) & _ 
+	RGBToRTF(GetRed(Strings.Foreground), GetGreen(Strings.Foreground), GetBlue(Strings.Foreground)) & _ 
+	RGBToRTF(GetRed(ColorMacros.Foreground), GetGreen(ColorMacros.Foreground), GetBlue(ColorMacros.Foreground)) & _ 
 	"\red0\green200\blue200;" & _   ' 11: Teal (new)
 	"\red128\green128\blue128;" & _ ' 12: Gray (new)
 	"\red255\green0\blue255;" & _   ' 13: Pink (new)
 	"}" & _
-	"\viewkind4\uc1\pard\lang2052\f1\fs16"  ' Default font: Consolas, 9pt
+	"\viewkind4\uc1\pard\lang2052\f1\" & AIRTF_FontSize & ""  ' Default font: Consolas, 9pt
+	'ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLineLabels, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
+	'Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
+
 	AIColorFore = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "cf9", "cf0")
 	AIColorBK = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "10", "9")
+	AIRTF_FontSize = "fs" & PtsToRTF(EditorFontSize)
 	Dim As WString Ptr Lines(), rtfiText
 	Dim i As Integer
 	WLet(rtfiText, AIRTF_HEADER)
@@ -138,11 +194,11 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 			WAdd(rtfiText, "\f1\cf2\highlight" & "7" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
 			i += 1
 			While i <= UBound(Lines) AndAlso Left(*Lines(i), 3) <> "```"
-				'WAdd(rtfiText, "\f1\fs16\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
+				'WAdd(rtfiText, "\f1\" & AIRTF_FontSize & "\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
 				WAdd(rtfiText, freeBasicToRTF(*Lines(i)) & "\par")
 				i += 1
 			Wend
-			WAdd(rtfiText, "```\par\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & "\par")
+			WAdd(rtfiText, "```\par\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 			Continue For
 		End If
 		
@@ -219,19 +275,19 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 			Wend
 			
 			If level > 0 AndAlso (lineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
-				titleSize = Max(36 - level * 2, 24)
+				titleSize = Max(PtsToRTF(EditorFontSize+ 6) - level * 2, PtsToRTF(EditorFontSize))
 				WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1))) & "\b0\" & AIColorFore & "\par")
 			Else
-				WAdd(rtfiText, "\f0\fs16 " & ProcessInlineStyles(*Lines(i)) & "\par")
+				WAdd(rtfiText, "\f0\" & AIRTF_FontSize & " " & ProcessInlineStyles(*Lines(i)) & "\par")
 			End If
 			Continue For
 		End If
 		
 		' Normal paragraph processing
 		If lineLength = 0 Then
-			WAdd(rtfiText, "\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & "\par")
+			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 		Else
-			WAdd(rtfiText, "\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & ProcessInlineStyles(*Lines(i)) & "\par")
+			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & ProcessInlineStyles(*Lines(i)) & "\par")
 		End If
 		
 	Next
@@ -380,7 +436,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As String
 		Dim endPosi As Integer = InStr(Posi+1, *Result, "`")
 		If endPosi > 0 Then
 			WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\fs18\cf11\highlight" & AIColorBK & " "  & _
-			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & " " & _
+			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " " & _
 			Mid(*Result, endPosi + 1))
 			Posi = InStr(endPosi+1, *Result, "`")
 		Else

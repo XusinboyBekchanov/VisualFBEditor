@@ -36,7 +36,6 @@
 #include once "mff/ReBar.bi"
 #include once "mff/HTTP.bi"
 #include once "fbthread.bi"
-#include once "MD2RTF.bi"
 #include once "vbcompat.bi"
 
 Using My.Sys.Forms
