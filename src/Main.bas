@@ -8483,7 +8483,6 @@ tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
-txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
@@ -8930,7 +8929,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
 	txtAIAgent.ScrollToEnd
-	
+	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 	bInAIThread = True
 	txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
