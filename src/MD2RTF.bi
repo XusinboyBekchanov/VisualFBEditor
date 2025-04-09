@@ -112,11 +112,11 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	"\red255\green255\blue0;" & _    ' 4: Yellow
 	"\red0\green128\blue0;" & _     ' 5: Green
 	"\red0\green0\blue255;" & _     ' 6: Blue
-	"\red0\green142\blue142;" & _    ' 7: Indigo (actually using teal as substitute) 128
+	"\red0\green150\blue240;" & _    ' 7: Indigo (actually using teal as substitute) 128
 	"\red128\green0\blue128;" & _    ' 8: Purple
 	"\red255\green255\blue255;" & _ ' 9: White (background)
 	"\red48\green48\blue48;" & _    ' 10: Dark gray (background)
-	"\red0\green128\blue128;" & _   ' 11: Teal (new)
+	"\red0\green200\blue200;" & _   ' 11: Teal (new)
 	"\red128\green128\blue128;" & _ ' 12: Gray (new)
 	"\red255\green0\blue255;" & _   ' 13: Pink (new)
 	"}" & _
@@ -142,7 +142,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 				WAdd(rtfiText, freeBasicToRTF(*Lines(i)) & "\par")
 				i += 1
 			Wend
-			WAdd(rtfiText, "\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & "\par")
+			WAdd(rtfiText, "```\par\f0\fs16\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 			Continue For
 		End If
 		
@@ -211,14 +211,15 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 		End If
 		
 		' 5. Heading processing (optimized multi-level headings)
+		Dim As Integer titleSize, level 
 		If lineLength >= 1 AndAlso Left(*Lines(i), 1) = "#" Then
-			Dim level As Integer = 0
+			level = 0
 			While level < 6 AndAlso level < lineLength AndAlso Mid(*Lines(i), level+ 1, 1) = "#"
 				level += 1
 			Wend
 			
 			If level > 0 AndAlso (lineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
-				Dim titleSize As Integer = Max(32 - level * 2, 16)
+				titleSize = Max(36 - level * 2, 24)
 				WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1))) & "\b0\" & AIColorFore & "\par")
 			Else
 				WAdd(rtfiText, "\f0\fs16 " & ProcessInlineStyles(*Lines(i)) & "\par")
