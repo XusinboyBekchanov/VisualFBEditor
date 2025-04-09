@@ -42,7 +42,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 		' Handle strings (red)
 		If c = """" Then
 			If inString Then
-				WAdd(rtfiText,  """\cf11" & "\highlight" & AIColorBK)  ' End string
+				WAdd(rtfiText,  """ \cf11" & "\highlight" & AIColorBK)  ' End string
 				inString = 0
 			Else
 				WAdd(rtfiText, "\cf3""")  ' Start string
@@ -63,7 +63,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 				WAdd(rtfiText,  c) 'EscapeRTF(c)
 				i += 1
 			Wend
-			WAdd(rtfiText, "\cf11" & "\highlight" & AIColorBK)
+			WAdd(rtfiText, " \cf11" & "\highlight" & AIColorBK)
 			Continue While
 		End If
 		
@@ -112,7 +112,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	"\red255\green255\blue0;" & _    ' 4: Yellow
 	"\red0\green128\blue0;" & _     ' 5: Green
 	"\red0\green0\blue255;" & _     ' 6: Blue
-	"\red0\green128\blue128;" & _    ' 7: Indigo (actually using teal as substitute)
+	"\red0\green142\blue142;" & _    ' 7: Indigo (actually using teal as substitute) 128
 	"\red128\green0\blue128;" & _    ' 8: Purple
 	"\red255\green255\blue255;" & _ ' 9: White (background)
 	"\red48\green48\blue48;" & _    ' 10: Dark gray (background)
@@ -135,7 +135,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 		' 1. Code block processing (enhanced robustness)
 		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "```" Then
 			*Lines(i) = Trim(*Lines(i))
-			WAdd(rtfiText, "\f1\cf2\highlight10 " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+			WAdd(rtfiText, "\f1\cf2\highlight" & "7" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
 			i += 1
 			While i <= UBound(Lines) AndAlso Left(*Lines(i), 3) <> "```"
 				'WAdd(rtfiText, "\f1\fs16\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
@@ -213,12 +213,12 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 		' 5. Heading processing (optimized multi-level headings)
 		If lineLength >= 1 AndAlso Left(*Lines(i), 1) = "#" Then
 			Dim level As Integer = 0
-			While level < 6 AndAlso level < lineLength AndAlso Mid(*Lines(i), level+1, 1) = "#"
+			While level < 6 AndAlso level < lineLength AndAlso Mid(*Lines(i), level+ 1, 1) = "#"
 				level += 1
 			Wend
 			
 			If level > 0 AndAlso (lineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
-				Dim titleSize As Integer = min(32 - level * 2, 16)
+				Dim titleSize As Integer = Max(32 - level * 2, 16)
 				WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1))) & "\b0\" & AIColorFore & "\par")
 			Else
 				WAdd(rtfiText, "\f0\fs16 " & ProcessInlineStyles(*Lines(i)) & "\par")
