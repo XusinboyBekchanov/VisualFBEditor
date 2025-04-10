@@ -177,7 +177,7 @@ Common Shared As Integer LastOpenedFileType
 Common Shared As Integer LoadFunctionsCount, AIAgentPort
 Common Shared As Boolean AIAgentStream
 Common Shared As Double  AIAgentTop_P, AIAgentTemperature '介于 0 和 2 之间.
-Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName
+Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName, AIRTF_HEADER, AIEditorFontName
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables

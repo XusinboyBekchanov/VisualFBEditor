@@ -138,7 +138,7 @@ Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold, AIPostDataFi
 Dim Shared As Dictionary AIMessages, AIContext
 Dim Shared As WStringList AIIncludeFileNameList
 Dim Shared As Any Ptr AIThread
-Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr
+Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr
 Dim Shared As String AIPostData, AIAssistantsAnswers
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
@@ -5582,7 +5582,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
-				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework, part of the freeBasic framework."
+				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
 				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
 			
@@ -8482,15 +8482,14 @@ tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
-txtAIAgent.TextRTF = "{\urtf1\b    \b0\par    }"
 txtAIAgent.Multiline = True
-'txtAIAgent.Font.Name = *EditorFontName
-'txtAIAgent.Font.Size = EditorFontSize
+txtAIAgent.Font.Name = *EditorFontName
+txtAIAgent.Font.Size = EditorFontSize
+AIEditorFontName= *EditorFontName
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
-
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As WString Ptr result
@@ -8818,8 +8817,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If Trim(AIAssistantsAnswers) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 					Else
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text ="[**AI Response:**] " & AIAssistantsAnswers
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
 					End If
+					Deallocate AIBodyWStringPtr
+					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
+					txtAIAgent.TextRTF = *AIBodyWStringPtr
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -8864,6 +8867,7 @@ Sub AIRequest(Param As Any Ptr)
 	#endif
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
+	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
 	AIAssistantsAnswers = ""
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
@@ -8888,7 +8892,7 @@ Sub AIRequest(Param As Any Ptr)
 		txtAIAgent.SelBackColor = darkHlBkColor
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.SelText = !"\r\n[AI]: " & (*CurrentAIAgent) & !"\r\n"
 		txtAIAgent.ScrollToCaret
 		txtAIAgent.SelBackColor = darkBkColor
 		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
@@ -8917,13 +8921,13 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.SelText = !"\r\n\r\n" & ML("User") & " " & Date & " " & Time
+	txtAIAgent.SelText = !"\r\n\r\n[" & ML("User") & "]: " & Date & " " & Time
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
 	txtAIAgent.ScrollToEnd
-	
+	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 	bInAIThread = True
 	txtAIRequest.Enabled = False
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
@@ -9045,6 +9049,7 @@ End Sub
 
 Public Sub AIResetContext()
 	txtAIAgent.Text = " "
+	txtAIAgent.TextRTF = ""
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
@@ -9053,7 +9058,7 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
+		AIMessages.SaveToFile(ExePath & "\AIChat\" & Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
 		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "\AIChat")
 		AIMessages.Clear
 	End If
