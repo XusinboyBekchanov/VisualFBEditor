@@ -8491,7 +8491,6 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 
-
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As WString Ptr result
 	WLet(result, Replace(iText, "\", "\\"))
@@ -8893,7 +8892,7 @@ Sub AIRequest(Param As Any Ptr)
 		txtAIAgent.SelBackColor = darkHlBkColor
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.SelText = !"\r\n[AI]: " & (*CurrentAIAgent) & !"\r\n"
 		txtAIAgent.ScrollToCaret
 		txtAIAgent.SelBackColor = darkBkColor
 		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
@@ -8922,7 +8921,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.SelText = !"\r\n\r\n" & ML("User") & " " & Date & " " & Time
+	txtAIAgent.SelText = !"\r\n\r\n[" & ML("User") & "]: " & Date & " " & Time
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkBkColor
@@ -9050,6 +9049,7 @@ End Sub
 
 Public Sub AIResetContext()
 	txtAIAgent.Text = " "
+	txtAIAgent.TextRTF = ""
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
@@ -9058,7 +9058,7 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
+		AIMessages.SaveToFile(ExePath & "\AIChat\" & Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
 		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "\AIChat")
 		AIMessages.Clear
 	End If
