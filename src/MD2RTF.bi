@@ -1,15 +1,15 @@
 ﻿#include once "mff/WStringList.bi"
 ' RTF header definition (Consolas font, VB classic color scheme)
 ' Function declarations
-Declare Function ProcessTable(lines() As WString Ptr, ByRef i As Integer) As String
+Declare Function ProcessTable(lines() As WString Ptr, ByRef i As Integer) As UString
 Declare Function ProcessImage(ByRef imgPath As WString) As String
-Declare Function ProcessInlineStyles(ByRef iText As WString) As String
+Declare Function ProcessInlineStyles(ByRef iText As WString) As UString
 Declare Function IsAlphaChar(ByRef c As String) As Boolean
 Declare Function RTFToPts(ByVal rtfSize As Integer) As Integer
 Declare Function PtsToRTF(ByVal pts As Integer) As Integer
 Declare Function RGBToRTF(ByVal r As Integer, ByVal g As Integer, ByVal b As Integer) As String
 Declare Function RTFToRGB(ByVal rtfColor As String) As Long
-Declare Function EscapeRTF(ByRef iText As WString) As String
+Declare Function EscapeRTF(ByRef iText As WString) As UString
 Declare Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
 'Dim Shared As Boolean g_darkModeSupported, g_darkModeEnabled
@@ -63,7 +63,7 @@ End Function
 
 ' 示例使用
 ' Main function: VB code to RTF (with syntax highlighting)
-Function freeBasicToRTF(ByRef vbCode As WString) As String
+Function freeBasicToRTF(ByRef vbCode As WString) As UString
 	' Enhanced keyword list
 	Dim As String keyWordsArr(0 To 21) = {"Sub", "Function", "Dim", "As", "If", "Then", "Else", "End", "For", "Next", "Do", "Loop", "While", "Wend", "Select", "Case", "Const", "True", "False", "Integer", "String", "Boolean"}
 	''pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2
@@ -86,7 +86,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As String
 	Dim As Integer inString = 0, inComment = 0
 	
 	While i <= n
-		Dim As String c = Mid(vbCode, i, 1)
+		Dim As UString c = Mid(vbCode, i, 1)
 		
 		' Handle strings (red)
 		If c = """" Then
@@ -158,7 +158,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	Next
 	#ifdef __USE_WINAPI__
 		AIRTF_HEADER = _
-		"{\rtf1\ansi\ansicpg" & GetACP() & "\deff0" & _
+		"{\urtf1\ansi\ansicpg" & GetACP() & "\deff0" & _
 		"{\fonttbl{\f0\fnil\fcharset134 " & AIEditorFontName & ";}{\f1\fnil\fcharset134 Consolas;}}" & _
 		"{\colortbl;" & _
 		"\red0\green0\blue0;" & _       ' 1: Black (base text) Background color needs -1
@@ -192,7 +192,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	WLet(rtfiText, AIRTF_HEADER)
 	' Split text into lines
 	Split(WStr(EscapeRTF(mdiText)), Chr(10), Lines())
-	
+	Debug.Print WStr(EscapeRTF(mdiText))
 	For i = 0 To UBound(Lines)
 		Dim lineLength As Integer = Len(Trim(*Lines(i)))
 		
@@ -315,8 +315,8 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 End Function
 
 ' Helper function: Process tables
-Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As String
-	Dim tableRTF As String = ""
+Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As UString
+	Dim tableRTF As UString = ""
 	Dim cols As Integer = 0
 	Dim j As Integer
 	
@@ -398,7 +398,7 @@ Function ProcessImage(ByRef imgLine As WString) As String
 End Function
 
 ' Helper function: Process inline styles (optimized logic and performance)
-Function ProcessInlineStyles(ByRef iText As WString) As String
+Function ProcessInlineStyles(ByRef iText As WString) As UString
 	Dim As WString Ptr Result
 	Dim As Integer Posi, endPosi
 	' Initialize result string
@@ -487,8 +487,8 @@ Function ProcessInlineStyles(ByRef iText As WString) As String
 End Function
 
 ' Helper function: RTF special character escaping
-Function EscapeRTF(ByRef iText As WString) As String
-	Dim result As String = iText
+Function EscapeRTF(ByRef iText As WString) As UString
+	Dim result As UString = iText
 	result = Replace(result, "\", "\\")
 	result = Replace(result, "{", "\{")
 	result = Replace(result, "}", "\}")
