@@ -192,16 +192,18 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	WLet(rtfiText, AIRTF_HEADER)
 	' Split text into lines
 	Split(WStr(EscapeRTF(mdiText)), Chr(10), Lines())
-	Debug.Print WStr(EscapeRTF(mdiText))
+			
 	For i = 0 To UBound(Lines)
 		Dim lineLength As Integer = Len(Trim(*Lines(i)))
 		
 		'"[" & ML("User") & "]: "
-		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "[" & ML("User") & "]: " Then
+				If lineLength >= 3 AndAlso Left(*Lines(i), Len("[" & ML("User") & "]: ")) = "[" & ML("User") & "]: " Then
+					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					Continue For
+				End If
+				If lineLength >= 3 AndAlso Left(*Lines(i), Len("[AI]: ")) = "[AI]: " Then
 			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-		End If
-		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "[AI]: " Then
-			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					Continue For
 		End If
 		' 1. Code block processing (enhanced robustness)
 		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "```" Then
@@ -450,7 +452,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As UString
 	While Posi > 0
 		Dim endPosi As Integer = InStr(Posi+1, *Result, "`")
 		If endPosi > 0 Then
-			WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\fs18\cf11\highlight" & AIColorBK & " "  & _
+					WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\" & AIRTF_FontSize & "\cf11\highlight" & AIColorBK & " "  & _
 			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " " & _
 			Mid(*Result, endPosi + 1))
 			Posi = InStr(endPosi+1, *Result, "`")

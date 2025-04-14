@@ -88,9 +88,9 @@ Sub DebugPrint_(ByRef msg As WString)
 End Sub
 
 Sub StartDebuggingWithCompile(Param As Any Ptr)
-'	ThreadsEnter
-'	ChangeEnabledDebug False, True, True
-'	ThreadsLeave
+	'	ThreadsEnter
+	'	ChangeEnabledDebug False, True, True
+	'	ThreadsLeave
 	If Compile("Run") Then RunWithDebug(0) Else ThreadsEnter: ChangeEnabledDebug True, False, False: ThreadsLeave
 End Sub
 
@@ -235,7 +235,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent
 	Case "SetAsMain":                           SetAsMain @Sender = miTabSetAsMain
-	Case "ReloadHistoryCode":                   ReloadHistoryCode 
+	Case "ReloadHistoryCode":                   ReloadHistoryCode
 	Case "ProblemsCopy":                        If lvProblems.ListItems.Count < 1 Then Return Else Clipboard.SetAsText lvProblems.SelectedItem->Text(0)
 	Case "ProblemsCopyAll":
 		Dim As WString Ptr tmpStrPtr
@@ -285,7 +285,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "ImmediateWindow":                     tpImmediate->SelectTab
 	Case "LocalsWindow":                        tpLocals->SelectTab
 	Case "GlobalsWindow":                       tpGlobals->SelectTab
-	'Case "ProceduresWindow":                    tpProcedures->SelectTab
+		'Case "ProceduresWindow":                    tpProcedures->SelectTab
 	Case "ThreadsWindow":                       tpThreads->SelectTab
 	Case "WatchWindow":                         tpWatches->SelectTab
 	Case "ImageManager":                        pfImageManager->Show *pfrmMain : pfImageManager->CenterToParent
@@ -353,21 +353,21 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			Else
 				If InDebug Then
 					'#ifndef __USE_GTK__
-						ChangeEnabledDebug False, True, True
-						'brk_set(12)
-						'runtype = RTAUTO
-						'#ifdef __FB_WIN32__
-						'	set_cc()
-						'#else
-						'	If ccstate=KCC_NONE Then
-						'		msgdata=1 ''CC everywhere
-						'		exec_order(KPT_CCALL)
-						'	End If
-						'#EndIf
-						'thread_set()
-						fastrun()
-						'runtype = RTRUN
-						'thread_resume()
+					ChangeEnabledDebug False, True, True
+					'brk_set(12)
+					'runtype = RTAUTO
+					'#ifdef __FB_WIN32__
+					'	set_cc()
+					'#else
+					'	If ccstate=KCC_NONE Then
+					'		msgdata=1 ''CC everywhere
+					'		exec_order(KPT_CCALL)
+					'	End If
+					'#EndIf
+					'thread_set()
+					fastrun()
+					'runtype = RTRUN
+					'thread_resume()
 					'#endif
 					'runtype = RTAUTO
 					'#ifdef __FB_WIN32__
@@ -421,19 +421,19 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Else
 			If InDebug Then
 				'#ifndef __USE_GTK__
-					ChangeEnabledDebug False, True, True
-					#ifdef __FB_WIN32__
-						fastrun()
-					#endif
-					'runtype = RTRUN
-					'thread_resume()
+				ChangeEnabledDebug False, True, True
+				#ifdef __FB_WIN32__
+					fastrun()
+				#endif
+				'runtype = RTRUN
+				'thread_resume()
 				'#endif
 			ElseIf UseDebugger Then
 				'#ifndef __USE_GTK__
-					runtype = RTFRUN
-					'runtype = RTRUN
-					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
-					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
+				runtype = RTFRUN
+				'runtype = RTRUN
+				SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
+				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				'#endif
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			Else
@@ -469,15 +469,15 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			'#ifdef __USE_GTK__
 			'	ChangeEnabledDebug True, False, False
 			'#else
-				'kill_process("Terminate immediatly no saved data, other option Release")
-				For i As Integer = 1 To linenb 'restore old instructions
-					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rline(i).sv, 1, 0)
-				Next
-				runtype = RTFREE
-				'but_enable()
-				thread_resume()
-				DeleteDebugCursor
-				ChangeEnabledDebug True, False, False
+			'kill_process("Terminate immediatly no saved data, other option Release")
+			For i As Integer = 1 To linenb 'restore old instructions
+				WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @rline(i).sv, 1, 0)
+			Next
+			runtype = RTFREE
+			'but_enable()
+			thread_resume()
+			DeleteDebugCursor
+			ChangeEnabledDebug True, False, False
 			'#endif
 		End If
 	Case "Restart"
@@ -489,15 +489,15 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			#endif
 		Else
 			'#ifndef __USE_GTK__
-				If prun AndAlso kill_process(ML("Trying to launch but debuggee still running")) = False Then
-					Exit Sub
-				End If
-				runtype = RTFRUN
-				'runtype = RTRUN
-				SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
-				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
-				Restarting = True
-				ThreadCounter(ThreadCreate_(@StartDebugging))
+			If prun AndAlso kill_process(ML("Trying to launch but debuggee still running")) = False Then
+				Exit Sub
+			End If
+			runtype = RTFRUN
+			'runtype = RTRUN
+			SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
+			CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
+			Restarting = True
+			ThreadCounter(ThreadCreate_(@StartDebugging))
 			'#endif
 		End If
 	Case "StepInto":
@@ -573,9 +573,19 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			End If
 		End If
+	Case "AIRelease"
+		AIRelease
+	Case "AINewChat"
+		AIResetContext
+	Case "AIWebBrowserItem"
+		ptxtAIRequest->Text = ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis.")
+		ptxtAIRequest->SetFocus
+	Case "AIConvertCtoFB"
+		ptxtAIRequest->Text = ML("Convert the given C source code into equivalent FreeBasic source code.") & " " & ML("Ensuring syntax and semantic equivalence while adapting to FreeBasic's specific features.") & !"\r\n" & "```C" & !"\r\n" & "       " & !"\r\n" & "```"
+		ptxtAIRequest->SetFocus
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
 		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
-		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AINewChat", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AIConvertCtoFB", "AITranslate", "AITranslateE", "AIWebBrowserItem", "AIRelease"
+		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AITranslate", "AITranslateE"
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
@@ -585,8 +595,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "SortLines":                   tb->SortLines
 		Case "DeleteBlankLines":            tb->DeleteBlankLines
 		Case "FormatWithBasisWord" :        tb->FormatWithBasisWord
-		Case "ConvertToLowercase":           tb->ConvertToLowercase
-		Case "ConvertToUppercase":           tb->ConvertToUppercase
+		Case "ConvertToLowercase":          tb->ConvertToLowercase
+		Case "ConvertToUppercase":          tb->ConvertToUppercase
 		Case "ConvertToHexStrUnicode":          tb->ConvertToHexStrUnicode
 		Case "ConvertFromHexStrUnicode":          tb->ConvertFromHexStrUnicode
 		Case "ConvertToUppercaseFirstLetter": tb->ConvertToUppercaseFirstLetter
@@ -650,14 +660,6 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			#endif
 			ptabCode = @ptabPanelNew->tabCode
 			TabPanels.Add ptabPanelNew
-		Case "AIRelease"
-				If pHTTPAIAgent <> 0 Then 
-					pHTTPAIAgent->Abort = True
-				End If
-				ptxtAIRequest->Enabled = True
-				ptxtAIRequest->SetFocus
-		Case "AINewChat"
-			AIResetContext
 		Case "AITracepointError"
 			If lvProblems.ListItems.Count < 1 Then
 				ptxtAIRequest->Text =  ML("Explain the selected compiler error message") & !":\r\n" & "```freeBasic" & !"\r\n" & !"\r\n" & "```"
@@ -671,14 +673,11 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptxtAIRequest->Text = ML("Generate code based on the requirements of the selected comment lines") & ": " & !"\r\n" & "```freeBasic" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 		Case "AIAddComment" '"AIOptimizeCode", "AIIntellicode" , "AITracepointError", "AIRelease"
-			'ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " & 
+			'ML("You are FreeBasic programming expert. Follow MyFbFramework GUI form guidelines.") & " " &
 			ptxtAIRequest->Text = ML("Comment selected code") & ": " & !"\r\n" & "```freeBasic" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 		Case "AIOptimizeCode"
 			ptxtAIRequest->Text = ML("Optimize selected code") & ": " & !"\r\n" & "```freeBasic" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
-			ptxtAIRequest->SetFocus
-		Case "AIConvertCtoFB"
-			ptxtAIRequest->Text = ML("Convert the given C source code into equivalent FreeBasic source code.") & " " & ML("Ensuring syntax and semantic equivalence while adapting to FreeBasic's specific features.") & !"\r\n" & "```C" & !"\r\n" & "       " & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 		Case "AITranslate"
 			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML(App.CurLanguage) & !"\r\n" & "```MARKDOWN" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
@@ -687,9 +686,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "AITranslateE"
 			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English") & !"\r\n" & "```MARKDOWN" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
-		Case "AIWebBrowserItem"
-			ptxtAIRequest->Text = ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis.")
-			ptxtAIRequest->SetFocus
+			
 		Case "SetNextStatement":
 			ClearThreadsWindow
 			Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
@@ -704,9 +701,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					exe_mod()
 				#endif
 			End If
-		Case "ShowVar":                 
+		Case "ShowVar":
 			'#ifndef __USE_GTK__
-				var_tip(1)
+			var_tip(1)
 			'#endif
 		Case "StepOut":
 			ClearThreadsWindow
@@ -758,14 +755,14 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					RunningToCursor = True
 					runtype = RTFRUN
 					'#ifndef __USE_GTK__
-						CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
+					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 					'#endif
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				End If
 			End If
 		Case "AddWatch":
 			'#ifndef __USE_GTK__
-				var_tip(2)
+			var_tip(2)
 			'#endif
 		Case "FindNext":                    pfFind->Find(True)
 		Case "FindPrev":                    pfFind->Find(False)
@@ -776,7 +773,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "Code":                        tb->tbrTop.Buttons.Item("Code")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
 		Case "Form":                        tb->tbrTop.Buttons.Item("Form")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Form")
 		Case "CodeAndForm":                 tb->tbrTop.Buttons.Item("CodeAndForm")->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("CodeAndForm")
-		Case "GotoCodeForm":                
+		Case "GotoCodeForm":
 			If tb->txtCode.Focused Then
 				If tb->tbrTop.Buttons.Item("Code")->Checked Then tb->tbrTop.Buttons.Item(tb->LastButton)->Checked = True: tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item(tb->LastButton)
 				If tb->Des Then DesignerChangeSelection(*tb->Des, tb->Des->SelectedControl)
@@ -804,7 +801,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
 	Case "EraseImmediateWindow":            txtImmediate.Text = ""
-	Case "Update":                          
+	Case "Update":
 		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
 		#endif
@@ -842,9 +839,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			tb->NewLineType = NewLineType
 			tb->Modified = True
 		End If
-		Case "VariableDump":                var_dump(tviewvar)
-		Case "PointedDataDump":             var_dump(tviewvar, 1)
-		Case "MemoryDumpWatch":             var_dump(tviewwch)
+	Case "VariableDump":                var_dump(tviewvar)
+	Case "PointedDataDump":             var_dump(tviewvar, 1)
+	Case "MemoryDumpWatch":             var_dump(tviewwch)
 		#ifndef __USE_GTK__
 		Case "ShowStringWatch":             string_sh(tviewwch)
 		Case "ShowExpandVariableWatch":     shwexp_new(tviewwch)
@@ -857,7 +854,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define"
 		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 		If ActiveForm = 0 Then Exit Sub
-		If ActiveForm->ActiveControl = 0 Then 
+		If ActiveForm->ActiveControl = 0 Then
 			Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 			If tb <> 0 AndAlso tb->cboClass.ItemIndex > 0 Then
 				Dim des As Designer Ptr = tb->Des
@@ -963,7 +960,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Case "ProcedureNumberOff":      tb->ProcedureNumberOff
 				Case "PreprocessorNumberOn":    tb->PreprocessorNumberOn
 				Case "PreprocessorNumberOff":   tb->PreprocessorNumberOff
-				'Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
+					'Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
 				Case "OnErrorGoto":             tb->SetErrorHandling "On Error Goto ErrorHandler", ""
 				Case "OnErrorGotoResumeNext":   tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
 				Case "OnLocalErrorGoto":           tb->SetErrorHandling "On Local Error Goto ErrorHandler", ""
@@ -997,6 +994,6 @@ pApp->Run
 End
 AA:
 MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
