@@ -8823,6 +8823,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
 					txtAIAgent.TextRTF = *AIBodyWStringPtr
+					txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * .5)
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -8873,7 +8874,7 @@ Sub AIRequest(Param As Any Ptr)
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
-	txtAIAgent.SelText = !"\r\n" & (*CurrentAIAgent) & !"\r\n"
+	txtAIAgent.SelText = !"\r\n[AI]: " & (*CurrentAIAgent) & !"\r\n"
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.ScrollToEnd
 	If AIAgentStream Then
@@ -9050,6 +9051,8 @@ End Sub
 Public Sub AIResetContext()
 	txtAIAgent.Text = " "
 	txtAIAgent.TextRTF = ""
+	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+	Deallocate AIBodyWStringSavePtr: AIBodyWStringSavePtr = 0
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
