@@ -13,6 +13,23 @@ Declare Function EscapeRTF(ByRef iText As WString) As UString
 Declare Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
 'Dim Shared As Boolean g_darkModeSupported, g_darkModeEnabled
+Dim Shared As String KeyWordsArr(Any)
+Dim Shared As Integer KeyWordIndex, KeyWordIndexMacro
+ReDim KeyWordsArr(pkeywords0->Count + pkeywords1->Count + pkeywords2->Count - 1)
+KeyWordIndexMacro = pkeywords0->Count - 1
+For k As Integer = 0 To (pkeywords0->Count - 1)
+	KeyWordsArr(KeyWordIndex) = pkeywords0->Item(k)
+	KeyWordIndex += 1
+Next
+For k As Integer = 0 To (pkeywords1->Count - 1)
+	KeyWordsArr(KeyWordIndex) = pkeywords1->Item(k)
+	KeyWordIndex += 1
+Next
+For k As Integer = 0 To (pkeywords2->Count - 1)
+	KeyWordsArr(KeyWordIndex) = pkeywords2->Item(k)
+	KeyWordIndex += 1
+Next
+
 Function IsAlphaChar(ByRef c As String) As Boolean
 	Dim ascVal As Integer = Asc(c)
 	Return (ascVal >= 65 And ascVal <= 90) Or (ascVal >= 97 And ascVal <= 122) Or (ascVal >= 48 And ascVal <= 57) Or (ascVal = 95)
@@ -64,22 +81,6 @@ End Function
 ' 示例使用
 ' Main function: VB code to RTF (with syntax highlighting)
 Function freeBasicToRTF(ByRef vbCode As WString) As UString
-	' Enhanced keyword list
-	Dim As String keyWordsArr(0 To 21) = {"Sub", "Function", "Dim", "As", "If", "Then", "Else", "End", "For", "Next", "Do", "Loop", "While", "Wend", "Select", "Case", "Const", "True", "False", "Integer", "String", "Boolean"}
-	''pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2
-	'Debug.Print "pkeywords0"
-	'For k As Integer = 0 To (pkeywords0->count - 1)
-	'	Debug.Print pkeywords0->Item(k)
-	'Next
-	'Debug.Print "pkeywords2"
-	'For k As Integer = 0 To (pkeywords2->count - 1)
-	'	Debug.Print pkeywords2->Item(k)
-	'Next
-	'Debug.Print "pkeywords1"
-	'For k As Integer = 0 To (pkeywords1->count - 1)
-	'	Debug.Print pkeywords1->Item(k)
-	'Next
-	
 	' RTF header with proper color table
 	Dim As WString Ptr rtfiText
 	Dim As Integer i = 1, n = Len(vbCode)
@@ -118,15 +119,18 @@ Function freeBasicToRTF(ByRef vbCode As WString) As UString
 		
 		' Handle keyWordsArr (blue)
 		If Not inString AndAlso Not inComment Then
-			
-			For j As Integer = 0 To UBound(keyWordsArr)
-				Dim As Integer kwLen = Len(keyWordsArr(j))
+			For j As Integer = 0 To UBound(KeyWordsArr)
+				Dim As Integer kwLen = Len(KeyWordsArr(j))
 				If (i + kwLen - 1) <= n Then
-					If Mid(vbCode, i, kwLen) = keyWordsArr(j) Then
+					If Mid(vbCode, i, kwLen) = KeyWordsArr(j) Then
 						' Check word boundaries
 						If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
 							(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
-							WAdd(rtfiText, "\cf7 " & keyWordsArr(j) & " \cf12" & "\highlight" & AIColorBK)
+							If j <= KeyWordIndexMacro Then
+								WAdd(rtfiText, "\cf13 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+							Else
+								WAdd(rtfiText, "\cf15 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+							End If
 							i += kwLen
 							Continue While
 						End If
@@ -192,18 +196,18 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	WLet(rtfiText, AIRTF_HEADER)
 	' Split text into lines
 	Split(WStr(EscapeRTF(mdiText)), Chr(10), Lines())
-			
+	
 	For i = 0 To UBound(Lines)
 		Dim lineLength As Integer = Len(Trim(*Lines(i)))
 		
 		'"[" & ML("User") & "]: "
-				If lineLength >= 3 AndAlso Left(*Lines(i), Len("[" & ML("User") & "]: ")) = "[" & ML("User") & "]: " Then
-					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-					Continue For
-				End If
-				If lineLength >= 3 AndAlso Left(*Lines(i), Len("[AI]: ")) = "[AI]: " Then
+		If lineLength >= 3 AndAlso Left(*Lines(i), Len("[" & ML("User") & "]: ")) = "[" & ML("User") & "]: " Then
 			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-					Continue For
+			Continue For
+		End If
+		If lineLength >= 3 AndAlso Left(*Lines(i), Len("[AI]: ")) = "[AI]: " Then
+			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+			Continue For
 		End If
 		' 1. Code block processing (enhanced robustness)
 		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "```" Then
@@ -452,7 +456,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As UString
 	While Posi > 0
 		Dim endPosi As Integer = InStr(Posi+1, *Result, "`")
 		If endPosi > 0 Then
-					WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\" & AIRTF_FontSize & "\cf11\highlight" & AIColorBK & " "  & _
+			WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\" & AIRTF_FontSize & "\cf11\highlight" & AIColorBK & " "  & _
 			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " " & _
 			Mid(*Result, endPosi + 1))
 			Posi = InStr(endPosi+1, *Result, "`")
