@@ -16,14 +16,14 @@ Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
 Dim Shared As String KeyWordsArr(Any)
 Dim Shared As Integer KeyWordIndex, KeyWordIndexMacro, KeyWordIndexType
 
-KeyWordIndexMacro = Max(0, pkeywords0->count + pkeywords1->count + pkeywords2->count - 1)
+KeyWordIndexMacro = Max(0, pkeywords0->Count + pkeywords1->Count + pkeywords2->Count - 1)
 ReDim KeyWordsArr(KeyWordIndexMacro)
 KeyWordIndexMacro = pkeywords0->Count - 1
 For k As Integer = 0 To (pkeywords0->Count - 1)
 	KeyWordsArr(KeyWordIndex) = pkeywords0->Item(k)
 	KeyWordIndex += 1
 Next
-KeyWordIndexType= pkeywords1->count - 1
+KeyWordIndexType= pkeywords1->Count - 1
 For k As Integer = 0 To (pkeywords1->Count - 1)
 	KeyWordsArr(KeyWordIndex) = pkeywords1->Item(k)
 	KeyWordIndex += 1
@@ -175,7 +175,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	#ifdef __USE_WINAPI__
 		AIRTF_HEADER = _
 		"{\urtf1\ansi\ansicpg" & GetACP() & "\deff0" & _
-		"{\fonttbl{\f0\fnil\fcharset134 " & AIEditorFontName & ";}{\f1\fnil\fcharset134 Consolas;}}" & _
+		"{\fonttbl{\f0\fnil\fcharset0 " & AIEditorFontName & ";}{\f1\fnil\fcharset204 Consolas;}}" & _
 		"{\colortbl;" & _
 		"\red0\green0\blue0;" & _       ' 1: Black (base text) Background color needs -1
 		"\red255\green0\blue0;" & _     ' 2: Red
