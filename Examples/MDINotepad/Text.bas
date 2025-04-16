@@ -1,6 +1,6 @@
 ﻿#pragma once
 ' Text 文本处理
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "Text.bi"
@@ -186,7 +186,10 @@ Private Function FindCountWStr(ByRef Expression As WString, Finding As Const WSt
 				j = 0
 			End If
 		Else
-			j = 0
+			If j Then
+				If i Then i -= 1
+				j = 0
+			End If
 		End If
 	Next
 	Count += 1
@@ -220,12 +223,12 @@ Private Function FindIndexByPos(ByRef FindPositions As Integer Ptr, FindCount As
 	Return -1
 End Function
 
-'用文字Delimiter将字符串Subject分离成数组Result,返回数组数(从0开始)
+'用文字Delimiter将字符串Subject分离成数组Result,返回数组数
 Private Function SplitWStr(ByRef Subject As WString, ByRef Delimiter As Const WString, Result(Any) As WString Ptr, ByVal MatchCase As Boolean = False) As Integer
 	ArrayDeallocate(Result())
 	Dim FoundPositions As Integer Ptr = 0
 	Dim FindCount As Integer = FindCountWStr(Subject, Delimiter, FoundPositions, MatchCase)
-	
+
 	If FindCount < 1 Then
 		ReDim Result(0)
 		WLet(Result(0), Subject)
@@ -292,7 +295,7 @@ Private Function SortArray(Subject() As WString Ptr, ByVal Ordering As SortOrder
 	End If
 End Function
 
-'字符串数组Subject用文字Delimiter从iStart到iEnd连接合并,返回合并后的字符串长度
+'字符串数组Subject用文字Delimiter从iStart到iEnd连接合并为Result,返回合并后的字符串长度
 Private Function JoinWStr(Subject(Any) As WString Ptr, ByRef Delimiter As Const WString, ByRef Result As WString Ptr, ByVal iStart As Integer = -1, ByVal iEnd As Integer = -1) As Integer
 	Dim Ub As Integer = UBound(Subject)             '开始索引值
 	Dim Lb As Integer = LBound(Subject)             '结束索引值
@@ -355,7 +358,7 @@ Private Function FindLinesWStr(ByRef Expression As WString, ByRef Finding As Con
 End Function
 
 '在Expression中寻找Finding并用Replacing替换成Replaced,返回找到的个数,从1开始,0表示未找到
-Private Function ReplaceWStr(ByRef Expression As WString, ByRef Finding As WString, ByRef Replacing As WString, ByRef Replaced As WString Ptr, ByVal MatchCase As Boolean = False) As Integer
+Private Function ReplaceWStr Overload(ByRef Expression As WString, ByRef Finding As WString, ByRef Replacing As WString, ByRef Replaced As WString Ptr, ByVal MatchCase As Boolean = False) As Integer
 	Dim FoundPositions As Integer Ptr
 	Dim CountFind As Integer = FindCountWStr(Expression, Finding, FoundPositions, MatchCase)
 	If CountFind Then
@@ -385,6 +388,41 @@ Private Function ReplaceWStr(ByRef Expression As WString, ByRef Finding As WStri
 	End If
 	Deallocate (FoundPositions)
 	Return CountFind
+End Function
+
+Private Function ReplaceWStr Overload(ByRef Expression As WString, ByRef Finding As WString, ByRef Replacing As WString, ByVal MatchCase As Boolean = False) As UString
+	Dim Replaced As WString Ptr = NULL
+	Dim FoundPositions As Integer Ptr
+	Dim CountFind As Integer = FindCountWStr(Expression, Finding, FoundPositions, MatchCase)
+	If CountFind Then
+		Dim lenReturn As Integer = 0
+		Dim lenExpression As Integer = Len(Expression)
+		Dim lenFinding As Integer = Len(Finding)
+		Dim lenReplacing As Integer = Len(Replacing)
+		lenReturn = lenExpression - lenFinding * CountFind + lenReplacing * CountFind
+		Replaced = CAllocate(lenReturn *2 + 2)
+		Dim iPos As Integer = *FoundPositions
+		memcpy(Replaced, @Expression, iPos * 2)
+		
+		Dim i As Integer
+		Dim iSt As Integer
+		Dim iLen As Integer
+		
+		For i = 1 To CountFind
+			memcpy(Replaced + iPos, @Replacing, lenReplacing * 2)
+			iPos += lenReplacing
+			iSt = * (FoundPositions + i - 1) + lenFinding
+			iLen = * (FoundPositions + i) - iSt
+			
+			memcpy(Replaced + iPos , @Expression + iSt, iLen * 2)
+			iPos += iLen
+		Next
+	Else
+		wlet(Replaced, Expression)
+	End If
+	Deallocate (FoundPositions)
+	Function = *Replaced
+	Deallocate(Replaced)
 End Function
 
 '全路径文件名补全
@@ -680,5 +718,4 @@ Private Function TextToFile(ByRef FileName As Const WString, pText As WString, B
 	If pTmp Then Deallocate(pTmp)
 	Return False
 End Function
-
 
