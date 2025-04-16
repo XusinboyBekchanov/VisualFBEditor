@@ -14,13 +14,16 @@ Declare Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
 'Dim Shared As Boolean g_darkModeSupported, g_darkModeEnabled
 Dim Shared As String KeyWordsArr(Any)
-Dim Shared As Integer KeyWordIndex, KeyWordIndexMacro
-ReDim KeyWordsArr(pkeywords0->Count + pkeywords1->Count + pkeywords2->Count - 1)
+Dim Shared As Integer KeyWordIndex, KeyWordIndexMacro, KeyWordIndexType
+
+KeyWordIndexMacro = Max(0, pkeywords0->count + pkeywords1->count + pkeywords2->count - 1)
+ReDim KeyWordsArr(KeyWordIndexMacro)
 KeyWordIndexMacro = pkeywords0->Count - 1
 For k As Integer = 0 To (pkeywords0->Count - 1)
 	KeyWordsArr(KeyWordIndex) = pkeywords0->Item(k)
 	KeyWordIndex += 1
 Next
+KeyWordIndexType= pkeywords1->count - 1
 For k As Integer = 0 To (pkeywords1->Count - 1)
 	KeyWordsArr(KeyWordIndex) = pkeywords1->Item(k)
 	KeyWordIndex += 1
@@ -127,9 +130,15 @@ Function freeBasicToRTF(ByRef vbCode As WString) As UString
 						If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
 							(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
 							If j <= KeyWordIndexMacro Then
-								WAdd(rtfiText, "\cf13 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
-							Else
+								WAdd(rtfiText, "\cf14 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+							ElseIf j <= KeyWordIndexType Then
 								WAdd(rtfiText, "\cf15 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+							Else
+								If Mid(vbCode, i + kwLen, 1) = " " Then
+									WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+								Else
+									WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & "\cf11" & "\highlight" & AIColorBK)
+								End If
 							End If
 							i += kwLen
 							Continue While
@@ -157,6 +166,9 @@ End Function
 ' Main conversion function
 Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	Dim As String KeyWordColorStr
+	AIColorFore = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "cf9", "cf0")
+	AIColorBK = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "10", "9")
+	AIRTF_FontSize = "fs" & PtsToRTF(EditorFontSize)
 	For k As Integer = 1 To KeywordLists.Count - 1
 		KeyWordColorStr &= RGBToRTF(GetRed(Keywords(k).Foreground), GetGreen(Keywords(k).Foreground), GetBlue(Keywords(k).Foreground))
 	Next
@@ -183,14 +195,11 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 		"\red128\green128\blue128;" & _ ' 12: Gray (new)
 		"\red255\green0\blue255;" & _   ' 13: Pink (new)
 		"}" & _
-		"\viewkind4\uc1\pard\lang2052\f1\" & AIRTF_FontSize & ""  ' Default font: Consolas, 9pt
+		"\viewkind4\uc1\pard\lang2052\f1\" & AIRTF_FontSize ' Default font: Consolas, 9pt
 	#endif
 	'ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLineLabels, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
 	'Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
 	
-	AIColorFore = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "cf9", "cf0")
-	AIColorBK = IIf(g_darkModeSupported AndAlso g_darkModeEnabled, "10", "9")
-	AIRTF_FontSize = "fs" & PtsToRTF(EditorFontSize)
 	Dim As WString Ptr Lines(), rtfiText
 	Dim i As Integer
 	WLet(rtfiText, AIRTF_HEADER)
@@ -459,7 +468,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As UString
 			WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\" & AIRTF_FontSize & "\cf11\highlight" & AIColorBK & " "  & _
 			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " " & _
 			Mid(*Result, endPosi + 1))
-			Posi = InStr(endPosi+1, *Result, "`")
+			Posi = InStr(endPosi + 1, *Result, "`")
 		Else
 			Exit While
 		End If

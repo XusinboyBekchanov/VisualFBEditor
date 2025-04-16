@@ -2035,7 +2035,7 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		k = iStart
 		Do While k <= IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
 			WLet(FLine, Trim(LCase(ptxtCode->Lines(k)), Any !"\t "))
-			If Not b AndAlso StartsWith(*FLine & " ", "constructor " & LCase(frmTypeName) & " ") Then
+			If Not b AndAlso (StartsWith(*FLine, "constructor " & LCase(frmTypeName) & "(") OrElse StartsWith(*FLine & " ", "constructor " & LCase(frmTypeName) & " ")) Then
 				b = True
 			ElseIf b AndAlso StartsWith(*FLine & " ", "end constructor ") Then
 				Exit Do, Do
@@ -2208,7 +2208,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 	t = False
 	For i = i To tb->txtCode.LinesCount - 1
 		For k = iStart To IIf(ptxtCode = @tb->txtCode, i, ptxtCode->LinesCount - 1)
-			If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ") Or StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & "type ") Then
+			If StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "constructor " & LCase(frmName) & "type ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "constructor " & LCase(frmName) & "(") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t "), "constructor " & LCase(frmName) & "type(") Then
 				sc = k
 				b = True
 				sl = Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))
@@ -2527,13 +2527,13 @@ Sub TabWindow.ChangeName(ByRef OldName As WString, ByRef NewName As WString)
 						ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Pos1) & NewName & Mid(ptxtCode->Lines(k), Len(OldName) + Pos1 + 1)
 					End If
 				End If
-			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & " ") Then
+			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & " ") OrElse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "constructor " & LCase(frmName) & "(") Then
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName) + 13)
 				End If
 				b = True
-			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & "type ") Then
+			ElseIf StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmName) & "type ") Orelse StartsWith(LCase(LTrim(ptxtCode->Lines(k), Any !"\t ")), "constructor " & LCase(frmName) & "type(") Then
 				If iIndex = 1 Then
 					CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
 					ptxtCode->ReplaceLine k, ..Left(ptxtCode->Lines(k), Len(ptxtCode->Lines(k)) - Len(LTrim(ptxtCode->Lines(k), Any !"\t "))) & ..Left(LTrim(ptxtCode->Lines(k), Any !"\t "), 12) & NewName & "Type" & Mid(LTrim(ptxtCode->Lines(k), Any !"\t "), Len(frmName & "Type") + 13)
@@ -3378,7 +3378,7 @@ Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
 						End If
 					End If
 				ElseIf e Then
-					If (Not c) AndAlso StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmTypeName) & " ") Then
+					If (Not c) AndAlso (StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")) & " ", "constructor " & LCase(frmTypeName) & " ") OrElse StartsWith(LCase(Trim(ptxtCode->Lines(k), Any !"\t ")), "constructor " & LCase(frmTypeName) & "(")) Then
 						c = True
 						ptxtCodeConstructor = ptxtCode
 					ElseIf c Then
@@ -9884,7 +9884,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 							End If
 						End If
-					ElseIf CInt(Not c) AndAlso CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t ") & " ", "constructor " & LCase(frmTypeName) & " ")) Then
+					ElseIf CInt(Not c) AndAlso (CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t ") & " ", "constructor " & LCase(frmTypeName) & " ")) OrElse CInt(StartsWith(LTrim(LCase(*FLine), Any !"\t "), "constructor " & LCase(frmTypeName) & "("))) Then
 						ConstructorStart = j
 						c = True
 					ElseIf CInt(c) AndAlso Trim(LCase(*FLine), Any !"\t ") = "end constructor" Then
