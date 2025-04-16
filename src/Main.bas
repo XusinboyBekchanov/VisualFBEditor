@@ -6608,9 +6608,9 @@ Sub LoadSettings
 	WLet(CurrentAIAgent, *DefaultAIAgent)
 	cboBuildConfiguration.AddItem ML("No options")
 	Do Until iniSettings.KeyExists("AIAgents", "Version_" & WStr(i)) + iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + _
+		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + iniSettings.KeyExists("BuildConfigurations", "Name_" & WStr(i)) + _
 		iniSettings.KeyExists("Helps", "Version_" & WStr(i)) + iniSettings.KeyExists("OtherEditors", "Version_" & WStr(i)) + _
-		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -9
+		iniSettings.KeyExists("IncludePaths", "Path_" & WStr(i)) + iniSettings.KeyExists("LibraryPaths", "Path_" & WStr(i)) = -10
 		Temp = iniSettings.ReadString("Compilers", "Version_" & WStr(i), "")
 		If Temp <> "" Then
 			Tool = _New(ToolType)
@@ -8823,7 +8823,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
 					txtAIAgent.TextRTF = *AIBodyWStringPtr
-					txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * .5)
+					'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * .5)
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
