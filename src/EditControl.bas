@@ -4114,9 +4114,9 @@ Namespace My.Sys.Forms
 											End If
 											PaintText zz, i, *s, j - 1, l, Comments, , Comments.Bold, Comments.Italic, Comments.Underline
 											Exit Do
-										ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("_") Then
+										ElseIf t >= 48 AndAlso t <= 57 OrElse t >= 65 AndAlso t <= 90 OrElse t >= 97 AndAlso t <= 122 OrElse (CInt(FECLine->InAsm = False) AndAlso t = Asc("#")) OrElse t = Asc("$") OrElse t = Asc("&") OrElse t = Asc("_") Then
 											If MatnBoshi = 0 Then MatnBoshi = j
-											If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("_")) Then
+											If Not (u >= 48 AndAlso u <= 57 OrElse u >= 65 AndAlso u <= 90 OrElse u >= 97 AndAlso u <= 122 OrElse u = Asc("#") OrElse u = Asc("$") OrElse u = Asc("&") OrElse u = Asc("_")) Then
 												'If LeftMargin + (-HScrollPos + j + InStrCount(..Left(*s, j), !"\t") * (TabWidth - 1)) * dwCharX > 0 Then
 												Matn = Mid(*s, MatnBoshi, j - MatnBoshi + 1)
 												MatnLCase = LCase(Matn)
@@ -4631,7 +4631,7 @@ Namespace My.Sys.Forms
 															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 														End If
 													ElseIf tIndex = -1 Then
-														If IsNumeric(Matn) OrElse IsNumeric(MatnWithoutOldSymbol) Then
+														If IsNumeric(Matn) OrElse IsNumeric(MatnWithoutOldSymbol) OrElse LCase(.Left(Matn, 2)) = "&h" Then
 															If InStr(Matn, ".") Then
 																sc = @RealNumbers
 															Else
