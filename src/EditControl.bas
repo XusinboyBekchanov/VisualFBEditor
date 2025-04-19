@@ -854,6 +854,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControlContent.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "", EC As Any Ptr = 0)
+		If LineIndex < 0 OrElse LineIndex >= Lines.Count Then Exit Sub
 		Dim As EditControlLine Ptr ecl = Lines.Items[LineIndex], eclOld, eclOld_
 		Dim As Integer i, j, OldLineIndex = LineIndex - 1
 		If OldLineIndex > -1 Then
@@ -864,22 +865,22 @@ Namespace My.Sys.Forms
 			_Delete(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
 		Next
 		ecl->Statements.Clear
-		Dim As UString LineText_
+		Dim As WString Ptr LineText_
 		'If LineText <> "" Then
-		'	LineText_ = LineText
+		'	*LineText_ = LineText
 		'Else
-		LineText_ = TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))
+		WLet(LineText_, TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex)))
 		'End If
 		Dim As Boolean Collapsible
 		Dim As List Statements
-		Dim As UString res()
-		Split(LineText_, ":", res())
+		Dim As WString Ptr res(Any)
+		Split(*LineText_, ":", res())
 		Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
 		For ii As Integer = 0 To UBound(res)
 			ecs = _New(EditControlStatement)
-			WLet(ecs->Text, res(ii))
+			WLet(ecs->Text, *res(ii))
 			ecl->Statements.Add ecs
-			LineText_ = *ecs->Text
+			WLet(LineText_, *ecs->Text)
 			If ii = 0 Then
 				ecsOld_ = 0
 				If eclOld > 0 AndAlso eclOld->Statements.Count > 0 Then
@@ -894,32 +895,32 @@ Namespace My.Sys.Forms
 							If Not EndsWith(Trim(*ecs_->Text), " _") Then
 								Exit For, For
 							End If
-							LineText_ = ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & LineText_
+							WAdd(LineText_, ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1), True)
 							ecsOld_ = ecs_
 						Next iiii
 					Next
-					i = GetConstruction(LineText_, j, 0, ecsOld_->InAsm)
+					i = GetConstruction(*LineText_, j, 0, ecsOld_->InAsm)
 					If ecsOld_->ConstructionIndex <> i OrElse ecsOld_->ConstructionPart <> j Then
 						ecsOld_->ConstructionIndex = i
 						ecsOld_->ConstructionPart = j
 						If EC Then
-							Cast(EditControl Ptr, EC)->ChangeCollapsibility iii + 1, LineText_
+							Cast(EditControl Ptr, EC)->ChangeCollapsibility iii + 1, *LineText_
 						Else
-							ChangeCollapsibility iii + 1, LineText_
+							ChangeCollapsibility iii + 1, *LineText_
 						End If
 					End If
-					LineText_ = ""
+					WLet(LineText_, "")
 					ecs->ConstructionIndex = -1
 					ecs->ConstructionPart = -1
 					Continue For
 				End If
 			End If
-			If (LineText_ <> "") AndAlso EndsWith(Trim(LineText_), " _") AndAlso (ii = UBound(res)) Then
+			If (*LineText_ <> "") AndAlso EndsWith(Trim(*LineText_), " _") AndAlso (ii = UBound(res)) Then
 				For iii As Integer = LineIndex + 1 To Lines.Count - 1
 					eclOld_ = Lines.Items[iii]
 					For iiii As Integer = 0 To eclOld_->Statements.Count - 1
 						ecs_ = eclOld_->Statements.Items[iiii]
-						LineText_ = ..Left(LineText_, Len(LineText_) - IIf(EndsWith(Trim(LineText_), " _"), 1, 0)) & Trim(*ecs_->Text)
+						WLetEx(LineText_, ..Left(*LineText_, Len(*LineText_) - IIf(EndsWith(Trim(*LineText_), " _"), 1, 0)) & Trim(*ecs_->Text))
 						If Not EndsWith(Trim(*ecs_->Text), " _") Then
 							Exit For, For
 						End If
@@ -933,7 +934,7 @@ Namespace My.Sys.Forms
 				i = C_P_Region
 				j = 2
 			Else
-				i = GetConstruction(LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
+				i = GetConstruction(*LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 			End If
 			ecs->ConstructionIndex = i
 			ecs->ConstructionPart = j
@@ -957,7 +958,9 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
+			Deallocate res(ii)
 		Next
+		Erase res
 		'i = Content.GetConstruction(*ecl->Text, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 		ecl->MainStatement = 0
 		For iii As Integer = 0 To Statements.Count - 1
