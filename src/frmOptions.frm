@@ -4404,18 +4404,18 @@ Function GetLuminance(r As UByte, g As UByte, b As UByte) As Double
     Return 0.2126 * fr + 0.7152 * fg + 0.0722 * fb
 End Function
 
-Function GetReadableTextColor(bgColor As Integer) As ULong 'RGB format
+Function GetReadableTextColor(bgColor As Integer) As ULong 'BGR format
 	Dim As ULong bgColorNew = Max(0, bgColor)
-    Dim As UByte r = (bgColorNew Shr 16) And &hFF
-    Dim As UByte g = (bgColorNew Shr 8) And &hFF
-    Dim As UByte b = bgColorNew And &hFF
-
-    Dim As Double lum = GetLuminance(r, g, b)
-
-    Dim As Double contrastWhite = (1.0 + 0.05) / (lum + 0.05)
-    Dim As Double contrastBlack = (lum + 0.05) / (0.0 + 0.05)
-
-    If contrastWhite > contrastBlack Then Return &hFFFFFF
+	Dim As UByte b = (bgColorNew Shr 16) And &hFF
+	Dim As UByte g = (bgColorNew Shr 8) And &hFF
+	Dim As UByte r = bgColorNew And &hFF
+	
+	Dim As Double lum = GetLuminance(r, g, b)
+	
+	Dim As Double contrastWhite = (1.0 + 0.05) / (lum + 0.05)
+	Dim As Double contrastBlack = (lum + 0.05) / (0.0 + 0.05)
+	
+	If contrastWhite > contrastBlack Then Return &hFFFFFF
 	Return 0
 End Function
 
@@ -4427,12 +4427,12 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Designer As My.Sys.Object, ByRe
 		Dim As Integer NormOrIdentifiers = IIf(i > 8 AndAlso i < 26, 8, 29 + UBound(Keywords))
 		.txtColorForeground.BackColor = IIf(.Colors(i, 0) = -1, .Colors(NormOrIdentifiers, 0), .Colors(i, 0))
 		.chkForeground.Checked = CBool(i <> NormOrIdentifiers) AndAlso CBool(.Colors(i, 0) = -1 OrElse .Colors(i, 0) = .Colors(NormOrIdentifiers, 0))
-		.txtColorForeground.Text = "&H" & Hex(.txtColorForeground.BackColor)
+		.txtColorForeground.Text = "&H" & Hex(.txtColorForeground.BackColor, 6)
 		.txtColorForeground.ForeColor = GetReadableTextColor(.txtColorForeground.BackColor)
 		
 		.txtColorBackground.BackColor = IIf(.Colors(i, 1) = -1, .Colors(NormOrIdentifiers, 1), .Colors(i, 1))
 		.txtColorBackground.Visible = .Colors(i, 1) <> -2
-		.txtColorBackground.Text = "&H" & Hex(.txtColorBackground.BackColor)
+		.txtColorBackground.Text = "&H" & Hex(.txtColorBackground.BackColor, 6)
 		.txtColorBackground.ForeColor = GetReadableTextColor(.txtColorBackground.BackColor)
 		.lblBackground.Visible = .Colors(i, 1) <> -2
 		.cmdBackground.Visible = .Colors(i, 1) <> -2
@@ -4441,7 +4441,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Designer As My.Sys.Object, ByRe
 		
 		.txtColorFrame.BackColor = IIf(.Colors(i, 2) = -1, .Colors(NormOrIdentifiers, 2), .Colors(i, 2))
 		.txtColorFrame.Visible = .Colors(i, 2) <> -2
-		.txtColorFrame.Text = "&H" & Hex(.txtColorFrame.BackColor)
+		.txtColorFrame.Text = "&H" & Hex(.txtColorFrame.BackColor, 6)
 		.txtColorFrame.ForeColor = GetReadableTextColor(.txtColorFrame.BackColor)
 		.lblFrame.Visible = .Colors(i, 2) <> -2
 		.cmdFrame.Visible = .Colors(i, 2) <> -2
@@ -4450,7 +4450,7 @@ Private Sub frmOptions.lstColorKeys_Change(ByRef Designer As My.Sys.Object, ByRe
 		
 		.txtColorIndicator.BackColor = IIf(.Colors(i, 3) = -1, .Colors(NormOrIdentifiers, 3), .Colors(i, 3))
 		.txtColorIndicator.Visible = .Colors(i, 3) <> -2
-		.txtColorIndicator.Text = "&H" & Hex(.txtColorIndicator.BackColor)
+		.txtColorIndicator.Text = "&H" & Hex(.txtColorIndicator.BackColor, 6)
 		.txtColorIndicator.ForeColor = GetReadableTextColor(.txtColorIndicator.BackColor)
 		.lblIndicator.Visible = .Colors(i, 3) <> -2
 		.cmdIndicator.Visible = .Colors(i, 3) <> -2
@@ -4475,7 +4475,7 @@ Private Sub frmOptions.cmdForeground_Click(ByRef Designer As My.Sys.Object, ByRe
 			fOptions.txtColorForeground.BackColor = .Color
 			fOptions.chkForeground.Checked = False
 			fOptions.Colors(i, 0) = .Color
-			fOptions.txtColorForeground.Text = "&H" & Hex(.Color)
+			fOptions.txtColorForeground.Text = "&H" & Hex(.Color, 6)
 			fOptions.txtColorForeground.ForeColor = GetReadableTextColor(fOptions.txtColorForeground.BackColor)
 		End If
 	End With
@@ -4490,7 +4490,7 @@ Private Sub frmOptions.cmdBackground_Click(ByRef Designer As My.Sys.Object, ByRe
 			fOptions.txtColorBackground.BackColor = .Color
 			fOptions.chkBackground.Checked = False
 			fOptions.Colors(i, 1) = .Color
-			fOptions.txtColorBackground.Text = "&H" & Hex(.Color)
+			fOptions.txtColorBackground.Text = "&H" & Hex(.Color, 6)
 			fOptions.txtColorBackground.ForeColor = GetReadableTextColor(fOptions.txtColorBackground.BackColor)
 		End If
 	End With
@@ -4505,7 +4505,7 @@ Private Sub frmOptions.cmdFrame_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			fOptions.txtColorFrame.BackColor = .Color
 			fOptions.chkFrame.Checked = False
 			fOptions.Colors(i, 2) = .Color
-			fOptions.txtColorFrame.Text = "&H" & Hex(.Color)
+			fOptions.txtColorFrame.Text = "&H" & Hex(.Color, 6)
 			fOptions.txtColorFrame.ForeColor = GetReadableTextColor(fOptions.txtColorFrame.BackColor)
 		End If
 	End With
@@ -4520,7 +4520,7 @@ Private Sub frmOptions.cmdIndicator_Click(ByRef Designer As My.Sys.Object, ByRef
 			fOptions.txtColorIndicator.BackColor = .Color
 			fOptions.chkIndicator.Checked = False
 			fOptions.Colors(i, 3) = .Color
-			fOptions.txtColorIndicator.Text = "&H" & Hex(.Color)
+			fOptions.txtColorIndicator.Text = "&H" & Hex(.Color, 6)
 			fOptions.txtColorIndicator.ForeColor = GetReadableTextColor(fOptions.txtColorIndicator.BackColor)
 		End If
 	End With

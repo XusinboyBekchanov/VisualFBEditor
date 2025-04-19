@@ -143,6 +143,7 @@ This error occurs when preprocessor directives are missing the required `#` pref
  It is best to avoid nesting `With` statements.
 ```FreeBasic
  \#include once "mff/<component>.bi" 'Required header preprocessor directive
+ Using My.Sys.Forms
  Type Form1Type Extends Form
  Declare Constructor
  ' Control declarations
