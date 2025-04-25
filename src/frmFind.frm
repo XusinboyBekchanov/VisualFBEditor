@@ -834,7 +834,7 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 			This.Caption = ML("Find: No Results")  : btnReplace.Enabled = True : btnReplaceAll.Enabled = True : Exit Sub
 		End If
 		If gSearchItemIndex >= plvSearch->ListItems.Count - 1 Then
-			gSearchItemIndex = plvSearch->ListItems.Count - 1
+			gSearchItemIndex = IIf(gSearchItemIndex = plvSearch->ListItems.Count - 1, plvSearch->ListItems.Count - 1, 0)
 			Item = plvSearch->ListItems.Item(gSearchItemIndex)
 			SelectSearchResult(Item->Text(3), Val(Item->Text(1)), -1, -1, Item->Tag, *gSearchSave)
 			plvSearch->SelectedItemIndex = gSearchItemIndex
