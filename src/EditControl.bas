@@ -895,7 +895,7 @@ Namespace My.Sys.Forms
 							If Not EndsWith(Trim(*ecs_->Text), " _") Then
 								Exit For, For
 							End If
-							WAdd(LineText_, ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1), True)
+							WLetEx(LineText_, ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & *LineText_, True)
 							ecsOld_ = ecs_
 						Next iiii
 					Next
@@ -960,6 +960,7 @@ Namespace My.Sys.Forms
 			End If
 			Deallocate res(ii)
 		Next
+		WDeAllocate(LineText_)
 		Erase res
 		'i = Content.GetConstruction(*ecl->Text, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 		ecl->MainStatement = 0
