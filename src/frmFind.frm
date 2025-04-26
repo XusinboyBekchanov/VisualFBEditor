@@ -681,7 +681,7 @@ Sub ReplaceSubProj(Param As Any Ptr)
 End Sub
 
 Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
-	If Trim(txtFind.Text) = "" Then Exit Sub
+	If Len(txtFind.Text) < 1 Then Exit Sub
 	btnFind.Enabled = False
 	mFormFind = True
 	Find True
@@ -691,7 +691,7 @@ Private Sub frmFind.btnFind_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFind.btnFindPrev_Click(ByRef Sender As Control)
-	If Trim(txtFind.Text) = "" Then Exit Sub
+	If Len(txtFind.Text) < 1 Then Exit Sub
 	btnFindPrev.Enabled = False
 	mFormFind = True
 	Find False
@@ -833,7 +833,16 @@ Private Sub frmFind.btnReplace_Click(ByRef Sender As Control)
 			btnReplace.Enabled = True : btnReplaceAll.Enabled = True
 			This.Caption = ML("Find: No Results")  : btnReplace.Enabled = True : btnReplaceAll.Enabled = True : Exit Sub
 		End If
-		If gSearchItemIndex >= plvSearch->ListItems.Count - 1 Then gSearchItemIndex = plvSearch->ListItems.Count - 1
+		If gSearchItemIndex >= plvSearch->ListItems.Count - 1 Then
+			gSearchItemIndex = IIf(gSearchItemIndex = plvSearch->ListItems.Count - 1, plvSearch->ListItems.Count - 1, 0)
+			Item = plvSearch->ListItems.Item(gSearchItemIndex)
+			SelectSearchResult(Item->Text(3), Val(Item->Text(1)), -1, -1, Item->Tag, *gSearchSave)
+			plvSearch->SelectedItemIndex = gSearchItemIndex
+			This.Caption = ML("Replace") + ": " + WStr(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
+			btnReplace.Enabled = True : btnReplaceAll.Enabled = True
+			btnFind.SetFocus
+			Exit Sub
+		End If
 	End If
 	Find True
 	This.Caption = ML("Replace") + ": " + WStr(gSearchItemIndex + 1) + " of " + WStr(plvSearch->ListItems.Count)
