@@ -355,6 +355,14 @@ Private Sub frmAIAgentType.cmdOK_Click(ByRef Sender As Control)
 		This.BringToFront()
 		Exit Sub
 	End If
+	If Not cboAIAgentProvider.Contains(cboAIAgentProvider.Text) Then cboAIAgentProvider.AddItem cboAIAgentProvider.Text
+	If Not cboAIAgentModelName.Contains(cboAIAgentModelName.Text) Then cboAIAgentModelName.AddItem cboAIAgentModelName.Text
+	If Not cboAIAgentAddress.Contains(cboAIAgentModelName.Text) Then cboAIAgentAddress.AddItem cboAIAgentAddress.Text
+	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
+	If Dir(tmpName) = "" Then MkDir tmpName
+	cboAIAgentModelName.SaveToFile(ExePath & "/Resources/AIAgent/ModelName.ini")
+	cboAIAgentHost.SaveToFile(ExePath & "/Resources/AIAgent/Host.ini")
+	cboAIAgentAddress.SaveToFile(ExePath & "/Resources/AIAgent/Address.ini")
 	This.ModalResult = ModalResults.OK
 	This.CloseForm
 End Sub
@@ -380,7 +388,7 @@ Private Sub frmAIAgentType.cboAIAgentModelName_Change(ByRef Sender As ComboBoxEd
 End Sub
 
 Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
-	txtAIAgentAPIKey.Enabled = chkAIAgentAuto.Checked
+	txtAIAgentName.Enabled = chkAIAgentAuto.Checked
 	Dim As UString Temp = cboAIAgentPort.Text
 	cboAIAgentPort.Clear
 	cboAIAgentPort.Text = Temp
