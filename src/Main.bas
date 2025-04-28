@@ -9606,7 +9606,8 @@ imgListStates.Add "Collapsed", "Collapsed"
 imgListStates.Add "Expanded", "Expanded"
 imgListStates.Add "Property", "Property"
 imgListStates.Add "Event", "Event"
-
+lvProperties.Font.Name = WGet(InterfaceFontName)
+lvProperties.Font.Size  = InterfaceFontSize
 lvProperties.Align = DockStyle.alClient
 'lvProperties.Sort = ssSortAscending
 lvProperties.StateImages = @imgListStates
@@ -9622,7 +9623,7 @@ pnlPropertyValue.Add @pnlColor
 	'lvProperties.Add @btnPropertyValue
 	lvProperties.Add @pnlPropertyValue
 #endif
-lvProperties.OwnerDraw = True
+'lvProperties.OwnerDraw = True
 lvProperties.OnDrawItem = @lvProperties_DrawItem
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged
 lvProperties.OnEndScroll = @lvProperties_EndScroll
@@ -9635,6 +9636,8 @@ lvProperties.OnCellEditing = @lvProperties_CellEditing
 lvProperties.OnCellEdited = @lvProperties_CellEdited
 lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
 lvEvents.Align = DockStyle.alClient
+lvEvents.Font.Name = WGet(InterfaceFontName)
+lvEvents.Font.Size  = InterfaceFontSize
 lvEvents.SortOrder = ssSortAscending
 lvEvents.Columns.Add ML("Event"), , 70
 lvEvents.Columns.Add ML("Value"), , -2
