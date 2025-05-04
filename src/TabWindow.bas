@@ -343,6 +343,8 @@ Sub ChangeMenuItemsEnabled
 	miOpenProjectFolder->Enabled = bEnabled
 	miExplorerOpenProjectFolder->Enabled = bEnabled
 	miImageManager->Enabled = bEnabled
+	miRename->Enabled = bEnabled
+	miExplorerRename->Enabled = bEnabled
 	miRemoveFileFromProject->Enabled = bEnabled
 	tbtRemoveFileFromProject->Enabled = bEnabled
 	miFind->Enabled = bEnabled

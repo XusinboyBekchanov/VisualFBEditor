@@ -231,6 +231,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "CommandPrompt":                       ThreadCounter(ThreadCreate_(@RunCmd))
 	Case "AddFromTemplates":                    AddFromTemplates
 	Case "AddFilesToProject":                   AddFilesToProject
+	Case "Rename":                              RenameFile
 	Case "RemoveFileFromProject":               RemoveFileFromProject
 	Case "OpenProjectFolder":                   OpenProjectFolder
 	Case "ProjectProperties":                   pfProjectProperties->ShowModal *pfrmMain : pfProjectProperties->CenterToParent

@@ -100,7 +100,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
-Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miCloseSession, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerProjectProperties, miExplorerCloseProject, miRemoveFileFromProject
+Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miCloseSession, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerRename, miExplorerProjectProperties, miExplorerCloseProject, miRename, miRemoveFileFromProject
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miDeleteBlankLines, miSuggestions, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
 Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miModuleMacroNumbering, miModuleMacroNumberingStartsOfProcedures, miRemoveModuleNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miModulePreprocessorNumbering, miRemoveModulePreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiModuleMacroNumbering, dmiModuleMacroNumberingStartsOfProcedures, dmiRemoveModuleNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiModulePreprocessorNumbering, dmiRemoveModulePreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
@@ -2862,6 +2862,13 @@ Sub AddFilesToProject
 			End If
 		End If
 	End If
+End Sub
+
+Dim Shared g_bAllowLabelEdit As Boolean
+Sub RenameFile
+	If tvExplorer.SelectedNode = 0 Then Exit Sub
+	g_bAllowLabelEdit = True
+	tvExplorer.SelectedNode->EditLabel
 End Sub
 
 Sub RemoveFileFromProject
@@ -7408,6 +7415,7 @@ Sub CreateMenusAndToolBars
 	miProject->Add(ML("Add From Templates") & "..." & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mClick)
 	miProject->Add(ML("Add Files") & "..." & HK("AddFilesToProject"), "Add", "AddFilesToProject", @mClick)
 	miProject->Add("-")
+	miRename = miProject->Add(ML("R&ename") & HK("Rename"), "Rename", "Rename", @mClick, , , False)
 	miRemoveFileFromProject = miProject->Add(ML("&Remove") & HK("RemoveFileFromProject"), "Remove", "RemoveFileFromProject", @mClick, , , False)
 	miProject->Add("-")
 	miOpenProjectFolder = miProject->Add(ML("&Open Project Folder") & HK("OpenProjectFolder"), "", "OpenProjectFolder", @mClick, , , False)
@@ -7606,6 +7614,7 @@ Sub CreateMenusAndToolBars
 	miAdd->Add(ML("Add Ma&nifest File"), "File", "AddManifestFile", @mClick)
 	miAdd->Add(ML("Add From Templates") & "...", "", "AddFromTemplates", @mClick)
 	miAdd->Add(ML("Add Files") & "...", "", "AddFilesToProject", @mClick)
+	miExplorerRename = mnuExplorer.Add(ML("Rename"), "", "Rename", @mClick, , , False)
 	miRemoveFiles = mnuExplorer.Add(ML("&Remove"), "Remove", "RemoveFileFromProject", @mClick)
 	mnuExplorer.Add("-")
 	miExplorerOpenProjectFolder = mnuExplorer.Add(ML("Open Project Folder"), "", "OpenProjectFolder", @mClick, , , False)
@@ -8251,17 +8260,110 @@ Sub tvExplorer_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 	End If
 End Sub
 
+Sub tvExplorer_BeforeLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
+	If Not g_bAllowLabelEdit Then
+		Cancel = True
+		Exit Sub
+	End If
+	g_bAllowLabelEdit = False
+	If Item.IsEmpty Then Exit Sub
+	If Item.ImageKey = "Opened" Then
+		Cancel = True
+	End If
+End Sub
+
+Sub tvExplorer_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
+	If Item.IsEmpty Then Exit Sub
+	If Item.ImageKey = "Opened" Then
+		Cancel = True
+	ElseIf Item.ImageKey = "Project" Then
+		Dim As ProjectElement Ptr ppe = Item.Tag
+		If ppe <> 0 AndAlso *ppe->FileName <> "" Then
+			Dim As Boolean bModified = EndsWith(NodeLabel, "*")
+			Dim As UString bFileName = GetFolderName(*ppe->FileName) & NodeLabel
+			If bModified Then
+				bFileName = Left(bFileName, Len(bFileName) - 1)
+			End If
+			#ifdef __USE_WINAPI__
+				If MoveFile(ppe->FileName, bFileName.vptr) = 0 Then
+					MsgBox ML("Renaming error! " & GetErrorString(GetLastError, , True))
+					Cancel = True
+					Exit Sub
+				End If
+			#else
+				Dim As Long Result = Name(*ppe->FileName, bFileName)
+				If Result <> 0 Then
+					MsgBox ML("Renaming error! " & Err2Description(Result)
+					Cancel = True
+					Exit Sub
+				End If
+			#endif
+			WLet(ppe->FileName, bFileName)
+		End If
+	Else
+		Dim As TabWindow Ptr tb = GetTabFromTn(@Item)
+		Dim As TreeNode Ptr ptn = GetParentNode(Item)
+		Dim As ExplorerElement Ptr ee = Item.Tag
+		Dim As Boolean bModified
+		If ee <> 0 AndAlso *ee->FileName <> "" Then
+			bModified = EndsWith(NodeLabel, "*")
+			Dim As UString bFileName = GetFolderName(*ee->FileName) & NodeLabel
+			If bModified Then
+				bFileName = Left(bFileName, Len(bFileName) - 1)
+			End If
+			If InStr(*ee->FileName, Any ":\/") > 0 Then
+				#ifdef __USE_WINAPI__
+					If MoveFile(ee->FileName, bFileName.vptr) = 0 Then
+						MsgBox ML("Renaming error! " & GetErrorString(GetLastError, , True))
+						Cancel = True
+						Exit Sub
+					End If
+				#else
+					Dim As Long Result = Name(*ee->FileName, bFileName)
+					If Result <> 0 Then
+						MsgBox ML("Renaming error! " & Err2Description(Result)
+						Cancel = True
+						Exit Sub
+					End If
+				#endif
+			End If
+			If ptn <> 0 AndAlso ptn->ImageKey = "Project" Then
+				Dim As ProjectElement Ptr pee = ptn->Tag
+				If pee <> 0 Then
+					If WGet(pee->MainFileName) = WGet(ee->FileName) Then WLet(pee->MainFileName, bFileName)
+					If WGet(pee->ResourceFileName) = WGet(ee->FileName) Then WLet(pee->ResourceFileName, bFileName)
+					If WGet(pee->IconResourceFileName) = WGet(ee->FileName) Then WLet(pee->IconResourceFileName, bFileName)
+					If WGet(pee->BatchCompilationFileNameWindows) = WGet(ee->FileName) Then WLet(pee->BatchCompilationFileNameWindows, bFileName)
+					If WGet(pee->BatchCompilationFileNameLinux) = WGet(ee->FileName) Then WLet(pee->BatchCompilationFileNameLinux, bFileName)
+					If Not EndsWith(ptn->Text, "*") Then ptn->Text & = "*"
+				End If
+			End If
+			WLet(ee->FileName, bFileName)
+		End If
+		If tb Then
+			bModified = EndsWith(tb->Caption, "*")
+			If bModified AndAlso Not EndsWith(NodeLabel, "*") Then
+				tb->Caption = NodeLabel & "*"
+			Else
+				tb->Caption = NodeLabel
+			End If
+		End If
+	End If
+End Sub
+
 tvExplorer.Images = @imgList
 tvExplorer.SelectedImages = @imgList
 tvExplorer.Align = DockStyle.alClient
 tvExplorer.HideSelection = False
-'tvExplorer.EditLabels = True
+tvExplorer.EditLabels = True
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
 tvExplorer.OnNodeActivate = @tvExplorer_NodeActivate
 tvExplorer.OnNodeExpanding = @tvExplorer_NodeExpanding
 tvExplorer.OnMouseUp = @tvExplorer_MouseUp
 tvExplorer.OnKeyDown = @tvExplorer_KeyDown
 tvExplorer.OnSelChanged = @tvExplorer_SelChange
+tvExplorer.OnBeforeLabelEdit = @tvExplorer_BeforeLabelEdit
+tvExplorer.OnAfterLabelEdit = @tvExplorer_AfterLabelEdit
 tvExplorer.ContextMenu = @mnuExplorer
 
 Sub tabLeft_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewIndex As Integer)
