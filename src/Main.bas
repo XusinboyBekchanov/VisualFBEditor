@@ -9712,7 +9712,7 @@ lvProperties.Font.Name = WGet(InterfaceFontName)
 lvProperties.Font.Size  = InterfaceFontSize
 lvProperties.Align = DockStyle.alClient
 'lvProperties.Sort = ssSortAscending
-lvProperties.StateImages = @imgListStates
+'lvProperties.StateImages = @imgListStates
 lvProperties.Images = @imgListStates
 'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
