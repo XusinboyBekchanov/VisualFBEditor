@@ -8286,14 +8286,14 @@ Sub tvExplorer_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As T
 			End If
 			#ifdef __USE_WINAPI__
 				If MoveFile(ppe->FileName, bFileName.vptr) = 0 Then
-					MsgBox ML("Renaming error! " & GetErrorString(GetLastError, , True))
+					MsgBox ML("Renaming error!") & " " & GetErrorString(GetLastError, , True)
 					Cancel = True
 					Exit Sub
 				End If
 			#else
 				Dim As Long Result = Name(*ppe->FileName, bFileName)
 				If Result <> 0 Then
-					MsgBox ML("Renaming error! " & Err2Description(Result)
+					MsgBox ML("Renaming error!") & " " & Err2Description(Result)
 					Cancel = True
 					Exit Sub
 				End If
@@ -8302,7 +8302,7 @@ Sub tvExplorer_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As T
 		End If
 	Else
 		Dim As TabWindow Ptr tb = GetTabFromTn(@Item)
-		Dim As TreeNode Ptr ptn = GetParentNode(Item)
+		Dim As TreeNode Ptr ptn = GetParentNode(@Item)
 		Dim As ExplorerElement Ptr ee = Item.Tag
 		Dim As Boolean bModified
 		If ee <> 0 AndAlso *ee->FileName <> "" Then
@@ -8314,14 +8314,14 @@ Sub tvExplorer_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As T
 			If InStr(*ee->FileName, Any ":\/") > 0 Then
 				#ifdef __USE_WINAPI__
 					If MoveFile(ee->FileName, bFileName.vptr) = 0 Then
-						MsgBox ML("Renaming error! " & GetErrorString(GetLastError, , True))
+						MsgBox ML("Renaming error!") & " " & GetErrorString(GetLastError, , True)
 						Cancel = True
 						Exit Sub
 					End If
 				#else
 					Dim As Long Result = Name(*ee->FileName, bFileName)
 					If Result <> 0 Then
-						MsgBox ML("Renaming error! " & Err2Description(Result)
+						MsgBox ML("Renaming error!") & " " & Err2Description(Result)
 						Cancel = True
 						Exit Sub
 					End If
