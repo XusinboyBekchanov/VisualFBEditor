@@ -6613,6 +6613,7 @@ Sub LoadSettings
 	Dim i As Integer = 0
 	WLet(DefaultAIAgent, iniSettings.ReadString("AIAgents", "DefaultAIAgent", "deepseek/deepseek-chat-v3-0324:free|OpenRouter"))
 	WLet(CurrentAIAgent, *DefaultAIAgent)
+	cboAIAgentModels.AddItem ML("(not selected)")
 	cboBuildConfiguration.AddItem ML("No options")
 	Do Until iniSettings.KeyExists("AIAgents", "Version_" & WStr(i)) + iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + iniSettings.KeyExists("BuildConfigurations", "Name_" & WStr(i)) + _
@@ -6998,20 +6999,24 @@ Sub StopProgress
 	prProgress.Visible = False
 End Sub
 
+stBar.Width = frmMain.Width
+Dim As Integer tWidth = stBar.Width / stBar.ScaleY(Max(8, stBar.Font.Size) / 45 * 96)
+
 stBar.Align = DockStyle.alBottom
 stBar.Add ML("Press F1 for get more information")
-stBar.Panels[0]->Width = frmMain.ClientWidth - 600
-stBar.Add "" 'Space(20)
-stBar.Panels[1]->Width = 240
+stBar.Add "" 'Row +Col 
+stBar.Panels[1]->Width = tWidth * 40
 stBar.Add ML("IntelliSense fully loaded")
-stBar.Panels[2]->Width = 160
+stBar.Panels[2]->Width = tWidth * 35
 stBar.Add "UTF-8 (BOM)"
-stBar.Panels[3]->Width = 80
+stBar.Panels[3]->Width = tWidth * 15
 stBar.Add "CR+LF"
-stBar.Panels[4]->Width = 50
+stBar.Panels[4]->Width = tWidth * 8
 stBar.Add "NUM"
+stBar.Panels[5]->Width = tWidth * 6
+stBar.Panels[0]->Width = Max(stBar.Width - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 Var spProgress = stBar.Add("")
-spProgress->Width = 100
+spProgress->Width = stBar.Panels[2]->Width
 
 prProgress.Visible = False
 prProgress.Marquee = True
@@ -8587,7 +8592,7 @@ txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
-AIEditorFontName= *EditorFontName
+AIEditorFontName = *EditorFontName
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8611,7 +8616,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 		End If
 	Next
 	
-	' ?????? issues
+	' Marke issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
 		If CodePage = 936 Then ' GBK
@@ -8728,27 +8733,13 @@ Function AIGetMaxChunkSize() As Integer
 	End Select
 End Function
 Sub AIPrintAnswer(ByRef Content As WString)
-	'Dim As WString Ptr BuffFormat()
-	Dim As Integer j
 	If Content = "" Then Return
-	'Split(Content, "**", BuffFormat())
-	'For j As Integer = 0 To UBound(BuffFormat)
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	'txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	j = InStr(Content, "**")
-	If j > 0 Then
-		AIBold = Not AIBold
-		txtAIAgent.SelBold = AIBold
-	End If
 	txtAIAgent.SelText = Content
-	If CBool(InStr(Content, "# ")) OrElse CBool(InStr(Content, "```")) OrElse StartsWith(Content, " - ") OrElse CBool(InStr(Content, Chr(10))) Then AIBold = False
-	'Deallocate BuffFormat(j)
 	If Not txtAIAgent.Focused Then
 		txtAIAgent.ScrollToEnd
 	End If
-	'Next j
-	'Erase BuffFormat
 End Sub
 
 Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
@@ -8848,7 +8839,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
 	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
-	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
 	End If
 	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
@@ -9708,10 +9699,11 @@ imgListStates.Add "Collapsed", "Collapsed"
 imgListStates.Add "Expanded", "Expanded"
 imgListStates.Add "Property", "Property"
 imgListStates.Add "Event", "Event"
-
+lvProperties.Font.Name = WGet(InterfaceFontName)
+lvProperties.Font.Size  = InterfaceFontSize
 lvProperties.Align = DockStyle.alClient
 'lvProperties.Sort = ssSortAscending
-lvProperties.StateImages = @imgListStates
+'lvProperties.StateImages = @imgListStates
 lvProperties.Images = @imgListStates
 'lvProperties.ColumnHeaderHidden = True
 lvProperties.Columns.Add ML("Property"), , 70
@@ -9724,7 +9716,7 @@ pnlPropertyValue.Add @pnlColor
 	'lvProperties.Add @btnPropertyValue
 	lvProperties.Add @pnlPropertyValue
 #endif
-lvProperties.OwnerDraw = True
+'lvProperties.OwnerDraw = True
 lvProperties.OnDrawItem = @lvProperties_DrawItem
 lvProperties.OnSelectedItemChanged = @lvProperties_SelectedItemChanged
 lvProperties.OnEndScroll = @lvProperties_EndScroll
@@ -9737,6 +9729,8 @@ lvProperties.OnCellEditing = @lvProperties_CellEditing
 lvProperties.OnCellEdited = @lvProperties_CellEdited
 lvProperties.OnItemExpanding = @lvProperties_ItemExpanding
 lvEvents.Align = DockStyle.alClient
+lvEvents.Font.Name = WGet(InterfaceFontName)
+lvEvents.Font.Size  = InterfaceFontSize
 lvEvents.SortOrder = ssSortAscending
 lvEvents.Columns.Add ML("Event"), , 70
 lvEvents.Columns.Add ML("Value"), , -2
@@ -9754,7 +9748,7 @@ splProperties.Align = SplitterAlignmentConstants.alBottom
 
 splEvents.Align = SplitterAlignmentConstants.alBottom
 
-txtLabelProperty.Height = 50
+txtLabelProperty.Height = Max(8, txtLabelProperty.Font.Size) / 72 * 96 * 4 + 5
 txtLabelProperty.Align = DockStyle.alBottom
 txtLabelProperty.Multiline = True
 txtLabelProperty.ReadOnly = True
@@ -9765,7 +9759,7 @@ txtLabelProperty.ReadOnly = True
 #endif
 txtLabelProperty.WordWraps = True
 
-txtLabelEvent.Height = 50
+txtLabelEvent.Height = Max(8, txtLabelEvent.Font.Size) / 72 * 96 * 4 + 5
 txtLabelEvent.Align = DockStyle.alBottom
 txtLabelEvent.Multiline = True
 txtLabelEvent.ReadOnly = True
@@ -10987,7 +10981,7 @@ End Sub
 
 Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
-		stBar.Panels[0]->Width = NewWidth / 2
+		stBar.Panels[0]->Width = Max(stBar.Width - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width + 3
 	#endif
 End Sub
