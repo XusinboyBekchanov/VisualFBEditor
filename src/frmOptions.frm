@@ -3742,7 +3742,6 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			WLet(DefaultAIAgent, IIf(.cboAIAgent.ItemIndex = 0, "", .cboAIAgent.Text))
 			WLet(CurrentAIAgent, *DefaultAIAgent)
 		End If
-		cboAIAgentModels.Text = .cboAIAgent.Text
 		pIncludePaths->Clear
 		For i As Integer = 0 To .lstIncludePaths.ItemCount - 1
 			pIncludePaths->Add .lstIncludePaths.Item(i)
@@ -5169,7 +5168,6 @@ Private Sub frmOptions.cmdAddAIAgent_Click(ByRef Sender As Control)
 				lvi->Text(7) = frmAIAgent.updnAIAgentTemperature.Text
 				lvi->Text(8) = Str(frmAIAgent.chkAIAgentStream.Checked)
 				.cboAIAgent.AddItem frmAIAgent.txtAIAgentName.Text
-				cboAIAgentModels.AddItem frmAIAgent.txtAIAgentName.Text
 			Else
 				MsgBox ML("This name is exists!")
 			End If
@@ -5182,12 +5180,8 @@ Private Sub frmOptions.cmdRemoveAIAgent_Click(ByRef Sender As Control)
 		If .lvAIAgentTypes.SelectedItem = 0 Then Exit Sub
 		Var iIndex = .cboAIAgent.IndexOf(.lvAIAgentTypes.SelectedItem->Text(0))
 		If iIndex > -1 Then .cboAIAgent.RemoveItem iIndex
-		If cboAIAgentModels.ItemIndex = -1 Then cboAIAgentModels.ItemIndex = 0
-		iIndex = cboAIAgentModels.IndexOf(.lvAIAgentTypes.SelectedItem->Text(0))
-		If iIndex > -1 Then cboAIAgentModels.RemoveItem iIndex
-		If cboAIAgentModels.ItemIndex = -1 Then cboAIAgentModels.ItemIndex = 0
+		If .cboAIAgent.ItemIndex = -1 Then .cboAIAgent.ItemIndex = 0
 		.lvAIAgentTypes.ListItems.Remove .lvAIAgentTypes.SelectedItemIndex
-		
 	End With
 End Sub
 
@@ -5207,8 +5201,6 @@ Private Sub frmOptions.cmdChangeAIAgent_Click(ByRef Sender As Control)
 			If .lvAIAgentTypes.SelectedItem->Text(0) = frmAIAgent.txtAIAgentName.Text OrElse .cboAIAgent.IndexOf(frmAIAgent.txtAIAgentName.Text) = -1 Then
 				Var i = .cboAIAgent.IndexOf(.lvAIAgentTypes.SelectedItem->Text(0))
 				.cboAIAgent.Item(i) = frmAIAgent.txtAIAgentName.Text
-				i = cboAIAgentModels.IndexOf(.lvAIAgentTypes.SelectedItem->Text(0))
-				cboAIAgentModels.Item(i) = frmAIAgent.txtAIAgentName.Text
 				.lvAIAgentTypes.SelectedItem->Text(0) = frmAIAgent.txtAIAgentName.Text
 				.lvAIAgentTypes.SelectedItem->Text(1) = frmAIAgent.cboAIAgentHost.Text
 				.lvAIAgentTypes.SelectedItem->Text(2) = frmAIAgent.cboAIAgentPort.Text
@@ -5218,6 +5210,7 @@ Private Sub frmOptions.cmdChangeAIAgent_Click(ByRef Sender As Control)
 				.lvAIAgentTypes.SelectedItem->Text(6) = frmAIAgent.txtAIAgentAPIKey.Text
 				.lvAIAgentTypes.SelectedItem->Text(7) = frmAIAgent.updnAIAgentTemperature.Text
 				.lvAIAgentTypes.SelectedItem->Text(8) = Str(frmAIAgent.chkAIAgentStream.Checked)
+				
 			Else
 				MsgBox ML("This name is exists!")
 			End If
@@ -5231,9 +5224,6 @@ Private Sub frmOptions.cmdClearAIAgent_Click(ByRef Sender As Control)
 		.cboAIAgent.Clear
 		.cboAIAgent.AddItem ML("(not selected)")
 		.cboAIAgent.ItemIndex = 0
-		cboAIAgentModels.Clear
-		cboAIAgentModels.AddItem ML("(not selected)")
-		cboAIAgentModels.ItemIndex = 0
 	End With
 End Sub
 
