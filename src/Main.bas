@@ -6613,6 +6613,7 @@ Sub LoadSettings
 	Dim i As Integer = 0
 	WLet(DefaultAIAgent, iniSettings.ReadString("AIAgents", "DefaultAIAgent", "deepseek/deepseek-chat-v3-0324:free|OpenRouter"))
 	WLet(CurrentAIAgent, *DefaultAIAgent)
+	cboAIAgentModels.AddItem ML("(not selected)")
 	cboBuildConfiguration.AddItem ML("No options")
 	Do Until iniSettings.KeyExists("AIAgents", "Version_" & WStr(i)) + iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + iniSettings.KeyExists("BuildConfigurations", "Name_" & WStr(i)) + _
@@ -6824,7 +6825,6 @@ Sub LoadSettings
 	#endif
 	pDefaultFont->Name = WGet(InterfaceFontName)
 	pDefaultFont->Size  = InterfaceFontSize
-	
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	MainReBar.Visible = ShowMainToolBar
@@ -6998,21 +6998,18 @@ Sub StopProgress
 	prProgress.Visible = False
 End Sub
 
+Dim As Double tWidth = Max(8, DefaultFont.Size) * 0.85
 stBar.Align = DockStyle.alBottom
-stBar.Add ML("Press F1 for get more information")
-stBar.Panels[0]->Width = frmMain.ClientWidth - 600
-stBar.Add "" 'Space(20)
-stBar.Panels[1]->Width = 240
-stBar.Add ML("IntelliSense fully loaded")
-stBar.Panels[2]->Width = 160
-stBar.Add "UTF-8 (BOM)"
-stBar.Panels[3]->Width = 80
-stBar.Add "CR+LF"
-stBar.Panels[4]->Width = 50
-stBar.Add "NUM"
+stBar.Add ML("Press F1 for get more information"), tWidth * 25
+stBar.Add("", tWidth * 30) 'Row +Col 
+stBar.Add ML("IntelliSense fully loaded"), tWidth * 27
+stBar.Add "UTF-8 (BOM)", tWidth * 11
+stBar.Add "CR+LF", tWidth * 6
+stBar.Add "NUM", tWidth * 4
+stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 Var spProgress = stBar.Add("")
-spProgress->Width = 100
-
+spProgress->Width = stBar.Panels[2]->Width + 3
+prProgress.Width = stBar.Panels[2]->Width + 3
 prProgress.Visible = False
 prProgress.Marquee = True
 #ifdef __USE_GTK__
@@ -8505,7 +8502,7 @@ txtExplorer.OnChange = @txtExplorer_Change
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = DockStyle.alBottom
-
+lblLeft.Height = Max(8, DefaultFont.Size) / 72 * 96 + 5
 tpProject->Add @tbExplorer
 tpProject->Add @lblLeft
 tpProject->Add @tvExplorer
@@ -8588,7 +8585,7 @@ txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
-AIEditorFontName= *EditorFontName
+AIEditorFontName = *EditorFontName
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8612,7 +8609,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 		End If
 	Next
 	
-	' ?????? issues
+	' Marke issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
 		If CodePage = 936 Then ' GBK
@@ -8729,22 +8726,10 @@ Function AIGetMaxChunkSize() As Integer
 	End Select
 End Function
 Sub AIPrintAnswer(ByRef Content As WString)
-	'Dim As WString Ptr BuffFormat()
-	Dim As Integer j
 	If Content = "" Then Return
-	'Split(Content, "**", BuffFormat())
-	'For j As Integer = 0 To UBound(BuffFormat)
 	txtAIAgent.SelStart = Len(txtAIAgent.Text)
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
-	'txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	j = InStr(Content, "**")
-	If j > 0 Then
-		AIBold = Not AIBold
-		txtAIAgent.SelBold = AIBold
-	End If
 	txtAIAgent.SelText = Content
-	If CBool(InStr(Content, "# ")) OrElse CBool(InStr(Content, "```")) OrElse StartsWith(Content, " - ") OrElse CBool(InStr(Content, Chr(10))) Then AIBold = False
-	'Deallocate BuffFormat(j)
 	If Not txtAIAgent.Focused Then
 		txtAIAgent.ScrollToEnd
 	End If
@@ -8849,7 +8834,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
 	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
-	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
 	End If
 	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
@@ -8926,7 +8911,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
 					txtAIAgent.TextRTF = *AIBodyWStringPtr
-					'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * .5)
+					txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -9755,7 +9740,7 @@ splProperties.Align = SplitterAlignmentConstants.alBottom
 
 splEvents.Align = SplitterAlignmentConstants.alBottom
 
-txtLabelProperty.Height = 50
+txtLabelProperty.Height = Max(8, DefaultFont.Size) / 72 * 96 * 4 + 5
 txtLabelProperty.Align = DockStyle.alBottom
 txtLabelProperty.Multiline = True
 txtLabelProperty.ReadOnly = True
@@ -9766,7 +9751,7 @@ txtLabelProperty.ReadOnly = True
 #endif
 txtLabelProperty.WordWraps = True
 
-txtLabelEvent.Height = 50
+txtLabelEvent.Height = Max(8, DefaultFont.Size) / 72 * 96 * 4 + 5
 txtLabelEvent.Align = DockStyle.alBottom
 txtLabelEvent.Multiline = True
 txtLabelEvent.ReadOnly = True
@@ -10988,8 +10973,8 @@ End Sub
 
 Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
-		stBar.Panels[0]->Width = NewWidth / 2
-		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width + 3
+		stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
+		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width 
 	#endif
 End Sub
 
