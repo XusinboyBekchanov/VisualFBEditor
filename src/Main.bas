@@ -8732,7 +8732,7 @@ Sub AIPrintAnswer(ByRef Content As WString)
 	If Not txtAIAgent.Focused Then
 		txtAIAgent.ScrollToEnd
 	End If
-End Sub
+	'Next j
 	'Erase BuffFormat
 End Sub
 
