@@ -6613,6 +6613,7 @@ Sub LoadSettings
 	Dim i As Integer = 0
 	WLet(DefaultAIAgent, iniSettings.ReadString("AIAgents", "DefaultAIAgent", "deepseek/deepseek-chat-v3-0324:free|OpenRouter"))
 	WLet(CurrentAIAgent, *DefaultAIAgent)
+	cboAIAgentModels.AddItem ML("(not selected)")
 	cboBuildConfiguration.AddItem ML("No options")
 	Do Until iniSettings.KeyExists("AIAgents", "Version_" & WStr(i)) + iniSettings.KeyExists("Compilers", "Version_" & WStr(i)) + iniSettings.KeyExists("MakeTools", "Version_" & WStr(i)) + _
 		iniSettings.KeyExists("Debuggers", "Version_" & WStr(i)) + iniSettings.KeyExists("Terminals", "Version_" & WStr(i)) + iniSettings.KeyExists("BuildConfigurations", "Name_" & WStr(i)) + _
@@ -6824,7 +6825,6 @@ Sub LoadSettings
 	#endif
 	pDefaultFont->Name = WGet(InterfaceFontName)
 	pDefaultFont->Size  = InterfaceFontSize
-	
 	mnuMain.DisplayIcons = DisplayMenuIcons
 	mnuMain.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
 	MainReBar.Visible = ShowMainToolBar
@@ -8587,7 +8587,7 @@ txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
-AIEditorFontName= *EditorFontName
+AIEditorFontName = *EditorFontName
 txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
@@ -8611,7 +8611,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 		End If
 	Next
 	
-	' ?????? issues
+	' Marke issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
 		If CodePage = 936 Then ' GBK
@@ -8848,7 +8848,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
 	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
-	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
 	End If
 	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
@@ -8925,7 +8925,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
 					txtAIAgent.TextRTF = *AIBodyWStringPtr
-					'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * .5)
+					txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
@@ -10987,7 +10987,7 @@ End Sub
 
 Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
-		stBar.Panels[0]->Width = NewWidth / 2
+		stBar.Panels[0]->Width = Max(stBar.Width - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width + 3
 	#endif
 End Sub
