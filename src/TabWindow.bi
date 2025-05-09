@@ -257,6 +257,8 @@ Public:
 	Declare Sub ProcedureNumberOff
 	Declare Sub PreprocessorNumberOn
 	Declare Sub PreprocessorNumberOff
+	Declare Sub SplitLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Declare Sub CombineLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub DeleteBlankLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
 	Declare Sub FormatWithBasisWord(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)

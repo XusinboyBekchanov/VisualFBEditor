@@ -586,7 +586,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		ptxtAIRequest->Text = ML("Convert the given C source code into equivalent FreeBasic source code.") & " " & ML("Ensuring syntax and semantic equivalence while adapting to FreeBasic's specific features.") & !"\r\n" & "```C" & !"\r\n" & "       " & !"\r\n" & "```"
 		ptxtAIRequest->SetFocus
 	Case "SaveAs", "Close", "SyntaxCheck", "Compile", "CompileAndRun", "Run", "RunToCursor", "SplitHorizontally", "SplitVertically", _
-		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
+		"Start", "Stop", "StepOut", "FindNext", "FindPrev", "Goto", "SetNextStatement", "SplitLines", "CombineLines", "SortLines", "DeleteBlankLines", "FormatWithBasisWord", "ConvertFromHexStrUnicode", "ConvertToHexStrUnicode", "ConvertToUppercaseFirstLetter", "ConvertToLowercase", "ConvertToUppercase", "SplitUp", "SplitDown", "SplitLeft", "SplitRight", _
 		"AddWatch", "ShowVar", "NextBookmark", "PreviousBookmark", "ClearAllBookmarks", "Code", "Form", "CodeAndForm", "GotoCodeForm", "AddProcedure", "AddType", "AIAddComment", "AIOptimizeCode", "AIIntellicode", "AITracepointError", "AITranslate", "AITranslateE"
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -594,6 +594,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Case "Save":                        tb->Save
 		Case "SaveAs":                      tb->SaveAs:  frmMain.Caption = tb->FileName & " - " & App.Title
 		Case "Close":                       CloseTab(tb)
+		Case "SplitLines":                  tb->SplitLines
+		Case "CombineLines":                tb->CombineLines
 		Case "SortLines":                   tb->SortLines
 		Case "DeleteBlankLines":            tb->DeleteBlankLines
 		Case "FormatWithBasisWord" :        tb->FormatWithBasisWord

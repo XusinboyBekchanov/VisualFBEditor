@@ -10247,8 +10247,12 @@ mnuCode.Add("-")
 mnuCode.Add(ML("Convert to Unicode Hex String"), "", "ConvertToHexStrUnicode", @mClick)
 mnuCode.Add(ML("Convert From Unicode Hex String"), "", "ConvertFromHexStrUnicode", @mClick)
 mnuCode.Add("-")
+mnuCode.Add(ML("Split Lines"), "", "SplitLines", @mClick)
+mnuCode.Add(ML("Combine Lines"), "", "CombineLines", @mClick)
+mnuCode.Add("-")
 mnuCode.Add(ML("Sort Lines"), "", "SortLines", @mClick)
 mnuCode.Add(ML("Format With Basis Word"), "", "FormatWithBasisWord", @mClick)
+
 Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef msg As Message)
 	Dim As Panel Ptr pnl = Cast(Panel Ptr, @Sender)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, pnl->Parent)
@@ -13178,6 +13182,103 @@ Sub TabWindow.ProcessMessage(ByRef msg As Message)
 		End Select
 	#endif
 	Base.ProcessMessage(msg)
+End Sub
+
+Sub TabWindow.SplitLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("Split Lines")
+		If StartLine = -1 Or EndLine = -1 Then
+			Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			StartLine = iSelStartLine
+			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		End If
+		Dim As EditControlLine Ptr FECLine, FFirstECLine
+		Dim As Integer n = 0, i = StartLine, l = 0, iCountTab = 0
+		Dim As Boolean bFirst
+		Dim As WStringList Lines
+		FFirstECLine = .Content.Lines.Items[StartLine]
+		If Not EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") Then
+			Do While i <= EndLine + l
+				FECLine = .Content.Lines.Items[i]
+				For j As Integer = 0 To Len(*FECLine->Text) - 1
+					If FECLine->Text[j] = Asc("(") OrElse FECLine->Text[j] = Asc(",") Then
+						If Not bFirst Then
+							If TabWidth = 0 Then
+								iCountTab = 0
+							Else
+								iCountTab = j / TabWidth
+							End If
+							bFirst = True
+						End If
+						txtCode.InsertLine i + 1, WString(iCountTab, !"\t") & Trim(Mid(*FECLine->Text, j + 2), Any !"\t ")
+						txtCode.ReplaceLine i, ..Left(*FECLine->Text, j + 1) & " _"
+						l += 1
+						Exit For
+					ElseIf FECLine->Text[j] = Asc(")") AndAlso Trim(..Left(*FECLine->Text, j), Any !"\t ") <> "" Then
+						txtCode.InsertLine i + 1, WString(iCountTab, !"\t") & Trim(Mid(*FECLine->Text, j + 1), Any !"\t ")
+						txtCode.ReplaceLine i, ..Left(*FECLine->Text, j) & " _"
+						l += 1
+						Exit For
+					End If
+				Next
+				i += 1
+			Loop
+		End If
+		.Changed("Split Lines")
+		.UpdateUnLock
+	End With
+End Sub
+
+Sub TabWindow.CombineLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
+	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+	If tb = 0 Then Exit Sub
+	With tb->txtCode
+		.UpdateLock
+		.Changing("Combine Lines")
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If StartLine = -1 Or EndLine = -1 Then
+			.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+			iSelEndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
+		Else
+			iSelStartLine = StartLine: iSelEndLine = EndLine
+		End If
+		If iSelStartLine < 0 OrElse iSelStartLine > .LinesCount - 1 OrElse iSelEndLine > .LinesCount - 1 Then Exit Sub
+		Dim As EditControlLine Ptr FECLine, FFirstECLine
+		Dim As Integer iStartLine = iSelStartLine, l = 0
+		Dim As WString Ptr LineText
+		For j As Integer = iSelStartLine - 1 To 0 Step -1
+			FFirstECLine = .Content.Lines.Items[j]
+			If EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") OrElse Trim(*FFirstECLine->Text, Any !"\t ") = "_" Then
+				iStartLine = j
+			Else
+				Exit For
+			End If
+		Next
+		FFirstECLine = .Content.Lines.Items[iStartLine]
+		Dim As Boolean bLineWith_ = EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") OrElse Trim(*FFirstECLine->Text, Any !"\t ") = "_", bWithBracket
+		If bLineWith_ Then
+			WLet(LineText, RTrim(..Left(*FFirstECLine->Text, Len(RTrim(*FFirstECLine->Text, Any !"\t ")) - 2), Any !"\t "))
+			Do
+				FECLine = .Content.Lines.Items[iStartLine + 1]
+				bLineWith_ = EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse Trim(*FECLine->Text, Any !"\t ") = "_"
+				bWithBracket = StartsWith(Trim(*FECLine->Text, Any !"\t "), ")") OrElse EndsWith(*LineText, "(")
+				If bLineWith_ Then
+					WAdd(LineText, IIf(bWithBracket, "", " ") & Trim(..Left(*FECLine->Text, Len(RTrim(*FECLine->Text, Any !"\t ")) - 2), Any !"\t "))
+				Else
+					WAdd(LineText, IIf(bWithBracket, "", " ") & Trim(*FECLine->Text, Any !"\t "))
+				End If
+				.DeleteLine iStartLine
+			Loop While bLineWith_
+			.ReplaceLine iStartLine, *LineText
+			WDeAllocate(LineText)
+		End If
+		.Changed("Combine Lines")
+		.UpdateUnLock
+	End With
 End Sub
 
 Sub TabWindow.SortLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
