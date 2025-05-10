@@ -5158,7 +5158,7 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 		UnicodeStr = ""
 	End If
 	pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(iSelEndLine + 1) + " : " + WStr(tb->txtCode.LinesCount) + WSpace(2) + _
-	ML("Column") + " " + WStr(iSelEndChar + 1) + " : " + WStr(Len(tb->txtCode.Lines(iSelEndLine))) + WSpace(2) + _
+	ML("Column") + " " + WStr(iSelEndChar + 1) + " : " + WStr(Len(tb->txtCode.Lines(iSelEndLine)) + 1) + WSpace(2) + _
 	ML("Selection") + " " + WStr(tb->txtCode.SelTextLength ) + " " + UnicodeStr
 	If Not tb->txtCode.ToolTipShowed Then Exit Sub
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
