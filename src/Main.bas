@@ -7001,7 +7001,7 @@ End Sub
 Dim As Double tWidth = Max(8, DefaultFont.Size) * 0.85
 stBar.Align = DockStyle.alBottom
 stBar.Add ML("Press F1 for get more information"), tWidth * 25
-stBar.Add("", tWidth * 30) 'Row +Col 
+stBar.Add("", tWidth * 50) 'Row +Col 
 stBar.Add ML("IntelliSense fully loaded"), tWidth * 27
 stBar.Add "UTF-8 (BOM)", tWidth * 11
 stBar.Add "CR+LF", tWidth * 6

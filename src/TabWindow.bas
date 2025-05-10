@@ -5147,9 +5147,19 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	MouseHoverTimerVal = Timer
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	Dim As String UnicodeStr = Hex(tb->txtCode.Lines(iSelEndLine)[iSelStartChar], 4)
+	If Len(UnicodeStr) > 3 Then
+		If Mid(UnicodeStr, 1, 2) = "00" Then
+			UnicodeStr = " HEX:" & UnicodeStr & "(ASC:" & Val("&H" & UnicodeStr) & ")"
+		Else
+			UnicodeStr = " HEX:" & UnicodeStr & "(DEC:" & Val("&H" & UnicodeStr) & ")"
+		End If
+	Else
+		UnicodeStr = ""
+	End If
 	pstBar->Panels[1]->Caption = ML("Row") + " " + WStr(iSelEndLine + 1) + " : " + WStr(tb->txtCode.LinesCount) + WSpace(2) + _
-	ML("Column") + " " + WStr(iSelEndChar) + " : " + WStr(Len(tb->txtCode.Lines(iSelEndLine))) + WSpace(2) + _
-	ML("Selection") + " " + WStr(tb->txtCode.SelTextLength )
+	ML("Column") + " " + WStr(iSelEndChar + 1) + " : " + WStr(Len(tb->txtCode.Lines(iSelEndLine)) + 1) + WSpace(2) + _
+	ML("Selection") + " " + WStr(tb->txtCode.SelTextLength ) + " " + UnicodeStr
 	If Not tb->txtCode.ToolTipShowed Then Exit Sub
 	Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 	Dim As WStringList ParametersList
@@ -13198,14 +13208,15 @@ Sub TabWindow.SplitLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integ
 		End If
 		Dim As EditControlLine Ptr FECLine, FFirstECLine
 		Dim As Integer n = 0, i = StartLine, l = 0, iCountTab = 0
-		Dim As Boolean bFirst
+		Dim As Boolean bFirst, bInSideString
 		Dim As WStringList Lines
 		FFirstECLine = .Content.Lines.Items[StartLine]
 		If Not EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") Then
 			Do While i <= EndLine + l
 				FECLine = .Content.Lines.Items[i]
 				For j As Integer = 0 To Len(*FECLine->Text) - 1
-					If FECLine->Text[j] = Asc("(") OrElse FECLine->Text[j] = Asc(",") Then
+					If FECLine->Text[j] = 34 Then bInSideString = Not bInSideString
+					If FECLine->Text[j] = Asc("(") OrElse (FECLine->Text[j] = Asc(",") AndAlso bInSideString = False) Then
 						If Not bFirst Then
 							If TabWidth = 0 Then
 								iCountTab = 0
@@ -13214,6 +13225,7 @@ Sub TabWindow.SplitLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integ
 							End If
 							bFirst = True
 						End If
+						bInSideString = False
 						txtCode.InsertLine i + 1, WString(iCountTab, !"\t") & Trim(Mid(*FECLine->Text, j + 2), Any !"\t ")
 						txtCode.ReplaceLine i, ..Left(*FECLine->Text, j + 1) & " _"
 						l += 1
@@ -13221,6 +13233,7 @@ Sub TabWindow.SplitLines(ByVal StartLine As Integer = -1, ByVal EndLine As Integ
 					ElseIf FECLine->Text[j] = Asc(")") AndAlso Trim(..Left(*FECLine->Text, j), Any !"\t ") <> "" Then
 						txtCode.InsertLine i + 1, WString(iCountTab, !"\t") & Trim(Mid(*FECLine->Text, j + 1), Any !"\t ")
 						txtCode.ReplaceLine i, ..Left(*FECLine->Text, j) & " _"
+						bInSideString = False
 						l += 1
 						Exit For
 					End If
