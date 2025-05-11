@@ -5150,9 +5150,9 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	Dim As String UnicodeStr = Hex(tb->txtCode.Lines(iSelEndLine)[iSelStartChar], 4)
 	If Len(UnicodeStr) > 3 Then
 		If Mid(UnicodeStr, 1, 2) = "00" Then
-			UnicodeStr = " HEX:" & UnicodeStr & "(ASC:" & Val("&H" & UnicodeStr) & ")"
+			UnicodeStr = " HEX: " & UnicodeStr & " (ASC: " & Val("&H" & UnicodeStr) & ")"
 		Else
-			UnicodeStr = " HEX:" & UnicodeStr & "(DEC:" & Val("&H" & UnicodeStr) & ")"
+			UnicodeStr = " HEX: " & UnicodeStr & " (DEC: " & Val("&H" & UnicodeStr) & ")"
 		End If
 	Else
 		UnicodeStr = ""
@@ -8520,6 +8520,17 @@ Sub AddTypeNodes(tn As TreeNode Ptr, te As TypeElement Ptr)
 	Next
 End Sub
 
+Function TrimAll(ByRef Value As WString) As UString
+	Dim As Integer CountReplaced
+	Dim As UString ChangedValue = Value
+	Do
+		ChangedValue = Replace(ChangedValue, "  ", " ", , , , CountReplaced)
+	Loop While CountReplaced > 0
+	ChangedValue = Replace(ChangedValue, "( ", "(")
+	ChangedValue = Replace(ChangedValue, " )", ")")
+	Return ChangedValue
+End Function
+
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	On Error Goto ErrorHandler
 	If bNotDesign OrElse FormClosing OrElse txtCode.LinesCount > 50000 Then Exit Sub
@@ -9174,6 +9185,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 									te->TypeName = WithoutPointers(te->TypeName)
 								End If
+								te->Parameters = TrimAll(te->Parameters)
 								Select Case ECStatement->ConstructionIndex
 								Case C_P_Macro: te->ElementType = E_Macro
 								Case C_Enum: te->ElementType = E_Enum
