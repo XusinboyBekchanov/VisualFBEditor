@@ -21,6 +21,11 @@ Enum KeyWordsCase
 	UpperCase
 End Enum
 
+Enum ConstructionTypes
+	AllConstructions
+	OnlyProcedures
+End Enum
+
 Common Shared As Boolean AutoIndentation
 Common Shared As Boolean ShowSpaces
 Common Shared As Integer TabWidth
@@ -28,11 +33,13 @@ Common Shared As Integer HistoryLimit, AutoSaveCharMax
 Common Shared As Integer IntellisenseLimit
 Common Shared As Integer TabAsSpaces
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
+Common Shared As ConstructionTypes ChoosedConstructions
 Common Shared As Integer ChoosedTabStyle
 Common Shared As Integer CodeEditorHoverTime
 Common Shared As Boolean SyntaxHighlightingIdentifiers
 Common Shared As Boolean ChangeIdentifiersCase
 Common Shared As Boolean ChangeKeyWordsCase
+Common Shared As Boolean ChangeEndingType
 Common Shared As Boolean AddSpacesToOperators
 Common Shared As Boolean WithFrame
 Common Shared As WStringOrStringList Ptr pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
@@ -227,6 +234,8 @@ Namespace My.Sys.Forms
 		CollapsedFully As Boolean
 		Collapsible As Boolean
 		CommentIndex As Integer
+		OldConstructionIndex As Integer
+		OldConstructionPart As Integer
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		ConstructionPartCount As Integer

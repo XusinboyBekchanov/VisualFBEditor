@@ -3205,56 +3205,140 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	bNotFunctionChange = True
-	If TextChanged AndAlso tb->txtCode.SyntaxEdit Then
-		With tb->txtCode
-			'If Not .Focused Then bNotFunctionChange = False: Exit Sub
-			If OldLine > -1 AndAlso OldLine < .Content.Lines.Count Then
-				Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[OldLine])
-				If CInt(ecl->CommentIndex = 0) Then
-					If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg(Asc(Mid(RTrim(*ecl->Text), Len(RTrim(*ecl->Text)) - 2, 1)))) Then
-						Dim As UString res(Any), b
-						Split(*ecl->Text, """", res())
-						For j As Integer = 0 To UBound(res)
-							If j = 0 Then
-								b = res(0)
-							ElseIf j Mod 2 = 0 Then
-								b &= """" & res(j)
-							Else
-								b &= """" & WSpace(Len(res(j)))
+	If tb->txtCode.SyntaxEdit Then
+		If CurrentLine > -1 AndAlso CurrentLine < tb->txtCode.Content.Lines.Count Then
+			Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[CurrentLine])
+			ecl->OldConstructionIndex = ecl->ConstructionIndex
+			ecl->OldConstructionPart = ecl->ConstructionPart
+		End If
+		If TextChanged Then
+			With tb->txtCode
+				'If Not .Focused Then bNotFunctionChange = False: Exit Sub
+				If OldLine > -1 AndAlso OldLine < .Content.Lines.Count Then
+					Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[OldLine])
+					If CInt(ecl->CommentIndex = 0) Then
+						If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg(Asc(Mid(RTrim(*ecl->Text), Len(RTrim(*ecl->Text)) - 2, 1)))) Then
+							Dim As UString res(Any), b
+							Split(*ecl->Text, """", res())
+							For j As Integer = 0 To UBound(res)
+								If j = 0 Then
+									b = res(0)
+								ElseIf j Mod 2 = 0 Then
+									b &= """" & res(j)
+								Else
+									b &= """" & WSpace(Len(res(j)))
+								End If
+							Next
+							WLet(ecl->Text, RTrim(..Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & Right(RTrim(*ecl->Text), 1) & "=1")
+							b &= "1"
+						End If
+						If ChangeKeyWordsCase Then
+							
+						End If
+						If AddSpacesToOperators Then
+							tb->AddSpaces OldLine, OldLine
+							'						Dim As UString c, cn, cp
+							'						For i As Integer = Len(b) To 1 Step -1
+							'							c = Mid(b, i, 1)
+							'							cn = Mid(b, i + 1, 1)
+							'							cp = Mid(b, i - 1, 1)
+							'							If InStr("+-*/\<>&=',:;", c) Then
+							'								If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
+							'									WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
+							'								End If
+							'								If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) OrElse CInt(CInt(c = "-") AndAlso CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0)) Then
+							'									WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
+							'								End If
+							'							End If
+							'						Next
+							'If Trim(*ecl->Text, Any !"\t ") <> "" Then WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
+						End If
+						If ChangeEndingType Then
+							Dim As EditControlStatement Ptr ecs, ecsOld
+							Dim As EditControlLine Ptr eclFirst
+							Dim As IntegerList iList
+							Dim As Boolean bFind
+							eclFirst = ecl
+							If eclFirst->OldConstructionIndex >= IIf(ChoosedConstructions = ConstructionTypes.OnlyProcedures, 18, 0) AndAlso eclFirst->OldConstructionPart = 0 _
+								AndAlso eclFirst->ConstructionIndex >= IIf(ChoosedConstructions = ConstructionTypes.OnlyProcedures, 18, 0) AndAlso eclFirst->ConstructionPart = 0 _
+								AndAlso eclFirst->OldConstructionIndex <> eclFirst->ConstructionIndex Then
+								For j As Integer = OldLine To .Content.Lines.Count - 1
+									ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[j])
+									For i As Integer = 0 To ecl->Statements.Count - 1
+										ecs = ecl->Statements.Item(i)
+										If Not bFind Then
+											If ecs->ConstructionIndex = ecl->ConstructionIndex AndAlso ecs->ConstructionPart = 0 Then
+												bFind = True
+											End If
+										ElseIf bFind Then
+											If ecs->ConstructionIndex = eclFirst->OldConstructionIndex Then
+												If ecs->ConstructionPart = 0 Then
+													iList.Add eclFirst->OldConstructionIndex
+												ElseIf ecs->ConstructionPart = 2 Then
+													If iList.Count > 0 Then
+														iList.Remove iList.Count - 1
+													Else
+														Dim As UString Text, TextOld
+														Dim As Integer s = 1
+														For k As Integer = 0 To i - 1
+															ecsOld = ecl->Statements.Item(k)
+															Text &= Mid(*ecl->Text, s, Len(*ecsOld->Text)) & ":"
+															s += Len(*ecsOld->Text) + 1
+														Next
+														ecsOld = ecl->Statements.Item(i)
+														TextOld = Mid(*ecl->Text, s, Len(*ecsOld->Text))
+														Text &= Left(TextOld, Len(TextOld) - Len(LTrim(TextOld, Any !"\t "))) & Constructions(eclFirst->ConstructionIndex).EndName
+														s += Len(*ecsOld->Text) + 1
+														For k As Integer = i + 1 To ecl->Statements.Count - 1
+															ecsOld = ecl->Statements.Item(k)
+															Text &= ":" & Mid(*ecl->Text, s, Len(*ecsOld->Text))
+															s += Len(*ecsOld->Text) + 1
+														Next
+														.ReplaceLine j, Text
+														Exit For, For
+													End If
+												End If
+											Else
+												If iList.Count = 0 Then
+													If CBool(LCase(Trim(*ecs->Text, Any !"\t ")) = LCase("Exit " & Constructions(eclFirst->OldConstructionIndex).Name0)) _
+														OrElse EndsWith(LCase(Trim(*ecs->Text, Any !"\t ")), LCase(" Exit " & Constructions(eclFirst->OldConstructionIndex).Name0)) _
+														OrElse CBool(LCase(Trim(*ecs->Text, Any !"\t ")) = LCase("Continue " & Constructions(eclFirst->OldConstructionIndex).Name0)) _
+														OrElse EndsWith(LCase(Trim(*ecs->Text, Any !"\t ")), LCase(" Continue " & Constructions(eclFirst->OldConstructionIndex).Name0)) Then
+														Dim As UString Text, TextOld
+														Dim As Integer s = 1
+														For k As Integer = 0 To i - 1
+															ecsOld = ecl->Statements.Item(k)
+															Text &= Mid(*ecl->Text, s, Len(*ecsOld->Text)) & ":"
+															s += Len(*ecsOld->Text) + 1
+														Next
+														ecsOld = ecl->Statements.Item(i)
+														TextOld = Mid(*ecl->Text, s, Len(*ecsOld->Text))
+														Text &= Left(TextOld, Len(RTrim(TextOld, Any !"\t ")) - Len(Constructions(eclFirst->OldConstructionIndex).Name0)) & Constructions(eclFirst->ConstructionIndex).Name0
+														s += Len(*ecsOld->Text) + 1
+														For k As Integer = i + 1 To ecl->Statements.Count - 1
+															ecsOld = ecl->Statements.Item(k)
+															Text &= ":" & Mid(*ecl->Text, s, Len(*ecsOld->Text))
+															s += Len(*ecsOld->Text) + 1
+														Next
+														.ReplaceLine j, Text
+													End If
+												End If
+											End If
+										End If
+									Next
+									If Not bFind Then Exit For
+								Next
 							End If
-						Next
-						WLet(ecl->Text, RTrim(..Left(*ecl->Text, Len(RTrim(*ecl->Text)) - 2)) & Right(RTrim(*ecl->Text), 1) & "=1")
-						b &= "1"
-					End If
-					If ChangeKeyWordsCase Then
-						
-					End If
-					If AddSpacesToOperators Then
-						tb->AddSpaces OldLine, OldLine
-						'						Dim As UString c, cn, cp
-						'						For i As Integer = Len(b) To 1 Step -1
-						'							c = Mid(b, i, 1)
-						'							cn = Mid(b, i + 1, 1)
-						'							cp = Mid(b, i - 1, 1)
-						'							If InStr("+-*/\<>&=',:;", c) Then
-						'								If CInt(IsArg(Asc(cn)) OrElse InStr("{[("")]}*@", cn) > 0) AndAlso CInt(Mid(*ecl->Text, i, 2) <> "&H" AndAlso CInt(c <> "'")) AndAlso CInt(c <> "-" OrElse InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) = 0 AndAlso LCase(Right(RTrim(..Left(*ecl->Text, i - 1)), 6)) <> "return") AndAlso CInt(Mid(*ecl->Text, i - 1, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn)))) OrElse CInt(InStr(",:;", c) > 0 AndAlso cn <> "" AndAlso cn <> " " AndAlso cn <> !"\t") Then
-						'									WLetEx ecl->Text, ..Left(*ecl->Text, i) & " " & Mid(*ecl->Text, i + 1), True
-						'								End If
-						'								If CInt(CInt(IsArg(Asc(cp)) OrElse InStr("{[("")]}", cp) > 0) AndAlso CInt(c <> ",") AndAlso CInt(c <> ":") AndAlso CInt(c <> ";") AndAlso CInt(Mid(*ecl->Text, i, 2) <> "->") AndAlso CInt(CInt(c <> "*") OrElse CInt(IsNumeric(cn)) OrElse CInt(Not IsArg(Asc(cn))))) OrElse CInt(CInt(c = "-") AndAlso CInt(cp <> " ") AndAlso CInt(cp <> !"\t") AndAlso CInt(IsArg(Asc(cn))) AndAlso CInt(InStr("+-*/=", Right(RTrim(..Left(*ecl->Text, i - 1)), 1)) > 0)) Then
-						'									WLetEx ecl->Text, ..Left(*ecl->Text, i - 1) & " " & Mid(*ecl->Text, i), True
-						'								End If
-						'							End If
-						'						Next
-						'If Trim(*ecl->Text, Any !"\t ") <> "" Then WLetEx ecl->Text, RTrim(*ecl->Text, Any !"\t "), True
+						End If
 					End If
 				End If
-			End If
-			If tb->tbrTop.Buttons.Item("Code")->Checked AndAlso CBool(OldLine = -1 OrElse (OldLine >= tb->ConstructorStart AndAlso OldLine <= tb->ConstructorEnd)) Then
-				tb->FormNeedDesign = True
-			End If
-			tb->FormDesign bNotDesignForms OrElse tb->tbrTop.Buttons.Item("Code")->Checked OrElse (CBool(OldLine < tb->ConstructorStart) AndAlso CBool(OldLine <> -1)) OrElse CBool(OldLine > tb->ConstructorEnd) 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
-		End With
-		TextChanged = False
+				If tb->tbrTop.Buttons.Item("Code")->Checked AndAlso CBool(OldLine = -1 OrElse (OldLine >= tb->ConstructorStart AndAlso OldLine <= tb->ConstructorEnd)) Then
+					tb->FormNeedDesign = True
+				End If
+				tb->FormDesign bNotDesignForms OrElse tb->tbrTop.Buttons.Item("Code")->Checked OrElse (CBool(OldLine < tb->ConstructorStart) AndAlso CBool(OldLine <> -1)) OrElse CBool(OldLine > tb->ConstructorEnd) 'Not EndsWith(tb->cboFunction.Text, " [Constructor]")
+			End With
+			TextChanged = False
+		End If
 	End If
 	'    If tb->cboClass.ItemIndex <> 0 Then
 	'        tb->cboClass.ItemIndex = 0
@@ -6862,7 +6946,7 @@ Sub AnalyzeTab(Param As Any Ptr)
 											'Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
 										End If
 									ElseIf tIndex = -1 Then
-										If isNumeric(Matn) OrElse isNumeric(MatnWithoutOldSymbol) Then
+										If IsNumeric(Matn) OrElse IsNumeric(MatnWithoutOldSymbol) Then
 											If InStr(Matn, ".") Then
 												sc = @RealNumbers
 											Else

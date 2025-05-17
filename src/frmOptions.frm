@@ -2540,6 +2540,17 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @pnlHistoryFileSavingDays
 		End With
+		' pnlChangeEndingType
+		With pnlChangeEndingType
+			.Name = "pnlChangeEndingType"
+			.Text = "Panel1"
+			.TabIndex = 266
+			.Align = DockStyle.alTop
+			.ControlIndex = 17
+			.SetBounds 0, 361, 250, 21
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
 		' pnlTreatTabAsSpaces
 		With pnlTreatTabAsSpaces
 			.Name = "pnlTreatTabAsSpaces"
@@ -2990,6 +3001,33 @@ pfOptions = @fOptions
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdAddAIAgent_Click)
 			.Parent = @hbxAIAgent
 		End With
+		' chkChangeEndingType
+		With chkChangeEndingType
+			.Name = "chkChangeEndingType"
+			.Text = ML("Change Ending Type") & ":"
+			.TabIndex = 267
+			.Align = DockStyle.alLeft
+			.AutoSize = True
+			.Caption = ML("Change Ending Type") & ":"
+			.Constraints.Height = 21
+			.SetBounds 0, 0, 172, 15
+			.Designer = @This
+			.Parent = @pnlChangeEndingType
+		End With
+		' cboConstructions
+		With cboConstructions
+			.Name = "cboConstructions"
+			.Text = "ComboBoxEdit2"
+			.ExtraMargins.Right = 20
+			.ExtraMargins.Top = 0
+			.ExtraMargins.Left = 0
+			.Align = DockStyle.alRight
+			.ExtraMargins.Bottom = 2
+			.TabIndex = 268
+			.SetBounds 80, 0, 150, 21
+			.Designer = @This
+			.Parent = @pnlChangeEndingType
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
@@ -3062,9 +3100,11 @@ Sub frmOptions.LoadSettings()
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.txtCodeEditorHoverTime.Text = Str(CodeEditorHoverTime)
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
+		.cboConstructions.ItemIndex = ChoosedConstructions
 		.chkSyntaxHighlightingIdentifiers.Checked = SyntaxHighlightingIdentifiers 
 		.chkChangeIdentifiersCase.Checked = ChangeIdentifiersCase
 		.chkChangeKeywordsCase.Checked = ChangeKeyWordsCase
+		.chkChangeEndingType.Checked = ChangeEndingType
 		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
 		.chkLimitDebug.Checked = LimitDebug
@@ -3476,6 +3516,9 @@ Private Sub frmOptions.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
+		.cboConstructions.Clear
+		.cboConstructions.AddItem ML("All Constructions")
+		.cboConstructions.AddItem ML("Only Procedures")
 		.cboTabStyle.Clear
 		.cboTabStyle.AddItem ML("Everywhere")
 		.cboTabStyle.AddItem ML("Only after the words")
@@ -3816,7 +3859,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		SyntaxHighlightingIdentifiers = .chkSyntaxHighlightingIdentifiers.Checked
 		ChangeIdentifiersCase = .chkChangeIdentifiersCase.Checked
 		ChangeKeyWordsCase = .chkChangeKeywordsCase.Checked
+		ChangeEndingType = .chkChangeEndingType.Checked
 		ChoosedKeyWordsCase = .cboCase.ItemIndex
+		ChoosedConstructions = .cboConstructions.ItemIndex
 		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
 		WLet(CurrentTheme, .cboTheme.Text)
 		WLet(EditorFontName, * (.EditFontName))
@@ -4045,7 +4090,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "SyntaxHighlightingIdentifiers", SyntaxHighlightingIdentifiers
 		piniSettings->WriteBool "Options", "ChangeIdentifiersCase", ChangeIdentifiersCase
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeyWordsCase
+		piniSettings->WriteBool "Options", "ChangeEndingType", ChangeEndingType
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeyWordsCase
+		piniSettings->WriteInteger "Options", "ChoosedConstructions", ChoosedConstructions
 		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators
 		
 		piniSettings->WriteString "Options", "CurrentTheme", *CurrentTheme
