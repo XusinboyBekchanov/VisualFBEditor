@@ -217,6 +217,7 @@ Namespace My.Sys.Forms
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		ConstructionPartCount As Integer
+		ConstructionNextCount As Integer
 		InAsm As Boolean
 		InConstruction As TypeElement Ptr
 		InConstructionBlock As ConstructionBlock Ptr
@@ -239,6 +240,7 @@ Namespace My.Sys.Forms
 		ConstructionIndex As Integer
 		ConstructionPart As Integer
 		ConstructionPartCount As Integer
+		ConstructionNextCount As Integer
 		InAsm As Boolean
 		InConstruction As TypeElement Ptr
 		InConstructionBlock As ConstructionBlock Ptr

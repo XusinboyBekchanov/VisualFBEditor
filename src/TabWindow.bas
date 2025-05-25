@@ -3275,8 +3275,13 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 												If ecs->ConstructionPart = 0 Then
 													iList.Add eclFirst->OldConstructionIndex
 												ElseIf ecs->ConstructionPart = 2 Then
-													If iList.Count > 0 Then
+													If iList.Count > 0 AndAlso ecs->ConstructionNextCount < iList.Count Then
 														iList.Remove iList.Count - 1
+														For k As Integer = 0 To ecs->ConstructionNextCount - 1
+															If iList.Count > 0 Then
+																iList.Remove iList.Count - 1
+															End If
+														Next
 													Else
 														Dim As UString Text, TextOld
 														Dim As Integer s = 1
@@ -3287,7 +3292,14 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 														Next
 														ecsOld = ecl->Statements.Item(i)
 														TextOld = Mid(*ecl->Text, s, Len(*ecsOld->Text))
-														Text &= Left(TextOld, Len(TextOld) - Len(LTrim(TextOld, Any !"\t "))) & Constructions(eclFirst->ConstructionIndex).EndName
+														Text &= Left(TextOld, Len(TextOld) - Len(LTrim(TextOld, Any !"\t ")))
+														For k As Integer = 0 To iList.Count - 1
+															Text &= Constructions(eclFirst->OldConstructionIndex).EndName & ": "
+														Next
+														Text &= Constructions(eclFirst->ConstructionIndex).EndName
+														For k As Integer = iList.Count To ecsOld->ConstructionNextCount - 1
+															Text &= ": " & Constructions(eclFirst->OldConstructionIndex).EndName
+														Next
 														s += Len(*ecsOld->Text) + 1
 														For k As Integer = i + 1 To ecl->Statements.Count - 1
 															ecsOld = ecl->Statements.Item(k)
@@ -8997,6 +9009,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			'For jj As Integer = 0 To UBound(res)
 			For jj As Integer = 0 To ECLine->Statements.Count - 1
 				ECStatement = ECLine->Statements.Items[jj]
+				ECStatement->ConstructionPartCount = ECStatement->ConstructionNextCount
 				If ptxtCode = @txtCode Then
 					ECStatement->InConstruction = 0
 					ECStatement->InConstructionBlock = 0

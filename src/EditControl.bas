@@ -411,6 +411,7 @@ Namespace My.Sys.Forms
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
 				FECLine->ConstructionPartCount = .ConstructionPartCount
+				FECLine->ConstructionNextCount = .ConstructionNextCount
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
@@ -427,6 +428,7 @@ Namespace My.Sys.Forms
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
 						FECStatement->ConstructionPartCount = .ConstructionPartCount
+						FECStatement->ConstructionNextCount = .ConstructionNextCount
 						FECStatement->InAsm = .InAsm
 						FECStatement->InConstructionIndex = .InConstructionIndex
 						FECStatement->InConstructionPart = .InConstructionPart
@@ -484,6 +486,7 @@ Namespace My.Sys.Forms
 				FECLine->ConstructionIndex = .ConstructionIndex
 				FECLine->ConstructionPart = .ConstructionPart
 				FECLine->ConstructionPartCount = .ConstructionPartCount
+				FECLine->ConstructionNextCount = .ConstructionNextCount
 				FECLine->InAsm = .InAsm
 				FECLine->InConstructionIndex = .InConstructionIndex
 				FECLine->InConstructionPart = .InConstructionPart
@@ -500,6 +503,7 @@ Namespace My.Sys.Forms
 						FECStatement->ConstructionIndex = .ConstructionIndex
 						FECStatement->ConstructionPart = .ConstructionPart
 						FECStatement->ConstructionPartCount = .ConstructionPartCount
+						FECStatement->ConstructionNextCount = .ConstructionNextCount
 						FECStatement->InAsm = .InAsm
 						FECStatement->InConstructionIndex = .InConstructionIndex
 						FECStatement->InConstructionPart = .InConstructionPart
@@ -938,6 +942,10 @@ Namespace My.Sys.Forms
 			End If
 			ecs->ConstructionIndex = i
 			ecs->ConstructionPart = j
+			If ecs->ConstructionIndex = C_For AndAlso ecs->ConstructionPart = 2 Then
+				ecs->ConstructionNextCount = InStrCount(*LineText_, ",")
+				ecs->ConstructionPartCount = ecs->ConstructionNextCount
+			End If
 			If i > -1 Then
 				If j = 0 OrElse j = 1 Then
 					Statements.Add ecs
@@ -978,6 +986,8 @@ Namespace My.Sys.Forms
 		j = ecl->MainStatement->ConstructionPart
 		ecl->ConstructionIndex = i
 		ecl->ConstructionPart = j
+		ecl->ConstructionPartCount = ecl->MainStatement->ConstructionPartCount
+		ecl->ConstructionNextCount = ecl->MainStatement->ConstructionNextCount
 	End Sub
 	
 	Sub EditControl.ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
@@ -4065,6 +4075,11 @@ Namespace My.Sys.Forms
 							Dim As ECColorScheme Ptr ecc
 							For j As Integer = 0 To FECLine->Ends.Count - 1
 								ecc = FECLine->Ends.Object(j)
+								'Dim As String a
+								'For iss As Integer = 0 To FECLine->Statements.Count - 1
+								'	a = a & ": " & Str(Cast(EditControlStatement Ptr, FECLine->Statements.Item(iss))->ConstructionPartCount)
+								'Next
+								'PaintText zz, i, *s & a, OldJ, FECLine->Ends.Item(j) + Len(a), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z)
 								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z)
 								OldJ = FECLine->Ends.Item(j)
 							Next
@@ -6837,12 +6852,12 @@ Namespace My.Sys.Forms
 				Var z = 0
 				If CInt(AutoIndentation) AndAlso ((InStr(*FLine, ":") = 0) OrElse (i = C_Class)) AndAlso CInt(i > -1) Then
 					If j > 0 Then
-						Dim y As Integer
+						Dim y As Integer = Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->ConstructionPartCount
 						For o As Integer = FSelEndLine - 1 To 0 Step -1
 							With *Cast(EditControlLine Ptr, Content.Lines.Items[o])
 								If .ConstructionIndex = i OrElse (j = 1 AndAlso i = C_Class AndAlso .ConstructionIndex = C_Type) Then
 									If .ConstructionPart = 2 Then
-										y = y + 1
+										y = y + 1 + .ConstructionPartCount
 									ElseIf .ConstructionPart = 0 Then
 										If y = 0 Then
 											Var ltt0 = Len(GetTabbedText(* (.Text)))
