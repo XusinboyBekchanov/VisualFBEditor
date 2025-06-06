@@ -238,7 +238,7 @@ Private Sub frmPath.cmdPath_Click(ByRef Sender As Control)
 						.txtVersion.Text = ..Left(GetFileName(.OpenD.FileName), Len(GetFileName(.OpenD.FileName)) - 4)
 					Else
 						.txtVersion.Text = GetFileName(GetFolderName(.OpenD.FileName, False))
-						If .txtVersion.Text = "bin" Then
+						If .txtVersion.Text = "bin" OrElse .txtVersion.Text = "fbc_win32_mingw" OrElse .txtVersion.Text = "fbc_win64_mingw" Then
 							.txtVersion.Text = GetFileName(GetFolderName(GetFolderName(.OpenD.FileName, False), False))
 						End If
 					End If

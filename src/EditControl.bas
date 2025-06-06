@@ -1721,7 +1721,7 @@ Namespace My.Sys.Forms
 		ModifiedLine = False
 		#ifdef __USE_WINAPI__
 			Buff = FileName
-			If Buff <> FileName Then
+			If True OrElse Buff <> FileName Then
 				FileLoaded = True
 				Dim As .HANDLE hFile
 				Dim As DWORD dwBytesToRead, dwBytesRead
@@ -7837,3 +7837,4 @@ Sub LoadKeyWords
 	'	Loop
 	'	Close #Fn
 End Sub
+
