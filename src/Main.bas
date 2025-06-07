@@ -188,7 +188,7 @@ pIncludeFiles = @IncludeFiles
 pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": LoadKeyWords"
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Settings")
 
 'LoadLanguageTexts
 LoadSettings
@@ -3869,11 +3869,11 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					LoadFunctionPath = GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), PathFunction)
 					Var Idx = IncludeFiles.IndexOf(LoadFunctionPath)
 					If Idx <> -1 Then
-						FILE->Includes.Add LoadFunctionPath, IncludeFiles.Object(Idx)
+						File->Includes.Add LoadFunctionPath, IncludeFiles.Object(Idx)
 					Else
-						FILE->Includes.Add LoadFunctionPath
+						File->Includes.Add LoadFunctionPath
 					End If
-					FILE->IncludeLines.Add i
+					File->IncludeLines.Add i
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
@@ -5571,7 +5571,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Dim As Integer Posi
 		Dim As Dictionary ControlParentDict
 		If Dir(ExePath & "/Controls/MyFbFramework/ControlParent.csv") <> "" Then
-			ControlParentDict.LoadfromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
+			ControlParentDict.LoadFromFile(ExePath & "/Controls/MyFbFramework/ControlParent.csv")
 		Else
 			ControlParentDict.Add "NULL", "NULL"
 		End If
@@ -5585,7 +5585,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
-				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(posi)->Text Else TmpControlName= ""
+				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
@@ -6766,6 +6766,14 @@ Sub LoadSettings
 	AddRelativePathsToRecent = iniSettings.ReadBool("Options", "AddRelativePathsToRecent", True)
 	WhenVisualFBEditorStarts = iniSettings.ReadInteger("Options", "WhenVisualFBEditorStarts", 2)
 	WLet(DefaultProjectFile, iniSettings.ReadString("Options", "DefaultProjectFile", "Files/Form.frm"))
+	DefaultFileFormat = iniSettings.ReadInteger("Options", "DefaultFileFormat", FileEncodings.Utf8BOM)
+	#ifdef __FB_WIN32__
+		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.WindowsCRLF)
+	#elseif __FB_DARWIN__
+		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.MacOSCR)
+	#else
+		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.LinuxLF)
+	#endif
 	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
 	AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
@@ -7014,6 +7022,7 @@ spProgress->Width = stBar.Panels[2]->Width + 3
 prProgress.Width = stBar.Panels[2]->Width + 3
 prProgress.Visible = False
 prProgress.Marquee = True
+
 #ifdef __USE_GTK__
 	prProgress.Height = 30
 	gtk_box_pack_end (GTK_BOX (gtk_statusbar_get_message_area (GTK_STATUSBAR(stBar.Handle))), prProgress.Handle, False, True, 10)
@@ -11975,3 +11984,7 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
+
+
+
+

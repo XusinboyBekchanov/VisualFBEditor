@@ -538,13 +538,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 					Next
 				End If
 			Else
-				#ifdef __FB_WIN32__
-					tb->NewLineType = NewLineTypes.WindowsCRLF
-					tb->FileEncoding = FileEncodings.Utf8BOM
-				#else
-					tb->NewLineType = NewLineTypes.LinuxLF
-					tb->FileEncoding = FileEncodings.Utf8
-				#endif
+				tb->NewLineType = DefaultNewLineFormat
+				tb->FileEncoding = DefaultFileFormat
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
@@ -14152,3 +14147,5 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
+
+

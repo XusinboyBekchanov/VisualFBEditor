@@ -204,6 +204,15 @@ pfOptions = @fOptions
 		pnlHelp.TabIndex = 75
 		pnlHelp.SetBounds 188, 4, 427, 400
 		pnlHelp.Parent = @pplGeneral
+		' pnlDefaults
+		With pnlDefaults
+			.Name = "pnlDefaults"
+			.Text = ""
+			.Align = DockStyle.alClient
+			.TabIndex = 75
+			.SetBounds 188, 4, 427, 400
+			.Parent = @pplGeneral
+		End With
 		' pnlAIAgent
 		pnlAIAgent.Name = "pnlAIAgent"
 		pnlAIAgent.Text = ""
@@ -318,6 +327,21 @@ pfOptions = @fOptions
 			.TabIndex = 84
 			.SetBounds 10, 0, 417, 123
 			.Parent = @pnlCompiler
+		End With
+		' grbDefaults
+		With grbDefaults
+			.Name = "grbDefaults"
+			.Text = ML("Default Settings for New Files")
+			.AutoSize = false
+			.Align = DockStyle.alClient
+			.ExtraMargins.Left = 0
+			.Margins.Top = 20
+			.Margins.Right = 15
+			.Margins.Left = 15
+			.Margins.Bottom = 15
+			.TabIndex = 84
+			.SetBounds 0, 0, 417, 400
+			.Parent = @pnlDefaults
 		End With
 		' grbShortcuts
 		With grbShortcuts
@@ -2188,6 +2212,25 @@ pfOptions = @fOptions
 			.SetBounds 222, 41, 175, 21
 			.Parent = @grbWhenVFBEStarts
 		End With
+		' cboDefaultFileFormat
+		With cboDefaultFileFormat
+			.Name = "cboDefaultFileFormat"
+			.Text = "cboDefaultFileFormat"
+			.TabIndex = 175
+			.Align = DockStyle.alClient
+			.SetBounds 50, 0, 217, 21
+			.Parent = @hbxDefaultFileFormat
+		End With
+		' cboDefaultFileFormat
+		With cboDefaultNewLineFormat
+			.Name = "cboDefaultNewLineFormat"
+			.Text = "cboDefaultNewLineFormat"
+			.TabIndex = 175
+			.ControlIndex = 0
+			.Align = DockStyle.alClient
+			.SetBounds 70, 0, 217, 21
+			.Parent = @hbxDefaultNewLineFormat
+		End With
 		' cmdFindCompilers
 		With cmdFindCompilers
 			.Name = "cmdFindCompilers"
@@ -2806,7 +2849,6 @@ pfOptions = @fOptions
 			.Margins.Left = 15
 			.Margins.Bottom = 18
 			.Margins.Right = 15
-			.AutoSize = True
 			.TabIndex = 155
 			'.Caption = ML("Default Configuration")
 			.SetBounds 10, 0, 417, 61
@@ -3028,6 +3070,63 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @pnlChangeEndingType
 		End With
+		' vbxDefaults
+		With vbxDefaults
+			.Name = "vbxDefaults"
+			.Text = "VerticalBox1"
+			.TabIndex = 273
+			.Align = DockStyle.alTop
+			.Spacing = 10
+			.SetBounds 15, 20, 387, 62
+			.Designer = @This
+			.Parent = @grbDefaults
+		End With
+		' hbxDefaultFileFormat
+		With hbxDefaultFileFormat
+			.Name = "hbxDefaultFileFormat"
+			.Text = "HorizontalBox1"
+			.TabIndex = 276
+			.Align = DockStyle.alTop
+			.ControlIndex = 2
+			.SetBounds 0, 42, 387, 21
+			.Designer = @This
+			.Parent = @vbxDefaults
+		End With
+		' hbxDefaultNewLineFormat
+		With hbxDefaultNewLineFormat
+			.Name = "hbxDefaultNewLineFormat"
+			.Text = "HorizontalBox1"
+			.TabIndex = 278
+			.Align = DockStyle.alTop
+			.ControlIndex = 3
+			.SetBounds 0, 63, 387, 21
+			.Designer = @This
+			.Parent = @vbxDefaults
+		End With
+		' lblDefaultFileFormat
+		With lblDefaultFileFormat
+			.Name = "lblDefaultFileFormat"
+			.Text = ML("File format") & ":"
+			.TabIndex = 276
+			.Parent = @hbxDefaultFileFormat
+			.ControlIndex = 1
+			.ID = 13557
+			.Align = DockStyle.alLeft
+			.Caption = ML("File format") & ":"
+			.SetBounds 0, 0, 100, 21
+			.Designer = @This
+			.Parent = @hbxDefaultFileFormat
+		End With
+		' lblDefaultNewLineFormat
+		With lblDefaultNewLineFormat
+			.Name = "lblDefaultNewLineFormat"
+			.Text = ML("New line format") & ":"
+			.TabIndex = 277
+			.Caption = ML("New line format") & ":"
+			.SetBounds 0, 0, 100, 21
+			.Designer = @This
+			.Parent = @hbxDefaultNewLineFormat
+		End With
 	End Constructor
 	
 	Private Sub frmOptions._txtColorIndicator_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
@@ -3221,6 +3320,28 @@ Sub frmOptions.LoadSettings()
 			f = Dir()
 		Wend
 		.cboTheme.ItemIndex = .cboTheme.IndexOf(*CurrentTheme)
+		.cboDefaultFileFormat.Clear
+		.cboDefaultFileFormat.AddItem ML("Plain text")
+		.cboDefaultFileFormat.AddItem ML("Utf8")
+		.cboDefaultFileFormat.AddItem ML("Utf8 (BOM)")
+		.cboDefaultFileFormat.AddItem ML("Utf16 (BOM)")
+		.cboDefaultFileFormat.AddItem ML("Utf32 (BOM)")
+		.cboDefaultNewLineFormat.Clear
+		.cboDefaultNewLineFormat.AddItem ML("Windows (CRLF)")
+		.cboDefaultNewLineFormat.AddItem ML("Linux (LF)")
+		.cboDefaultNewLineFormat.AddItem ML("MacOS (CR)")
+		Select Case DefaultFileFormat
+		Case FileEncodings.PlainText: .cboDefaultFileFormat.ItemIndex = 0
+		Case FileEncodings.Utf8: .cboDefaultFileFormat.ItemIndex = 1
+		Case FileEncodings.Utf8BOM: .cboDefaultFileFormat.ItemIndex = 2
+		Case FileEncodings.Utf16BOM: .cboDefaultFileFormat.ItemIndex = 3
+		Case FileEncodings.Utf32BOM: .cboDefaultFileFormat.ItemIndex = 4
+		End Select
+		Select Case DefaultNewLineFormat
+		Case NewLineTypes.WindowsCRLF: .cboDefaultNewLineFormat.ItemIndex = 0
+		Case NewLineTypes.LinuxLF: .cboDefaultNewLineFormat.ItemIndex = 1
+		Case NewLineTypes.MacOSCR: .cboDefaultNewLineFormat.ItemIndex = 2
+		End Select
 		.cboCompiler32.Clear
 		.cboCompiler64.Clear
 		.lvCompilerPaths.ListItems.Clear
@@ -3505,6 +3626,7 @@ Private Sub frmOptions.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender
 		tnGeneral->Nodes.Add(ML("Themes"), "Themes")
 		tnEditor->Nodes.Add(ML("Colors And Fonts"), "ColorsAndFonts")
 		tnEditor->Nodes.Add(ML("Other Editors"), "OtherEditors")
+		tnEditor->Nodes.Add(ML("Defaults"), "Defaults")
 		tnCompiler->Nodes.Add(ML("Build Configurations"), "BuildConfigurations")
 		tnCompiler->Nodes.Add(ML("Includes"), "Includes")
 		tnCompiler->Nodes.Add(ML("Make Tool"), "MakeTool")
@@ -3837,6 +3959,18 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		Else
 			WLet(DefaultProjectFile, .Templates.Item(.cboDefaultProjectFile.ItemIndex))
 		End If
+		Select Case .cboDefaultFileFormat.ItemIndex
+		Case 0: DefaultFileFormat = FileEncodings.PlainText
+		Case 1: DefaultFileFormat = FileEncodings.Utf8
+		Case 2: DefaultFileFormat = FileEncodings.Utf8BOM
+		Case 3: DefaultFileFormat = FileEncodings.Utf16BOM
+		Case 4: DefaultFileFormat = FileEncodings.Utf32BOM
+		End Select
+		Select Case .cboDefaultNewLineFormat.ItemIndex
+		Case 0: DefaultNewLineFormat = NewLineTypes.WindowsCRLF
+		Case 1: DefaultNewLineFormat = NewLineTypes.LinuxLF
+		Case 2: DefaultNewLineFormat = NewLineTypes.MacOSCR
+		End Select
 		LastOpenedFileType = .cboOpenedFile.ItemIndex
 		WhenVisualFBEditorStarts = IIf(.optPromptForProjectAndFile.Checked, 1, IIf(.optCreateProjectFile.Checked, 2, IIf(.optOpenLastSession.Checked, 3, 0)))
 		AutoSaveBeforeCompiling = IIf(.optSaveCurrentFile.Checked, 1, IIf(.optSaveAllFiles.Checked, 2, IIf(.optPromptToSave.Checked, 3, 0)))
@@ -4062,6 +4196,8 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "AutoSaveSession", AutoSaveSession
 		piniSettings->WriteBool "Options", "AddRelativePathsToRecent", AddRelativePathsToRecent
 		piniSettings->WriteString "Options", "DefaultProjectFile", WGet(DefaultProjectFile)
+		piniSettings->WriteInteger "Options", "DefaultFileFormat", DefaultFileFormat
+		piniSettings->WriteInteger "Options", "DefaultNewLineFormat", DefaultNewLineFormat
 		piniSettings->WriteInteger "Options", "LastOpenedFileType", LastOpenedFileType
 		piniSettings->WriteInteger "Options", "WhenVisualFBEditorStarts", WhenVisualFBEditorStarts
 		piniSettings->WriteInteger "Options", "AutoSaveBeforeCompiling", AutoSaveBeforeCompiling
@@ -4394,7 +4530,9 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Designer As My.Sys.Object, ByRe
 		.pnlCodeEditor.Visible = Key = "CodeEditor"
 		.pnlShortcuts.Visible = Key = "Shortcuts"
 		.pnlThemes.Visible = Key = "Themes"
+		.pnlDefaults.Visible = Key = "Defaults"
 		.pnlColorsAndFonts.Visible = Key = "ColorsAndFonts"
+		.pnlOtherEditors.Visible = Key = "OtherEditors"
 		.pnlCompiler.Visible = Key = "Compiler"
 		.pnlMake.Visible = Key = "MakeTool"
 		.pnlDebugger.Visible = Key = "Debugger"
@@ -4403,7 +4541,6 @@ Private Sub frmOptions.TreeView1_SelChange(ByRef Designer As My.Sys.Object, ByRe
 		.pnlBuildConfigurations.Visible = Key = "BuildConfigurations"
 		.pnlIncludes.Visible = Key = "Includes"
 		.pnlLocalization.Visible = Key = "Localization"
-		.pnlOtherEditors.Visible = Key = "OtherEditors"
 		.pnlHelp.Visible = Key = "Help"
 		.pnlAIAgent.Visible = Key = "AIAgent"
 	End With
@@ -6519,3 +6656,6 @@ End Sub
 Private Sub frmOptions.lvAIAgentTypes_ItemActivate(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	cmdChangeAIAgent_Click cmdChangeAIAgent
 End Sub
+
+
+

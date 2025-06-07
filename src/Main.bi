@@ -147,6 +147,8 @@ Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, mnuUseProfiler, miHelps, miXizmat, miWindow
 Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
 Common Shared As HTTPConnection Ptr pHTTPAIAgent
+Common Shared As FileEncodings DefaultFileFormat
+Common Shared As NewLineTypes DefaultNewLineFormat
 Common Shared As Boolean AutoIncrement
 Common Shared As Boolean AutoComplete
 Common Shared As Boolean AutoSuggestions, ProjectAutoSuggestions
@@ -369,3 +371,5 @@ Declare Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 #ifndef __USE_MAKE__
 	#include once "Main.bas"
 #endif
+
+
