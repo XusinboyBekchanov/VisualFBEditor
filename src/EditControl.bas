@@ -1781,9 +1781,10 @@ Namespace My.Sys.Forms
 					Dim As WString Ptr FText
 					Dim As EditControlLine Ptr FECLine
 					WLet(FText, "")
-					For j As Integer = 0 To Len(*wsFileContents)
+					Dim As Integer j = 0, jCount = Len(*wsFileContents)
+					While j <= jCount - 1
 						WAdd FText, WChr((*wsFileContents)[j])
-						If (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
+						If (*wsFileContents)[j] = 13 OrElse (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
 							FECLine = _New(EditControlLine)
 							OlddwClientX = 0
 							If FECLine = 0 Then
@@ -1804,8 +1805,10 @@ Namespace My.Sys.Forms
 							OldiC = iC
 							i += 1
 							WLet(FText, "")
+							If (*wsFileContents)[j] = 13 AndAlso (*wsFileContents)[j + 1] = 10 Then j += 1
 						End If
-					Next
+						j += 1
+					Wend
 					CalculateLeftMargin
 					If Not WithoutScroll Then ScrollToCaret
 				End If
@@ -7837,4 +7840,5 @@ Sub LoadKeyWords
 	'	Loop
 	'	Close #Fn
 End Sub
+
 
