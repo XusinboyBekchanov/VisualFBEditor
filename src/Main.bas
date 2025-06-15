@@ -106,7 +106,7 @@ Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miP
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiModuleMacroNumbering, dmiModuleMacroNumberingStartsOfProcedures, dmiRemoveModuleNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiModulePreprocessorNumbering, dmiRemoveModulePreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
 Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miGotoCodeForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miAddType, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
 Dim Shared As MenuItem Ptr miShowWithFolders, miShowWithoutFolders, miShowAsFolder
-Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
+Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtUseDirect2D, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar
 #ifndef __USE_GTK__
@@ -6785,6 +6785,7 @@ Sub LoadSettings
 	GlobalSettings.ShowClassesExplorerOnOpenWindow = iniSettings.ReadBool("Options", "ShowClassesExplorerOnOpenWindow", True)
 	ShowHorizontalSeparatorLines = iniSettings.ReadBool("Options", "ShowHorizontalSeparatorLines", True)
 	ShowHolidayFrame = iniSettings.ReadBool("Options", "ShowHolidayFrame", True)
+	UseDirect2D = iniSettings.ReadBool("Options", "UseDirect2D", True)
 	HighlightBrackets = iniSettings.ReadBool("Options", "HighlightBrackets", True)
 	HighlightCurrentLine = iniSettings.ReadBool("Options", "HighlightCurrentLine", True)
 	HighlightCurrentWord = iniSettings.ReadBool("Options", "HighlightCurrentWord", True)
@@ -6850,6 +6851,7 @@ Sub LoadSettings
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")
 	LoadKeyWords
 	LoadTheme
+	LoadD2D1
 	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
 End Sub
 
@@ -7156,6 +7158,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "Translate", "Translate"
 	imgList.Add "TranslateE", "TranslateE"
 	imgList.Add "WebBrowserItem", "WebBrowserItem"
+	imgList.Add "UseDirect2D", "UseDirect2D"
 	
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
@@ -7662,6 +7665,10 @@ Sub CreateMenusAndToolBars
 	tbtFind = tbStandard.Buttons.Add(, "Find", , @mClick, "Find", , ML("Find") & HK("Find", "Ctrl+F", True), True, 0)
 	tbStandard.Buttons.Add tbsSeparator
 	tbStandard.Buttons.Add(, "DarkMode", , @mClick, "DarkMode", , ML("Dark Mode") & HK("DarkMode"), True)
+	tbtUseDirect2D = tbStandard.Buttons.Add(tbsCheck, "UseDirect2D", , @mClick, "UseDirect2D", , ML("Use Direct2D (For Windows)") & HK("UseDirect2D"), True)
+	Var b = UseDirect2D
+	tbtUseDirect2D->Checked = UseDirect2D
+	UseDirect2D = b
 	'tbStandard.Buttons.Add tbsSeparator
 	tbEdit.Name = "Edit"
 	tbEdit.ImagesList = @imgList
@@ -11839,6 +11846,7 @@ Sub OnProgramQuit() Destructor
 	MutexDestroy tlockSave
 	MutexDestroy tlockGDB
 	MutexDestroy tlockSuggestions
+	UnloadD2D1
 	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1
@@ -11984,7 +11992,3 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
-
-
-
-

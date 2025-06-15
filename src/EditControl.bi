@@ -13,6 +13,9 @@
 #include once "mff/Application.bi"
 #include once "mff/ListView.bi"
 #include once "mff/ToolTips.bi"
+#ifdef __USE_WINAPI__
+	#include once "mff/D2D1/D2D1.bi"
+#endif
 '#include once "Main.bi"
 
 Enum KeyWordsCase
@@ -42,6 +45,7 @@ Common Shared As Boolean ChangeKeyWordsCase
 Common Shared As Boolean ChangeEndingType
 Common Shared As Boolean AddSpacesToOperators
 Common Shared As Boolean WithFrame
+Common Shared As Boolean UseDirect2D
 Common Shared As WStringOrStringList Ptr pkeywordsAsm, pkeywords0, pkeywords1, pkeywords2 ', pkeywords3
 
 Type ECColorScheme
@@ -365,6 +369,10 @@ Namespace My.Sys.Forms
 		Dim jPos As Integer
 		Dim jPP As Integer = 0
 		Dim iPPos As Integer
+		#ifdef __USE_WINAPI__
+			Dim pRenderTarget As ID2D1RenderTarget Ptr = 0
+			Dim pFormat As IDWriteTextFormat Ptr = 0
+		#endif
 		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE, OldBracketsStartLine, OldBracketsEndLine
 		Dim As String BracketsLine, Symb, SymbOpenBrackets, SymbCloseBrackets, OpenBrackets = "([{", CloseBrackets = ")]}"
 		Dim As Boolean bFinded
@@ -458,7 +466,7 @@ Namespace My.Sys.Forms
 		Dim As Boolean bOldDividedX, bOldDividedY
 		Dim As Integer iCursorLine
 		Dim As Integer iCursorLineOld
-		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi
+		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi, OddiyMatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
 		Dim As Boolean WithOldSymbol, bTypeAs, bInAsm
@@ -502,6 +510,7 @@ Namespace My.Sys.Forms
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Sub SetDark(Value As Boolean)
+			Declare Sub SetClientSize()
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
 		Declare Sub MiddleScroll
