@@ -5214,9 +5214,11 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue)
 				#endif
 				If SyntaxEdit AndAlso Not Content.CStyle Then
-					If pRenderTarget <> 0 Then
-						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue, 1.0), 0, @pBrushForeground)
-					End If
+					#ifdef __USE_WINAPI__
+						If pRenderTarget <> 0 Then
+							pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue, 1.0), 0, @pBrushForeground)
+						End If
+					#endif
 					If ShowHorizontalSeparatorLines AndAlso CBool(FECLineNext <> 0) AndAlso FECLineNext->Visible Then
 						For ii As Integer = 0 To FECLineNext->Statements.Count - 1
 							FECStatement = FECLineNext->Statements.Items[ii]
@@ -5389,9 +5391,11 @@ Namespace My.Sys.Forms
 							#endif
 						End If
 					End If
-					If pRenderTarget <> 0 Then
-						If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
-					End If
+					#ifdef __USE_WINAPI__
+						If pRenderTarget <> 0 Then
+							If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
+						End If
+					#endif
 				End If
 				'If i - VScrollPos > vlc1 Then Exit For 'AndAlso Not ChangeCase
 				OldCollapseIndex = CollapseIndex
@@ -8240,6 +8244,7 @@ Function LoadD2D1 As Long
 		
 		g_Direct2DEnabled = True
 	#endif
+	Return 0
 End Function
 
 Sub LoadKeyWords
