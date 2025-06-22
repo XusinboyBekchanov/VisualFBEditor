@@ -236,6 +236,13 @@ Namespace My.Sys.Forms
 				End If
 			End If
 		End Sub
+		
+		Sub EditControl.EC_TimerProcBlink(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			If FocusEC Then
+				FocusEC->CaretOn = Not FocusEC->CaretOn
+				FocusEC->PaintControl
+			End If
+		End Sub
 	#endif
 	
 	Sub EditControl.Breakpoint
@@ -2302,7 +2309,7 @@ Namespace My.Sys.Forms
 		If Index >= 0 And Index < Content.Lines.Count Then Return *Cast(EditControlLine Ptr, Content.Lines.Item(Index))->Text
 	End Function
 	
-	Function EditControl.LineLength(Index As Integer) As Integer '...'
+	Function EditControl.LineLength(Index As Integer) As Integer
 		If Index >= 0 And Index < Content.Lines.Count Then Return Len(*Cast(EditControlLine Ptr, Content.Lines.Item(Index))->Text) Else Return 0
 	End Function
 	
@@ -2557,6 +2564,10 @@ Namespace My.Sys.Forms
 			End If
 			'gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, 10, 10, layout, 0, PANGO_DIRECTION_LTR)
 		#else
+			If pRenderTarget <> 0 Then
+				CaretOn = True
+				PaintControl
+			End If
 			'			If OldCaretVisible <> CaretVisible Then
 			'				If CaretVisible Then
 			'					ShowCaret FHandle
@@ -2774,14 +2785,14 @@ Namespace My.Sys.Forms
 		Return MaxLW
 	End Function
 	
-	Sub EditControl.SetScrollsInfo()
+	Sub EditControl.SetScrollsInfo(WithChange As Boolean = False)
 		
 		Var OldHScrollEnabledRight = CBool(HScrollMaxRight)
 		Var OldHScrollMaxRight = HScrollMaxRight
 		Var OldHScrollVCRight = HScrollVCRight
 		HScrollMaxRight = 10000 'Max(0, (MaxLineWidth - (dwClientX - LeftMargin - dwCharX))) \ dwCharX
 		HScrollVCRight = 10
-		If OldHScrollMaxRight <> HScrollMaxRight OrElse OldHScrollVCRight <> HScrollVCRight Then
+		If CBool(OldHScrollMaxRight <> HScrollMaxRight) OrElse CBool(OldHScrollVCRight <> HScrollVCRight) OrElse WithChange Then
 			#ifdef __USE_GTK__
 				gtk_adjustment_set_upper(adjustmenthRight, HScrollMaxRight)
 				'gtk_adjustment_configure(adjustmenth, gtk_adjustment_get_value(adjustmenth), 0, HScrollMax, 1, 10, HScrollMax)
@@ -2807,7 +2818,7 @@ Namespace My.Sys.Forms
 			HScrollVCLeft = 10
 			Var HScrollEnabledLeft = CBool(HScrollMaxLeft)
 			
-			If OldHScrollMaxLeft <> HScrollMaxLeft OrElse OldHScrollVCLeft <> HScrollVCLeft Then
+			If CBool(OldHScrollMaxLeft <> HScrollMaxLeft) OrElse CBool(OldHScrollVCLeft <> HScrollVCLeft) OrElse WithChange Then
 				#ifdef __USE_GTK__
 					gtk_adjustment_set_upper(adjustmenthLeft, HScrollMaxRight)
 					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
@@ -2837,7 +2848,7 @@ Namespace My.Sys.Forms
 		CalculateLeftMargin
 		Var VScrollEnabledBottom = CBool(VScrollMaxBottom)
 		
-		If OldVScrollMaxBottom <> VScrollMaxBottom OrElse OldVScrollVCBottom <> VScrollVCBottom Then
+		If CBool(OldVScrollMaxBottom <> VScrollMaxBottom) OrElse CBool(OldVScrollVCBottom <> VScrollVCBottom) OrElse WithChange Then
 			#ifdef __USE_GTK__
 				gtk_adjustment_set_upper(adjustmentvBottom, VScrollMaxBottom)
 				gtk_adjustment_set_page_size(adjustmentvBottom, 0)
@@ -2867,7 +2878,7 @@ Namespace My.Sys.Forms
 			CalculateLeftMargin
 			Var VScrollEnabledTop = CBool(VScrollMaxTop)
 			
-			If OldVScrollMaxTop <> VScrollMaxTop OrElse OldVScrollVCTop <> VScrollVCTop Then
+			If CBool(OldVScrollMaxTop <> VScrollMaxTop) OrElse CBool(OldVScrollVCTop <> VScrollVCTop) OrElse WithChange Then
 				#ifdef __USE_GTK__
 					gtk_adjustment_set_upper(adjustmentvTop, VScrollMaxTop)
 					gtk_adjustment_set_page_size(adjustmentvTop, 0)
@@ -3032,7 +3043,7 @@ Namespace My.Sys.Forms
 				End If
 			End If
 			If pRenderTarget <> 0 Then
-				Dim pBrushForeground As ID2D1SolidColorBrush Ptr = 0
+				Dim pBrushForeground As ID2D1Brush Ptr = 0
 				Dim pBrushBackground As ID2D1Brush Ptr = 0
 				pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue, 1.0), 0, @pBrushForeground)
 				Dim pLayout As IDWriteTextLayout Ptr = 0
@@ -3055,12 +3066,12 @@ Namespace My.Sys.Forms
 					sz.cy = Metrics.height + 1
 					If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(CurrentWord.BackgroundRed, CurrentWord.BackgroundGreen, CurrentWord.BackgroundBlue, 1.0), 0, @pBrushBackground)
-						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - dwCharY)), pBrushBackground)
+						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - ScaleY(dwCharY))), pBrushBackground)
 					ElseIf Colors.Background <> -1 AndAlso Colors.Background <> NormalText.Background Then
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(Colors.BackgroundRed, Colors.BackgroundGreen, Colors.BackgroundBlue, 1.0), 0, @pBrushBackground)
-						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - dwCharY)), pBrushBackground)
+						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - ScaleY(dwCharY))), pBrushBackground)
 					End If
-					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - dwCharY)), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
+					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - ScaleY(dwCharY))), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
 				End If
 				If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
@@ -3105,33 +3116,84 @@ Namespace My.Sys.Forms
 	#ifdef __USE_WINAPI__
 		Sub EditControl.SetClientSize()
 			If g_Direct2DEnabled AndAlso UseDirect2D Then
-				If pRenderTarget Then pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
+				If pRenderTarget Then
+					pRenderTarget->lpVtbl->SetTarget(pRenderTarget, 0)
+					pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
+				End If
 				If pFormat Then pFormat->lpVtbl->Release(pFormat): pFormat = 0
-				
+				If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
+				If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
+				If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
+				If pSwapChain Then pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
 				If FHandle <> 0 Then
-					Dim rtProps As D2D1_RENDER_TARGET_PROPERTIES
-					With rtProps
-						.type_ = D2D1_RENDER_TARGET_TYPE_DEFAULT
-						.pixelFormat.format = DXGI_FORMAT_UNKNOWN
-						.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN
-						.dpiX = 96.0
-						.dpiY = 96.0
-						.usage = D2D1_RENDER_TARGET_USAGE_NONE
-						.minLevel = D2D1_FEATURE_LEVEL_DEFAULT
-					End With
+					'Dim rtProps As D2D1_RENDER_TARGET_PROPERTIES
+					'With rtProps
+					'	.type_ = D2D1_RENDER_TARGET_TYPE_DEFAULT
+					'	.pixelFormat.format = DXGI_FORMAT_UNKNOWN
+					'	.pixelFormat.alphaMode = D2D1_ALPHA_MODE_UNKNOWN
+					'	.dpiX = 96.0
+					'	.dpiY = 96.0
+					'	.usage = D2D1_RENDER_TARGET_USAGE_NONE
+					'	.minLevel = D2D1_FEATURE_LEVEL_DEFAULT
+					'		.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+					'		.pixelFormat.alphaMode = D2D1_ALPHA_MODE_PREMULTIPLIED
+					'End With
+					'
+					'Dim hwndProps As D2D1_HWND_RENDER_TARGET_PROPERTIES
+					'With hwndProps
+					'	.hwnd = FHandle
+					'	.pixelSize.Width = dwClientX
+					'	.pixelSize.height = dwClientY
+					'	.presentOptions = D2D1_PRESENT_OPTIONS_NONE
+					'End With
 					
-					Dim hwndProps As D2D1_HWND_RENDER_TARGET_PROPERTIES
-					With hwndProps
-						.hwnd = FHandle
-						.pixelSize.Width = dwClientX
-						.pixelSize.height = dwClientY
-						.presentOptions = D2D1_PRESENT_OPTIONS_NONE
-					End With
+					'Var hr = CreateHwndRenderTarget(pD2D1Factory1, @rtProps, @hwndProps, @pRenderTarget)
 					
-					Var hr = CreateHwndRenderTarget(pD2D1Factory, @rtProps, @hwndProps, @pRenderTarget)
+					Var hr = pD2D1Device->lpVtbl->CreateDeviceContext(pD2D1Device, D2D1_DEVICE_CONTEXT_OPTIONS_NONE, @pRenderTarget)
 					If hr = 0 Then
+						pRenderTarget->lpVtbl->SetUnitMode(pRenderTarget, D2D1_UNIT_MODE_PIXELS)
+						
+						Dim As DXGI_SWAP_CHAIN_DESC1 swapChainDesc
+						swapChainDesc.Width = 0                           ' use automatic sizing
+						swapChainDesc.Height = 0
+						swapChainDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM ' This Is the most Common swapchain Format
+						swapChainDesc.Stereo = False
+						swapChainDesc.SampleDesc.Count = 1                 ' don't use multi-sampling
+						swapChainDesc.SampleDesc.Quality = 0
+						swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT
+						swapChainDesc.BufferCount = 2                     ' use Double buffering To enable Flip
+						swapChainDesc.Scaling = DXGI_SCALING_NONE
+						swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL ' all apps must use This SwapEffect
+						swapChainDesc.Flags = 0
+						
+						Var hr = pDXGIFactory2->lpVtbl->CreateSwapChainForHwnd(pDXGIFactory2, Cast(IUnknown Ptr, pD3D11Device), FHandle, @swapChainDesc, 0, 0, @pSwapChain)
+						
+						hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_ID3D11Texture2D, @pTexture)
+						hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_IDXGISurface, @pSurface)
+						
+						Dim bmpProps As D2D1_BITMAP_PROPERTIES1
+						
+						With bmpProps
+							.bitmapOptions = D2D1_BITMAP_OPTIONS_TARGET Or D2D1_BITMAP_OPTIONS_CANNOT_DRAW
+							.pixelFormat.format = DXGI_FORMAT_B8G8R8A8_UNORM
+							.pixelFormat.alphaMode = D2D1_ALPHA_MODE_IGNORE
+							.dpiX = 96
+							.dpiY = 96
+							.colorContext = 0
+						End With
+						
+						pRenderTarget->lpVtbl->CreateBitmapFromDxgiSurface(pRenderTarget, pSurface, @bmpProps, @pTargetBitmap)
+						
+						pRenderTarget->lpVtbl->SetTarget(pRenderTarget, pTargetBitmap)
+						
 						pRenderTarget->lpVtbl->SetAntialiasMode(pRenderTarget, D2D1_ANTIALIAS_MODE_ALIASED)
-						CreateTextFormat(pDWriteFactory, CurrentFontName, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size / 72 * 96, @"en-us", @pFormat)
+						CreateTextFormat(pDWriteFactory, CurrentFontName, 0, DWRITE_FONT_WEIGHT_THIN, DWRITE_FONT_STYLE_NORMAL, DWRITE_FONT_STRETCH_NORMAL, Font.Size * ydpi / 72 * 96, @"en-us", @pFormat)
+						'pRenderTarget->lpVtbl->SetDpi(pRenderTarget, 96.0f, 96.0f)
+						'Dim identity As D2D1_MATRIX_3X2_F
+						'identity.m11 = 1 : identity.m12 = 0
+						'identity.m21 = 0 : identity.m22 = 1
+						'identity.dx  = 0 : identity.dy  = 0
+						'pRenderTarget->lpVtbl->SetTransform(pRenderTarget, @identity)
 					End If
 				End If
 			End If
@@ -3827,20 +3889,20 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	#ifdef __USE_WINAPI__
-		Sub FillPolygon(points() As D2D1_POINT_2F, ByVal pRT As ID2D1RenderTarget Ptr, ByVal brush As ID2D1Brush Ptr)
-		    'Dim pGeometry As ID2D1PathGeometry Ptr
-		    'If pFactory->lpVtbl->CreatePathGeometry(pFactory, @pGeometry) = 0 Then
-		    '    Dim pSink As ID2D1GeometrySink Ptr
-		    '    If pGeometry->lpVtbl->Open(pGeometry, @pSink) = 0 Then
-		    '        pSink->lpVtbl->BeginFigure(pSink, points(0), D2D1_FIGURE_BEGIN_FILLED)
-		    '        pSink->lpVtbl->AddLines(pSink, @points(1), 3)
-		    '        pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
-		    '        pSink->lpVtbl->Close(pSink)
-		    '        pSink->lpVtbl->Release(pSink)
-		    '    End If
-		    '    pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
-		    '    pGeometry->lpVtbl->Release(pGeometry)
-		    'End If
+		Sub FillPolygon(points() As D2D1_POINT_2F, ByVal pRT As Any Ptr, ByVal brush As ID2D1Brush Ptr)
+			'Dim pGeometry As ID2D1PathGeometry Ptr
+			'If pFactory->lpVtbl->CreatePathGeometry(pFactory, @pGeometry) = 0 Then
+			'    Dim pSink As ID2D1GeometrySink Ptr
+			'    If pGeometry->lpVtbl->Open(pGeometry, @pSink) = 0 Then
+			'        pSink->lpVtbl->BeginFigure(pSink, points(0), D2D1_FIGURE_BEGIN_FILLED)
+			'        pSink->lpVtbl->AddLines(pSink, @points(1), 3)
+			'        pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+			'        pSink->lpVtbl->Close(pSink)
+			'        pSink->lpVtbl->Release(pSink)
+			'    End If
+			'    pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
+			'    pGeometry->lpVtbl->Release(pGeometry)
+			'End If
 		End Sub
 	#endif
 	
@@ -3860,10 +3922,31 @@ Namespace My.Sys.Forms
 		#else
 			Dim As Boolean bFontChanged
 			If pRenderTarget <> 0 AndAlso Not UseDirect2D Then
-				If pRenderTarget Then pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
+				If pRenderTarget Then
+					pRenderTarget->lpVtbl->SetTarget(pRenderTarget, 0)
+					pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
+				End If
 				If pFormat Then pFormat->lpVtbl->Release(pFormat): pFormat = 0
+				If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
+				If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
+				If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
+				If pSwapChain Then pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
+				KillTimer FHandle, 2
+				Var b = Focused
+				DestroyWindow(sbScrollBarvTop)
+				DestroyWindow(sbScrollBarvBottom)
+				DestroyWindow(sbScrollBarhLeft)
+				DestroyWindow(sbScrollBarhRight)
+				RecreateWnd
+				Width = Width - 1
+				Width = Width + 1
+				SetScrollsInfo True
 			ElseIf CBool(pRenderTarget = 0) AndAlso g_Direct2DEnabled AndAlso UseDirect2D Then
 				SetClientSize
+				If Focused Then
+					KillTimer FHandle, 2
+					SetTimer FHandle, 2, BlinkTime, @EC_TimerProcBlink
+				End If
 			End If
 			If pRenderTarget = 0 Then
 				hd = GetDC(FHandle)
@@ -4836,12 +4919,12 @@ Namespace My.Sys.Forms
 											'txtCode.SetSel ss + j - 1, ss + l
 											'txtCode.SelColor = clGreen
 											Exit Do
-										'ElseIf CharType(Mid(*s, j, 1)) = 2 Then
-										'	If OddiyMatnBoshi > 0 Then
-										'		PaintText zz, i, *s, OddiyMatnBoshi - 1, j - 1, NormalText
-										'		OddiyMatnBoshi = 0
-										'	End If
-										'	PaintText zz, i, *s, j - 1, j, ColorOperators
+											'ElseIf CharType(Mid(*s, j, 1)) = 2 Then
+											'	If OddiyMatnBoshi > 0 Then
+											'		PaintText zz, i, *s, OddiyMatnBoshi - 1, j - 1, NormalText
+											'		OddiyMatnBoshi = 0
+											'	End If
+											'	PaintText zz, i, *s, j - 1, j, ColorOperators
 										ElseIf Chr(t) <> " " AndAlso OddiyMatnBoshi = 0 Then
 											OddiyMatnBoshi = j
 											'PaintText zz, i, *s, j - 1, j, NormalText
@@ -5434,8 +5517,13 @@ Namespace My.Sys.Forms
 					FillRect bufDC, @rc, This.Canvas.Brush.Handle
 				Else
 					pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue, 1.0), 0, @pBrushBackground)
+					pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue, 1.0), 0, @pBrushForeground)
 					pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(rc.Left, rc.Top, rc.Right, rc.Bottom), pBrushBackground)
+					If CaretOn Then
+						pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(HCaretPos) + 1, ScaleY(VCaretPos) + 1, ScaleX(HCaretPos) + 1, ScaleY(VCaretPos + dwCharY)), pBrushForeground)
+					End If
 					If pBrushBackground Then pBrushBackground->lpVtbl->Release(pBrushBackground)
+					If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
 				End If
 			#endif
 			OldPaintedVScrollPos(zz) = VScrollPos
@@ -5684,29 +5772,29 @@ Namespace My.Sys.Forms
 						pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue, 1.0), 0, @pBrushForeground)
 						pRenderTarget->lpVtbl->FillEllipse(pRenderTarget, Type<D2D1_ELLIPSE>(Type<D2D1_POINT_2F>(ScaleX(MButtonX + 10 + 2), ScaleY(MButtonY + 10 + 2)), ScaleX(2), ScaleY(2)), pBrushForeground)
 						Dim pPoint1(3) As D2D1_POINT_2F = { _
-						    (ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), _
-						    (ScaleX(MButtonX + 7),  ScaleY(MButtonY + 5)), _
-						    (ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), _
-						    (ScaleX(MButtonX + 12), ScaleY(MButtonY + 1)) }
+						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), _
+						(ScaleX(MButtonX + 7),  ScaleY(MButtonY + 5)), _
+						(ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), _
+						(ScaleX(MButtonX + 12), ScaleY(MButtonY + 1)) }
 						
 						Dim pPoint2(3) As D2D1_POINT_2F = { _
-						    (ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), _
-						    (ScaleX(MButtonX + 7),  ScaleY(MButtonY + 18)), _
-						    (ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), _
-						    (ScaleX(MButtonX + 12), ScaleY(MButtonY + 22)) }
+						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), _
+						(ScaleX(MButtonX + 7),  ScaleY(MButtonY + 18)), _
+						(ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), _
+						(ScaleX(MButtonX + 12), ScaleY(MButtonY + 22)) }
 						
 						Dim pPoint3(3) As D2D1_POINT_2F = { _
-						    (ScaleX(MButtonX + 1),  ScaleY(MButtonY + 11)), _
-						    (ScaleX(MButtonX + 5),  ScaleY(MButtonY + 7)), _
-						    (ScaleX(MButtonX + 5),  ScaleY(MButtonY + 16)), _
-						    (ScaleX(MButtonX + 1),  ScaleY(MButtonY + 12)) }
+						(ScaleX(MButtonX + 1),  ScaleY(MButtonY + 11)), _
+						(ScaleX(MButtonX + 5),  ScaleY(MButtonY + 7)), _
+						(ScaleX(MButtonX + 5),  ScaleY(MButtonY + 16)), _
+						(ScaleX(MButtonX + 1),  ScaleY(MButtonY + 12)) }
 						
 						Dim pPoint4(3) As D2D1_POINT_2F = { _
-						    (ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), _
-						    (ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), _
-						    (ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), _
-						    (ScaleX(MButtonX + 22), ScaleY(MButtonY + 12)) }
-    					FillPolygon(pPoint1(), pRenderTarget, pBrushForeground)
+						(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), _
+						(ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), _
+						(ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), _
+						(ScaleX(MButtonX + 22), ScaleY(MButtonY + 12)) }
+						FillPolygon(pPoint1(), pRenderTarget, pBrushForeground)
 						FillPolygon(pPoint2(), pRenderTarget, pBrushForeground)
 						FillPolygon(pPoint3(), pRenderTarget, pBrushForeground)
 						FillPolygon(pPoint4(), pRenderTarget, pBrushForeground)
@@ -5718,13 +5806,19 @@ Namespace My.Sys.Forms
 		#ifdef __USE_WINAPI__
 			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
+				Dim pp As DXGI_PRESENT_PARAMETERS
+				pp.DirtyRectsCount = 0
+				pp.pDirtyRects = 0
+				pp.pScrollRect = 0
+				pp.pScrollOffset = 0
+				pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
 			Else
 				BitBlt(hd, 0, 0, ScaleX(dwClientX), ScaleY(dwClientY), bufDC, 0, 0, SRCCOPY)
 				'DeleteDC bufDC
 				'DeleteObject bufBMP
 				ReleaseDC FHandle, hd
+				ShowCaret(FHandle)
 			End If
-			ShowCaret(FHandle)
 		#endif
 		This.Canvas.HandleSetted = False
 		OlddwClientX = dwClientX
@@ -6687,6 +6781,10 @@ Namespace My.Sys.Forms
 				CreateCaret(FHandle, 0, 0, ScaleY(dwCharY))
 				'ScrollToCaret
 				ShowCaret(FHandle)
+				FocusEC = @This
+				If pRenderTarget <> 0 Then
+					SetTimer FHandle, 2, BlinkTime, @EC_TimerProcBlink
+				End If
 			Case WM_KILLFOCUS
 				HideCaret(FHandle)
 				DestroyCaret()
@@ -6694,6 +6792,11 @@ Namespace My.Sys.Forms
 					If ToolTipShowed Then CloseToolTip
 					If DropDownToolTipShowed Then CloseDropDownToolTip
 					If MouseHoverToolTipShowed Then CloseMouseHoverToolTip
+				End If
+				KillTimer FHandle, 2
+				CaretOn = False
+				If pRenderTarget <> 0 Then
+					PaintControl
 				End If
 			Case WM_UNDO
 				Undo
@@ -7762,6 +7865,8 @@ Namespace My.Sys.Forms
 						'						AllowDarkModeForWindow(.FHandle, g_darkModeEnabled)
 						'						UpdateWindow(.FHandle)
 					End If
+					If g_Direct2DEnabled Then
+					End If
 				#endif
 				'Var s1Pos = 100, s1Min = 1, s1Max = 100
 				'SetScrollRange(.FHandle, SB_CTL, s1Min, s1Max, TRUE)
@@ -8062,6 +8167,7 @@ Namespace My.Sys.Forms
 			g_signal_connect(G_OBJECT(im_context), "commit", G_CALLBACK(@EditControl_Commit), @This)
 		#else
 			OnHandleIsAllocated = @HandleIsAllocated
+			BlinkTime = GetCaretBlinkTime
 			'sbScrollBarvTop.Style = ScrollBarControlStyle.sbVertical
 			'sbScrollBarv.Style = ScrollBarControlStyle.sbVertical
 			'sbScrollBarh.Style = ScrollBarControlStyle.sbHorizontal
@@ -8205,10 +8311,15 @@ End Namespace
 
 Function UnloadD2D1 As Long
 	#ifdef __USE_WINAPI__
-		If pDWriteFactory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pDWriteFactory, 2))(pDWriteFactory)
-		If hDWrite Then DyLibFree(hDWrite): hDWrite = 0
-		If pD2D1Factory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pD2D1Factory, 2))(pD2D1Factory)
+		If pDWriteFactory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pDWriteFactory, 2))(pDWriteFactory): pDWriteFactory = 0
+		If pD2D1Factory Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pD2D1Factory, 2))(pD2D1Factory): pD2D1Factory = 0
+		If pD2D1Factory1 Then pD2D1Factory1->lpVtbl->Release(pD2D1Factory1): pD2D1Factory1 = 0
+		If pD2D1Device Then pD2D1Device->lpVtbl->Release(pD2D1Device): pD2D1Device = 0
+		If pD3D11Device Then pD3D11Device->lpVtbl->Release(pD3D11Device): pD3D11Device = 0
+		If pD3D11DeviceContext Then pD3D11DeviceContext->lpVtbl->Release(pD3D11DeviceContext): pD3D11DeviceContext = 0
 		If hD2D1 Then DyLibFree(hD2D1): hD2D1 = 0
+		If hD3D11 Then DyLibFree(hD3D11): hD3D11 = 0
+		If hDWrite Then DyLibFree(hDWrite): hDWrite = 0
 		'CoUninitialize()
 	#endif
 	Return 0
@@ -8225,7 +8336,7 @@ Function LoadD2D1 As Long
 		CreateD2D1Factory = Cast(D2D1CreateFactoryType, DyLibSymbol(hD2D1, "D2D1CreateFactory"))
 		If CreateD2D1Factory = 0 Then Return UnloadD2D1
 		
-		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory, 0, @pD2D1Factory)
+		Dim hr As Long = CreateD2D1Factory(D2D1_FACTORY_TYPE_SINGLE_THREADED, @IID_ID2D1Factory1, 0, @pD2D1Factory1)
 		If hr <> 0 Then Return UnloadD2D1
 		
 		hDWrite = DyLibLoad("dwrite.dll")
@@ -8238,7 +8349,38 @@ Function LoadD2D1 As Long
 		hr = CreateFactory(DWRITE_FACTORY_TYPE_SHARED, @IID_IDWriteFactory, @pDWriteFactory)
 		If hr <> 0 Then Return UnloadD2D1
 		
-		CreateHwndRenderTarget = Cast(fnCreateHwndRenderTarget, COM_METHOD(pD2D1Factory, 14))
+		hD3D11 = DyLibLoad("d3d11.dll")
+		If hD3D11 = 0 Then Return UnloadD2D1
+		
+		Dim D3D11CreateDevice As D3D11CreateDeviceType
+		D3D11CreateDevice = Cast(D3D11CreateDeviceType, DyLibSymbol(hD3D11, "D3D11CreateDevice"))
+		If D3D11CreateDevice = 0 Then Return UnloadD2D1
+		
+		Dim pDXGI As Any Ptr = 0
+		hr = D3D11CreateDevice(0, D3D_DRIVER_TYPE_HARDWARE, 0, D3D11_CREATE_DEVICE_BGRA_SUPPORT, 0, 0, D3D11_SDK_VERSION, @pD3D11Device, 0, @pD3D11DeviceContext)
+		
+		If hr <> 0 Then Return UnloadD2D1
+		
+		Dim pDXGIDevice As IDXGIDevice Ptr
+		hr = pD3D11Device->lpVtbl->QueryInterface(pD3D11Device, @IID_IDXGIDevice, @pDXGIDevice)
+		If hr <> 0 Then Return UnloadD2D1
+		
+		'pDXGIDevice->lpVtbl->SetMaximumFrameLatency
+		
+		hr = pD2D1Factory1->lpVtbl->CreateDevice(pD2D1Factory1, pDXGIDevice, @pD2D1Device)
+		If hr <> 0 Then Return UnloadD2D1
+		
+		Dim dxgiAdapter As IDXGIAdapter Ptr
+		pDXGIDevice->lpVtbl->GetAdapter(pDXGIDevice, @dxgiAdapter)
+		
+		'Dim As DXGI_ADAPTER_DESC adapterDesc
+		'pAdapter->lpVtbl->GetDesc(pAdapter,  @adapterDesc)
+		'Print "GPU: "; adapterDesc.Description
+		'Print "VendorId: "; Hex(adapterDesc.VendorId)
+		
+		hr = dxgiAdapter->lpVtbl->GetParent(dxgiAdapter, @IID_IDXGIFactory2, Cast(Any Ptr Ptr, @pDXGIFactory2))
+		
+		CreateHwndRenderTarget = Cast(fnCreateHwndRenderTarget, COM_METHOD(pD2D1Factory1, 14))
 		CreateTextFormat = Cast(fnCreateTextFormat, COM_METHOD(pDWriteFactory, 15))
 		CreateTextLayout = Cast(fnCreateTextLayout, COM_METHOD(pDWriteFactory, 18))
 		

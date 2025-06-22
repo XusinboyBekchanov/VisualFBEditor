@@ -274,7 +274,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				End If
 			Next i
 		#endif
-	Case "UseDirect2D":                         UseDirect2D = tbtUseDirect2D->Checked: frmMain.Repaint
+	Case "UseDirect2D":                         frmMain.UpdateLock: UseDirect2D = tbtUseDirect2D->Checked: frmMain.Repaint: frmMain.UpdateUnLock
 	Case "ProjectExplorer":                     tpProject->SelectTab: txtExplorer.SetFocus
 	Case "PropertiesWindow":                    tpProperties->SelectTab: txtProperties.SetFocus
 	Case "EventsWindow":                        tpEvents->SelectTab: txtEvents.SetFocus

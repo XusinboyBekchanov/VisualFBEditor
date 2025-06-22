@@ -370,7 +370,12 @@ Namespace My.Sys.Forms
 		Dim jPP As Integer = 0
 		Dim iPPos As Integer
 		#ifdef __USE_WINAPI__
-			Dim pRenderTarget As ID2D1RenderTarget Ptr = 0
+			'Dim pRenderTarget As ID2D1RenderTarget Ptr = 0
+			Dim pRenderTarget As ID2D1DeviceContext Ptr = 0
+			Dim pTargetBitmap As ID2D1Bitmap1 Ptr = 0
+			Dim pSwapChain As IDXGISwapChain1 Ptr = 0
+			Dim pSurface As IDXGISurface Ptr = 0
+			Dim pTexture As ID3D11Texture2D Ptr = 0
 			Dim pFormat As IDWriteTextFormat Ptr = 0
 		#endif
 		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE, OldBracketsStartLine, OldBracketsEndLine
@@ -509,6 +514,7 @@ Namespace My.Sys.Forms
 			Dim lHorzOffset As Long
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			Declare Static Sub EC_TimerProcBlink(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Sub SetDark(Value As Boolean)
 			Declare Sub SetClientSize()
 		#endif
@@ -537,6 +543,8 @@ Namespace My.Sys.Forms
 		Dim As Boolean bInIncludeFileRect, ModifiedLine
 		Dim As Integer LineIndex
 		Declare Function CharType(ByRef ch As WString) As Integer
+		Dim As Boolean CaretOn
+		Dim As Integer BlinkTime
 		#ifdef __USE_GTK__
 			Declare Static Function ActivateLink(Label As GtkLabel Ptr, uri As gchar Ptr, user_data As gpointer) As Boolean
 			Dim As cairo_t Ptr cr
@@ -568,8 +576,6 @@ Namespace My.Sys.Forms
 			Dim As GtkWidget Ptr winTooltip
 			Dim As Integer verticalScrollBarWidth
 			Dim As Integer horizontalScrollBarHeight
-			Dim As Boolean CaretOn
-			Dim As Integer BlinkTime
 			Dim As Boolean InFocus
 			Dim As Boolean bChanged
 		#else
@@ -618,7 +624,7 @@ Namespace My.Sys.Forms
 		MouseHoverToolTipShowed As Boolean
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
-		Declare Sub SetScrollsInfo()
+		Declare Sub SetScrollsInfo(WithChange As Boolean = False)
 		Declare Sub ShowCaretPos(Scroll As Boolean = False)
 		Declare Function TextWidth(ByRef sText As WString) As Integer
 		Declare Sub ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
@@ -732,7 +738,7 @@ Namespace My.Sys.Forms
 	Dim Shared Constructions() As Construction
 	Dim Shared ElementTypeNames() As ElementType
 	Dim Shared As My.Sys.Drawing.BitmapType EditControlFrame
-	Common As EditControl Ptr CurEC, ScrEC
+	Common As EditControl Ptr CurEC, ScrEC, FocusEC
 	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
 End Namespace
 
