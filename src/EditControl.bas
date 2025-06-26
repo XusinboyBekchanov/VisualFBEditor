@@ -2942,7 +2942,18 @@ Namespace My.Sys.Forms
 			pango_layout_line_get_pixel_extents(pll, NULL, @extend)
 			Return UnScaleX(extend.width)
 		#else
-			Return Canvas.TextWidth(sText)
+			If pRenderTarget <> 0 Then
+				Dim pLayout As IDWriteTextLayout Ptr = 0
+				Dim Metrics As DWRITE_TEXT_METRICS
+				CreateTextLayout(pDWriteFactory, @sText, Len(sText), pFormat, FLT_MAX, FLT_MAX, @pLayout)
+				If pLayout <> 0 Then
+					pLayout->lpVtbl->GetMetrics(pLayout, @Metrics)
+					pLayout->lpVtbl->Release(pLayout): pLayout = 0
+					Return UnScaleX(Metrics.widthIncludingTrailingWhitespace)
+				End If
+			Else
+				Return Canvas.TextWidth(sText)
+			End If
 		#endif
 	End Function
 	
