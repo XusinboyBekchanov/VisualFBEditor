@@ -3948,7 +3948,10 @@ Namespace My.Sys.Forms
 				DestroyWindow(sbScrollBarvBottom)
 				DestroyWindow(sbScrollBarhLeft)
 				DestroyWindow(sbScrollBarhRight)
+				Var pmnuCode = ContextMenu
+				ContextMenu = 0
 				RecreateWnd
+				ContextMenu = pmnuCode
 				Width = Width - 1
 				Width = Width + 1
 				SetScrollsInfo True
