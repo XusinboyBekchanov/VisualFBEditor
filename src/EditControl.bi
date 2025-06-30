@@ -364,6 +364,7 @@ Namespace My.Sys.Forms
 		Dim WithOldI As Integer = -1
 		Dim WithOldTypeName As String
 		Dim WithTeEnumOld As TypeElement Ptr
+		Dim bPainted As Boolean
 		Dim iPos As Integer
 		Dim iPP As Integer = 0
 		Dim jPos As Integer

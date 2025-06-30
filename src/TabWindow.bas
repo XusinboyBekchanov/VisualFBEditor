@@ -432,7 +432,8 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Next i
 		End If
 	End If
-	ptabCode->UpdateLock
+	'ptabCode->UpdateLock
+	frmMain.UpdateLock
 	If Not bFind Then
 		tb = _New( TabWindow(FileNameNew, bNew, TreeN))
 		If tb = 0 Then
@@ -577,8 +578,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 		TabCtl.MoveCloseButtons ptabCode
 	End If
 	tb->txtCode.SetFocus
-	ptabCode->UpdateUnLock
-	ptabCode->Update
+	frmMain.UpdateUnLock
+	frmMain.Update
+	'ptabCode->UpdateUnLock
+	'ptabCode->Update
 	TextChanged = False
 	TabAdding = False
 	Return tb
@@ -5238,7 +5241,7 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	MouseHoverTimerVal = Timer
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-	Dim As String UnicodeStr = Hex(tb->txtCode.Lines(iSelEndLine)[iSelStartChar], 4)
+	Dim As String UnicodeStr = Hex(tb->txtCode.Lines(iSelEndLine)[iSelEndChar], 4)
 	If Len(UnicodeStr) > 3 Then
 		If Mid(UnicodeStr, 1, 2) = "00" Then
 			UnicodeStr = " HEX: " & UnicodeStr & " (ASC: " & Val("&H" & UnicodeStr) & ")"

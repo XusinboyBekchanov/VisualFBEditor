@@ -1996,16 +1996,20 @@ Function AddSession(ByRef FileName As WString) As Boolean
 	If Result <> 0 Then Result = Open(FileName For Input As #Fn)
 	If Result = 0 Then
 		Dim As WString Ptr filn
-		Dim As Boolean bMain
-		Dim As Integer Pos1
+		Dim As Boolean bMain, bTabs
+		Dim As Integer Pos1, n = 0
 		MainNode = 0 '
 		Dim CurrentPath As WString * 255
 		CurrentPath = GetFolderName(FileName)
 		Do Until EOF(Fn)
 			Line Input #Fn, Buff
-			If StartsWith(LCase(Buff), "file=") OrElse StartsWith(LCase(Buff), "*file=") Then
+			If StartsWith(LCase(Buff), "[tabs]") Then
+				bTabs = True
+				n = 0
+			ElseIf StartsWith(LCase(Buff), "file=") OrElse StartsWith(LCase(Buff), "*file=") Then
 				Pos1 = InStr(Buff, "=")
 				If Pos1 <> 0 Then
+					n += 1
 					bMain = StartsWith(Buff, "*")
 					WLet(filn, Replace(Mid(Buff, Pos1 + 1), BackSlash, Slash))
 					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, Slash)) Then
@@ -2013,18 +2017,23 @@ Function AddSession(ByRef FileName As WString) As Boolean
 						If EndsWith(*filn, Slash) Then WLetEx filn, Left(*filn, Len(*filn) - 1), True
 					End If
 					Dim tn As TreeNode Ptr
-					If EndsWith(LCase(*filn), ".vfp") Then
-						tn = AddProject(*filn, @Files)
-						If tn = 0 Then Continue Do
-					ElseIf Len(Dir(*filn, fbDirectory)) Then
-						tn = AddFolder(*filn)
-						If tn = 0 Then Continue Do
+					If bTabs Then
+						Var tb = AddTab(*filn, , , Not bMain)
+						If tb AndAlso tb->Index <> n - 1 Then ptabCode->ReorderTab(tb, n - 1, True)
 					Else
-						Var tb = AddTab(*filn)
-						If tb Then tn = tb->tn
-					End If
-					If bMain Then
-						SetMainNode tn
+						If EndsWith(LCase(*filn), ".vfp") Then
+							tn = AddProject(*filn, @Files)
+							If tn = 0 Then Continue Do
+						ElseIf Len(Dir(*filn, fbDirectory)) Then
+							tn = AddFolder(*filn)
+							If tn = 0 Then Continue Do
+						Else
+							Var tb = AddTab(*filn)
+							If tb Then tn = tb->tn
+						End If
+						If bMain Then
+							SetMainNode tn
+						End If
 					End If
 				End If
 			End If
@@ -2232,7 +2241,7 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 							If StartsWith(tb->FileName & Slash, GetFolderName(SaveD.FileName)) Then
 								Print #Fn, Zv & "File=" & Replace(Mid(tb->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
 							Else
-								Print #Fn, Zv & "File=" & tb->FileName
+								Print #Fn, Zv & "File=" & Replace(tb->FileName, "\", "/")
 							End If
 						End If
 					Next i
@@ -2242,10 +2251,25 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 				If StartsWith(*ee->FileName & Slash, GetFolderName(SaveD.FileName)) Then
 					Print #Fn, Zv & "File=" & Replace(Mid(*ee->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
 				Else
-					Print #Fn, Zv & "File=" & *ee->FileName
+					Print #Fn, Zv & "File=" & Replace(*ee->FileName, "\", "/")
 				End If
 			End If
 		Next
+		Print #Fn, "[Tabs]"
+		For j As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+			For i As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+				If tb Then
+					Zv = IIf(tb->IsSelected, "*", "")
+					If StartsWith(tb->FileName & Slash, GetFolderName(SaveD.FileName)) Then
+						Print #Fn, Zv & "File=" & Replace(Mid(tb->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
+					Else
+						Print #Fn, Zv & "File=" & Replace(tb->FileName, "\", "/")
+					End If
+				End If
+			Next i
+		Next j
 	End If
 	CloseFile_(Fn)
 	WDeAllocate(Temp)

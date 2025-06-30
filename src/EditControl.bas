@@ -3955,7 +3955,7 @@ Namespace My.Sys.Forms
 				Width = Width - 1
 				Width = Width + 1
 				SetScrollsInfo True
-			ElseIf CBool(pRenderTarget = 0) AndAlso g_Direct2DEnabled AndAlso UseDirect2D Then
+			ElseIf CBool(pRenderTarget = 0) AndAlso g_Direct2DEnabled AndAlso UseDirect2D AndAlso bPainted Then
 				SetClientSize
 				If Focused Then
 					KillTimer FHandle, 2
@@ -5068,7 +5068,7 @@ Namespace My.Sys.Forms
 					End If
 					If HighlightBrackets Then
 						If z = BracketsStartLine AndAlso BracketsStart > -1 Then
-							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsStart))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + TextWidth(GetTabbedText(..Left(*s, BracketsStart))) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + TextWidth(GetTabbedText(..Left(*s, BracketsStart))) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -5085,7 +5085,7 @@ Namespace My.Sys.Forms
 							#endif
 						End If
 						If z = BracketsEndLine AndAlso BracketsEnd > -1 Then
-							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + Len(GetTabbedText(..Left(*s, BracketsEnd))) * (dwCharX) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
+							Dim As ..Rect rec = Type(ScaleX(LeftMargin + -HScrollPos * dwCharX + TextWidth(GetTabbedText(..Left(*s, BracketsEnd))) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 1 + CodePaneY), ScaleX(LeftMargin + -HScrollPos * dwCharX + TextWidth(GetTabbedText(..Left(*s, BracketsEnd))) + dwCharX + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY + CodePaneY))
 							#ifdef __USE_GTK__
 								cairo_set_source_rgb(cr, CurrentBrackets.FrameRed, CurrentBrackets.FrameGreen, CurrentBrackets.FrameBlue)
 								cairo_rectangle (cr, rec.Left, rec.Top, rec.Right, rec.Bottom, True)
@@ -7821,7 +7821,10 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_EXPOSE
 			#else
-			Case WM_PAINT
+				Case WM_PAINT
+					If Not bPainted Then
+						bPainted = True
+					End If
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
