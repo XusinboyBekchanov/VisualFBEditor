@@ -249,6 +249,7 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 	Dim As Boolean bMatchCase = chkMatchCase.Checked
 	Dim buff As WString Ptr
 	Dim As Integer i, SearchCount, SearchLen
+	If txtFind.Text <> "" AndAlso Not txtFind.Contains(txtFind.Text) Then txtFind.AddItem txtFind.Text
 	If CInt(*gSearchSave <> txtFind.Text OrElse plvSearch->ListItems.Count < 1) OrElse CInt(tb > 0 AndAlso tb->txtCode.ModifiedLine = True AndAlso cboFindRange.ItemIndex <> 2) Then FindAll plvSearch, tpFind, , False : WLet(gSearchSave, txtFind.Text): tb->txtCode.ModifiedLine = False
 	If plvSearch->ListItems.Count < 1 Then This.Caption = ML("Find: No Results") : Return -1
 	If cboFindRange.ItemIndex = 1 OrElse cboFindRange.ItemIndex = 2 Then
@@ -672,7 +673,7 @@ Sub ReplaceSubProj(Param As Any Ptr)
 	If plvSearch->ListItems.Count = 0 Then
 		fFind.Caption = ML("Find: No Results")
 	Else
-		If Not fFind.txtFind.Contains(fFind.txtFind.Text) Then fFind.txtFind.AddItem fFind.txtFind.Text
+		If fFind.txtFind.Text <> "" AndAlso Not fFind.txtFind.Contains(fFind.txtFind.Text) Then fFind.txtFind.AddItem fFind.txtFind.Text
 		If Len(fFind.txtReplace.Text) > 0 AndAlso (Not fFind.txtReplace.Contains(fFind.txtReplace.Text)) Then fFind.txtReplace.AddItem fFind.txtReplace.Text
 		fFind.Caption = ML("Replace") + WStr(plvSearch->ListItems.Count) + " of " + WStr(plvSearch->ListItems.Count)
 	End If
@@ -807,7 +808,7 @@ Private Function frmFind.FindAll(ByRef lvSearchResult As ListView Ptr, tTab As T
 		If lvSearchResult->ListItems.Count < 1 Then
 			This.Caption = ML("Find: No Results")
 		Else
-			If Not txtFind.Contains(tSearch) Then txtFind.AddItem tSearch
+			If tSearch <> "" AndAlso Not txtFind.Contains(tSearch) Then txtFind.AddItem tSearch
 		End If
 		tTab->Caption = IIf(tTab = tpFind, ML("Find"), ML("ToDo")) & " (" & lvSearchResult->ListItems.Count & " " & ML("Pos") & ")"
 	End If
@@ -923,7 +924,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 		If plvSearch->ListItems.Count = 0 Then
 			This.Caption = ML("Find: No Results")
 		Else
-			If Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
+			If *Search <> "" AndAlso Not txtFind.Contains(*Search) Then txtFind.AddItem *Search
 			If Len(*tReplace) > 0 AndAlso (Not txtReplace.Contains(*tReplace)) Then txtReplace.AddItem *tReplace
 			This.Caption = ML("Replace") + ": " + WStr(plvSearch->ListItems.Count) + " of " + WStr(plvSearch->ListItems.Count)
 		End If
