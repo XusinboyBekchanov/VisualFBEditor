@@ -193,6 +193,23 @@
 Private Sub frmWMIType.Form_Show(ByRef Sender As Form)
 	SendMessage(txtInfo.Handle, EM_LIMITTEXT, -1, 0)
 	CommandButton_Click(cmdNameSpace)
+	
+	comboNamespace.Text = "ROOT\CIMV2"
+	
+	comboClasses.AddItem "Win32_BIOS"
+	comboClasses.AddItem "Win32_DiskDrive"
+	comboClasses.AddItem "Win32_DiskPartition"
+	comboClasses.AddItem "Win32_LogicalDisk"
+	comboClasses.AddItem "Win32_MemoryDevice"
+	comboClasses.AddItem "Win32_NetworkAdapter"
+	comboClasses.AddItem "Win32_PhysicalMemory"
+	comboClasses.AddItem "Win32_PnPEntity"
+	comboClasses.AddItem "Win32_PnPDevice"
+	comboClasses.AddItem "Win32_USBController"
+	comboClasses.AddItem "Win32_USBControllerDevice"
+	comboClasses.AddItem "Win32_USBHub"
+	comboClasses.AddItem "Win32_Processor"
+	comboClasses.Text = "Win32_BIOS"
 End Sub
 
 Private Sub frmWMIType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
@@ -206,7 +223,7 @@ Private Sub frmWMIType.CommandButton_Click(ByRef Sender As Control)
 	Dim As WString Ptr txt = NULL
 	Dim i As Integer
 	Select Case Sender.Name
-	Case "cmdNameSpace"
+	Case cmdNameSpace.Name
 		EnumNameSpace("ROOT", "SELECT * FROM __NAMESPACE", namespaces())
 		comboNamespace.Clear
 		For i = 0 To UBound(namespaces)
@@ -214,14 +231,14 @@ Private Sub frmWMIType.CommandButton_Click(ByRef Sender As Control)
 		Next
 		JoinWStr(namespaces(), vbCrLf, txt)
 		txtInfo.Text = *txt
-	Case "cmdWMIClasses"
+	Case cmdWMIClasses.Name
 		ComboBoxEdit_Selected(comboNamespace, 0)
-	Case "cmdPropreties"
+	Case cmdPropreties.Name
 		ComboBoxEdit_Selected(comboClasses, 0)
-	Case "cmdPropretyValue"
+	Case cmdPropretyValue.Name
 		EnumPropretiesValues(comboNamespace.Text, comboClasses.Text, txt)
 		If txt Then txtInfo.Text = *txt
-	Case "cmdClear"
+	Case cmdClear.Name
 		txtInfo.Clear
 	End Select
 	If txt Then Deallocate(txt)
@@ -230,7 +247,7 @@ End Sub
 Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemIndex As Integer)
 	Dim As WString Ptr txt
 	Select Case Sender.Name
-	Case "comboClasses"
+	Case comboClasses.Name
 		EnumPropreties(comboNamespace.Text, comboClasses.Text, properties())
 		Dim i As Integer
 		comboPropreties.Clear
@@ -239,7 +256,7 @@ Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemI
 		Next
 		JoinWStr(properties(), vbCrLf, txt)
 		txtInfo.Text = *txt
-	Case "comboNamespace"
+	Case comboNamespace.Name
 		EnumClasses(comboNamespace.Text, "SELECT * FROM META_CLASS", wmiclasses())
 		Dim i As Integer
 		comboClasses.Clear
@@ -248,7 +265,7 @@ Private Sub frmWMIType.ComboBoxEdit_Selected(ByRef Sender As ComboBoxEdit, ItemI
 		Next
 		JoinWStr(wmiclasses(), vbCrLf, txt)
 		txtInfo.Text = *txt
-	Case "comboPropreties"
+	Case comboPropreties.Name
 	End Select
 	If txt Then Deallocate(txt)
 End Sub
