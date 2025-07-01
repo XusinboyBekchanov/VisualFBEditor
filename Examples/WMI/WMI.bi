@@ -29,7 +29,7 @@ Private Function VARIANT2Str(vResult As VARIANT, pType As CIMTYPE, pFlag As Long
 		SafeArrayGetUBound(pSafeArray, 1, @upperBound)
 		Dim As WString Ptr wstrrtn()
 		ReDim wstrrtn(lowerBound To upperBound)
-			
+		
 		Dim As Long i
 		Select Case vResult.vt And &h1fff
 		Case CIM_STRING
@@ -45,7 +45,7 @@ Private Function VARIANT2Str(vResult As VARIANT, pType As CIMTYPE, pFlag As Long
 				SafeArrayGetElement(pSafeArray, @i, @longvalue)
 				WLet(wstrrtn(i), Hex(longvalue, 2))
 			Next
-		'Case VT_BOOL
+			'Case VT_BOOL
 		Case Else
 			Print "CIM_FLAG_ARRAY-" & Hex(vResult.vt)
 		End Select
@@ -101,7 +101,7 @@ Private Function VARIANT2Str(vResult As VARIANT, pType As CIMTYPE, pFlag As Long
 	End If
 End Function
 
-Private Function GetIWbemServices(server As WString, ByRef pService As IWbemServices Ptr) As Integer
+Private Function GetIWbemServices(server As WString, ByRef pService As IWbemServices Ptr) As IWbemServices Ptr
 	Dim As IWbemLocator Ptr pLocator
 	Dim As GUID pCLSID_WbemLocator
 	Dim As GUID pIID_IWbemLocator
@@ -121,7 +121,7 @@ Private Function GetIWbemServices(server As WString, ByRef pService As IWbemServ
 	Return pService
 End Function
 
-Private Function ExecQuery(sql As WString, pService As IWbemServices Ptr, ByRef pEnum As IEnumWbemClassObject Ptr) As Integer
+Private Function ExecQuery(sql As WString, pService As IWbemServices Ptr, ByRef pEnum As IEnumWbemClassObject Ptr) As IEnumWbemClassObject Ptr
 	If pService Then pService->lpVtbl->ExecQuery(pService, @"WQL", @sql, WBEM_FLAG_FORWARD_ONLY Or WBEM_FLAG_RETURN_IMMEDIATELY, NULL, @pEnum)
 	Return pEnum
 End Function
@@ -135,8 +135,8 @@ Private Function EnumNameSpace(server As WString, sql As WString, rtnwstra() As 
 	
 	ArrayDeallocate(rtnwstra())
 	
-	If GetIWbemServices(server, pService) = 0 Then Return 0
-	If ExecQuery(sql, pService, pEnum) = 0 Then Return 0
+	If GetIWbemServices(server, pService) = NULL Then Return 0
+	If ExecQuery(sql, pService, pEnum) = NULL Then Return 0
 	
 	Dim As ULong uReturn = 0
 	Dim cItem As Long = 0
@@ -217,16 +217,14 @@ Private Function EnumPropreties(wminame As WString, classname As WString, rtnwst
 	SafeArrayGetLBound(pNames, 1, @lLBound)
 	SafeArrayGetUBound(pNames, 1, @lUBound)
 	Dim As Long i
-	Dim As BSTR bstrName
+	Dim As WString Ptr bstrName
 	Dim As Long pFlag
 	Dim As CIMTYPE pType
 	
 	ReDim rtnwstra(lLBound To lUBound)
 	For i = lLBound To lUBound
 		hr = SafeArrayGetElement(pNames, @i, @bstrName)
-		If hr <> 0 Then Exit For
-		
-		WLet(rtnwstra(i), *Cast(WString Ptr, bstrName))
+		WLet(rtnwstra(i), *bstrName)
 		SysFreeString(bstrName)
 	Next
 	SafeArrayDestroy(pNames)
@@ -243,59 +241,57 @@ Private Function EnumPropretiesValues(wminame As WString, classname As WString, 
 	Dim As IWbemClassObject Ptr pItem = NULL
 	Dim As VARIANT vResult
 	Dim As Long hr
-	Dim As WString Ptr a
 	
 	If GetIWbemServices(wminame, pService) = 0 Then Return 0
 	
+	Dim As WString Ptr a = NULL
 	WLet(a, "SELECT * FROM " & classname)
 	hr = pService->lpVtbl->ExecQuery(pService, @"WQL", a, WBEM_FLAG_FORWARD_ONLY Or WBEM_FLAG_RETURN_IMMEDIATELY, NULL, @pEnum)
-	If a Then Deallocate(a)
-	If hr <> 0 Or pEnum = NULL Then Return 0
-	
 	Dim As WString Ptr txts()
 	Dim As ULong uReturn = 0
 	Dim cItem As Long = 0
-	Do
-		hr = pEnum->lpVtbl->Next(pEnum, WBEM_INFINITE, 1, @pItem, @uReturn)
-		If uReturn = 0 Or pItem = NULL Then Exit Do
-		
-		Dim As SAFEARRAY Ptr pNames = NULL
-		hr = pItem->lpVtbl->GetNames(pItem, NULL, WBEM_FLAG_NONSYSTEM_ONLY, NULL, @pNames)
-		If hr <> 0 Then Exit Do
-		
-		Dim As Long lLBound, lUBound
-		hr = SafeArrayGetLBound(pNames, 1, @lLBound)
-		hr = SafeArrayGetUBound(pNames, 1, @lUBound)
-		
-		Dim As Long i
-		Dim As BSTR bstrName
-		Dim As Long pFlag
-		Dim As CIMTYPE pType
-		
-		cItem += 1
-		WStrArrayAdd(txts(), cItem & ". " & classname)
-		For i = lLBound To lUBound
-			hr = SafeArrayGetElement(pNames, @i, @bstrName)
-			If hr = 0 Then
-				WLet(a, *Cast(WString Ptr, bstrName))
-				hr = pItem->lpVtbl->Get(pItem, a, WBEM_FLAG_ALWAYS, @vResult, @pType, @pFlag)
+	If hr <> 0 Or pEnum = NULL Then
+	Else
+		Do
+			hr = pEnum->lpVtbl->Next(pEnum, WBEM_INFINITE, 1, @pItem, @uReturn)
+			If uReturn = 0 Or pItem = NULL Then Exit Do
+			
+			Dim As SAFEARRAY Ptr pNames = NULL
+			hr = pItem->lpVtbl->GetNames(pItem, NULL, WBEM_FLAG_NONSYSTEM_ONLY, NULL, @pNames)
+			If hr <> 0 Then Exit Do
+			
+			Dim As Long lLBound, lUBound
+			hr = SafeArrayGetLBound(pNames, 1, @lLBound)
+			hr = SafeArrayGetUBound(pNames, 1, @lUBound)
+			
+			Dim As Long i
+			Dim As WString Ptr bstrName
+			Dim As Long pFlag
+			Dim As CIMTYPE pType
+			
+			cItem += 1
+			
+			WStrArrayAdd(txts(), cItem & !".\t" & classname)
+			For i = lLBound To lUBound
+				hr = SafeArrayGetElement(pNames, @i, @bstrName)
+				If hr <> 0 Then Exit For
+				hr = pItem->lpVtbl->Get(pItem, bstrName, WBEM_FLAG_ALWAYS, @vResult, @pType, @pFlag)
 				If hr = 0 Then
-					WStrArrayAdd(txts(), !"\t" & i + 1 & !".\t" & *a & " = " & VARIANT2Str(vResult, pType, pFlag)) '& " (0x" & Hex(pType) & ", " & pType & ", 0x" & Hex(vResult.vt) & ")")
+					WStrArrayAdd(txts(), !"\t" & i + 1 & !".\t" & *bstrName & " = " & VARIANT2Str(vResult, pType, pFlag)) '& " (0x" & Hex(pType) & ", " & pType & ", 0x" & Hex(vResult.vt) & ")")
 				Else
-					WStrArrayAdd(txts(), !"\t" & i + 1 & !".\t" & *a & " = Invalid")
+					WStrArrayAdd(txts(), !"\t" & i + 1 & !".\t" & *bstrName & " = Invalid")
 				End If
 				SysFreeString(bstrName)
-			End If
-		Next
-		hr = SafeArrayDestroy(pNames)
-		
-		If pItem Then pItem->lpVtbl->Release(pItem)
-	Loop While True
-	
+			Next
+			hr = SafeArrayDestroy(pNames)
+			
+			If pItem Then pItem->lpVtbl->Release(pItem)
+		Loop While True
+	End If
 	If pEnum Then pEnum->lpVtbl->Release(pEnum)
 	If pService Then pService->lpVtbl->Release(pService)
 	JoinWStr(txts(), vbCrLf, txt)
 	ArrayDeallocate(txts())
+	If a Then Deallocate(a)
 	Return cItem
 End Function
-

@@ -3,8 +3,8 @@
 #define APP_TITLE_STR               "WMI\0"
 #define VER_FILEDESCRIPTION_STR     "WMI\0"
 
-#define VER_FILEVERSION             0,0,0,442
-#define VER_FILEVERSION_STR         "0.0.0.442\0"
+#define VER_FILEVERSION             0,0,0,534
+#define VER_FILEVERSION_STR         "0.0.0.534\0"
 
 #define VER_LEGALCOPYRIGHT_STR      "Cm.Wang\0"
 
