@@ -442,6 +442,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Return 0
 		End If
 		With *tb
+			tb->txtCode.Visible = False
 			frmMain.Cursor = crWait
 			If FileName <> "" Then
 				#ifndef __USE_GTK__
@@ -556,6 +557,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			.txtCode.ScrollToCaret
 			ChangeMenuItemsEnabled
 			frmMain.Cursor = 0
+			tb->txtCode.Visible = True
 		End With
 		If tb->cboClass.Items.Count < 2 Then
 			miForm->Enabled = False
