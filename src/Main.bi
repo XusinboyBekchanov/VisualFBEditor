@@ -121,6 +121,7 @@ Declare Function EscapeFromJson(ByRef iText As WString) As UString
 Declare Sub SplitAIText(ByRef iText As String, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
 Declare Sub PopupClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 Declare Sub mClick(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickHelp(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickTool(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
@@ -371,5 +372,3 @@ Declare Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 #ifndef __USE_MAKE__
 	#include once "Main.bas"
 #endif
-
-
