@@ -545,7 +545,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
-			.FormDesign(bNoActivate)
+			.FormDesign '(bNoActivate)
 			If CBool(FileName <> "") AndAlso CBool(tb->Project <> 0) AndAlso (EndsWith(FileName, "Form.frm") OrElse EndsWith(FileName, "UserControl.bas")) Then
 				If Not tb->Project->Components.Contains("Controls/MyFbFramework") Then tb->Project->Components.Add "Controls/MyFbFramework"
 			End If
