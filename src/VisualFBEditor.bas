@@ -150,27 +150,115 @@ Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	miUseDefine = Cast(MenuItem Ptr, @Sender)
 	miUseDefine->Checked = True
 End Sub
+Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+	Dim As WString * MAX_PATH FileName
+	Select Case Sender.ToString
+	Case "AIChatEdit"
+		If Trim(txtAIAgent.SelText) = "" Then
+			txtAIAgent.SelStart = InStrRev(txtAIAgent.Text, "```", txtAIAgent.SelStart + 3)
+			txtAIAgent.SelEnd = InStr(txtAIAgent.SelStart + 3, txtAIAgent.Text, "```")
+		End If
+		If Trim(txtAIAgent.SelText) = "" Then Exit Sub
+		SaveToFile(ExePath & "/Temp/AIChat.Bas", txtAIAgent.SelText)
+		OpenFiles ExePath & "/Temp/AIChat.Bas" 
+	Case "AIChatOpen"
+		Dim As OpenFileDialog OpenD
+		OpenD.InitialDir = ExePath & "/AIChat/"
+		OpenD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
+		If OpenD.Execute Then
+			frmMain.Cursor = crWait
+			FileName= GetFileName(OpenD.FileName)
+			AIMessages.LoadFromFile(OpenD.FileName)
+			If AIMessages.Count < 1 Then frmMain.Cursor = 0 : Exit Sub
+			AddMRUAIChat FileName
+			WLet(RecentAIChat, FileName)
+			Deallocate AIBodyWStringPtr
+			For i As Integer = 0 To AIMessages.Count - 1
+				If i <> AIMessages.Count - 1 Then
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10))
+				Else
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text)
+				End If
+			Next
+			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+			AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+			txtAIAgent.TextRTF = *AIBodyWStringPtr
+			txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+			txtAIRequest.Enabled = True
+			txtAIRequest.SetFocus
+			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			frmMain.Cursor = 0
+		End If
+	Case "AIChatSave"
+		If AIMessages.Count < 1 Then Exit Sub
+		frmMain.Cursor = crWait
+		FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
+		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		WLet(RecentAIChat, FileName)
+		frmMain.Cursor = 0
+	Case "AIChatSaveAs"
+		If AIMessages.Count < 1 Then Exit Sub
+		Dim As OpenFileDialog OpenD
+		SaveD.InitialDir = ExePath & "/AIChat/"
+		SaveD.Caption = "Save AIChat Files"
+		SaveD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
+		If Not SaveD.Execute Then Exit Sub
+		AIMessages.SaveToFile(SaveD.FileName)
+		FileName = GetFileName(SaveD.FileName)
+		AIMessages.SaveToFile(SaveD.FileName)
+		FileName = GetFileName(SaveD.FileName)
+		AddMRUAIChat FileName
+		WLet(RecentAIChat, FileName)
+	Case "ClearAIChat"
+		miRecentAIChat->Clear
+		miRecentAIChat->Enabled = False
+		MRUAIChat.Clear
+	Case Else
+		FileName= ExePath & "/AIChat/" & Sender.ToString
+		AIMessages.LoadFromFile(FileName)
+		If AIMessages.Count < 1 Then Exit Sub
+		AddMRUAIChat Sender.ToString
+		WLet(RecentAIChat, Sender.ToString)
+		Deallocate AIBodyWStringPtr
+		For i As Integer = 0 To AIMessages.Count - 1
+			If i <> AIMessages.Count - 1 Then
+				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10))
+			Else
+				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text)
+			End If
+		Next
+		WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+		AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+		txtAIAgent.TextRTF = *AIBodyWStringPtr
+		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+		txtAIRequest.Enabled = True
+		txtAIRequest.SetFocus
+		Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+	End Select
+End Sub
 
 Sub mClickMRU(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
-	If Sender.ToString = "ClearFiles" Then
+	Select Case Sender.ToString
+	Case "ClearFiles"
 		miRecentFiles->Clear
 		miRecentFiles->Enabled = False
 		MRUFiles.Clear
-	ElseIf Sender.ToString = "ClearProjects" Then
+	Case "ClearProjects"
 		miRecentProjects->Clear
 		miRecentProjects->Enabled = False
 		MRUProjects.Clear
-	ElseIf Sender.ToString = "ClearFolders" Then
+	Case "ClearFolders"
 		miRecentFolders->Clear
 		miRecentFolders->Enabled = False
 		MRUFolders.Clear
-	ElseIf Sender.ToString = "ClearSessions" Then
+	Case "ClearSessions"
 		miRecentSessions->Clear
 		miRecentSessions->Enabled = False
 		MRUSessions.Clear
-	Else
+	Case Else
 		OpenFiles GetFullPath(Sender.ToString)
-	End If
+	End Select
 End Sub
 
 Sub mClickHelp(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)

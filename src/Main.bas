@@ -100,6 +100,7 @@ Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlR
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
 Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miClearStartUp, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
+Dim Shared As MenuItem Ptr miRecentAIChat,  miFileAIChat
 Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miCloseSession, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerRename, miExplorerProjectProperties, miExplorerCloseProject, miRename, miRemoveFileFromProject
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miDeleteBlankLines, miSuggestions, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
 Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miModuleMacroNumbering, miModuleMacroNumberingStartsOfProcedures, miRemoveModuleNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miModulePreprocessorNumbering, miRemoveModulePreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
@@ -119,8 +120,8 @@ Dim Shared As ReBar MainReBar
 Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
-Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
-Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession '
+Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUAIChat, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
+Dim Shared As WString Ptr RecentFiles, RecentFile, RecentProject, RecentFolder, RecentSession, RecentAIChat
 Dim Shared As Dictionary Helps, HotKeys, Compilers, MakeTools, Debuggers, Terminals, OtherEditors, BuildConfigurations, mlCompiler, mlTemplates, AIAgents, mpKeys, mcKeys
 Dim Shared As ListView lvProblems, lvSuggestions, lvSearch, lvToDo, lvMemory
 Dim Shared As ProgressBar prProgress
@@ -128,7 +129,7 @@ Dim Shared As CommandButton btnPropertyValue
 Dim Shared As TextBox txtPropertyValue, txtExpand, txtAIRequest
 Dim Shared As RichTextBox txtLabelProperty, txtLabelEvent, txtAIAgent
 Dim Shared As ComboBoxEdit cboPropertyValue
-Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems
+Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuExplorer, mnuTabs, mnuProcedures, mnuProblems, mnuAIChat
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32, imgListAIProviders32, imgListAIModels32
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvThreads, lvWatches, lvProfiler
 Dim Shared As ToolPalette tbToolBox
@@ -2102,6 +2103,24 @@ Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList
 	
 End Sub
 
+Sub AddMRUAIChat(ByRef FileName As WString)
+	Dim As UString FileName_
+	If AddRelativePathsToRecent Then
+		FileName_ = GetShortFileName(FileName, ExePath & Slash & Slash)
+	Else
+		FileName_ = FileName
+	End If
+	Dim As Integer i = MRUAIChat.IndexOf(FileName_)
+	If i <> -1 Then MRUAIChat.Remove i
+	MRUAIChat.Add FileName_
+	miRecentAIChat->Clear
+	For i = 0 To MRUAIChat.Count - 1
+		miRecentAIChat->Add(MRUAIChat.Item(i), "", MRUAIChat.Item(i), @mClickAIChat, , i)
+	Next
+	miRecentAIChat->Add("-")
+	miRecentAIChat->Add(ML("Clear Recently Opened"), "", "ClearAIChat", @mClickAIChat)
+	If miRecentAIChat->Enabled = False Then miRecentAIChat->Enabled = True
+End Sub
 Sub AddMRUFile(ByRef FileName As WString)
 	AddMRU FileName, MRUFiles, miRecentFiles, "Files"
 End Sub
@@ -7306,7 +7325,25 @@ Sub CreateMenusAndToolBars
 		End If
 	Next
 	miRecentFiles->Add("-")
-	miRecentFiles->Add(ML("Clear Recently Opened"),"","ClearFiles", @mClickMRU)
+	miRecentFiles->Add(ML("Clear Recently Opened"), "", "ClearFiles", @mClickMRU)
+	
+	mnuAIChat.Add(ML("&Edit"), "Edit", "AIChatEdit", @mClickAIChat, , , True)
+	mnuAIChat.Add("-")
+	mnuAIChat.Add(ML("&Open") & "..." , "Open", "AIChatOpen", @mClickAIChat, , , True)
+	mnuAIChat.Add("-")
+	mnuAIChat.Add(ML("&Save") , "Save", "AIChatSave", @mClickAIChat, , , True)
+	mnuAIChat.Add(ML("Save &As") & "...", "", "AIChatSaveAs", @mClickAIChat, , , True)
+	mnuAIChat.Add("-")
+	miRecentAIChat = mnuAIChat.Add(ML("Recent Files"), "", "RecentFiles", @mClickAIChat)
+	For i As Integer = 0 To miRecentMax
+		sTmp = iniSettings.ReadString("MRUAIChat", "MRUAIChat_0" & WStr(i), "")
+		If Trim(sTmp) <> "" AndAlso Dir(ExePath & "/AIChat/" & sTmp) <> "" Then
+			MRUAIChat.Add sTmp
+			miRecentAIChat->Add(sTmp, "", sTmp, @mClickAIChat)
+		End If
+	Next
+	miRecentAIChat->Add("-")
+	miRecentAIChat->Add(ML("Clear Recently Opened"), "", "ClearAIChat", @mClickAIChat)
 	
 	miFile->Add("-")
 	miFile->Add(ML("&Command Prompt") & HK("CommandPrompt", "Alt+C"), "Console", "CommandPrompt", @mClick)
@@ -8632,6 +8669,7 @@ txtAIAgent.ReadOnly = True
 txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
+txtAIAgent.ContextMenu = @mnuAIChat
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As WString Ptr result
@@ -9191,10 +9229,17 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		AIMessages.SaveToFile(ExePath & "\AIChat\" & Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
-		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "\AIChat")
+		Dim As WString * MAX_PATH FileName 
+		FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
+		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		If Not MRUAIChat.Contains(FileName) Then
+			MRUAIChat.Add FileName
+			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
+		End If
+		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "/AIChat/" & FileName)
 		AIMessages.Clear
 	End If
+	Deallocate(RecentAIChat): RecentAIChat = 0
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
@@ -11639,6 +11684,13 @@ End Sub
 
 Sub SaveMRU
 	Dim As Integer i, MRUStart
+	MRUStart = Max(MRUAIChat.Count - miRecentMax, 0)
+	For i = MRUStart To MRUAIChat.Count - 1
+		iniSettings.WriteString("MRUAIChat", "MRUAIChat_0" & WStr(i - MRUStart), MRUAIChat.Item(i))
+	Next
+	For i = i To miRecentMax
+		iniSettings.KeyRemove("MRUAIChat", "MRUAIChat_0" & WStr(i))
+	Next
 	MRUStart = Max(MRUFiles.Count - miRecentMax, 0)
 	For i = MRUStart To MRUFiles.Count - 1
 		iniSettings.WriteString("MRUFiles", "MRUFile_0" & WStr(i - MRUStart), MRUFiles.Item(i))
@@ -11679,7 +11731,14 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	End If
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
-	If AIMessages.Count > 0 Then AIMessages.SaveToFile(ExePath & "\AIChat\" & FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md")
+	If AIMessages.Count > 0 Then 
+		Dim As WString * MAX_PATH FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
+		If Not MRUAIChat.Contains(FileName) Then
+			MRUAIChat.Add FileName
+			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
+		End If
+		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+	End If
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)
 		iniSettings.WriteInteger("MainWindow", "Height", frmMain.Height)
@@ -11842,6 +11901,7 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(RunArguments)
 	WDeAllocate(Debug32Arguments)
 	WDeAllocate(Debug64Arguments)
+	WDeAllocate(RecentAIChat)
 	WDeAllocate(RecentFiles)
 	WDeAllocate(RecentFile)
 	WDeAllocate(RecentProject)
