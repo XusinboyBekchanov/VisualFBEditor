@@ -159,11 +159,11 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			txtAIAgent.SelEnd = InStr(txtAIAgent.SelStart + 3, txtAIAgent.Text, "```")
 		End If
 		If Trim(txtAIAgent.SelText) = "" Then Exit Sub
-		SaveToFile(ExePath & "/Temp/AIChat.Bas", txtAIAgent.SelText)
-		OpenFiles ExePath & "/Temp/AIChat.Bas" 
+		SaveToFile(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas", txtAIAgent.SelText)
+		OpenFiles GetFullPath(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas") 
 	Case "AIChatOpen"
 		Dim As OpenFileDialog OpenD
-		OpenD.InitialDir = ExePath & "/AIChat/"
+		OpenD.InitialDir = ExePath & Slash & "AIChat"
 		OpenD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
 		If OpenD.Execute Then
 			frmMain.Cursor = crWait
