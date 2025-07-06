@@ -484,7 +484,7 @@ Namespace My.Sys.Forms
 		Dim OldCollapseIndex As Integer
 		Declare Sub FontSettings
 		Declare Function MaxLineWidth() As Integer
-		Declare Sub PaintText(CodePane As Integer, iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+		Declare Sub PaintText(CodePane As Integer, iLine As Integer, ByRef s As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False, ByRef CameOut As Boolean = False)
 		Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
 		Declare Sub SplitLines
 		Declare Sub WordLeft

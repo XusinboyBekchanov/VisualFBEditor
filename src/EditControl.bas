@@ -2998,7 +2998,7 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub EditControl.PaintText(CodePane As Integer, iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False)
+	Sub EditControl.PaintText(CodePane As Integer, iLine As Integer, ByRef sText As WString, iStart As Integer, iEnd As Integer, ByRef Colors As ECColorScheme, ByRef addit As WString = "", Bold As Boolean = False, Italic As Boolean = False, Underline As Boolean = False, ByRef CameOut As Boolean = False)
 		'Dim s As WString Ptr
 		'WLet s, sText 'Mid(sText, 1, HScrollPos + This.Width / dwCharX)
 		'		If LeftMargin + (-HScrollPos + iStart) * dwCharX > dwClientX Then
@@ -3042,16 +3042,18 @@ Namespace My.Sys.Forms
 				.cairo_rectangle (cr, ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.width + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)), ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0)), extend2.width, ScaleY(dwCharY))
 				cairo_fill (cr)
 			End If
-			cairo_move_to(cr, ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0) + extend.width - 0.5), _
-			ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0)))
+			Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0) + extend.width - 0.5)
+			Var y = ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + dwCharY - 5 - 0.5 + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0))
+			cairo_move_to(cr, x, y)
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
+			CameOut = x + extend2.width + 1 > dwClientX
 		#else
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 				If StartsWith(*FLineRight, " ") Then
 					Var n = Len(*FLineRight) - Len(Trim(*FLineRight))
-					PaintText(CodePane, iLine, sText, iStart + n, iEnd, Colors, addit, Bold, Italic, Underline)
+					PaintText(CodePane, iLine, sText, iStart + n, iEnd, Colors, addit, Bold, Italic, Underline, CameOut)
 					Exit Sub
 				End If
 				SetBkColor(bufDC, CurrentWord.Background)
@@ -3096,6 +3098,7 @@ Namespace My.Sys.Forms
 					End If
 					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - ScaleY(dwCharY))), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
+					CameOut = x + sz.cx + 1 > dwClientX
 				End If
 				If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
 				If pBrushBackground Then pBrushBackground->lpVtbl->Release(pBrushBackground)
@@ -3128,6 +3131,7 @@ Namespace My.Sys.Forms
 					Canvas.Font.Underline = False
 					SelectObject(bufDC, This.Canvas.Font.Handle)
 				End If
+				CameOut = x + sz.cx + 1 > dwClientX
 			End If
 		#endif
 		If CBool(CurExecutedLine <> iLine) AndAlso CBool(OldExecutedLine <> iLine) AndAlso CBool(Not FECLine->EndsCompleted) Then
@@ -4327,6 +4331,7 @@ Namespace My.Sys.Forms
 						If FECLine->EndsCompleted Then
 							Var OldJ = 0
 							Dim As ECColorScheme Ptr ecc
+							Dim As Boolean CameOut
 							For j As Integer = 0 To FECLine->Ends.Count - 1
 								ecc = FECLine->Ends.Object(j)
 								'Dim As String a
@@ -4334,8 +4339,9 @@ Namespace My.Sys.Forms
 								'	a = a & ": " & Str(Cast(EditControlStatement Ptr, FECLine->Statements.Item(iss))->ConstructionPartCount)
 								'Next
 								'PaintText zz, i, *s & a, OldJ, FECLine->Ends.Item(j) + Len(a), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z)
-								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z)
+								PaintText zz, i, *s, OldJ, FECLine->Ends.Item(j), *ecc, , ecc->Bold, ecc->Italic, CBool(ecc->Underline) OrElse CBool(ecc = @Strings) AndAlso CBool(bInIncludeFileRect) AndAlso CBool(iCursorLine = z), CameOut
 								OldJ = FECLine->Ends.Item(j)
+								If CameOut Then Exit For
 							Next
 						Else
 							'					Canvas.Font.Bold = False
