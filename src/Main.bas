@@ -3894,6 +3894,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Deallocate res(j)
 		Next
 		Erase res
+		Pos4 = InStr(b, "'")
+		If Pos4 > 0 Then
+			b = Left(b, Pos4 - 1)
+		End If
 		If inType Then
 			b = Replace(b, ":", "%")
 		End If
@@ -4877,6 +4881,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						CInt(StartsWith(bTrimLCase, "var "))) Then
 						Dim As WString * 2048 b2 = Trim(Mid(bTrim, InStr(bTrim, " ")))
 						Dim As WString * 2048 CurType, ElementValue
+						Dim As Integer ct
 						Dim As WString Ptr res1(Any)
 						Dim As Boolean bShared, bOldAs
 						Pos1 = InStr(b2, "'")
@@ -4908,6 +4913,10 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							Pos1 = InStr(*res1(n), "=")
 							If Pos1 > 0 Then
 								ElementValue = Trim(Mid(*res1(n), Pos1 + 1))
+								If CBool(n = 0) AndAlso bOldAs Then
+									CurType = Trim(..Left(CurType, Len(CurType) - Len(*res1(n)) + Pos1 - 2))
+									CurType = Replace(CurType, "`", "=")
+								End If
 							Else
 								ElementValue = ""
 							End If
@@ -4916,31 +4925,38 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If Pos1 > 0 Then
 								CurType = Trim(Mid(*res1(n), Pos1 + 4))
 								CurType = Replace(CurType, "`", "=")
-								'								Pos2 = InStr(CurType, "*") 'David Change ,  a As WString *2
-								'								If Pos2 > 1 Then CurType = Trim(Mid(*res1(n), Pos1 + 4, Pos2 - Pos1 - 3)) Else CurType = Trim(Mid(*res1(n), Pos1 + 4))
 								*res1(n) = Trim(Left(*res1(n), Pos1 - 1))
 							End If
+							Pos1 = InStr(*res1(n), ":")
+							If Pos1 > 0 Then
+								ct += Len(*res1(n)) - Pos1 + 1
+								*res1(n) = Trim(..Left(*res1(n), Pos1 - 1))
+							End If
 							If StartsWith(LCase(*res1(n)), "byref") OrElse StartsWith(LCase(*res1(n)), "byval") Then
+								ct += Len(*res1(n)) - Len(Trim(Mid(*res1(n), 6)))
 								*res1(n) = Trim(Mid(*res1(n), 6))
-							Else
-								Pos1 = InStrRev(*res1(n), " ") 'David Change,  a As WString*2
-								*res1(n) = Trim(Mid(*res1(n), Pos1 + 1))
+							'Else
+							'	Pos1 = InStrRev(*res1(n), " ") 'David Change,  a As WString*2
+							'	*res1(n) = Trim(Mid(*res1(n), Pos1 + 1))
 							End If
 							Pos1 = InStr(*res1(n), "(")
 							If Pos1 > 0 Then
+								ct += Len(*res1(n)) - Pos1 + 1
 								*res1(n) = Trim(Left(*res1(n), Pos1 - 1))
 							End If
 							Pos1 = InStr(LCase(*res1(n)), " alias ")
 							If Pos1 > 0 Then
+								ct += Len(*res1(n)) - Pos1 + 1
 								*res1(n) = Trim(Left(*res1(n), Pos1 - 1))
 							End If
+							ct += Len(*res1(n)) - Len(Trim(*res1(n)))
 							*res1(n) = Trim(*res1(n))
 							Pos1 = InStrRev(*res1(n), " ")
 							If Pos1 > 0 Then
 								*res1(n) = Trim(Mid(*res1(n), Pos1 + 1))
 							End If
 							If CBool(n = 0) AndAlso bOldAs Then
-								CurType = Trim(..Left(CurType, Len(CurType) - Len(*res1(n))))
+								CurType = Trim(..Left(CurType, Len(CurType) - Len(*res1(n)) - ct))
 								CurType = Replace(CurType, "`", "=")
 							End If
 							If Not (StartsWith(LCase(CurType), "sub") OrElse StartsWith(LCase(CurType), "function")) Then
@@ -12078,3 +12094,4 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
+
