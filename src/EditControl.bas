@@ -878,22 +878,30 @@ Namespace My.Sys.Forms
 			_Delete(Cast(EditControlStatement Ptr, ecl->Statements.Item(ii)))
 		Next
 		ecl->Statements.Clear
-		Dim As WString Ptr LineText_
+		Dim As WString Ptr LineTextOld, LineText_
 		'If LineText <> "" Then
 		'	*LineText_ = LineText
 		'Else
-		WLet(LineText_, TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex)))
+		WLet(LineTextOld, LCase(TextWithoutQuotesAndComments(*ecl->Text, IIf(eclOld = 0, 0, eclOld->CommentIndex))))
 		'End If
 		Dim As Boolean Collapsible
 		Dim As List Statements
 		Dim As WString Ptr res(Any)
+		WLet(LineText_, *LineTextOld)
+		*LineText_ = Replace(*LineText_, " then ", " then:")
+		*LineText_ = Replace(*LineText_, ")then ", ")then:")
+		*LineText_ = Replace(*LineText_, " else ", " else:")
+		*LineText_ = Replace(*LineText_, ":else ", ":else:")
+		If StartsWith(*LineText_, "else ") Then WLetEx(LineText_, "else:" & Mid(*LineText_, 6), True)
 		Split(*LineText_, ":", res())
+		Dim As Integer iPosSymbol = -1
 		Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
 		For ii As Integer = 0 To UBound(res)
 			ecs = _New(EditControlStatement)
 			WLet(ecs->Text, *res(ii))
 			ecl->Statements.Add ecs
 			WLet(LineText_, *ecs->Text)
+			iPosSymbol = iPosSymbol + Len(*LineText_) + 1
 			If ii = 0 Then
 				ecsOld_ = 0
 				If eclOld > 0 AndAlso eclOld->Statements.Count > 0 Then
@@ -947,6 +955,9 @@ Namespace My.Sys.Forms
 				i = C_P_Region
 				j = 2
 			Else
+				If Len(*LineTextOld) > iPosSymbol AndAlso (*LineTextOld)[iPosSymbol] = Asc(" ") Then
+					WAdd(LineText_, " 1")
+				End If
 				i = GetConstruction(*LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 			End If
 			ecs->ConstructionIndex = i
@@ -978,6 +989,7 @@ Namespace My.Sys.Forms
 			Deallocate res(ii)
 		Next
 		WDeAllocate(LineText_)
+		WDeAllocate(LineTextOld)
 		Erase res
 		'i = Content.GetConstruction(*ecl->Text, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
 		ecl->MainStatement = 0
@@ -3941,7 +3953,10 @@ Namespace My.Sys.Forms
 				If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
 				If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
 				If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
-				If pSwapChain Then pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
+				If pSwapChain Then
+					pSwapChain->lpVtbl->SetFullscreenState(pSwapChain, False, NULL)
+					pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
+				End If
 				KillTimer FHandle, 2
 				Var b = Focused
 				DestroyWindow(sbScrollBarvTop)

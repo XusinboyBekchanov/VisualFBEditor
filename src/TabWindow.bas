@@ -9054,9 +9054,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				'l = Len(res(jj))
 				l = Len(b2)
 				b = Mid(b1, k, l)
-				b0 = Mid(b2, k, l)
+				b0 = Mid(b1, k, l)
 				bTrim = Trim(b, Any !"\t ")
-				b0Trim = Trim(Mid(b2, k, l))
+				b0Trim = Trim(Mid(b1, k, l))
 				bTrimLCase = LCase(bTrim)
 				b0TrimLCase = LCase(Trim(b0, Any !"\t "))
 				u = k
@@ -14152,5 +14152,4 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
-
 
