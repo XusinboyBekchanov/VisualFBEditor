@@ -9003,11 +9003,13 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					Else
 						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
 					End If
-					Deallocate AIBodyWStringPtr
+					Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-					AIBodyWStringPtr = MDtoRTF(txtAIAgent.Text)
-					txtAIAgent.TextRTF = *AIBodyWStringPtr
-					txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+					AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+					If AIBodyWStringPtr Then 
+						txtAIAgent.TextRTF = *AIBodyWStringPtr
+						txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+					End If
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
