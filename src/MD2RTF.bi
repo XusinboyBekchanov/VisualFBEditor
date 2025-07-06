@@ -1,17 +1,17 @@
 ﻿#include once "mff/WStringList.bi"
 ' RTF header definition (Consolas font, VB classic color scheme)
 ' Function declarations
-Declare Function ProcessTable(lines() As WString Ptr, ByRef i As Integer) As UString
+Declare Function ProcessTable(lines() As WString Ptr, ByRef i As Integer) As WString Ptr
 Declare Function ProcessImage(ByRef imgPath As WString) As String
-Declare Function ProcessInlineStyles(ByRef iText As WString) As UString
+Declare Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 Declare Function IsAlphaChar(ByRef c As String) As Boolean
 Declare Function RTFToPts(ByVal rtfSize As Integer) As Integer
 Declare Function PtsToRTF(ByVal pts As Integer) As Integer
 Declare Function RGBToRTF(ByVal r As Integer, ByVal g As Integer, ByVal b As Integer) As String
 Declare Function RTFToRGB(ByVal rtfColor As String) As Long
-Declare Function EscapeRTF(ByRef iText As WString) As UString
+Declare Function EscapeRTF(ByRef iText As WString) As WString Ptr
 Declare Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
-Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize  ', AIEditorFontName
+Dim Shared As String AIColorBK, AIColorFore, AIRTF_FontSize
 'Dim Shared As Boolean g_darkModeSupported, g_darkModeEnabled
 Dim Shared As String KeyWordsArr(Any)
 Dim Shared As Integer KeyWordIndex, KeyWordIndexMacro, KeyWordIndexType
@@ -83,17 +83,17 @@ End Function
 
 ' 示例使用
 ' Main function: VB code to RTF (with syntax highlighting)
-Function freeBasicToRTF(ByRef vbCode As WString) As UString
+Function freeBasicToRTF(ByRef vbCode As WString) As WString Ptr
 	' RTF header with proper color table
 	Dim As WString Ptr rtfiText
 	Dim As Integer i = 1, n = Len(vbCode)
 	Dim As Integer inString = 0, inComment = 0
-	
+	Dim As WString * 2  c
 	While i <= n
-		Dim As UString c = Mid(vbCode, i, 1)
+		c = Mid(vbCode, i, 1)
 		
-		' Handle strings (red)
-		If c = """" Then
+		Select Case c   ' Handle strings (red)
+		Case """"
 			If inString Then
 				WAdd(rtfiText,  """ \cf11" & "\highlight" & AIColorBK)  ' End string
 				inString = 0
@@ -103,51 +103,50 @@ Function freeBasicToRTF(ByRef vbCode As WString) As UString
 			End If
 			i += 1
 			Continue While
-		End If
-		
-		' Handle comments (green)
-		If c = "'" AndAlso Not inString Then
-			WAdd(rtfiText, "\cf5'")  ' Comment marker
-			inComment = 1
-			i += 1
-			' Get entire comment line
-			While i <= n
-				c = Mid(vbCode, i, 1)
-				WAdd(rtfiText,  c) 'EscapeRTF(c)
+			' Handle comments (green)
+		Case "'"
+			If Not inString Then
+				WAdd(rtfiText, "\cf5'")  ' Comment marker
+				inComment = 1
 				i += 1
-			Wend
-			WAdd(rtfiText, " \cf11" & "\highlight" & AIColorBK)
-			Continue While
-		End If
-		
-		' Handle keyWordsArr (blue)
-		If Not inString AndAlso Not inComment Then
-			For j As Integer = 0 To UBound(KeyWordsArr)
-				Dim As Integer kwLen = Len(KeyWordsArr(j))
-				If (i + kwLen - 1) <= n Then
-					If Mid(vbCode, i, kwLen) = KeyWordsArr(j) Then
-						' Check word boundaries
-						If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
-							(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
-							If j <= KeyWordIndexMacro Then
-								WAdd(rtfiText, "\cf14 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
-							ElseIf j <= KeyWordIndexType Then
-								WAdd(rtfiText, "\cf15 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
-							Else
-								If Mid(vbCode, i + kwLen, 1) = " " Then
-									WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+				' Get entire comment line
+				While i <= n
+					c = Mid(vbCode, i, 1)
+					WAdd(rtfiText,  c)
+					i += 1
+				Wend
+				WAdd(rtfiText, " \cf11" & "\highlight" & AIColorBK)
+				Continue While
+			End If
+		Case Else
+			' Handle keyWordsArr (blue)
+			If Not inString AndAlso Not inComment Then
+				For j As Integer = 0 To UBound(KeyWordsArr)
+					Dim As Integer kwLen = Len(KeyWordsArr(j))
+					If (i + kwLen - 1) <= n Then
+						If Mid(vbCode, i, kwLen) = KeyWordsArr(j) Then
+							' Check word boundaries
+							If (i = 1 OrElse Not IsAlphaChar(Mid(vbCode, i - 1, 1))) AndAlso _
+								(i + kwLen > n OrElse Not IsAlphaChar(Mid(vbCode, i + kwLen, 1))) Then
+								If j <= KeyWordIndexMacro Then
+									WAdd(rtfiText, "\cf14 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+								ElseIf j <= KeyWordIndexType Then
+									WAdd(rtfiText, "\cf15 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
 								Else
-									WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & "\cf11" & "\highlight" & AIColorBK)
+									If Mid(vbCode, i + kwLen, 1) = " " Then
+										WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & " \cf11" & "\highlight" & AIColorBK)
+									Else
+										WAdd(rtfiText, "\cf16 " & KeyWordsArr(j) & "\cf11" & "\highlight" & AIColorBK)
+									End If
 								End If
+								i += kwLen
+								Continue While
 							End If
-							i += kwLen
-							Continue While
 						End If
 					End If
-				End If
-			Next
-		End If
-		
+				Next
+			End If
+		End Select
 		' Default text handling (black)
 		'If inComment Then
 		'rtf &= EscapeRTF(c)
@@ -159,8 +158,7 @@ Function freeBasicToRTF(ByRef vbCode As WString) As UString
 		WAdd(rtfiText, c)
 		i += 1
 	Wend
-	Function = *rtfiText
-	Deallocate rtfiText
+	Return rtfiText
 End Function
 
 ' Main conversion function
@@ -200,140 +198,152 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	'ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLineLabels, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
 	'Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
 	
-	Dim As WString Ptr Lines(), rtfiText
-	Dim i As Integer
-	WLet(rtfiText, AIRTF_HEADER)
-	' Split text into lines
-	Split(WStr(EscapeRTF(mdiText)), Chr(10), Lines())
+	Dim As WString Ptr Lines(), rtfiText, ResultPtr
+	Dim As Integer  LineLength, titleSize, level, i
+	Dim As WString * 2 Ch
 	
+	rtfiText = EscapeRTF(mdiText)
+	Split(*rtfiText, Chr(10), Lines())
+	WLet(rtfiText, AIRTF_HEADER)
 	For i = 0 To UBound(Lines)
-		Dim lineLength As Integer = Len(Trim(*Lines(i)))
-		
-		'"[" & ML("User") & "]: "
-		If lineLength >= 3 AndAlso Left(*Lines(i), Len("[" & ML("User") & "]: ")) = "[" & ML("User") & "]: " Then
-			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-			Continue For
-		End If
-		If lineLength >= 3 AndAlso Left(*Lines(i), Len("[AI]: ")) = "[AI]: " Then
-			WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-			Continue For
-		End If
-		' 1. Code block processing (enhanced robustness)
-		If lineLength >= 3 AndAlso Left(*Lines(i), 3) = "```" Then
-			*Lines(i) = Trim(*Lines(i))
-			WAdd(rtfiText, "\f1\cf2\highlight" & "7" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
-			i += 1
-			While i <= UBound(Lines) AndAlso Left(*Lines(i), 3) <> "```"
-				'WAdd(rtfiText, "\f1\" & AIRTF_FontSize & "\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
-				WAdd(rtfiText, freeBasicToRTF(*Lines(i)) & "\par")
-				i += 1
-			Wend
-			WAdd(rtfiText, "```\par\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
-			Continue For
-		End If
-		
-		'No need for this party
-		'  2. List processing (optimized multi-level lists) - Fixed indentation issue
-		'If lineLength >= 2 AndAlso (Left(*Lines(i), 2) = "- " Or Left(*Lines(i), 3) = "  -") Then
-		'	Dim indentLevel As Integer = 0
-		'	Dim currentIndent As Integer = 0
-		'
-		'	While i <= UBound(Lines)
-		'		lineLength = Len(Trim(*Lines(i)))
-		'		If lineLength = 0 Then Exit While
-		'
-		'		' Calculate current line's indentation level
-		'		currentIndent = 0
-		'		While currentIndent < Len(*Lines(i)) AndAlso _
-		'			Mid(*Lines(i), currentIndent + 1, 2) = "  "
-		'			currentIndent += 2
-		'		Wend
-		'
-		'		' Adjust indentation level
-		'		If currentIndent = 0 Then
-		'			indentLevel = 0
-		'		Else
-		'			' Every two spaces represent one indentation level
-		'			indentLevel = (currentIndent \ 2)
-		'		End If
-		'
-		'		' Process list line
-		'		Dim contentStart As Integer = currentIndent + 2 ' Skip spaces before "-" and the "-"
-		'		If contentStart <= Len(*Lines(i)) Then
-		'			Dim bullet As String = IIf(indentLevel > 0, "\'95", "\'b7") ' Change bullet for sublists
-		'
-		'			' Add RTF-formatted indentation and bullet '\fi-360\li720\f1
-		'			WAdd(rtfiText, _
-		'			"\li" & (indentLevel * 720) & " " & _  ' Each level indents 720twips (1/20 point)
-		'			bullet & " " & _                      ' Bullet
-		'			ProcessInlineStyles(Mid(*Lines(i), contentStart + 1)) & _
-		'			"\par")
-		'		End If
-		'
-		'		i += 1
-		'		' Check if next line is no longer a list item
-		'		If i > UBound(Lines) Then Exit While
-		'		lineLength = Len(Trim(*Lines(i)))
-		'		If lineLength < 2 Then Exit While
-		'		If Left(*Lines(i), 2) <> "- " AndAlso Left(*Lines(i), 3) <> "  -" Then Exit While
-		'	Wend
-		'
-		'	If i <= UBound(Lines) Then i -= 1
-		'	Continue For
-		'End If
-		
-		
-		' 3. Table processing (enhanced robustness)
-		If i < UBound(Lines) - 1 AndAlso Left(*Lines(i), 1) = "|" AndAlso _
-			Left(*Lines(i + 1), 1) = "|" AndAlso InStr(*Lines(i + 1), "---") > 0 Then
-			WAdd(rtfiText, ProcessTable(Lines(), i))
-			Continue For
-		End If
-		
-		' 4. Image processing
-		If lineLength >= 2 AndAlso Left(*Lines(i), 2) = "![" Then
-			WAdd(rtfiText, ProcessImage(*Lines(i)))
-			Continue For
-		End If
-		
-		' 5. Heading processing (optimized multi-level headings)
-		Dim As Integer titleSize, level
-		If lineLength >= 1 AndAlso Left(*Lines(i), 1) = "#" Then
-			level = 0
-			While level < 6 AndAlso level < lineLength AndAlso Mid(*Lines(i), level+ 1, 1) = "#"
-				level += 1
-			Wend
-			
-			If level > 0 AndAlso (lineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
-				titleSize = Max(PtsToRTF(EditorFontSize+ 6) - level * 2, PtsToRTF(EditorFontSize))
-				WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1))) & "\b0\" & AIColorFore & "\par")
-			Else
-				WAdd(rtfiText, "\f0\" & AIRTF_FontSize & " " & ProcessInlineStyles(*Lines(i)) & "\par")
-			End If
-			Continue For
-		End If
-		
-		' Normal paragraph processing
-		If lineLength = 0 Then
+		LineLength = Len(Trim(*Lines(i)))
+		If LineLength = 0 Then
 			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 		Else
-			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & ProcessInlineStyles(*Lines(i)) & "\par")
+			Ch = Left(*Lines(i), 1)
+			'Print *Lines(i)
+			Select Case Ch
+			Case "["   '"[" & ML("User") & "]: "
+				If Left(*Lines(i), 20) = "[**User Question:**]" Then
+					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[User Question:]" & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					'*Lines(i) = Mid(*Lines(i), 21)
+					level = 21
+				ElseIf Left(*Lines(i), 18) = "[**AI Response:**]" Then
+					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[AI Response:]" & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					level = 19
+				End If
+				Deallocate ResultPtr : ResultPtr = 0
+				ResultPtr = ProcessInlineStyles(Mid(*Lines(i), level))
+				If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
+				Continue For
+			Case "`"  ' 1. Code block processing (enhanced robustness)
+				If LCase(Left(*Lines(i), 12)) = "```freebasic" OrElse LCase(Left(*Lines(i), 5)) = "```fb" OrElse LCase(Left(*Lines(i), 5)) = "```vb" Then
+					WAdd(rtfiText, "\f1\cf2\highlight" & "7" & " " & Left(*Lines(i) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					i += 1
+					While i <= UBound(Lines) AndAlso Left(*Lines(i), 3) <> "```"
+						'WAdd(rtfiText, "\f1\" & AIRTF_FontSize & "\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
+						Deallocate ResultPtr : ResultPtr = 0
+						ResultPtr = freeBasicToRTF(*Lines(i))
+						If ResultPtr Then WAdd(rtfiText, *ResultPtr & "\par")
+						i += 1
+					Wend
+					WAdd(rtfiText, "```\par\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
+					Continue For
+				End If
+				
+				'No need for this party
+				'  2. List processing (optimized multi-level lists) - Fixed indentation issue
+				'If lineLength >= 2 AndAlso (Left(*Lines(i), 2) = "- " Or Left(*Lines(i), 3) = "  -") Then
+				'	Dim indentLevel As Integer = 0
+				'	Dim currentIndent As Integer = 0
+				'
+				'	While i <= UBound(Lines)
+				'		lineLength = Len(Trim(*Lines(i)))
+				'		If lineLength = 0 Then Exit While
+				'
+				'		' Calculate current line's indentation level
+				'		currentIndent = 0
+				'		While currentIndent < Len(*Lines(i)) AndAlso _
+				'			Mid(*Lines(i), currentIndent + 1, 2) = "  "
+				'			currentIndent += 2
+				'		Wend
+				'
+				'		' Adjust indentation level
+				'		If currentIndent = 0 Then
+				'			indentLevel = 0
+				'		Else
+				'			' Every two spaces represent one indentation level
+				'			indentLevel = (currentIndent \ 2)
+				'		End If
+				'
+				'		' Process list line
+				'		Dim contentStart As Integer = currentIndent + 2 ' Skip spaces before "-" and the "-"
+				'		If contentStart <= Len(*Lines(i)) Then
+				'			Dim bullet As String = IIf(indentLevel > 0, "\'95", "\'b7") ' Change bullet for sublists
+				'
+				'			' Add RTF-formatted indentation and bullet '\fi-360\li720\f1
+				'			WAdd(rtfiText, _
+				'			"\li" & (indentLevel * 720) & " " & _  ' Each level indents 720twips (1/20 point)
+				'			bullet & " " & _                      ' Bullet
+				'			ProcessInlineStyles(Mid(*Lines(i), contentStart + 1)) & _
+				'			"\par")
+				'		End If
+				'
+				'		i += 1
+				'		' Check if next line is no longer a list item
+				'		If i > UBound(Lines) Then Exit While
+				'		lineLength = Len(Trim(*Lines(i)))
+				'		If lineLength < 2 Then Exit While
+				'		If Left(*Lines(i), 2) <> "- " AndAlso Left(*Lines(i), 3) <> "  -" Then Exit While
+				'	Wend
+				'
+				'	If i <= UBound(Lines) Then i -= 1
+				'	Continue For
+				'End If
+				
+			Case "|"   ' 3. Table processing (enhanced robustness)
+				If i < UBound(Lines) - 1 AndAlso Left(*Lines(i + 1), 1) = "|" AndAlso InStr(*Lines(i + 1), "---") > 0 Then
+					WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
+					Deallocate ResultPtr : ResultPtr = 0
+					ResultPtr = ProcessTable(Lines(), i)
+					If ResultPtr Then WAdd(rtfiText, *ResultPtr)
+					Continue For
+				End If
+				
+			Case "!"   ' 4. Image processing
+				If Left(*Lines(i), 2) = "![" Then
+					WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
+					WAdd(rtfiText, ProcessImage(*Lines(i)))
+					Continue For
+				End If
+				
+			Case "#"   ' 5. Heading processing (optimized multi-level headings)
+				titleSize= 0: level = 0
+				level = 0
+				While level < 6 AndAlso level < LineLength AndAlso Mid(*Lines(i), level+ 1, 1) = "#"
+					level += 1
+				Wend
+				
+				If level > 0 AndAlso (LineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
+					titleSize = Max(PtsToRTF(EditorFontSize+ 6) - level * 2, PtsToRTF(EditorFontSize))
+					Deallocate ResultPtr : ResultPtr = 0
+					ResultPtr =ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1)))
+					If ResultPtr Then WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & *ResultPtr & "\b0\" & AIColorFore & "\par")
+					WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
+				Else
+					ProcessInlineStyles(*Lines(i))
+					If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & " " & *ResultPtr & "\par")
+				End If
+				Continue For
+			Case Else
+				' Normal paragraph processing
+				Deallocate ResultPtr : ResultPtr = 0
+				ResultPtr =ProcessInlineStyles(*Lines(i))
+				If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
+			End Select
 		End If
-		
+		Deallocate Lines(i)
 	Next
-	For i = 0 To UBound(Lines)
-		If Lines(i) <> 0 Then Deallocate Lines(i)
-	Next
-	
+	Erase Lines
 	WAdd(rtfiText, "}")
+	Deallocate ResultPtr
 	Return rtfiText
 End Function
 
 ' Helper function: Process tables
-Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As UString
-	Dim tableRTF As UString = ""
-	Dim cols As Integer = 0
-	Dim j As Integer
+Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As WString Ptr
+	Dim tableRTF As WString Ptr
+	Dim As Integer cols, j, colWidthMax(), colWidth 
 	
 	' Parse table header
 	Dim As WString Ptr headers(), Cells(), RowStrPtr
@@ -341,60 +351,63 @@ Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As UString
 	Split(*RowStrPtr, "|", headers())
 	cols = UBound(headers)
 	' Start table
-	tableRTF &= "\trowd\trgaph108\trleft0 "
+	WAdd(tableRTF, "\trowd\trgaph108\trleft0 ")
 	
 	' Set column widths
 	For j = 0 To cols
-		tableRTF &= "\cellx" & (j+1)*1440 ' Adjust column width
+		WAdd(tableRTF, "\cellx" & (j + 1)) ' Adjust column width
 	Next
 	
 	' Add table header
-	tableRTF &= "\pard\intbl "
+	WAdd(tableRTF, "\pard\intbl ")
 	For j = 0 To cols
 		If j <= UBound(headers) Then
-			tableRTF &= *headers(j) & "\cell "
+			WAdd(tableRTF, *headers(j) & "\cell ")
 		Else
-			tableRTF &= "\cell "
+			WAdd(tableRTF, "\cell ")
 		End If
-	Next
-	tableRTF &= "\row "
-	
-	' Free headers array memory
-	For j = 0 To UBound(headers)
+		' Free headers array memory
 		Deallocate headers(j)
 	Next
+	WAdd(tableRTF,  "\row ")
 	
+	' Free headers array memory
+	Erase headers
 	' Skip table separator line
 	i += 2
-	
+	ReDim colWidthMax(cols)
 	' Parse table content
 	While i <= UBound(Lines) AndAlso Left(*Lines(i), 1) = "|"
 		' Start new row
-		tableRTF &= "\trowd\trgaph108\trleft0 "
+		WAdd(tableRTF, "\trowd\trgaph108\trleft0 ")
 		For j = 0 To cols
-			tableRTF &= "\cellx" & (j+1)*1440 ' Adjust column width
+			WAdd(tableRTF, "\cellx" & (j + 1)) ' Adjust column width
 		Next
-		tableRTF &= "\pard\intbl "
+		WAdd(tableRTF, "\pard\intbl ")
 		WLet(RowStrPtr,  Mid(*Lines(i), 2, Len(*Lines(i)) - 2))
-		Split(Replace(*RowStrPtr, " | ", Chr(1)), Chr(1), Cells())
-		
+		Split(*RowStrPtr, "|", Cells())
 		For j = 0 To cols
 			If j <= UBound(Cells) Then
-				tableRTF &= *Cells(j) & "\cell "
+				WAdd(tableRTF,  *Cells(j) & "\cell ")
 			Else
-				tableRTF &= "\cell "
+				WAdd(tableRTF, "\cell ")
 			End If
-		Next
-		
-		' Free Cells array memory
-		For j = 0 To UBound(Cells)
+			If colWidthMax(j) < Len(*Cells(j)) Then colWidthMax(j) = Len(*Cells(j))
 			Deallocate Cells(j)
 		Next
-		tableRTF &= "\row "
+		' Free Cells array memory
+		Erase Cells
+		WAdd(tableRTF, "\row ")
 		i += 1
 	Wend
-	If i <= UBound(Lines) Then i -= 1
-	tableRTF &= "\pard"
+	If i <= UBound(Lines) Then i = Max(i - 1, 1)
+	WAdd(tableRTF, "\pard")
+	colWidth = 0
+	For j = 0 To cols
+		'colWidthMax(j) = colWidthMax(j) * EditorFontSize * 7.5
+		colWidth += colWidthMax(j) * EditorFontSize * 7.5
+		Replace(*tableRTF, "\cellx" & (j + 1), "\cellx" & colWidth) ' Adjust column width
+	Next
 	Deallocate RowStrPtr
 	Return tableRTF
 End Function
@@ -413,7 +426,7 @@ Function ProcessImage(ByRef imgLine As WString) As String
 End Function
 
 ' Helper function: Process inline styles (optimized logic and performance)
-Function ProcessInlineStyles(ByRef iText As WString) As UString
+Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 	Dim As WString Ptr Result
 	Dim As Integer Posi, endPosi
 	' Initialize result string
@@ -496,21 +509,34 @@ Function ProcessInlineStyles(ByRef iText As WString) As UString
 			Exit While
 		End If
 	Wend
-	
-	Function = *Result
-	Deallocate Result
+	Return Result
 End Function
 
 ' Helper function: RTF special character escaping
-Function EscapeRTF(ByRef iText As WString) As UString
-	Dim result As UString = iText
-	result = Replace(result, "\", "\\")
-	result = Replace(result, "{", "\{")
-	result = Replace(result, "}", "\}")
-	result = Replace(result, "~", "\~")
-	result = Replace(result, "^", "\^")
-	Return result
+' Helper function: RTF special character escaping
+Function EscapeRTF(ByRef iText As WString) As WString Ptr
+	Dim As WString Ptr Result
+	WLet(Result, Space(Len(iText) * 2) ) ' 预分配最大可能空间
+	Dim Posi As Integer = 0
+	
+	For i As Integer = 0 To Len(iText) - 1
+		Select Case iText[i]
+		Case 92, 123, 125, 126, 94  ' ASCII码值: \ { }   ^
+			(*Result)[Posi] = 92
+			(*Result)[Posi + 1] = iText[i]
+			Posi += 2
+		Case 13  ' ASCII码值: Cr LF
+			(*Result)[Posi] = IIf((*Result)[Posi + 1] = 10, 32, 10)
+		Case Else
+			(*Result)[Posi] = iText[i]
+			Posi += 1
+		End Select
+	Next
+	(*Result)[Posi] = 0: (*Result)[Posi + 1] = 0   ' 截取实际使用长度
+	Return Result
+	
 End Function
+
 
 'Dim As WString * 8096 testMarkdown
 'testMarkdown = !"# Markdown to RTF Test\n" & _

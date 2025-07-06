@@ -172,20 +172,24 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			If AIMessages.Count < 1 Then frmMain.Cursor = 0 : Exit Sub
 			AddMRUAIChat FileName
 			WLet(RecentAIChat, FileName)
-			Deallocate AIBodyWStringPtr
+			Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
 			For i As Integer = 0 To AIMessages.Count - 1
 				If i <> AIMessages.Count - 1 Then
-					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10))
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text & Chr(10))
 				Else
-					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text)
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text)
 				End If
 			Next
+			
 			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-			AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-			txtAIAgent.TextRTF = *AIBodyWStringPtr
-			txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
-			txtAIRequest.Enabled = True
-			txtAIRequest.SetFocus
+			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			If AIBodyWStringSavePtr Then AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+			If AIBodyWStringPtr Then
+				txtAIAgent.TextRTF = *AIBodyWStringPtr
+				txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+				txtAIRequest.Enabled = True
+				txtAIRequest.SetFocus
+			End If
 			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 			frmMain.Cursor = 0
 		End If
