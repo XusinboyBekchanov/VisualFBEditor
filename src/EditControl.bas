@@ -3963,6 +3963,9 @@ Namespace My.Sys.Forms
 				DestroyWindow(sbScrollBarvBottom)
 				DestroyWindow(sbScrollBarhLeft)
 				DestroyWindow(sbScrollBarhRight)
+				hwndTT = 0
+				hwndTTDropDown = 0
+				hwndTTMouseHover = 0
 				Var pmnuCode = ContextMenu
 				ContextMenu = 0
 				RecreateWnd
