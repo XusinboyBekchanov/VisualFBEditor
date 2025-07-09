@@ -503,6 +503,7 @@ Namespace My.Sys.Forms
 		Declare Function InCollapseRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Sub ProcessMessage(ByRef MSG As Message)
+		Dim CaretPosShowed As Long
 		#ifdef __USE_GTK__
 			Declare Static Function Blink_cb(user_data As gpointer) As gboolean
 			Declare Static Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
@@ -513,7 +514,6 @@ Namespace My.Sys.Forms
 			Dim tP As ..Point
 			Dim lVertOffset As Long
 			Dim lHorzOffset As Long
-			Dim CaretPosShowed As Long
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Static Sub EC_TimerProcBlink(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
