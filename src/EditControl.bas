@@ -239,8 +239,13 @@ Namespace My.Sys.Forms
 		
 		Sub EditControl.EC_TimerProcBlink(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			If FocusEC Then
+				FocusEC->CaretPosShowed += 1
 				FocusEC->CaretOn = Not FocusEC->CaretOn
-				FocusEC->PaintControl
+				If FocusEC->CaretPosShowed < 4 Then
+					FocusEC->PaintControl
+				Else
+					FocusEC->PaintControl False, True
+				End If
 			End If
 		End Sub
 	#endif
@@ -2577,8 +2582,10 @@ Namespace My.Sys.Forms
 			'gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, 10, 10, layout, 0, PANGO_DIRECTION_LTR)
 		#else
 			If pRenderTarget <> 0 Then
-				CaretOn = True
-				PaintControl
+				If Scroll Then
+					CaretOn = True
+					PaintControl
+				End If
 			End If
 			'			If OldCaretVisible <> CaretVisible Then
 			'				If CaretVisible Then
@@ -2593,7 +2600,7 @@ Namespace My.Sys.Forms
 		#endif
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
-		
+		CaretPosShowed = 0
 	End Sub
 	
 	Sub EditControl.ClearCarets
@@ -3933,8 +3940,21 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
-	Sub EditControl.PaintControlPriv(Full As Boolean = False)
+	Sub EditControl.PaintControlPriv(Full As Boolean = False, OnlyCursor As Boolean = False)
 		'	On Error Goto ErrHandler
+		#ifdef __USE_WINAPI__
+			If OnlyCursor AndAlso pRenderTarget <> 0 Then
+				pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
+				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
+				Dim pp As DXGI_PRESENT_PARAMETERS
+				pp.DirtyRectsCount = 0
+				pp.pDirtyRects = 0
+				pp.pScrollRect = 0
+				pp.pScrollOffset = 0
+				pSwapChain->lpVtbl->Present1(pSwapChain, 1, 0, @pp)
+				Exit Sub
+			End If
+		#endif
 		Dim As Boolean bFull = Full
 		If ShowHolidayFrame AndAlso WithFrame Then bFull = True
 		bFull = True
@@ -5881,13 +5901,13 @@ Namespace My.Sys.Forms
 		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Sub
 	
-	Sub EditControl.PaintControl(bFull As Boolean = False)
+	Sub EditControl.PaintControl(bFull As Boolean = False, OnlyCursor As Boolean = False)
 		#ifdef __USE_GTK__
 			'PaintControlPriv
 			bChanged = True
 			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
 		#else
-			PaintControlPriv(bFull)
+			PaintControlPriv(bFull, OnlyCursor)
 		#endif
 	End Sub
 	

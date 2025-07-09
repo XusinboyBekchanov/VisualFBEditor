@@ -513,6 +513,7 @@ Namespace My.Sys.Forms
 			Dim tP As ..Point
 			Dim lVertOffset As Long
 			Dim lHorzOffset As Long
+			Dim CaretPosShowed As Long
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Static Sub EC_TimerProcBlink(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
@@ -643,8 +644,8 @@ Namespace My.Sys.Forms
 		Declare Sub UnformatCode(WithoutUpdate As Boolean = False)
 		Declare Function GetTabbedLength(ByRef SourceText As WString) As Integer
 		Declare Function GetTabbedText(ByRef SourceText As WString, ByRef PosText As Integer = 0, ForPrint As Boolean = False) ByRef As WString
-		Declare Sub PaintControl(bFull As Boolean = False)
-		Declare Sub PaintControlPriv(bFull As Boolean = False)
+		Declare Sub PaintControl(bFull As Boolean = False, OnlyCursor As Boolean = False)
+		Declare Sub PaintControlPriv(bFull As Boolean = False, OnlyCursor As Boolean = False)
 		Declare Function GetWordAt(LineIndex As Integer, CharIndex As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
 		Declare Function GetWordAtCursor(WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String
 		Declare Function GetWordAtPoint(X As Integer, Y As Integer, WithDot As Boolean = False, WithQuestion As Boolean = False, ByRef StartChar As Integer = 0, ByRef EndChar As Integer = 0) As String

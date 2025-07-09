@@ -9663,8 +9663,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As WString * 2048 CurType, ElementValue
 							Dim As WString Ptr res1(Any)
 							Dim As Boolean bShared, bOldAs
-							'Pos1 = InStr(b2, "'")
-							'If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							Pos1 = InStr(b2, "'")
+							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
 							If StartsWith(LCase(b2), "shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
