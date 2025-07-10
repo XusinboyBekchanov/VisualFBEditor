@@ -3055,7 +3055,7 @@ Namespace My.Sys.Forms
 			'GetColor TextColor, iRed, iGreen, iBlue
 			cairo_set_source_rgb(cr, Colors.ForegroundRed, Colors.ForegroundGreen, Colors.ForegroundBlue)
 			pango_cairo_show_layout_line(cr, pl)
-			CameOut = x + extend2.width + 1 > dwClientX
+			CameOut = x + extend2.width + 1 > ScaleX(dwClientX)
 		#else
 			If HighlightCurrentWord AndAlso @Colors <> @Selection AndAlso CurWord = Trim(*FLineRight) AndAlso CurWord <> "" Then
 				If StartsWith(*FLineRight, " ") Then
@@ -3105,7 +3105,7 @@ Namespace My.Sys.Forms
 					End If
 					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - ScaleY(dwCharY))), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
-					CameOut = x + sz.cx + 1 > dwClientX
+					CameOut = x + sz.cx + 1 > ScaleX(dwClientX)
 				End If
 				If pBrushForeground Then pBrushForeground->lpVtbl->Release(pBrushForeground)
 				If pBrushBackground Then pBrushBackground->lpVtbl->Release(pBrushBackground)
@@ -3138,7 +3138,7 @@ Namespace My.Sys.Forms
 					Canvas.Font.Underline = False
 					SelectObject(bufDC, This.Canvas.Font.Handle)
 				End If
-				CameOut = x + sz.cx + 1 > dwClientX
+				CameOut = x + sz.cx + 1 > ScaleX(dwClientX)
 			End If
 		#endif
 		If CBool(CurExecutedLine <> iLine) AndAlso CBool(OldExecutedLine <> iLine) AndAlso CBool(Not FECLine->EndsCompleted) Then
