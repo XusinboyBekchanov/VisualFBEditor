@@ -147,14 +147,6 @@ Function freeBasicToRTF(ByRef vbCode As WString) As WString Ptr
 				Next
 			End If
 		End Select
-		' Default text handling (black)
-		'If inComment Then
-		'rtf &= EscapeRTF(c)
-		'ElseIf inString Then
-		'rtf &= EscapeRTF(c)
-		'Else
-		'rtf &= EscapeRTF(c)
-		'End If
 		WAdd(rtfiText, c)
 		i += 1
 	Wend
@@ -198,15 +190,18 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	'ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLineLabels, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
 	'Bookmarks, Breakpoints, Comments, CurrentBrackets, CurrentLine, CurrentWord, ExecutionLine, FoldLines, Identifiers, IndicatorLines, Keywords(Any), LineNumbers, NormalText, Numbers, RealNumbers, Selection, SpaceIdentifiers, Strings
 	
-	Dim As WString Ptr Lines(), rtfiText, ResultPtr
+	Dim As WString Ptr Lines(), rtfiText, rtfiText1, ResultPtr
 	Dim As Integer  LineLength, titleSize, level, i
 	Dim As WString * 2 Ch
 	
-	rtfiText = EscapeRTF(mdiText)
-	Split(*rtfiText, Chr(10), Lines())
+	rtfiText1 = EscapeRTF(mdiText)
+	If rtfiText1 = 0 Then Return 0
+	Split(*rtfiText1, Chr(10), Lines())
 	WLet(rtfiText, AIRTF_HEADER)
+	If rtfiText = 0 Then Return 0
 	For i = 0 To UBound(Lines)
 		LineLength = Len(Trim(*Lines(i)))
+		Deallocate ResultPtr : ResultPtr = 0
 		If LineLength = 0 Then
 			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 		Else
@@ -215,14 +210,13 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 			Select Case Ch
 			Case "["   '"[" & ML("User") & "]: "
 				If Left(*Lines(i), 20) = "[**User Question:**]" Then
-					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[User Question:]" & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[User Question:] " & Mid(*Lines(i), 21) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
 					'*Lines(i) = Mid(*Lines(i), 21)
 					level = 21
 				ElseIf Left(*Lines(i), 18) = "[**AI Response:**]" Then
-					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[AI Response:]" & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
+					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[AI Response:] " & Mid(*Lines(i), 19) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
 					level = 19
 				End If
-				Deallocate ResultPtr : ResultPtr = 0
 				ResultPtr = ProcessInlineStyles(Mid(*Lines(i), level))
 				If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
 				Continue For
@@ -232,7 +226,6 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 					i += 1
 					While i <= UBound(Lines) AndAlso Left(*Lines(i), 3) <> "```"
 						'WAdd(rtfiText, "\f1\" & AIRTF_FontSize & "\cf5\highlight" & AIColorBK & EscapeRTF(*Lines(i)) & "\par")
-						Deallocate ResultPtr : ResultPtr = 0
 						ResultPtr = freeBasicToRTF(*Lines(i))
 						If ResultPtr Then WAdd(rtfiText, *ResultPtr & "\par")
 						i += 1
@@ -294,7 +287,6 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 			Case "|"   ' 3. Table processing (enhanced robustness)
 				If i < UBound(Lines) - 1 AndAlso Left(*Lines(i + 1), 1) = "|" AndAlso InStr(*Lines(i + 1), "---") > 0 Then
 					WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
-					Deallocate ResultPtr : ResultPtr = 0
 					ResultPtr = ProcessTable(Lines(), i)
 					If ResultPtr Then WAdd(rtfiText, *ResultPtr)
 					Continue For
@@ -316,8 +308,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 				
 				If level > 0 AndAlso (LineLength = level OrElse Mid(*Lines(i), level+1, 1) = " ") Then
 					titleSize = Max(PtsToRTF(EditorFontSize+ 6) - level * 2, PtsToRTF(EditorFontSize))
-					Deallocate ResultPtr : ResultPtr = 0
-					ResultPtr =ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1)))
+					ResultPtr = ProcessInlineStyles(Trim(Mid(*Lines(i), level + 1)))
 					If ResultPtr Then WAdd(rtfiText, "\f0\fs" & titleSize & "\b \cf4 " & *ResultPtr & "\b0\" & AIColorFore & "\par")
 					WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
 				Else
@@ -327,8 +318,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 				Continue For
 			Case Else
 				' Normal paragraph processing
-				Deallocate ResultPtr : ResultPtr = 0
-				ResultPtr =ProcessInlineStyles(*Lines(i))
+				ResultPtr = ProcessInlineStyles(*Lines(i))
 				If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
 			End Select
 		End If
@@ -337,6 +327,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	Erase Lines
 	WAdd(rtfiText, "}")
 	Deallocate ResultPtr
+	Deallocate rtfiText1
 	Return rtfiText
 End Function
 
@@ -473,10 +464,10 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 		Posi = endPosi + 1 - (endPosi - Posi) ' Compensate for position offset after replacement
 	Wend
 	
-	' Process inline code (optimized nested handling)
+	' Process inline code TmpPtr(optimized nested handling)
 	Posi = InStr(*Result, "`")
 	While Posi > 0
-		Dim endPosi As Integer = InStr(Posi+1, *Result, "`")
+		endPosi = InStr(Posi+1, *Result, "`")
 		If endPosi > 0 Then
 			WLetEx(Result,  Left(*Result, Posi - 1) & "\f1\" & AIRTF_FontSize & "\cf11\highlight" & AIColorBK & " "  & _
 			Mid(*Result, Posi + 1, endPosi - Posi - 1) & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " " & _
@@ -489,18 +480,26 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 	
 	' Process links (optimized nested handling)
 	Posi = InStr(*Result, "[")
+	Dim As WString Ptr tmpPtr
+	Dim As String url, linkiText
+	Dim As Integer startParen, endParen, endBracket
 	While Posi > 0
-		Dim endBracket As Integer = InStr(Posi, *Result, "]")
+		endBracket = InStr(Posi, *Result, "]")
 		If endBracket > 0 Then
-			Dim linkiText As String = Mid(*Result, Posi+1, endBracket-Posi-1)
-			Dim startParen As Integer = InStr(endBracket, *Result, "(")
-			Dim endParen As Integer = InStr(startParen, *Result, ")")
+			linkiText = Mid(*Result, Posi + 1, endBracket - Posi - 1)
+			startParen = InStr(endBracket, *Result, "(")
+			endParen = InStr(startParen, *Result, ")")
 			
 			If startParen > 0 And endParen > 0 And startParen = endBracket+1 Then
-				Dim url As String = Mid(*Result, startParen+1, endParen-startParen-1)
-				WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" & _
-				"{\fldrslt\ul\cf6 " & ProcessInlineStyles(linkiText) & "\ulnone\cf0}}" & _
-				Mid(*Result, endParen + 1))
+				url = Mid(*Result, startParen + 1, endParen - startParen - 1)
+				tmpPtr = ProcessInlineStyles(linkiText)
+				If tmpPtr <> 0 Then 
+					WAdd(Result, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
+					WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))
+					'WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt\ul\cf6 " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))
+					'{\b\cf3 [Image: " & altiText & " (" & imgPath & ")]}\" & AIColorFore & "\b0\par"
+					Deallocate tmpPtr
+				End If
 				Posi = InStr(endParen+1, *Result, "[")
 			Else
 				Posi = InStr(Posi+1, *Result, "[")
@@ -513,28 +512,70 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 End Function
 
 ' Helper function: RTF special character escaping
-' Helper function: RTF special character escaping
 Function EscapeRTF(ByRef iText As WString) As WString Ptr
-	Dim As WString Ptr Result
-	WLet(Result, Space(Len(iText) * 2) ) ' 预分配最大可能空间
-	Dim Posi As Integer = 0
-	
-	For i As Integer = 0 To Len(iText) - 1
+	Dim As Integer Posi = 0, iLen = Len(iText)
+	' 预分配内存（按最大需求：每个字符最多6个转义字符）
+	Dim As Integer bufferSize = iLen * 6 + 2
+	If iLen < 1 Then Return 0
+	Dim As String TmpStr
+	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
+	For i As Integer = 0 To iLen - 1
+		If Posi >= bufferSize- 6 Then
+			bufferSize *= 2
+			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
+		End If
 		Select Case iText[i]
 		Case 92, 123, 125, 126, 94  ' ASCII码值: \ { }   ^
-			(*Result)[Posi] = 92
-			(*Result)[Posi + 1] = iText[i]
+			(*ResultPtr)[Posi] = 92
+			(*ResultPtr)[Posi + 1] = iText[i]
 			Posi += 2
 		Case 13  ' ASCII码值: Cr LF
-			(*Result)[Posi] = IIf((*Result)[Posi + 1] = 10, 32, 10)
+			If i < iLen - 1 AndAlso iText[i + 1] = 10 Then
+				i += 1  ' 跳过后续的换行符 (LF)
+			End If
+			(*ResultPtr)[Posi] = 10
+			Posi += 1
+			'If i < iLen - 1 AndAlso iText[i + 1] = 10 Then
+			'             i += 1  ' 跳过后续的换行符 (LF)
+			'         End If
+			'         (*ResultPtr)[Posi] = 92  ' \p
+			'         (*ResultPtr)[Posi + 1] = 112 ' p
+			'         (*ResultPtr)[Posi + 2] = 97  ' a
+			'         (*ResultPtr)[Posi + 3] = 114 ' r
+			'         Posi += 4
+		Case 10  ' ASCII码值: Cr LF
+			(*ResultPtr)[Posi] = 10
+			Posi += 1
+		Case 9  ' ASCII码值: TAB
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+		Case 0 To 31: ' 控制字符 \uXXXX
+			TmpStr = Hex(iText[i], 4)
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 117
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[0]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[1]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[2]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[3]
+			Posi += 1
 		Case Else
-			(*Result)[Posi] = iText[i]
+			(*ResultPtr)[Posi] = iText[i]
 			Posi += 1
 		End Select
 	Next
-	(*Result)[Posi] = 0: (*Result)[Posi + 1] = 0   ' 截取实际使用长度
-	Return Result
-	
+	(*ResultPtr)[Posi] = 0: (*ResultPtr)[Posi + 1] = 0   ' 截取实际使用长度
+	Return ResultPtr
 End Function
 
 

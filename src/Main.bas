@@ -2121,6 +2121,7 @@ Sub AddMRUAIChat(ByRef FileName As WString)
 	miRecentAIChat->Add(ML("Clear Recently Opened"), "", "ClearAIChat", @mClickAIChat)
 	If miRecentAIChat->Enabled = False Then miRecentAIChat->Enabled = True
 End Sub
+
 Sub AddMRUFile(ByRef FileName As WString)
 	AddMRU FileName, MRUFiles, miRecentFiles, "Files"
 End Sub
@@ -8688,65 +8689,171 @@ txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 txtAIAgent.ContextMenu = @mnuAIChat
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
-	Dim As WString Ptr result
-	WLet(result, Replace(iText, "\", "\\"))
-	WLet(result, Replace(*result, """", "\"""))
-	WLet(result, Replace(*result, Chr(8), "\b"))
-	WLet(result, Replace(*result, Chr(12), "\f"))
-	WLet(result, Replace(*result, Chr(10), "\n"))
-	WLet(result, Replace(*result, Chr(13), "\r"))
-	WLet(result, Replace(*result, Chr(9), "    "))
-	
-	' 可选：转义控制字符（0-31）
-	Dim As Integer i
-	For i = 0 To 31
-		If i <> 8 And i <> 9 And i <> 10 And i <> 12 And i <> 13 Then
-			WLet(result, Replace(*result, Chr(i), "\u" & Hex(i, 4)))
+	Dim As Integer Posi = 0, iLen = Len(iText)
+	If iLen < 1 Then Return ""
+	Dim As Integer bufferSize = iLen * 6 + 2
+	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
+	Dim As String TmpStr
+	For i As Integer = 0 To iLen  - 1
+		If Posi >= bufferSize - 6 Then
+			bufferSize *= 2
+			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
+		If ResultPtr = 0 Then Return "" ' 内存分配失败保护
+		Select Case iText[i]
+		Case 92                  '"\\", "\"))    ' 反斜杠
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			i += 1
+		Case 34                  '"\""", """"))  ' 双引号
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 34
+			Posi += 1
+		Case 47                  '"\/", "/"))    ' 斜杠
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 47
+			Posi += 1
+		Case 8                  '"\b", Chr(8))) ' 退格
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 98
+			Posi += 1
+		Case 12                 '"\f", Chr(12)))' 换页
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 102
+			Posi += 1
+		Case 10                 '"\n", Chr(10)))' 换行
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 110
+			Posi += 1
+		Case 13                 '"\r", Chr(13)))' 回车
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 114
+			Posi += 1
+		Case 9                 '"\t", "    ")) ' 制表符
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+		Case 0 To 31: ' 控制字符 \uXXXX
+			TmpStr = Hex(iText[i], 4)
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			(*ResultPtr)[Posi] = 117
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[0]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[1]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[2]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[3]
+			Posi += 1
+		Case Else
+			(*ResultPtr)[Posi] = iText[i]
+			Posi += 1
+		End Select
 	Next
-	
+	(*ResultPtr)[Posi] = 0: (*ResultPtr)[Posi + 1] = 0
 	' Marke issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
 		If CodePage = 936 Then ' GBK
-			Function = *result
+			Function = *ResultPtr
 		Else
-			Function = ToUtf8(*result)
+			Function = ToUtf8(*ResultPtr)
 		End If
 	#else
-		Function = ToUtf8(*result)
+		Function = ToUtf8(*ResultPtr)
 	#endif
-	
-	Deallocate(result)
+	Deallocate(ResultPtr)
 End Function
 
-Function EscapeFromJson(ByRef iText As WString) As UString
-	Dim As WString Ptr result
-	WLet(result, iText)
-	
-	' 反转义Unicode序列（如\u0026）
-	Dim As Integer charCode, Posi = InStr(*result, "\u")
-	Dim As String hexVal
-	While Posi > 0
-		If Len(*result) >= Posi + 5 Then
-			hexVal = Mid(*result, Posi + 2, 4)
-			charCode = Val("&h" & hexVal)
-			WLet(result, Left(*result, Posi - 1) & Chr(charCode) & Mid(*result, Posi + 6))
+Function EscapeFromJson(ByRef iText As WString) As WString Ptr
+	Dim As Integer iLen = Len(iText)
+	If iLen = 0 Then Return 0
+	' 预分配内存（按最大需求：每个制表符最多4个转义字符）
+	Dim As Integer bufferSize = iLen * 4 + 2
+	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString)) ' 预分配最大可能空间
+	If ResultPtr = 0 Then Return 0
+	Dim As String HexVal
+	Dim As Integer CharCode, Posi
+	For i As Integer = 0 To iLen - 1
+		If Posi >= bufferSize- 4 Then
+			bufferSize *= 2
+			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
-		Posi = InStr(Posi + 1, *result, "\u")
-	Wend
-	
-	' 反转义标准JSON特殊字符
-	WLet(result, Replace(*result, "\""", """"))  ' 双引号
-	WLet(result, Replace(*result, "\\", "\"))    ' 反斜杠
-	WLet(result, Replace(*result, "\/", "/"))    ' 斜杠
-	WLet(result, Replace(*result, "\b", Chr(8))) ' 退格
-	WLet(result, Replace(*result, "\f", Chr(12)))' 换页
-	WLet(result, Replace(*result, "\n", Chr(10)))' 换行
-	WLet(result, Replace(*result, "\r", Chr(13)))' 回车
-	WLet(result, Replace(*result, "\t", "    ")) ' 制表符
-	Function = *result
-	Deallocate(result)
+		If iText[i] = 92  AndAlso i < iLen - 1 Then
+			Select Case iText[i + 1]
+			Case 92                  '"\\", "\"))    ' 反斜杠
+				(*ResultPtr)[Posi] = 92
+				Posi += 1
+				i += 1
+			Case 34                  '"\""", """"))  ' 双引号
+				(*ResultPtr)[Posi] = 34
+				Posi += 1
+				i += 1
+			Case 47                  '"\/", "/"))    ' 斜杠
+				(*ResultPtr)[Posi] = 47
+				Posi += 1
+				i += 1
+			Case 98                  '"\b", Chr(8))) ' 退格
+				(*ResultPtr)[Posi] = 8
+				Posi += 1
+				i += 1
+			Case 102                 '"\f", Chr(12)))' 换页
+				(*ResultPtr)[Posi] = 12
+				Posi += 1
+				i += 1
+			Case 110                 '"\n", Chr(10)))' 换行
+				(*ResultPtr)[Posi] = 10
+				Posi += 1
+				i += 1
+			Case 114                 '"\r", Chr(13)))' 回车
+				(*ResultPtr)[Posi] = 13
+				Posi += 1
+				i += 1
+			Case 116                 '"\t", "    ")) ' 制表符
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				i += 1
+			Case 117  ' \u 处理 Unicode （如\u0026）
+				HexVal = Mid(iText, i + 2, 4)
+				CharCode = Val("&h" & HexVal)
+				(*ResultPtr)[Posi] = CharCode
+				Posi += 1
+				i += 4 ' 跳过4位十六进制字符
+			Case Else
+				(*ResultPtr)[Posi] = iText[i]
+				Posi += 1
+				(*ResultPtr)[Posi] = iText[i + 1]
+				Posi += 1
+				i += 1
+			End Select
+		Else
+			(*ResultPtr)[Posi] = iText[i]
+			Posi += 1
+		End If
+	Next
+	(*ResultPtr)[Posi] = 0: (*ResultPtr)[Posi + 1] = 0   ' 截取实际使用长度
+	Return ResultPtr
 End Function
 
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
@@ -8925,7 +9032,7 @@ AIPostDataFirstTime = True
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	'ShowMessages(Buffer) ' Sometimes got party of the string   'data: [DONE] ': OPENROUTER PROCESSING
 	Dim As WString Ptr tmpBodyWStrPtr = FromUtf8(StrPtr(Buffer))
-	If tmpBodyWStrPtr = 0 Then Return
+	If tmpBodyWStrPtr = 0 OrElse *tmpBodyWStrPtr = "" Then Return
 	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
@@ -8942,14 +9049,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As WString Ptr Buff()
 	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
-	If BuffCount < 1 Then
-		Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
-		Deallocate(tmpBodyWStrPtr)
-		Return
-	End If
 	ThreadsEnter
 	For i As Integer = 0 To BuffCount - 1
-		If Trim(*Buff(i)) = "" Then Continue For
+		If Buff(i) = 0 OrElse Len(*Buff(i)) < 2 Then Continue For
 		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
 			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
@@ -8966,8 +9068,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						binReason = True
-						WLet(AIBodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k)))))
-						AIPrintAnswer(*AIBodyWStringPtr)
+						Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+						AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))))
+						If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
 						Exit For
 					End If
 				End If
@@ -8984,9 +9087,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 								txtAIAgent.SelEnd = txtAIAgent.SelStart
 								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							WLet(AIBodyWStringPtr , EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k)))))
-							AIAssistantsAnswers  &= *AIBodyWStringPtr
-							AIPrintAnswer(*AIBodyWStringPtr)
+							Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
+							If AIBodyWStringPtr <> 0 Then
+								AIAssistantsAnswers  &= *AIBodyWStringPtr
+								AIPrintAnswer(*AIBodyWStringPtr)
+							End If
 							Exit For
 						End If
 					End If
@@ -8995,7 +9101,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 		Else
 			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
-			If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
+			?9437:			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 				ShowMessages(*Buff(i))
 				If InStr(*Buff(i), "[DONE]") > 0 Then
 					If Trim(AIAssistantsAnswers) = "" Then
@@ -9003,25 +9109,27 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					Else
 						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
 					End If
-					Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
-					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-					AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-					If AIBodyWStringPtr Then 
-						txtAIAgent.TextRTF = *AIBodyWStringPtr
-						txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+					?9444:					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+					?9445:					If AIBodyWStringSavePtr <> 0 Then
+						Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+						AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+						If AIBodyWStringPtr <> 0 Then
+							txtAIAgent.TextRTF = *AIBodyWStringPtr
+							txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+						End If
 					End If
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
-				Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+				If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 			Else
-				WLet(AIBodyWStringPtr, *Buff(i))
+				?9459:				WLet(AIBodyWStringPtr, *Buff(i))
 			End If
 		End If
 		Deallocate Buff(i)
 	Next
 	Erase Buff
-	Deallocate AIBodyWStringPtr
+	If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0 
 	Deallocate(tmpBodyWStrPtr)
 	ThreadsLeave
 End Sub
@@ -9060,7 +9168,7 @@ Sub AIRequest(Param As Any Ptr)
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
-	txtAIAgent.SelText = !"\r\n[AI]: " & (*CurrentAIAgent) & !"\r\n"
+	txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.ScrollToEnd
 	If AIAgentStream Then
@@ -9068,33 +9176,36 @@ Sub AIRequest(Param As Any Ptr)
 	End If
 	HTTPAIAgent.CallMethod("POST", Request, Responce)
 	If Not AIAgentStream Then
-		Dim As WString Ptr Buff, Temp = FromUtf8(StrPtr(Responce.Body))
+		Dim As WString Ptr BuffPtr, Temp = FromUtf8(StrPtr(Responce.Body))
 		If Temp = 0 Then Return
 		Dim As Integer iPos1 = InStr(Responce.Body, ",""reasoning"":""")
 		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
-		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14)))
+		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14))
+		If BuffPtr = 0 Then Return
 		txtAIAgent.SelStart = Len(txtAIAgent.Text)
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 		txtAIAgent.SelBackColor = darkHlBkColor
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelText = !"\r\n[AI]: " & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
 		txtAIAgent.ScrollToCaret
 		txtAIAgent.SelBackColor = darkBkColor
-		txtAIAgent.SelText = !"<Think>\r\n" & *Buff & !"</Think>\r\n"
+		txtAIAgent.SelText = !"<Think>\r\n" & *BuffPtr & !"</Think>\r\n"
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		
 		iPos1 = InStrRev(*Temp, ",""content"":""")
 		iPos2 = InStrRev(*Temp, """,""refusal""")
-		WLet(Buff, EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12)))
-		
-		AIPrintAnswer(*Buff)
-		'txtAIRequest.Enabled = True
-		txtAIRequest.SetFocus
-		WDeAllocate(Buff)
+		Deallocate(BuffPtr): BuffPtr = 0
+		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12))
+		If BuffPtr <> 0 Then
+			AIPrintAnswer(*BuffPtr)
+			'txtAIRequest.Enabled = True
+			txtAIRequest.SetFocus
+		End If
 		WDeAllocate(Temp)
+		WDeAllocate(BuffPtr)
 	End If
 	bInAIThread = False
 End Sub
@@ -9108,7 +9219,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkHlBkColor
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.SelText = !"\r\n\r\n[" & ML("User") & "]: " & Date & " " & Time
+	txtAIAgent.SelText = !"\r\n\r\n[**User Question:**] " & Date & " " & Time
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
 	txtAIAgent.SelBackColor = darkBkColor
