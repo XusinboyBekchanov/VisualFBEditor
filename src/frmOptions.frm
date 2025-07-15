@@ -302,7 +302,7 @@ pfOptions = @fOptions
 		' lblBlack
 		lblBlack.Name = "lblBlack"
 		lblBlack.Text = ""
-		lblBlack.BorderStyle = 2
+		lblBlack.BorderStyle = BorderStyles.bsClient
 		lblBlack.BackColor = 8421504
 		lblBlack.ExtraMargins.Right = 1
 		lblBlack.ExtraMargins.Left = 0

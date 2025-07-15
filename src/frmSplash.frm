@@ -21,7 +21,7 @@ Using My.Sys.Forms
 		This.Cursor = crWait
 		This.BackColor = 0
 		This.SetBounds 0, 0, 412, 412
-		This.BorderStyle = 0
+		This.BorderStyle = FormBorderStyle.None
 		This.StartPosition = FormStartPosition.CenterParent
 		' lblImage
 		lblImage.Name = "lblImage"
