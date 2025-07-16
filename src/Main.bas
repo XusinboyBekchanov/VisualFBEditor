@@ -9101,7 +9101,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 		Else
 			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
-			?9437:			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
+			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 				ShowMessages(*Buff(i))
 				If InStr(*Buff(i), "[DONE]") > 0 Then
 					If Trim(AIAssistantsAnswers) = "" Then
@@ -9109,8 +9109,8 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					Else
 						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
 					End If
-					?9444:					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-					?9445:					If AIBodyWStringSavePtr <> 0 Then
+					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+					If AIBodyWStringSavePtr <> 0 Then
 						Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
 						AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
 						If AIBodyWStringPtr <> 0 Then
@@ -9123,7 +9123,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				txtAIRequest.SetFocus
 				If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 			Else
-				?9459:				WLet(AIBodyWStringPtr, *Buff(i))
+				WLet(AIBodyWStringPtr, *Buff(i))
 			End If
 		End If
 		Deallocate Buff(i)

@@ -159,8 +159,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			txtAIAgent.SelEnd = InStr(txtAIAgent.SelStart + 3, txtAIAgent.Text, "```")
 		End If
 		If Trim(txtAIAgent.SelText) = "" Then Exit Sub
-		SaveToFile(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas", txtAIAgent.SelText)
-		OpenFiles GetFullPath(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas") 
+		FileName= GetFullPath(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas")
+		SaveToFile(FileName, txtAIAgent.SelText)
+		AddTab FileName, True
 	Case "AIChatOpen"
 		Dim As OpenFileDialog OpenD
 		OpenD.InitialDir = ExePath & Slash & "AIChat"
@@ -187,6 +188,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			If AIBodyWStringPtr Then
 				txtAIAgent.TextRTF = *AIBodyWStringPtr
 				txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+				txtAIAgent.ScrollToCaret
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 			End If
