@@ -6669,6 +6669,26 @@ Namespace My.Sys.Forms
 				Font.ydpi = ydpi
 				Font.Size = Font.Size
 				FontSettings
+			Case WM_IME_STARTCOMPOSITION ', WM_IME_COMPOSITION
+				Dim hIMC As HIMC = ImmGetContext(FHandle)
+				If hIMC <> NULL Then
+					Dim pt As ..Point
+					pt.X = HCaretPos
+					pt.Y = VCaretPos
+					
+					Dim cf As COMPOSITIONFORM
+					cf.dwStyle = CFS_POINT
+					cf.ptCurrentPos = pt
+					ImmSetCompositionWindow(hIMC, @cf)
+					
+					Dim candf As CANDIDATEFORM
+					candf.dwIndex = 0
+					candf.dwStyle = CFS_CANDIDATEPOS
+					candf.ptCurrentPos = pt
+					ImmSetCandidateWindow(hIMC, @candf)
+					
+					ImmReleaseContext(FHandle, hIMC)
+				End If
 			#endif
 			#ifndef __USE_GTK__
 			Case WM_SETCURSOR
@@ -7865,10 +7885,10 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_EXPOSE
 			#else
-				Case WM_PAINT
-					If Not bPainted Then
-						bPainted = True
-					End If
+			Case WM_PAINT
+				If Not bPainted Then
+					bPainted = True
+				End If
 				If g_darkModeSupported AndAlso g_darkModeEnabled Then
 					If Not FDarkMode Then
 						SetDark True
