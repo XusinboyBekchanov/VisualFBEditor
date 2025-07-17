@@ -6673,8 +6673,8 @@ Namespace My.Sys.Forms
 				Dim hIMC As HIMC = ImmGetContext(FHandle)
 				If hIMC <> NULL Then
 					Dim pt As ..Point
-					pt.X = HCaretPos
-					pt.Y = VCaretPos
+					pt.X = ScaleX(HCaretPos)
+					pt.Y = ScaleY(VCaretPos)
 					
 					Dim cf As COMPOSITIONFORM
 					cf.dwStyle = CFS_POINT
