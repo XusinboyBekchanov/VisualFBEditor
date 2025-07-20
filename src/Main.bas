@@ -11587,6 +11587,11 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tviewthd = @tvThd
 		tviewwch = @tvWch
 	#endif
+	#ifdef __USE_WINAPI__
+		For i As Integer = 0 To 4
+			MainReBar.Bands.Item(i)->Maximize
+		Next
+	#endif
 	'#ifdef __USE_WINAPI__
 	'	Dim As ..Size sz
 	'	SendMessage(tbExplorer.Handle, TB_GETIDEALSIZE, 0, Cast(LPARAM, @sz))
