@@ -8640,6 +8640,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		Return
 	End If
 	Dim As ModelInfo Ptr Info = Cast(ModelInfo Ptr, pAIAgents->Item(Index)->Object)
+	If bInAIThread Then ThreadsEnter 
 	If Info Then
 		WLet(DefaultAIAgent, Info->Name)
 		WLet(CurrentAIAgent, Info->Name)
@@ -8654,6 +8655,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		AIPostDataFirstTime = True
 		AIIncludeFileNameList.Clear
 	End If
+	If bInAIThread Then ThreadsLeave
 End Sub
 
 tbAIAgent.ImagesList = @imgList
@@ -9340,9 +9342,13 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 End Sub
 
 Public Sub AIRelease()
+	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
+	ThreadsLeave
 	Sleep(500)
 	If AIThread Then ThreadDetach(AIThread)
+	AIAssistantsAnswers = ""
+	bInAIThread = False
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
 End Sub
@@ -9360,7 +9366,7 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		Dim As WString * MAX_PATH FileName 
+		Dim As WString * MAX_PATH FileName
 		FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
 		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
 		If Not MRUAIChat.Contains(FileName) Then
@@ -9374,6 +9380,7 @@ Public Sub AIResetContext()
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
+	AIAssistantsAnswers = ""
 	txtAIRequest.SetFocus
 	HTTPAIAgent.Abort = True
 	Sleep(500)
