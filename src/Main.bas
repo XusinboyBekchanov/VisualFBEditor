@@ -9125,6 +9125,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				End If
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
+				cboAIAgentModels.Enabled = True 
 				If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 			Else
 				WLet(AIBodyWStringPtr, *Buff(i))
@@ -9337,6 +9338,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	ClearMessages
 	Erase UserChunks
 	Erase AssistantChunks
+	cboAIAgentModels.Enabled = False
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
 End Sub
@@ -9356,6 +9358,10 @@ End Sub
 Public Sub AIResetContext()
 	txtAIAgent.Text = " "
 	txtAIAgent.TextRTF = ""
+	ThreadsEnter 
+	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
+	ThreadsLeave
+	Sleep(500)
 	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
 	Deallocate AIBodyWStringSavePtr: AIBodyWStringSavePtr = 0
 	AIPostData = _
@@ -9382,7 +9388,6 @@ Public Sub AIResetContext()
 	txtAIRequest.Enabled = True
 	AIAssistantsAnswers = ""
 	txtAIRequest.SetFocus
-	HTTPAIAgent.Abort = True
 	Sleep(500)
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
