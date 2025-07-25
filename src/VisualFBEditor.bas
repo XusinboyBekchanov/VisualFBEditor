@@ -764,8 +764,29 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				ptxtAIRequest->Text =  ML("Explain the selected compiler error message") & !":\r\n" & "```freeBasic" & !"\r\n" & !"\r\n" & "```"
 				ptxtAIRequest->SetFocus
 			Else
-				ptxtAIRequest->Text = ML("Explain the selected compiler error message") & ": " & lvProblems.SelectedItem->Text(0) & !"\r\n" & "```freeBasic" & !"\r\n" & tb->txtCode.Lines(Val(lvProblems.SelectedItem->Text(1)) - 1) & !"\r\n" & "```"
+				Dim As WString Ptr CodeStrPtr
+				Dim As Integer j, LineStart = Val(lvProblems.SelectedItem->Text(1)) - 1
+				Dim As EditControlLine Ptr FFirstECLine
+				For j = LineStart To 0 Step -1
+					FFirstECLine = tb->txtCode.Content.Lines.Items[j]
+					If Trim(*FFirstECLine->Text, Any !"\t ") = "" OrElse Not (EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") OrElse Trim(*FFirstECLine->Text, Any !"\t ") = "_")  Then
+						Exit For
+					End If
+				Next
+				If LineStart = j Then
+					WLet(CodeStrPtr, tb->txtCode.Lines(LineStart))
+				Else
+					LineStart = j + 1
+					WLet(CodeStrPtr, tb->txtCode.Lines(LineStart))
+					For j As Integer = LineStart + 1 To tb->txtCode.LinesCount - 1
+						FFirstECLine = tb->txtCode.Content.Lines.Items[j]
+						WAdd(CodeStrPtr, !"\r\n" & tb->txtCode.Lines(j))
+						If Trim(*FFirstECLine->Text, Any !"\t ") = "" OrElse  Not (EndsWith(RTrim(*FFirstECLine->Text, Any !"\t "), " _") OrElse Trim(*FFirstECLine->Text, Any !"\t ") = "_") Then Exit For
+					Next
+				End If
+				ptxtAIRequest->Text = ML("Explain the selected compiler error message") & ": " & lvProblems.SelectedItem->Text(0) & !"\r\n" & "```freeBasic" & !"\r\n" & *CodeStrPtr & !"\r\n" & "```"
 				ptxtAIRequest->SetFocus
+				Deallocate CodeStrPtr
 			End If
 			
 		Case "AIIntellicode"

@@ -139,8 +139,8 @@ Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold, AIPostDataFi
 Dim Shared As Dictionary AIMessages, AIContext
 Dim Shared As WStringList AIIncludeFileNameList
 Dim Shared As Any Ptr AIThread
-Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr
-Dim Shared As String AIPostData, AIAssistantsAnswers
+Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr, AIAssistantsAnswersPtr
+Dim Shared As String AIPostData
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -8839,6 +8839,7 @@ Function EscapeFromJson(ByRef iText As WString) As WString Ptr
 				Posi += 1
 				i += 1
 			Case 117  ' \u 处理 Unicode （如\u0026）
+				i += 1
 				HexVal = Mid(iText, i + 2, 4)
 				CharCode = Val("&h" & HexVal)
 				(*ResultPtr)[Posi] = CharCode
@@ -9094,7 +9095,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
 							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
 							If AIBodyWStringPtr <> 0 Then
-								AIAssistantsAnswers  &= *AIBodyWStringPtr
+								WAdd AIAssistantsAnswersPtr, *AIBodyWStringPtr
 								AIPrintAnswer(*AIBodyWStringPtr)
 							End If
 							Exit For
@@ -9108,10 +9109,10 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 				ShowMessages(*Buff(i))
 				If InStr(*Buff(i), "[DONE]") > 0 Then
-					If Trim(AIAssistantsAnswers) = "" Then
+					If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
 						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
-					Else
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & AIAssistantsAnswers
+					ElseIf  AIAssistantsAnswersPtr Then 
+						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
 					End If
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					If AIBodyWStringSavePtr <> 0 Then
@@ -9168,7 +9169,7 @@ Sub AIRequest(Param As Any Ptr)
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	txtAIRequest.Text = ""
 	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
-	AIAssistantsAnswers = ""
+	WLet(AIAssistantsAnswersPtr, "")
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 	txtAIAgent.SelEnd = txtAIAgent.SelStart
@@ -9217,7 +9218,10 @@ End Sub
 
 Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
 	If Key <> 13 Then Return
-	If bInAIThread Then Return
+	If bInAIThread Then 
+		ShowMessages(ML("Please waiting, AI is working hard......"))
+		Return
+	End If
 	If Trim(txtAIRequest.Text, Any !"\t\n\r ") = "" Then Return
 	txtAIRequest.Text = Trim(txtAIRequest.Text, Any !"\t\r\n ")
 	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
@@ -9334,7 +9338,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	End If
 	
 	AIMessages.Add("[**User Question:**] " & txtAIRequest.Text, "NA")
-	AIAssistantsAnswers = ""
+	WLet(AIAssistantsAnswersPtr, "")
 	ClearMessages
 	Erase UserChunks
 	Erase AssistantChunks
@@ -9348,8 +9352,8 @@ Public Sub AIRelease()
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
 	Sleep(500)
-	If AIThread Then ThreadDetach(AIThread)
-	AIAssistantsAnswers = ""
+	'If AIThread Then ThreadDetach(AIThread)
+	WLet(AIAssistantsAnswersPtr, "")
 	bInAIThread = False
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
@@ -9386,7 +9390,7 @@ Public Sub AIResetContext()
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
-	AIAssistantsAnswers = ""
+	WLet(AIAssistantsAnswersPtr, "")
 	txtAIRequest.SetFocus
 	Sleep(500)
 	If AIThread Then ThreadDetach(AIThread)
@@ -12056,6 +12060,12 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(RecentProject)
 	WDeAllocate(RecentFolder)
 	WDeAllocate(RecentSession)
+	If AISystem_PromoptPtr Then Deallocate AISystem_PromoptPtr
+	If AIPostDataPtr_1st Then Deallocate AIPostDataPtr_1st
+	If AIPostDataPtr_2nd Then Deallocate AIPostDataPtr_2nd
+	If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr
+	If AIBodyWStringSavePtr Then Deallocate AIBodyWStringSavePtr 
+	If AIAssistantsAnswersPtr Then Deallocate AIAssistantsAnswersPtr
 	WDeAllocate(DefaultHelp)
 	WDeAllocate(HelpPath)
 	WDeAllocate(DefaultBuildConfiguration)
@@ -12225,4 +12235,3 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
-
