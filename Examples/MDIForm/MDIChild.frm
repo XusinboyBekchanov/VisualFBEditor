@@ -1,4 +1,4 @@
-﻿' Copyright (c) 2024 CM.Wang
+﻿' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -67,27 +67,27 @@
 '#End Region
 
 Private Sub MDIChildType.Form_Activate(ByRef Sender As Form)
-	Debug.Print "1. Form_Activate " & Hex(@This) & " " & Caption
+	? "1. Form_Activate " & Hex(@This) & " " & Caption
 	MDIMain.MDIChildActivate(@This)
 End Sub
 
 Private Sub MDIChildType.Form_Create(ByRef Sender As Control)
-	Debug.Print "2. Form_Create   " & Hex(@This) & " " & Caption
+	? "2. Form_Create   " & Hex(@This) & " " & Caption
 	MDIMain.MDIChildCreate(@This)
 End Sub
 
 Private Sub MDIChildType.Form_Show(ByRef Sender As Form)
-	Debug.Print "3. Form_Show     " & Hex(@This) & " " & Caption
+	? "3. Form_Show     " & Hex(@This) & " " & Caption
 	MDIMain.MDIChildShow(@This)
 End Sub
 
 Private Sub MDIChildType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	Debug.Print "4. Form_Close    " & Hex(@This) & " " & Caption
+	? "4. Form_Close    " & Hex(@This) & " " & Caption
 	MDIMain.MDIChildClose(@This)
 End Sub
 
 Private Sub MDIChildType.Form_Destroy(ByRef Sender As Control)
-	Debug.Print "5. Form_Destroy  " & Hex(@This) & " " & Caption
+	? "5. Form_Destroy  " & Hex(@This) & " " & Caption
 	MDIMain.MDIChildDestroy(@This)
 End Sub
 
