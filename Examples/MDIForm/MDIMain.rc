@@ -1,7 +1,9 @@
 1 24 "Manifest.xml"
 1 ICON ".\Resources\VisualFBEditor.ico"
 About PNG ".\Resources\About.png"
+Copy PNG ".\Resources\Copy.png"
 Cut PNG ".\Resources\Cut.png"
+DarkMode PNG ".\Resources\DarkMode.png"
 Exit PNG ".\Resources\Exit.png"
 File PNG ".\Resources\File.png"
 New PNG ".\Resources\New.png"
@@ -9,6 +11,8 @@ Open PNG ".\Resources\Open.png"
 Paste PNG ".\Resources\Paste.png"
 Save PNG ".\Resources\Save.png"
 SaveAll PNG ".\Resources\SaveAll.png"
+SaveAllD PNG ".\Resources\SaveAllD.png"
+SaveD PNG ".\Resources\SaveD.png"
 
 #define APP_TITLE_STR               "\0"
 #define VER_FILEDESCRIPTION_STR     "\0"
@@ -37,7 +41,7 @@ BEGIN
     BEGIN
         BLOCK "040904E4"
         BEGIN
-        	VALUE "ApplicationTitle", APP_TITLE_STR
+            VALUE "ApplicationTitle", APP_TITLE_STR
             VALUE "FileDescription",  VER_FILEDESCRIPTION_STR
             VALUE "FileVersion",      VER_FILEVERSION_STR
             VALUE "InternalName",     VER_INTERNALNAME_STR

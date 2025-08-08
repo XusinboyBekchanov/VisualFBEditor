@@ -1,4 +1,4 @@
-﻿' Copyright (c) 2024 CM.Wang
+﻿' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -21,6 +21,8 @@
 	Using My.Sys.Forms
 	
 	Type MDIMainType Extends Form
+		lstDestroied As List
+		
 		lstMdiChild As List
 		actMdiChild As Any Ptr
 		mnuWindowCount As Integer = -1
@@ -45,22 +47,23 @@
 		Declare Sub mnuWindow_Click(ByRef Sender As MenuItem)
 		Declare Sub TimerComponent1_Timer(ByRef Sender As TimerComponent)
 		Declare Sub ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
+		Declare Sub mnuRecent_Click(ByRef Sender As MenuItem)
 		Declare Constructor
 		
-		Dim As MainMenu MainMenu1
-		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileSave, mnuFileSaveAs, mnuFileBar1, mnuFileBar2, mnuFileSaveAll, mnuFileBar3, mnuFileProperties, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar4, mnuFileExit
+		Dim As MenuItem mnuFile, mnuFileNew, mnuFileOpen, mnuFileBar1, mnuFileSave, mnuFileSaveAs, mnuFileSaveAll, mnuFileBar2, mnuFileRecent, mnuRecentEdit, mnuFileBar3, mnuFileProperties, mnuFileBar4, mnuFilePrintSetup, mnuFilePrintPreview, mnuFilePrint, mnuFileBar5, mnuFileExit
 		Dim As MenuItem mnuEdit, mnuEditUndo, mnuRedo, mnuEditCopy, mnuEditCut, mnuEditPaste, mnuEditBar1, mnuEditDelete, mnuEditBar2, mnuEditSelectAll
 		Dim As MenuItem mnuView, mnuViewToolbar, mnuViewStatusBar, mnuViewBar1, mnuViewRefresh
-		Dim As MenuItem mnuHelp, mnuHelpAbout
 		Dim As MenuItem mnuWindow, mnuWindowCascade, mnuWindowTileHorizontal, mnuWindowTileVertical, mnuWindowArrangeIcons, mnuWindowClose, mnuWindowCloseAll, mnuWindowBar1, mnuViewDarkMode
-		Dim As ImageList ImageList1
+		Dim As MenuItem mnuHelp, mnuHelpAbout, mnuPopRecent
+		Dim As ImageList ImageList1, ImageList2
 		Dim As StatusBar StatusBar1
 		Dim As ToolBar ToolBar1
-		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll
+		Dim As ToolButton tbFileNew, tbFileOpen, tbFileSave, tbFileSaveAll, ToolButton1, tbDarkMode
 		Dim As StatusPanel StatusPanel1
 		Dim As OpenFileDialog OpenFileDialog1
 		Dim As SaveFileDialog SaveFileDialog1
 		Dim As TimerComponent TimerComponent1
+		Dim As MainMenu MainMenu1
 	End Type
 	
 	Constructor MDIMainType
@@ -82,14 +85,20 @@
 			#else
 				This.Icon.LoadFromResourceID(1)
 			#endif
-			'.WindowState = WindowStates.wsMaximized
 			.Caption = "MDIMain"
 			.StartPosition = FormStartPosition.CenterScreen
 			.OnResize = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer), @Form_Resize)
 			.OnDropFile = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Filename As WString), @Form_DropFile)
-			.AllowDrop = True
 			.OnClose = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer), @Form_Close)
+			.AllowDropFiles = True
 			.SetBounds 0, 0, 350, 319
+		End With
+		' MainMenu1
+		With MainMenu1
+			.Name = "MainMenu1"
+			.SetBounds 10, 30, 16, 16
+			.Designer = @This
+			.Parent = @This
 		End With
 		' ImageList1
 		With ImageList1
@@ -98,22 +107,35 @@
 			.ImageHeight = 16
 			.SetBounds 30, 30, 16, 16
 			.Designer = @This
-			.Add "New", "New"
 			.Add "About", "About"
+			.Add "Copy", " Copy"
 			.Add "Cut", " Cut"
+			.Add "DarkMode", "DarkMode"
 			.Add "Exit", "Exit"
 			.Add "File", "File"
+			.Add "New", "New"
 			.Add "Open", "Open"
 			.Add "Paste", "Paste"
 			.Add "Save", "Save"
 			.Add "SaveAll", "SaveAll"
 			.Parent = @This
 		End With
-		' MainMenu1
-		With MainMenu1
-			.Name = "MainMenu1"
-			.SetBounds 10, 30, 16, 16
+		' ImageList2
+		With ImageList2
+			.Name = "ImageList2"
+			.SetBounds 50, 30, 16, 16
 			.Designer = @This
+			.Add "About", "About"
+			.Add "Copy", " Copy"
+			.Add "Cut", " Cut"
+			.Add "DarkMode", "DarkMode"
+			.Add "Exit", "Exit"
+			.Add "File", "File"
+			.Add "New", "New"
+			.Add "Open", "Open"
+			.Add "Paste", "Paste"
+			.Add "SaveD", "Save"
+			.Add "SaveAllD", "SaveAll"
 			.Parent = @This
 		End With
 		' mnuFile
@@ -155,6 +177,7 @@
 			.Caption = ML("Save") & !"\tCtrl+S"
 			.ImageKey = "Save"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAs
@@ -164,6 +187,7 @@
 			.Caption = ML("Save &As...")
 			.ImageKey = "SaveAs"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
 		' mnuFileSaveAll
@@ -173,11 +197,35 @@
 			.Caption = ML("Save A&ll")
 			.ImageKey = "SaveAll"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
 		' mnuFileBar2
 		With mnuFileBar2
 			.Name = "mnuFileBar2"
+			.Designer = @This
+			.Caption = "-"
+			.Parent = @mnuFile
+		End With
+		' mnuFileRecent
+		With mnuFileRecent
+			.Name = "mnuFileRecent"
+			.Designer = @This
+			.Caption = "Recent"
+			.Owner = @MainMenu1
+			.Parent = @mnuFile
+		End With
+		' mnuRecentEdit
+		With mnuRecentEdit
+			.Name = "mnuRecentEdit"
+			.Designer = @This
+			.Caption = "Edit"
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuRecent_Click)
+			.Parent = @mnuFileRecent
+		End With
+		' mnuFileBar3
+		With mnuFileBar3
+			.Name = "mnuFileBar3"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuFile
@@ -188,11 +236,12 @@
 			.Designer = @This
 			.Caption = ML("Propert&ies")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
-		' mnuFileBar3
-		With mnuFileBar3
-			.Name = "mnuFileBar3"
+		' mnuFileBar4
+		With mnuFileBar4
+			.Name = "mnuFileBar4"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuFile
@@ -203,6 +252,7 @@
 			.Designer = @This
 			.Caption = ML("Print Set&up...")
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrintPreview
@@ -212,6 +262,7 @@
 			.Caption = ML("Print Pre&view")
 			.MenuIndex = 11
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
 		' mnuFilePrint
@@ -220,11 +271,12 @@
 			.Designer = @This
 			.Caption = ML("&Print...") & !"\tCtrl+P"
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuFile_Click)
+			.Enabled = False
 			.Parent = @mnuFile
 		End With
-		' mnuFileBar4
-		With mnuFileBar4
-			.Name = "mnuFileBar4"
+		' mnuFileBar5
+		With mnuFileBar5
+			.Name = "mnuFileBar5"
 			.Designer = @This
 			.Caption = "-"
 			.Parent = @mnuFile
@@ -243,6 +295,7 @@
 			.Name = "mnuEdit"
 			.Designer = @This
 			.Caption = ML("&Edit")
+			.Enabled = False
 			.Parent = @MainMenu1
 		End With
 		' mnuRedo
@@ -324,6 +377,7 @@
 			.Caption = ML("&View")
 			.Parent = @MainMenu1
 		End With
+		' mnuViewToolbar
 		With mnuViewToolbar
 			.Name = "mnuViewToolbar"
 			.Caption = "&Toolbar"
@@ -332,6 +386,7 @@
 			.Checked = True
 			.Parent = @mnuView
 		End With
+		' mnuViewStatusBar
 		With mnuViewStatusBar
 			.Name = "mnuViewStatusBar"
 			.Caption = ML("Status &Bar")
@@ -340,6 +395,7 @@
 			.Checked = True
 			.Parent = @mnuView
 		End With
+		' mnuViewBar1
 		With mnuViewBar1
 			.Name = "mnuViewBar1"
 			.Caption = "-"
@@ -355,7 +411,7 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuView_Click)
 			.Parent = @mnuView
 		End With
-		
+		' mnuWindow
 		With mnuWindow
 			.Name = "mnuWindow"
 			.Caption = ML("&Window")
@@ -363,6 +419,7 @@
 			.Enabled = False
 			.Parent = @MainMenu1
 		End With
+		' mnuWindowTileHorizontal
 		With mnuWindowTileHorizontal
 			.Name = "mnuWindowTileHorizontal"
 			.Caption = ML("Tile &Horizontal")
@@ -370,6 +427,7 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
+		' mnuWindowTileVertical
 		With mnuWindowTileVertical
 			.Name = "mnuWindowTileVertical"
 			.Caption = ML("Tile &Vertical")
@@ -377,6 +435,7 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			.Parent = @mnuWindow
 		End With
+		' mnuWindowCascade
 		With mnuWindowCascade
 			.Name = "mnuWindowCascade"
 			.Caption = ML("&Cascade")
@@ -430,6 +489,13 @@
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuHelp_Click)
 			.Parent = @mnuHelp
 		End With
+		' mnuPopRecent
+		With mnuPopRecent
+			.Name = "mnuPopRecent"
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuRecent_Click)
+			.Caption = "Recent"
+		End With
 		' ToolBar1
 		With ToolBar1
 			.Name = "ToolBar1"
@@ -437,7 +503,7 @@
 			.Align = DockStyle.alTop
 			.HotImagesList = @ImageList1
 			.ImagesList = @ImageList1
-			.DisabledImagesList = @ImageList1
+			.DisabledImagesList = @ImageList2
 			.SetBounds 0, 0, 334, 26
 			.Designer = @This
 			.OnButtonClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ToolBar, ByRef Button As ToolButton), @ToolBar1_ButtonClick)
@@ -449,6 +515,7 @@
 			.Designer = @This
 			.ImageKey = "New"
 			.Hint = ML("New")
+			.ShowHint = True
 			.Parent = @ToolBar1
 		End With
 		' tbFileOpen
@@ -457,7 +524,11 @@
 			.Designer = @This
 			.ImageKey = "Open"
 			.Hint = ML("Open")
+			.Style = ToolButtonStyle.tbsDropDown
+			.Width = 38
+			.ShowHint = True
 			.Parent = @ToolBar1
+			.DropDownMenu.Add @mnuPopRecent
 		End With
 		' tbFileSave
 		With tbFileSave
@@ -465,6 +536,8 @@
 			.Designer = @This
 			.ImageKey = "Save"
 			.Hint = ML("Save")
+			.ShowHint = True
+			.Enabled = False
 			.Parent = @ToolBar1
 		End With
 		' tbFileSaveAll
@@ -472,7 +545,25 @@
 			.Name = "tbFileSaveAll"
 			.Designer = @This
 			.ImageKey = "SaveAll"
-			.Hint = ML("Save all")
+			.Hint = ML("Save All")
+			.ShowHint = True
+			.Enabled = False
+			.Parent = @ToolBar1
+		End With
+		' ToolButton1
+		With ToolButton1
+			.Name = "ToolButton1"
+			.Designer = @This
+			.Style = ToolButtonStyle.tbsSeparator
+			.Parent = @ToolBar1
+		End With
+		' tbDarkMode
+		With tbDarkMode
+			.Name = "tbDarkMode"
+			.Designer = @This
+			.ImageKey = "DarkMode"
+			.Checked = True
+			.Style = ToolButtonStyle.tbsCheck
 			.Parent = @ToolBar1
 		End With
 		' StatusBar1
@@ -495,14 +586,14 @@
 			.Name = "OpenFileDialog1"
 			.Filter = ML("All files") & "(*.*)|*.*"
 			.MultiSelect = True
-			.SetBounds 50, 30, 16, 16
+			.SetBounds 80, 30, 16, 16
 			.Designer = @This
 			.Parent = @This
 		End With
 		' SaveFileDialog1
 		With SaveFileDialog1
 			.Name = "SaveFileDialog1"
-			.SetBounds 70, 30, 16, 16
+			.SetBounds 100, 30, 16, 16
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -510,7 +601,7 @@
 		With TimerComponent1
 			.Name = "TimerComponent1"
 			.Interval = 200
-			.SetBounds 90, 30, 16, 16
+			.SetBounds 120, 30, 16, 16
 			.Designer = @This
 			.OnTimer = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As TimerComponent), @TimerComponent1_Timer)
 			.Parent = @This
@@ -532,58 +623,64 @@
 
 Private Sub MDIMainType.mnuFile_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
-	Case "mnuFileNew"
+	Case mnuFileNew.Name
 		MDIChildNew("")
-	Case "mnuFileOpen"
+	Case mnuFileOpen.Name
 		If OpenFileDialog1.Execute() Then
 			Dim j As Integer = OpenFileDialog1.FileNames.Count - 1
 			For i As Integer = 0 To j
 				MDIChildNew(OpenFileDialog1.FileNames.Item(i))
 			Next
 		End If
-	Case "mnuFileExit"
+	Case mnuFileExit.Name
 		ModalResult = ModalResults.OK
 		CloseForm
 	Case Else
-		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), " FILE "
+		MsgBox Sender.Name & !"\r\n" & ML("This function is under construction "), " FILE "
 	End Select
+End Sub
+
+Private Sub MDIMainType.mnuRecent_Click(ByRef Sender As MenuItem)
+	MsgBox Sender.Name & !"\r\n" & ML("This function is under construction "), "Recent"
 End Sub
 
 Private Sub MDIMainType.mnuEdit_Click(ByRef Sender As MenuItem)
 	Dim a As MDIChildType Ptr = actMdiChild
 	Select Case Sender.Name
-	Case "mnuEditUndo"
+	Case mnuEditUndo.Name
 		a->TextBox1.Undo
-	Case "mnuEditCut"
+	Case mnuEditCut.Name
 		a->TextBox1.CutToClipboard
-	Case "mnuEditCopy"
+	Case mnuEditCopy.Name
 		a->TextBox1.CopyToClipboard
-	Case "mnuEditPaste"
+	Case mnuEditPaste.Name
 		a->TextBox1.PasteFromClipboard
-	Case "mnuEditDelete"
+	Case mnuEditDelete.Name
 		a->TextBox1.ClearUndo
 	Case Else
-		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), " Edit "
+		MsgBox Sender.Name & !"\r\n" & ML("This function is under construction "), " Edit "
 	End Select
 End Sub
 
 Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
-	Case "mnuViewToolbar"
+	Case mnuViewToolbar.Name
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
 			Sender.Checked = True
 		End If
-		ToolBar1.Visible = Sender.Checked = True
-	Case "mnuViewStatusBar"
+		ToolBar1.Visible = Sender.Checked
+		RequestAlign
+	Case mnuViewStatusBar.Name
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
 			Sender.Checked = True
 		End If
-		StatusBar1.Visible = Sender.Checked = True
-	Case "mnuViewDarkMode"
+		StatusBar1.Visible = Sender.Checked
+		RequestAlign
+	Case mnuViewDarkMode.Name
 		If Sender.Checked Then
 			Sender.Checked = False
 		Else
@@ -591,37 +688,34 @@ Private Sub MDIMainType.mnuView_Click(ByRef Sender As MenuItem)
 		End If
 		App.DarkMode = Sender.Checked
 		SetDarkMode(Sender.Checked, Sender.Checked)
+		InvalidateRect(Handle, NULL, False)
+		UpdateWindow(Handle)
 	Case Else
-		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), "View"
+		MsgBox Sender.Name & !"\r\n" & ML("This function is under construction "), "View"
 	End Select
-	RequestAlign
-	InvalidateRect(Handle, NULL, False)
-	UpdateWindow(Handle)
 End Sub
 
 Private Sub MDIMainType.mnuWindow_Click(ByRef Sender As MenuItem)
 	Select Case Sender.Name
-	Case "mnuWindowClose"
+	Case mnuWindowClose.Name
 		If actMdiChild Then Cast(MDIChildType Ptr, actMdiChild)->CloseForm
-	Case "mnuWindowCloseAll"
-		Dim a As MDIChildType Ptr
+	Case mnuWindowCloseAll.Name
 		For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
-			a = lstMdiChild.Item(i)
-			a->CloseForm
+			Cast(MDIChildType Ptr, lstMdiChild.Item(i))->CloseForm
 		Next
-	Case "mnuWindowCascade"
+	Case mnuWindowCascade.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDICASCADE, 0, 0
 		#endif
-	Case "mnuWindowArrangeIcons"
+	Case mnuWindowArrangeIcons.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDIICONARRANGE, 0, 0
 		#endif
-	Case "mnuWindowTileHorizontal"
+	Case mnuWindowTileHorizontal.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDITILE, MDITILE_HORIZONTAL, 0
 		#endif
-	Case "mnuWindowTileVertical"
+	Case mnuWindowTileVertical.Name
 		#ifdef __USE_WINAPI__
 			SendMessage FClient, WM_MDITILE, MDITILE_VERTICAL, 0
 		#endif
@@ -641,44 +735,45 @@ Private Sub MDIMainType.mnuHelp_Click(ByRef Sender As MenuItem)
 	Case "mnuHelpAbout"
 		MsgBox(!"Visual FB Editor MDI Form Demo\r\nBy Cm Wang", "MDI Form Demo")
 	Case Else
-		MsgBox Sender.Name & !"\r\n" & ML("This Function Is under construction "), "Edit"
+		MsgBox Sender.Name & !"\r\n" & ML("This function is under construction "), "Edit"
 	End Select
 End Sub
 
 Private Sub MDIMainType.ToolBar1_ButtonClick(ByRef Sender As ToolBar, ByRef Button As ToolButton)
-	Debug.Print "ToolBar1_ButtonClick"
+	? "ToolBar1_ButtonClick"
 	
 	Select Case Button.Name
-	Case "tbFileNew"
+	Case tbFileNew.Name
 		mnuFile_Click(mnuFileNew)
-	Case "tbFileOpen"
+	Case tbFileOpen.Name
 		mnuFile_Click(mnuFileOpen)
-	Case "tbFileSave"
+	Case tbFileSave.Name
 		mnuFile_Click(mnuFileSave)
-	Case "tbFileSaveAll"
+	Case tbFileSaveAll.Name
 		mnuFile_Click(mnuFileSaveAll)
+	Case tbDarkMode.Name
+		mnuView_Click(mnuViewDarkMode)
 	End Select
 End Sub
 
 Private Sub MDIMainType.Form_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
-	Debug.Print "Form_Resize"
-	
+	? "Form_Resize"
 	StatusPanel1.Width = Width
 End Sub
 
 Private Sub MDIMainType.Form_DropFile(ByRef Sender As Control, ByRef Filename As WString)
+	? "Form_DropFile", Filename
 	MDIChildNew(Filename)
 End Sub
 
 Private Sub MDIMainType.Form_Close(ByRef Sender As Form, ByRef Action As Integer)
-	Debug.Print "Form_Close"
-	
+	? "Form_Close"
+	mlKeys.SaveToFile(ExePath & "\" &  App.Language & ".lng")
 	mnuWindow_Click(mnuWindowCloseAll)
 End Sub
 
 Private Sub MDIMainType.MDIChildMenuCheck()
-	Debug.Print "MDIChildMenuCheck"
-	
+	? "MDIChildMenuCheck"
 	Dim i As Integer
 	For i = 0 To mnuWindowCount
 		If mnuWindows(i)->Tag = actMdiChild Then
@@ -690,8 +785,7 @@ Private Sub MDIMainType.MDIChildMenuCheck()
 End Sub
 
 Private Sub MDIMainType.MDIChildMenuUpdate()
-	Debug.Print "MDIChildMenuUpdate"
-	
+	? "MDIChildMenuUpdate"
 	Dim mMax As Integer = 9 'form 0 to mMax
 	Dim i As Integer
 	Dim j As Integer
@@ -734,44 +828,54 @@ Private Sub MDIMainType.MDIChildMenuUpdate()
 				mnuWindows(i)->Name = "mnuWindow" & i - 1
 				mnuWindows(i)->Caption = Cast(MDIChildType Ptr, lstMdiChild.Item(i - 1))->Text
 				mnuWindows(i)->Tag = lstMdiChild.Item(i - 1)
+				mnuWindows(i)->Checked = IIf(mnuWindows(i)->Tag = actMdiChild, True, False)
 				mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
 			End If
 			mnuWindow.Add mnuWindows(i)
 		Next
 		
 		'create a list... menu
-		If j = mnuWindowCount Then Exit Sub
-		i = mnuWindowCount
-		mnuWindows(i) = New MenuItem
-		mnuWindows(i)->Designer = @This
-		mnuWindows(i)->Parent = @mnuWindow
-		mnuWindows(i)->Name = "mnuWindowMore"
-		mnuWindows(i)->Caption = ML("More Windows...")
-		mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
-		mnuWindow.Add mnuWindows(i)
+		If j <> mnuWindowCount Then
+			i = mnuWindowCount
+			mnuWindows(i) = New MenuItem
+			mnuWindows(i)->Designer = @This
+			mnuWindows(i)->Parent = @mnuWindow
+			mnuWindows(i)->Name = "mnuWindowMore"
+			mnuWindows(i)->Caption = ML("More Windows...")
+			mnuWindows(i)->OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As MenuItem), @mnuWindow_Click)
+			mnuWindow.Add mnuWindows(i)
+		End If
 	End If
+	mnuEdit.Enabled = mnuWindow.Enabled
+	mnuFileSave.Enabled = mnuWindow.Enabled
+	mnuFileSaveAll.Enabled = mnuWindow.Enabled
+	mnuFileSaveAs.Enabled = mnuWindow.Enabled
+	mnuFileProperties.Enabled = mnuWindow.Enabled
+	mnuFilePrint.Enabled = mnuWindow.Enabled
+	mnuFilePrintPreview.Enabled = mnuWindow.Enabled
+	mnuFilePrintSetup.Enabled = mnuWindow.Enabled
+	tbFileSave.Enabled = mnuWindow.Enabled
+	tbFileSaveAll.Enabled = mnuWindow.Enabled
 End Sub
 
 Private Sub MDIMainType.MDIChildNew(FileName As WString)
-	Debug.Print "MDIChildNew    " & FileName
+	? "MDIChildNew    " & FileName
 	
 	Static ChildIdx As Integer = 0
 	ChildIdx += 1
 	Dim MDIChild As MDIChildType Ptr = New MDIChildType
 	lstMdiChild.Add MDIChild
-	MDIChild->Show(MDIMain)
-	
 	If FileName= "" Then
 		MDIChild->Text = ML("Untitled") & " - " & ChildIdx
 	Else
 		MDIChild->Text = FileName
 	End If
 	MDIChildMenuUpdate()
-	MDIChildActivate(MDIChild)
+	MDIChild->Show(MDIMain)
 End Sub
 
 Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
-	Debug.Print "MDIChildActivate " & Hex(Child)
+	? "MDIChildActivate " & Hex(Child)
 	
 	actMdiChild = Child
 	If actMdiChild Then
@@ -783,56 +887,60 @@ Private Sub MDIMainType.MDIChildActivate(Child As Any Ptr)
 End Sub
 
 Private Sub MDIMainType.MDIChildCreate(Child As Any Ptr)
-	Debug.Print "MDIChildCreate   " & Hex(Child)
+	? "MDIChildCreate   " & Hex(Child)
 	
 End Sub
 
 Private Sub MDIMainType.MDIChildShow(Child As Any Ptr)
-	Debug.Print "MDIChildShow     " & Hex(Child)
+	? "MDIChildShow     " & Hex(Child)
 	
 End Sub
 
 Private Sub MDIMainType.MDIChildClose(Child As Any Ptr)
-	Debug.Print "MDIChildClose    " & Hex(Child)
-	
+	? "MDIChildClose    " & Hex(Child)
 End Sub
 
 Private Sub MDIMainType.MDIChildDestroy(Child As Any Ptr)
-	Debug.Print "MDIChildDestroy  " & Hex(Child)
+	? "MDIChildDestroy  " & Hex(Child)
 	
-	'following type delete code will cause crash
-	'so i used a timer to delete the MDIChild ptr
+	'The following type delete code can sometimes cause the application to crash
+	'Therefore, I used a timer to delete the type
 	
-	'Remove the MDIChild ptr from list
 	'lstMdiChild.Remove(lstMdiChild.IndexOf(Child))
-	'Delete the MDIChild ptr
 	'Delete Cast(MDIChildType Ptr, Child)
 	
-	Cast(MDIChildType Ptr, Child)->Destroied = True
 	TimerComponent1.Enabled = False
+	
+	'add to destroyed list
+	lstDestroied.Add(Child)
+	
+	'Activate the destruction calculator
 	TimerComponent1.Enabled = True
 End Sub
 
 Private Sub MDIMainType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
-	Debug.Print "TimerComponent1_Timer"
+	? "TimerComponent1_Timer"
+	Sender.Enabled = False
+	Dim As Boolean c = False
 	
-	TimerComponent1.Enabled = False
-	Dim b As Boolean = False
+	While lstDestroied.Count
+		Dim As Integer i, j = lstMdiChild.Count - 1
+		For i = 0 To j
+			If lstMdiChild.Item(i) = lstDestroied.Item(0) Then
+				Delete Cast(MDIChildType Ptr, lstDestroied.Item(0))
+				lstMdiChild.Remove(i)
+				c = True
+				Exit For
+			End If
+		Next
+		lstDestroied.Remove(0)
+	Wend
 	
-	For i As Integer = lstMdiChild.Count - 1 To 0 Step -1
-		If Cast(MDIChildType Ptr, lstMdiChild.Item(i))->Destroied Then
-			'Delete the MDIChild ptr
-			Delete Cast(MDIChildType Ptr, lstMdiChild.Item(i))
-			'Remove the MDIChild ptr from list
-			lstMdiChild.Remove(i)
-			b = True
-		End If
-	Next
-	If b Then MDIChildMenuUpdate()
-	If lstMdiChild.Count > 0 Then
-		MDIChildActivate(actMdiChild)
-	Else
-		MDIChildActivate(NULL)
+	'如果有MDIChildType窗口delete, 更新窗口菜单
+	If c Then
+		MDIChildMenuUpdate()
+		'更新窗口菜单上的激活窗口
+		If lstMdiChild.Count < 1 Then MDIChildActivate(NULL)
 	End If
 End Sub
 
