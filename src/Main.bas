@@ -11876,9 +11876,6 @@ End Sub
 
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
-	_Deallocate(AISystem_PromoptPtr)
-	_Deallocate(AIPostDataPtr_1st)
-	_Deallocate(AIPostDataPtr_2nd)
 	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
 		SaveSession(True)
 	End If

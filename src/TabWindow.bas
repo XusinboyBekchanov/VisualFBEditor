@@ -12347,7 +12347,7 @@ Sub TypeNameConstruct(ByRef Result As String, ByRef TypeNameRef As String, ByRef
 End Sub
 
 Function DemangleGccClangName(ByRef mangledName As String) As String
-	If Left(mangledName, 3) <> "__Z" Then
+	If Left(mangledName, 3) <> "__Z" AndAlso Left(mangledName, 2) <> "_Z" Then
 		Return mangledName
 	End If
 	
@@ -12388,7 +12388,7 @@ Function DemangleGccClangName(ByRef mangledName As String) As String
 		While pos1 <= Len(demangled)
 			Select Case Mid(demangled, pos1, 1)
 			Case "E"
-				If EndsWith(demangledResult, ", ") Then 
+				If EndsWith(demangledResult, ", ") Then
 					demangledResult = Left(demangledResult, Len(demangledResult) - 2) & "(), "
 				Else
 					demangledResult = Replace(demangledResult, "(", "") & "("
@@ -12457,6 +12457,8 @@ Function DemangleGccClangName(ByRef mangledName As String) As String
 	Return demangledResult
 End Function
 
+#include once "mff/DoubleList.bi"
+
 Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 	If Not mnuUseProfiler->Checked Then Exit Sub
 	Dim As Integer Result, i, l, n, f = FreeFile_
@@ -12464,6 +12466,7 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 	Dim As Boolean bStarted
 	Dim As ProfilingFunction Ptr pfunc
 	Dim As WStringList Ptr oldList
+	Dim As DoubleList dList
 	Dim As TreeListViewItem Ptr tlvi, oldtlvi, Globaltlvi
 	lvProfiler.Nodes.Clear
 	For i As Integer = ProfilingFunctions.Count - 1 To 0 Step -1
@@ -12495,7 +12498,21 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 			ElseIf bStarted Then
 				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
 				'tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
-				tlvi = lvProfiler.Nodes.Add(DemangleGccClangName(Trim(Left(Buff, l - 31))) & vbTab & Trim(Mid(Buff, l - (40 - n), 8)) & vbTab & Trim(Mid(Buff, l - (32 - n), 12)) & vbTab & Trim(Mid(Buff, l - (20 - n), 11)) & vbTab & Trim(Mid(Buff, l - (9 - n), 10)) & vbTab & Trim(Left(Buff, l - 31)), , 1)
+				pfunc = New ProfilingFunction
+				pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
+				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
+				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
+				pfunc->Mangled = Trim(Left(Buff, l - 31))
+				If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
+				dList.Add Val(pfunc->Time), pfunc
+				'tlvi = lvProfiler.Nodes.Add( _
+				'DemangleGccClangName(Trim(Left(Buff, l - 31))) & vbTab & _
+				'Trim(Mid(Buff, l - (40 - n), 8)) & vbTab & _
+				'Trim(Mid(Buff, l - (32 - n), 12)) & vbTab & _
+				'Trim(Mid(Buff, l - (20 - n), 11)) & vbTab & _
+				'Trim(Mid(Buff, l - (9 - n), 10)) & vbTab & _
+				'Trim(Left(Buff, l - 31)), , 1)
 				'tlvi->Nodes.Add
 			Else
 				pfunc = New ProfilingFunction
@@ -12504,8 +12521,9 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
 				pfunc->Mangled = Trim(Left(Buff, l - 30))
+				If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
 				oldList = @pfunc->Items
-				ProfilingFunctions.Add DemangleGccClangName(Trim(Left(Buff, l - 30))), pfunc
+				ProfilingFunctions.Add DemangleGccClangName(pfunc->Mangled), pfunc
 			'	tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
 			'	oldtlvi = tlvi
 				Continue Do
@@ -12526,10 +12544,23 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 			pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 			pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
 			pfunc->Mangled = Trim(Left(Buff, l - 40))
-			oldList->Add DemangleGccClangName(Trim(Left(Buff, l - 40))), pfunc
+			If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
+			oldList->Add DemangleGccClangName(pfunc->Mangled), pfunc
 		End If
 	Loop
 	Close #f
+	dList.Sort
+	For i As Integer = dList.Count - 1 To 0 Step -1
+		pfunc = dList.Object(i)
+		tlvi = lvProfiler.Nodes.Add( _
+				DemangleGccClangName(pfunc->Mangled) & vbTab & _
+				pfunc->Count & vbTab & _
+				pfunc->Time & vbTab & _
+				pfunc->Total & vbTab & _
+				pfunc->Proc & vbTab & _
+				pfunc->Mangled, , 1)
+		_Delete(Cast(ProfilingFunction Ptr, pfunc))
+	Next
 	lvProfiler.Nodes.Count = lvProfiler.Nodes.Count
 	lvProfiler.UpdateUnLock
 End Sub
