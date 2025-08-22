@@ -12499,12 +12499,12 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
 				'tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
 				pfunc = New ProfilingFunction
-				pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+				pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
-				pfunc->Mangled = Trim(Left(Buff, l - 31))
-				If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
+				pfunc->Mangled = Trim(Left(Buff, l - 36))
+				'If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
 				dList.Add Val(pfunc->Time), pfunc
 				'tlvi = lvProfiler.Nodes.Add( _
 				'DemangleGccClangName(Trim(Left(Buff, l - 31))) & vbTab & _
@@ -12516,12 +12516,12 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 				'tlvi->Nodes.Add
 			Else
 				pfunc = New ProfilingFunction
-				pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+				pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 				pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
-				pfunc->Mangled = Trim(Left(Buff, l - 30))
-				If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
+				pfunc->Mangled = Trim(Left(Buff, l - 35))
+				'If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
 				oldList = @pfunc->Items
 				ProfilingFunctions.Add DemangleGccClangName(pfunc->Mangled), pfunc
 			'	tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
@@ -12539,12 +12539,12 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 			'tlvi->Text(4) = Trim(Mid(Buff, l - (9 - n), 10))
 		Else
 			pfunc = New ProfilingFunction
-			pfunc->Count = Trim(Mid(Buff, l - (40 - n), 8))
+			pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 			pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 			pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
 			pfunc->Proc = Trim(Mid(Buff, l - (9 - n), 10))
-			pfunc->Mangled = Trim(Left(Buff, l - 40))
-			If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
+			pfunc->Mangled = Trim(Left(Buff, l - 45))
+			'If EndsWith(pfunc->Mangled, "lld") Then pfunc->Mangled = Trim(Left(pfunc->Mangled, Len(pfunc->Mangled) - 3))
 			oldList->Add DemangleGccClangName(pfunc->Mangled), pfunc
 		End If
 	Loop

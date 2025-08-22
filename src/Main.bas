@@ -5158,9 +5158,30 @@ Sub LoadHelp
 				Parag = parSeeAlso
 			Else
 				If bStart Then
-					If te <> 0 AndAlso bDescriptionEnd = False Then  ' the last one not add ending
-						te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
-						bDescriptionEnd = True
+					If te <> 0 Then
+						If bDescriptionEnd = False Then  ' the last one not add ending
+							te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
+							bDescriptionEnd = True
+						End If
+						If te->Name = "Print" Then
+							te1 = _New( TypeElement)
+							te1->Name = "?"
+							te1->DisplayName = te->DisplayName
+							te1->ElementType = te->ElementType
+							te1->FileName = te->FileName
+							te1->Parameters = te->Parameters
+							te1->Comment = te->Comment
+							pFunctions->Add te1->Name, te1
+						ElseIf te->Name = "#include" Then
+							te1 = _New( TypeElement)
+							te1->Name = "once"
+							te1->DisplayName = te->DisplayName
+							te1->ElementType = te->ElementType
+							te1->FileName = te->FileName
+							te1->Parameters = te->Parameters
+							te1->Comment = te->Comment
+							pFunctions->Add te1->Name, te1
+						End If
 					End If
 					bTrim = Trim(Buff)
 					Pos2 = InStr(bTrim, "   ")  ' For good understanding, KeyWords + "   " + Local
@@ -5266,16 +5287,6 @@ Sub LoadHelp
 					If bDescriptionEnd = False Then
 						te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 						bDescriptionEnd = True
-					End If
-					If te->Name = "Print" Then
-						te1 = _New( TypeElement)
-						te1->Name = "?"
-						te1->DisplayName = te->DisplayName
-						te1->ElementType = te->ElementType
-						te1->FileName = te->FileName
-						te1->Parameters = te->Parameters
-						te1->Comment = te->Comment
-						pFunctions->Add te1->Name, te1
 					End If
 				End If
 				bStart = False
