@@ -960,7 +960,7 @@ Namespace My.Sys.Forms
 				i = C_P_Region
 				j = 2
 			Else
-				If Len(*LineTextOld) > iPosSymbol AndAlso (*LineTextOld)[iPosSymbol] = Asc(" ") Then
+				If Len(RTrim(*LineTextOld)) > iPosSymbol AndAlso Mid(RTrim(*LineTextOld), iPosSymbol + 1, 1) = " " Then
 					WAdd(LineText_, " 1")
 				End If
 				i = GetConstruction(*LineText_, j, IIf(eclOld = 0, 0, eclOld->CommentIndex), ecl->InAsm)
@@ -3624,6 +3624,15 @@ Namespace My.Sys.Forms
 			pFiles = ECLine->FileList
 			pFileLines = ECLine->FileListLines
 			InCondition = ECLine->InCondition
+			For i As Integer = 0 To ECLine->Args.Count - 1
+				te2 = ECLine->Args.Item(i)
+				If te2->Elements.Contains(sTemp, , , , Idx) Then
+					te = te2->Elements.Object(Idx)
+					teEnum = te
+					teEnumOld = te2
+					Return te->TypeName
+				End If
+			Next
 		End If
 		If TypeName <> "" Then
 			If LCase(sTemp) = "base" Then
