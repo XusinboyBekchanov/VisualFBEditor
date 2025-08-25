@@ -3497,7 +3497,7 @@ Namespace My.Sys.Forms
 				If te->ElementType = E_Namespace OrElse te->ElementType = E_Type OrElse te->ElementType = E_TypeCopy OrElse te->ElementType = E_Union OrElse te->ElementType = E_Enum Then
 					sTemp = te->Name
 				End If
-				If sTemp = "" AndAlso te->Value <> "" Then
+				If sTemp = "" AndAlso te->Value <> "" AndAlso te->Value <> Value Then
 					sTemp = GetTypeFromValue(te->Value, iSelEndLine, , teOld)
 				End If
 			End If

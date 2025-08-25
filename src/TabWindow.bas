@@ -10133,9 +10133,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 		If Not bSelControlFind Then
 			Des->SelectedControl = Des->DesignControl
 			#ifdef __USE_GTK__
-				Dim As GtkWidget Ptr Widget
-				If Des->SymbolsReadProperty(Des->SelectedControl) Then Widget = Des->Symbols(Des->SelectedControl)->ReadPropertyFunc(Des->SelectedControl, "Widget")
-				If Widget <> 0 Then gtk_widget_show_all(Widget)
+				Dim As GtkWidget Ptr widget
+				If Des->SymbolsReadProperty(Des->SelectedControl) Then widget = Des->Symbols(Des->SelectedControl)->ReadPropertyFunc(Des->SelectedControl, "Widget")
+				If widget <> 0 Then gtk_widget_show_all(widget)
 			#else
 				Dim As HWND Ptr DesCtrlHandle
 				If Des->SymbolsReadProperty(Des->SelectedControl) Then DesCtrlHandle = Des->Symbols(Des->SelectedControl)->ReadPropertyFunc(Des->DesignControl, "Handle")
