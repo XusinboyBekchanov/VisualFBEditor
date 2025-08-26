@@ -13050,6 +13050,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			If bChanged Then
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
+				.ChangeCollapsibility i
 			End If
 		Next i
 		.Changed("Raqamlash")
@@ -13272,11 +13273,13 @@ Sub NumberingOff(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1,
 					WLet(FECLine->Text, Space(n) & Mid(LTrim(*FECLine->Text), Pos1 + 1))
 					FECLine->Ends.Clear
 					FECLine->EndsCompleted = False
+					.ChangeCollapsibility i
 				End If
 			ElseIf StartsWith(LTrim(*FECLine->Text, Any !"\t "), "_L ") Then
 				WLet(FECLine->Text, Mid(LTrim(*FECLine->Text), 4))
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
+				.ChangeCollapsibility i
 			End If
 		Next i
 		.Changed("Raqamlarni olish")
