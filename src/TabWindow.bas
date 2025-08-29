@@ -12718,7 +12718,7 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			'	    Else
 			Dim As WString Ptr Arguments
 			WLet(Arguments, *RunArguments)
-			If Project Then WLet(Arguments, *Arguments & " " & WGet(Project->CommandLineArguments))
+			If ProjectCommandLineArguments <> "" Then WLet(Arguments, *Arguments & " " & ProjectCommandLineArguments)
 			If 0 Then
 				Result = Shell("""" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False, , *Arguments) & """")
 			Else
