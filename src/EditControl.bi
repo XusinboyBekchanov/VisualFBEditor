@@ -746,10 +746,6 @@ End Namespace
 
 Declare Sub LoadKeyWords
 
-Declare Function LoadD2D1 As Long
-
-Declare Function UnloadD2D1 As Long
-
 Namespace My.Sys.Forms
 	Declare Function IsArg(j As Integer) As Boolean
 	
