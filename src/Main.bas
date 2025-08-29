@@ -578,12 +578,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	ThreadsEnter()
 	ClearMessages
 	NodesCount = IIf(bAll, tvExplorer.Nodes.Count, 1)
-	StartProgress
 	lvProblems.ListItems.Clear
 	tpProblems->Caption = ML("Problems") '    'Inits
 	ThreadsLeave()
 	For k As Integer = 0 To NodesCount - 1
 		ThreadsEnter()
+		StartProgress
 		If bAll Then ProjectNode = tvExplorer.Nodes.Item(k) Else ProjectNode = 0
 		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
 		If Project Then
@@ -1192,6 +1192,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Else
 				ShowMessages(Str(Time) & ": " & ML("No errors or warnings were found.")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 			End If
+			StopProgress
 			ThreadsLeave()
 			CompileResult = 0
 		Else
@@ -1207,6 +1208,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					ShowMessages(Str(Time) & ": " & ML("Syntax errors not found!")) & " "  & ML("Elapsed Time") & ": " & Format(Timer - CompileElapsedTime, "#0.00") & " " & ML("Seconds")
 				End If
 			End If
+			StopProgress
 			ThreadsLeave()
 			If Parameter = "Run" Then
 				If Project <> 0 Then
