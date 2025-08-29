@@ -6931,7 +6931,9 @@ Sub LoadSettings
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")
 	LoadKeyWords
 	LoadTheme
-	LoadD2D1
+	#ifdef __USE_WINAPI__
+		LoadD2D1
+	#endif
 	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
 End Sub
 
@@ -12106,7 +12108,9 @@ Sub OnProgramQuit() Destructor
 	MutexDestroy tlockSave
 	MutexDestroy tlockGDB
 	MutexDestroy tlockSuggestions
-	UnloadD2D1
+	#ifdef __USE_WINAPI__
+		UnloadD2D1
+	#endif
 	Dim As UserToolType Ptr tt
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To Tools.Count - 1
