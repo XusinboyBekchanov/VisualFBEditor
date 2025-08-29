@@ -438,7 +438,7 @@ Declare Sub SetCodeVisible(tb As TabWindow Ptr)
 
 Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 
-Declare Sub RunPr(Debugger As String = "")
+Declare Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 
 Declare Sub RunProgram(Param As Any Ptr)
 

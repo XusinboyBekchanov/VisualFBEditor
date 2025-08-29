@@ -1208,6 +1208,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 			End If
 			ThreadsLeave()
+			If Parameter = "Run" Then
+				If Project <> 0 Then
+					RunPr , *Project->FileName, *Project->CommandLineArguments, *MainFile, CompileLine, *FirstLine
+				Else
+					RunPr , "", "", *MainFile, CompileLine, *FirstLine
+				End If
+			End If
 		End If
 	Next k
 	ThreadsEnter()
@@ -3565,7 +3572,7 @@ Sub CompileAPK(Param As Any Ptr)
 End Sub
 
 Sub CompileAndRun(Param As Any Ptr)
-	If Compile("Run") Then RunProgram(0)
+	Compile("Run")
 	ThreadsEnter
 	ChangeEnabledDebug True, False, False
 	ThreadsLeave

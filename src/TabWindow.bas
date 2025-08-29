@@ -12565,22 +12565,18 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 	lvProfiler.UpdateUnLock
 End Sub
 
-Sub RunPr(Debugger As String = "")
+Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 	On Error Goto ErrorHandler
 	Dim Result As Integer
-	Dim As ProjectElement Ptr Project
-	Dim As TreeNode Ptr ProjectNode
-	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
-	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
 	Dim ExeFileName As WString Ptr
-	If CBool(Project <> 0) AndAlso (Not EndsWith(*Project->FileName, ".vfp")) AndAlso FileExists(*Project->FileName & "/local.properties") Then
-		Dim As String ApkFileName = *Project->FileName & "/app/build/outputs/apk/debug/app-debug.apk"
+	If CBool(ProjectFileName <> "") AndAlso (Not EndsWith(ProjectFileName, ".vfp")) AndAlso FileExists(ProjectFileName & "/local.properties") Then
+		Dim As String ApkFileName = ProjectFileName & "/app/build/outputs/apk/debug/app-debug.apk"
 		If Not FileExists(ApkFileName) Then
 			ShowMessages ML("Do not found apk file!")
 			Exit Sub
 		End If
 		Dim As Integer Fn = FreeFile_
-		Open *Project->FileName & "/local.properties" For Input As #Fn
+		Open ProjectFileName & "/local.properties" For Input As #Fn
 		Dim SDKDir As UString
 		Dim pBuff As WString Ptr
 		Dim As Integer FileSize
@@ -12598,12 +12594,12 @@ Sub RunPr(Debugger As String = "")
 			ShowMessages ML("Sdk.dir not specified in file local.properties!")
 			Exit Sub
 		End If
-		If Not FileExists(*Project->FileName & "/app/build.gradle") Then
-			ShowMessages ML("File") & " " & *Project->FileName & "/app/build.gradle " & ML("not found") & "!"
+		If Not FileExists(ProjectFileName & "/app/build.gradle") Then
+			ShowMessages ML("File") & " " & ProjectFileName & "/app/build.gradle " & ML("not found") & "!"
 			Exit Sub
 		End If
 		Fn = FreeFile_
-		Open *Project->FileName & "/app/build.gradle" For Input As #Fn
+		Open ProjectFileName & "/app/build.gradle" For Input As #Fn
 		Dim applicationId As String
 		FileSize = LOF(Fn)
 		WReAllocate(pBuff, FileSize)
@@ -12765,7 +12761,7 @@ Sub RunPr(Debugger As String = "")
 				WLet(CmdL, "explorer http://localhost:8000/" & GetFileName(*ExeFileName))
 			Else
 				WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
-				If Project Then WLetEx CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True
+				If ProjectCommandLineArguments <> "" Then WLetEx CmdL, *CmdL & " " & ProjectCommandLineArguments, True
 				Var Pos1 = InStrRev(*ExeFileName, Slash)
 				If Pos1 = 0 Then Pos1 = Len(*ExeFileName)
 				WLet(Workdir, Left(*ExeFileName, Pos1))
@@ -12901,7 +12897,15 @@ Sub RunPr(Debugger As String = "")
 End Sub
 
 Sub RunProgram(Param As Any Ptr)
-	RunPr
+	Dim As ProjectElement Ptr Project
+	Dim As TreeNode Ptr ProjectNode
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	If Project <> 0 Then
+		RunPr , *Project->FileName, *Project->CommandLineArguments, MainFile, CompileLine, FirstLine
+	Else
+		RunPr , "", "", MainFile, CompileLine, FirstLine
+	End If
 End Sub
 
 Sub TabWindow.AddSpaces(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1)
