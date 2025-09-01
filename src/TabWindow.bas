@@ -190,7 +190,15 @@ Sub NumberingModule(pSender As Any Ptr)
 	If bPreprocesssor Then
 		If bRemovePreprocessor Then PreprocessorNumberingOff(*ptxt, True) Else PreprocessorNumberingOn(*ptxt, tbCurrent->FileName, True)
 	Else
-		If bRemove Then NumberingOff(0, ptxt->LinesCount - 1, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
+		Dim As Integer ehStart, ehEnd
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, Pos1
+		ptxt->GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		If iSelStartLine> 0 AndAlso iSelStartLine <> iSelEndLine Then
+			ehStart = iSelStartLine : ehEnd = iSelEndLine
+		Else
+			ehStart = 0 : ehEnd = ptxt->LinesCount - 1
+		End If
+		If bRemove Then NumberingOff(ehStart, ehEnd, *ptxt, True) Else NumberingOn(0, ptxt->LinesCount - 1, bMacro, *ptxt, True, bStartsOfProcs)
 	End If
 	StopProgress
 	pfrmMain->Enabled = True
@@ -7658,6 +7666,12 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 			ElseIf Trim(b1) = "" Then
 				Comments = ""
 				Continue For
+			Else
+				Pos1 = InStr(b1, "'")
+				If Pos1 > 0 Then
+					Comments = Trim(Mid(b1, Pos1 + 1))
+					b1 = Mid(b1, 1, Pos1)
+				End If
 			End If
 			'Dim As UString res(Any)
 			'Split(b1, """", res())
@@ -8982,6 +8996,12 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			ElseIf Trim(b1) = "" Then
 				Comments = ""
 				Continue For
+			Else
+				Pos1 = InStr(b1, "'")
+				If Pos1 > 0 Then
+					Comments = Trim(Mid(b1, Pos1 + 1))
+					b1 = Mid(b1, 1, Pos1)
+				End If
 			End If
 			'Dim As WString Ptr res(Any)
 			'Split(b1, """", res())
@@ -12975,15 +12995,23 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 			StartLine = iSelStartLine
 			EndLine = iSelEndLine - IIf(iSelEndChar = 0, 1, 0)
 		End If
-		Dim As EditControlLine Ptr FECLine
+		Dim As EditControlLine Ptr FECLine, FECLinePre
 		Dim As Integer n, NotNumberingScopesCount, NamespacesCount
 		Dim As Boolean bNotNumberNext, bNotNumberThis, bInFunction, bInType, bFunctionStart, bChanged
+		If StartLine> 0 Then
+			FECLinePre = .Content.Lines.Items[StartLine-1]
+		Else
+			FECLinePre = .Content.Lines.Items[0]
+		End If
 		For i As Integer = StartLine To EndLine
 			FECLine = .Content.Lines.Items[i]
 			bChanged = False
 			bNotNumberThis = bNotNumberNext
 			bNotNumberNext = False
 			If EndsWith(RTrim(*FECLine->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLine->Text, Any !"\t "), ",_") Then
+				bNotNumberNext = True
+			End If
+			If EndsWith(RTrim(*FECLinePre->Text, Any !"\t "), " _") OrElse EndsWith(RTrim(*FECLinePre->Text, Any !"\t "), ",_") Then
 				bNotNumberNext = True
 			End If
 			If CBool(Trim(*FECLine->Text, Any !"\t ") = "") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "'") OrElse StartsWith(LTrim(*FECLine->Text, Any !"\t "), "#") Then
@@ -13038,6 +13066,8 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				'				bNotNumberThis = True
 			ElseIf IsLabel(*FECLine->Text) Then
 				bNotNumberThis = True
+			ElseIf Right(Trim(*FECLine->Text), 2) = " _" Then
+				bNotNumberThis = True
 			ElseIf FECLine->InConstructionIndex = C_Asm OrElse FECLine->InConstructionIndex = C_Select_Case AndAlso FECLine->InConstructionPart = 0 OrElse _
 				FECLine->InConstructionIndex >= C_Namespace AndAlso FECLine->InConstructionIndex <= C_Union Then
 				bNotNumberThis = True
@@ -13056,6 +13086,7 @@ Sub NumberingOn(ByVal StartLine As Integer = -1, ByVal EndLine As Integer = -1, 
 				FECLine->EndsCompleted = False
 				.ChangeCollapsibility i
 			End If
+			FECLinePre= FECLine
 		Next i
 		.Changed("Raqamlash")
 		If Not WithoutUpdate Then .UpdateUnLock
@@ -13840,7 +13871,13 @@ End Sub
 
 Sub TabWindow.ProcedureNumberOn(bMacro As Boolean = False)
 	Dim As Integer ehStart, ehEnd
+	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar, k, Pos1
+	txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+	If iSelStartLine> 0 AndAlso iSelStartLine <> iSelEndLine Then
+		ehStart = iSelStartLine : ehEnd =iSelEndLine
+	Else
 	GetProcedureLines ehStart, ehEnd
+	End If
 	NumberOn ehStart, ehEnd, bMacro
 End Sub
 
@@ -14190,4 +14227,3 @@ Sub TabWindow.Define
 		End If
 	End With
 End Sub
-
