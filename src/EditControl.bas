@@ -3943,7 +3943,6 @@ Namespace My.Sys.Forms
 					BeginD2DPoint.y = points(0).y
 					pD2DPoints = CAllocate((UBound(points) + 1) * SizeOf(D2D1_POINT_2F))
 					For i As Integer = 0 To UBound(points)
-						?points(i).x, points(i).y
 						pD2DPoints[i].x = points(i).x
 						pD2DPoints[i].y = points(i).y
 					Next
