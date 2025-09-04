@@ -3932,20 +3932,33 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	#ifdef __USE_WINAPI__
-		Sub FillPolygon(points() As D2D1_POINT_2F, ByVal pRT As Any Ptr, ByVal brush As ID2D1Brush Ptr)
-			'Dim pGeometry As ID2D1PathGeometry Ptr
-			'If pFactory->lpVtbl->CreatePathGeometry(pFactory, @pGeometry) = 0 Then
-			'    Dim pSink As ID2D1GeometrySink Ptr
-			'    If pGeometry->lpVtbl->Open(pGeometry, @pSink) = 0 Then
-			'        pSink->lpVtbl->BeginFigure(pSink, points(0), D2D1_FIGURE_BEGIN_FILLED)
-			'        pSink->lpVtbl->AddLines(pSink, @points(1), 3)
-			'        pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
-			'        pSink->lpVtbl->Close(pSink)
-			'        pSink->lpVtbl->Release(pSink)
-			'    End If
-			'    pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
-			'    pGeometry->lpVtbl->Release(pGeometry)
-			'End If
+		Sub FillPolygon(points() As D2D1_POINT_2F, ByVal pRT As ID2D1DeviceContext Ptr, ByVal brush As ID2D1Brush Ptr)
+			Dim pGeometry As ID2D1PathGeometry Ptr
+			If pD2D1Factory1->lpVtbl->CreatePathGeometry1(pD2D1Factory1, @pGeometry) = S_OK Then
+				Dim pSink As ID2D1GeometrySink Ptr
+				If pGeometry->lpVtbl->Open(pGeometry, @pSink) = S_OK Then
+					Dim pD2DPoints As D2D1_POINT_2F Ptr
+					Dim BeginD2DPoint As D2D1_POINT_2F
+					BeginD2DPoint.x = points(0).x
+					BeginD2DPoint.y = points(0).y
+					pD2DPoints = CAllocate((UBound(points) + 1) * SizeOf(D2D1_POINT_2F))
+					For i As Integer = 0 To UBound(points)
+						?points(i).x, points(i).y
+						pD2DPoints[i].x = points(i).x
+						pD2DPoints[i].y = points(i).y
+					Next
+					pSink->lpVtbl->BeginFigure(pSink, BeginD2DPoint, D2D1_FIGURE_BEGIN_FILLED)
+					If UBound(points) >= 1 Then
+						pSink->lpVtbl->AddLines(pSink, pD2DPoints, UBound(points) + 1)
+					End If
+					pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
+					pSink->lpVtbl->Close(pSink)
+					pSink->lpVtbl->Release(pSink)
+					Deallocate(pD2DPoints)
+				End If
+				pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
+				pGeometry->lpVtbl->Release(pGeometry)
+			End If
 		End Sub
 	#endif
 	
@@ -4244,7 +4257,31 @@ Namespace My.Sys.Forms
 			OldCollapseIndex = 0
 			'ChangeCase = False
 			OldMatnLCase = ""
-			If ShowHolidayFrame AndAlso WithFrame Then Canvas.DrawAlpha ScaleX(dwClientX - 10) - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
+			If ShowHolidayFrame AndAlso WithFrame Then
+				#ifdef __USE_WINAPI__
+					If pRenderTarget <> 0 Then
+						Dim bmp As ID2D1Bitmap Ptr
+						If Canvas.CreateD2DBitmapFromHBITMAP(pRenderTarget, EditControlFrame.Handle, bmp) = 0 Then
+							Dim As BITMAP Bitmap01
+							GetObject(EditControlFrame.Handle, SizeOf(Bitmap01), @Bitmap01)
+							
+							Dim destRect As D2D1_RECT_F
+							destRect.left   = ScaleX(dwClientX - 10) - EditControlFrame.Width
+							destRect.top    = 0
+							destRect.right  = ScaleX(dwClientX - 10)
+							destRect.bottom = EditControlFrame.Height
+							
+							pRenderTarget->lpVtbl->DrawBitmap(pRenderTarget, bmp, @destRect, 1, D2D1_BITMAP_INTERPOLATION_MODE_LINEAR, 0)
+							
+							bmp->lpVtbl->Release(bmp)
+						End If
+					Else
+						Canvas.DrawAlpha ScaleX(dwClientX - 10) - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
+					End If
+				#else
+					Canvas.DrawAlpha ScaleX(dwClientX - 10) - EditControlFrame.Width, 0, EditControlFrame.Width, EditControlFrame.Height, EditControlFrame
+				#endif
+			End If
 			For z As Integer = 0 To Content.Lines.Count - 1
 				FECLine = Content.Lines.Items[z]
 				Dim As WStringList Ptr pFiles = FECLine->FileList
@@ -5842,25 +5879,25 @@ Namespace My.Sys.Forms
 						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)), _
 						(ScaleX(MButtonX + 7),  ScaleY(MButtonY + 5)), _
 						(ScaleX(MButtonX + 16), ScaleY(MButtonY + 5)), _
-						(ScaleX(MButtonX + 12), ScaleY(MButtonY + 1)) }
+						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 1)) }
 						
 						Dim pPoint2(3) As D2D1_POINT_2F = { _
 						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)), _
 						(ScaleX(MButtonX + 7),  ScaleY(MButtonY + 18)), _
 						(ScaleX(MButtonX + 16), ScaleY(MButtonY + 18)), _
-						(ScaleX(MButtonX + 12), ScaleY(MButtonY + 22)) }
+						(ScaleX(MButtonX + 11), ScaleY(MButtonY + 22)) }
 						
 						Dim pPoint3(3) As D2D1_POINT_2F = { _
 						(ScaleX(MButtonX + 1),  ScaleY(MButtonY + 11)), _
 						(ScaleX(MButtonX + 5),  ScaleY(MButtonY + 7)), _
 						(ScaleX(MButtonX + 5),  ScaleY(MButtonY + 16)), _
-						(ScaleX(MButtonX + 1),  ScaleY(MButtonY + 12)) }
+						(ScaleX(MButtonX + 1),  ScaleY(MButtonY + 11)) }
 						
 						Dim pPoint4(3) As D2D1_POINT_2F = { _
 						(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)), _
 						(ScaleX(MButtonX + 18), ScaleY(MButtonY + 7)), _
 						(ScaleX(MButtonX + 18), ScaleY(MButtonY + 16)), _
-						(ScaleX(MButtonX + 22), ScaleY(MButtonY + 12)) }
+						(ScaleX(MButtonX + 22), ScaleY(MButtonY + 11)) }
 						FillPolygon(pPoint1(), pRenderTarget, pBrushForeground)
 						FillPolygon(pPoint2(), pRenderTarget, pBrushForeground)
 						FillPolygon(pPoint3(), pRenderTarget, pBrushForeground)
