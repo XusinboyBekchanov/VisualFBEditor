@@ -938,6 +938,7 @@ Namespace My.Sys.Forms
 					WLet(LineText_, "")
 					ecs->ConstructionIndex = -1
 					ecs->ConstructionPart = -1
+					WDeAllocate(res(ii))
 					Continue For
 				End If
 			End If
@@ -991,7 +992,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-			Deallocate res(ii)
+			WDeAllocate(res(ii))
 		Next
 		WDeAllocate(LineText_)
 		WDeAllocate(LineTextOld)
@@ -1837,7 +1838,9 @@ Namespace My.Sys.Forms
 					Loop
 					CalculateLeftMargin
 					If Not WithoutScroll Then ScrollToCaret
+					WDeAllocate(FText)
 				End If
+				WDeAllocate(wsFileContents)
 			End If
 		#endif
 		If Not FileLoaded Then
@@ -3941,7 +3944,7 @@ Namespace My.Sys.Forms
 					Dim BeginD2DPoint As D2D1_POINT_2F
 					BeginD2DPoint.x = points(0).x
 					BeginD2DPoint.y = points(0).y
-					pD2DPoints = CAllocate((UBound(points) + 1) * SizeOf(D2D1_POINT_2F))
+					pD2DPoints = _CAllocate((UBound(points) + 1) * SizeOf(D2D1_POINT_2F))
 					For i As Integer = 0 To UBound(points)
 						pD2DPoints[i].x = points(i).x
 						pD2DPoints[i].y = points(i).y
@@ -3953,7 +3956,7 @@ Namespace My.Sys.Forms
 					pSink->lpVtbl->EndFigure(pSink, D2D1_FIGURE_END_CLOSED)
 					pSink->lpVtbl->Close(pSink)
 					pSink->lpVtbl->Release(pSink)
-					Deallocate(pD2DPoints)
+					_Deallocate((pD2DPoints))
 				End If
 				pRT->lpVtbl->FillGeometry(pRT, pGeometry, brush, NULL)
 				pGeometry->lpVtbl->Release(pGeometry)

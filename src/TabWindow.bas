@@ -891,7 +891,6 @@ Operator TabWindow.Cast As TabPage Ptr
 End Operator
 
 Sub DeleteFromTypeElement(te As TypeElement Ptr)
-	If te->Elements.Count < 1 Then Return 
 	If te->ElementType <> E_Enum Then
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			DeleteFromTypeElement(te->Elements.Object(j))
@@ -1147,7 +1146,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		#ifndef __USE_GTK__
-			If ptabCode->TabCount > 1 Then _Delete(tb)
+			_Delete(tb)
 		#endif
 		TabWindowRemovedCheck(pParentTabCode)
 		Return True
@@ -4782,7 +4781,7 @@ Private Function GetFuncStartChar(sLine As WString Ptr, iSelEndChar As Integer, 
 		Else
 			b &= """" & WSpace(Len(*res1(n)))
 		End If
-		Deallocate res1(n)
+		_Deallocate(res1(n))
 	Next
 	Erase res1
 	iSelEndCharFunc = iSelEndChar
@@ -5074,7 +5073,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 				Else
 					Parameters &= Parameter
 				End If
-				Deallocate res1(n)
+				WDeAllocate(res1(n))
 			Next n
 			Erase res1
 			ParametersList.Add te->Parameters
@@ -5099,7 +5098,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Else
 							Parameters &= Parameter
 						End If
-						Deallocate res1(n)
+						_Deallocate(res1(n))
 					Next n
 					Erase res1
 					ParametersList.Add te->Parameters
@@ -5146,7 +5145,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 								Else
 									Parameters &= Parameter
 								End If
-								Deallocate res(n)
+								_Deallocate(res(n))
 							Next n
 							Erase res
 							ParametersList.Add te->Parameters
@@ -5168,7 +5167,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 										Else
 											Parameters &= Parameter
 										End If
-										Deallocate res(n)
+										_Deallocate(res(n))
 									Next n
 									Erase res
 									ParametersList.Add te->Parameters
@@ -5281,10 +5280,20 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	If iSelStartCharFunc <> tb->txtCode.ToolTipChar Then
 		If iSelStartCharFunc < 0 Then Exit Sub
 		ParameterInfo , iSelStartCharFunc, iSelEndCharFunc, sWordAt
+		For j As Integer = 0 To UBound(Lines)
+			_Deallocate(Lines(j))
+		Next
+		Erase Lines
 		Exit Sub
 	End If
 	sWord = tb->txtCode.HintWord
-	If sWordAt <> sWord Then Exit Sub
+	If sWordAt <> sWord Then
+		For j As Integer = 0 To UBound(Lines)
+			_Deallocate(Lines(j))
+		Next
+		Erase Lines
+		Exit Sub
+	End If
 	For i As Integer = 0 To UBound(Lines)
 		If *Lines(i) = "_________________" Then Exit For
 		iPos = InStr(*Lines(i), "<a href=""")
@@ -5292,7 +5301,13 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 		iPos2 = InStr(*Lines(i), "</a>")
 		Link1 = Mid(*Lines(i), iPos + 9, iPos1 - iPos - 9)
 		Split Link1, "~", LinkParse()
-		If UBound(LinkParse) < 2 Then Continue For
+		If UBound(LinkParse) < 2 Then
+			For i As Integer = 0 To UBound(LinkParse)
+				_Deallocate((LinkParse(i)))
+			Next
+			Erase LinkParse
+			Continue For
+		End If
 		*Lines(i) = ..Left(*Lines(i), iPos - 1) & *LinkParse(2) & Mid(*Lines(i), iPos2 + 4)
 		Split GetChangedCommas(Replace(*Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
@@ -5322,26 +5337,27 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 				End If
 			End If
 		Next
+		_Deallocate(Lines(i))
 		Lines(i) = Join(Params(), ",")
+		For j As Integer = 0 To UBound(Params)
+			_Deallocate((Params(j)))
+		Next
+		Erase Params
+		For j As Integer = 0 To UBound(LinkParse)
+			_Deallocate((LinkParse(j)))
+		Next
+		Erase LinkParse
 	Next
 	Dim As WString Ptr JoinedHint = Join(Lines(), !"\r")
 	If JoinedHint <> 0 AndAlso *JoinedHint <> tb->txtCode.Hint Then
 		tb->txtCode.Hint = *JoinedHint
 		tb->txtCode.UpdateToolTip
 	End If
-	Deallocate(JoinedHint)
-	For i As Integer = 0 To UBound(Lines)
-		Deallocate(Lines(i))
+	_Deallocate((JoinedHint))
+	For j As Integer = 0 To UBound(Lines)
+		_Deallocate(Lines(j))
 	Next
 	Erase Lines
-	For i As Integer = 0 To UBound(Params)
-		Deallocate(Params(i))
-	Next
-	Erase Params
-	For i As Integer = 0 To UBound(LinkParse)
-		Deallocate(LinkParse(i))
-	Next
-	Erase LinkParse
 End Sub
 
 'Function GetLeftArg(tb As TabWindow Ptr, iSelEndLine As Integer, iSelEndChar As Integer) As String
@@ -7431,6 +7447,7 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			te->Tag = tb
 			SetLineAndCharParameters te, ECLines
 			func->Elements.Add te->Name, te
+			WDeAllocate(res1(n))
 		Next
 	End If
 End Sub
@@ -8142,7 +8159,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							If func Then func->Elements.Add te->Name, te
 							Content.Args.Add te->Name, te
 							Project->Globals.Args.Add te->Name, te
-							Deallocate res1(n)
+							_Deallocate(res1(n))
 						Next n
 						Erase res1
 					ElseIf StartsWith(bTrimLCase, "declare ") Then
@@ -8419,7 +8436,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 										
 									End If
 								End If
-								Deallocate res1(n)
+								_Deallocate(res1(n))
 							Next
 							Erase res1
 						End If
@@ -9444,7 +9461,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									If Index > -1 Then Cast(TypeElement Ptr, txtCode.Content.Namespaces.Object(Index))->Elements.Add te->Name, te
 								End If
 								Namespaces.Add te->Name, te
-								Deallocate res1(n)
+								_Deallocate(res1(n))
 							Next n
 							Erase res1
 						ElseIf ECStatement->ConstructionPart = 2 Then
@@ -9558,7 +9575,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							te->Tag = tb
 							If func Then func->Elements.Add te->Name, te
 							txtCode.Content.Args.Add te->Name, te
-							Deallocate res1(n)
+							_Deallocate(res1(n))
 						Next n
 						Erase res1
 					ElseIf StartsWith(bTrimLCase, "declare ") Then
@@ -9840,7 +9857,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, ptxtCode = @txtCode, tb
 									End If
 								End If
-								Deallocate res1(n)
+								_Deallocate(res1(n))
 							Next n
 							Erase res1
 						End If
@@ -12253,7 +12270,7 @@ Sub RunEmulator(Param As Any Ptr)
 						Else
 							ShowMessages(*res1(n), False)
 						End If
-						Deallocate res1(n)
+						_Deallocate(res1(n))
 					Next n
 					Erase res1
 					sOutput = Mid(sBuffer, Pos1 + 1)
@@ -12332,7 +12349,7 @@ Sub RunLogCat(Param As Any Ptr)
 						If InStr(*res1(n), "DEBUG") Then
 							ShowMessages(*res1(n), False)
 						End If
-						Deallocate res1(n)
+						_Deallocate(res1(n))
 					Next n
 					Erase res1
 					sOutput = Mid(sBuffer, Pos1 + 1)
@@ -12518,7 +12535,7 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 			ElseIf bStarted Then
 				'tlvi = Globaltlvi->Nodes.Add(Trim(Left(Buff, l - 30)))
 				'tlvi = lvProfiler.Nodes.Add(Trim(Left(Buff, l - 30)), , 1)
-				pfunc = New ProfilingFunction
+				pfunc = _New(ProfilingFunction)
 				pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
@@ -12535,7 +12552,7 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 				'Trim(Left(Buff, l - 31)), , 1)
 				'tlvi->Nodes.Add
 			Else
-				pfunc = New ProfilingFunction
+				pfunc = _New(ProfilingFunction)
 				pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 				pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 				pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
@@ -12558,7 +12575,7 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 			'tlvi->Text(3) = Trim(Mid(Buff, l - (20 - n), 11))
 			'tlvi->Text(4) = Trim(Mid(Buff, l - (9 - n), 10))
 		Else
-			pfunc = New ProfilingFunction
+			pfunc = _New(ProfilingFunction)
 			pfunc->Count = Trim(Mid(Buff, l - (45 - n), 13))
 			pfunc->Time = Trim(Mid(Buff, l - (32 - n), 12))
 			pfunc->Total = Trim(Mid(Buff, l - (20 - n), 11))
@@ -12698,7 +12715,7 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 								ThreadCreate_(@RunEmulator, SDKDir.vptr)
 								ThreadCreate_(@RunLogCat, SDKDir.vptr)
 							End If
-							Deallocate res1(n)
+							_Deallocate(res1(n))
 						Next n
 						Erase res1
 						sOutput = Mid(sBuffer, Pos1 + 1)

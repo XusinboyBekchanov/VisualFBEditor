@@ -201,7 +201,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	If rtfiText = 0 Then Return 0
 	For i = 0 To UBound(Lines)
 		LineLength = Len(Trim(*Lines(i)))
-		Deallocate ResultPtr : ResultPtr = 0
+		_Deallocate(ResultPtr ): ResultPtr = 0
 		If LineLength = 0 Then
 			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 		Else
@@ -322,12 +322,12 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 				If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
 			End Select
 		End If
-		Deallocate Lines(i)
+		_Deallocate(Lines(i))
 	Next
 	Erase Lines
 	WAdd(rtfiText, "}")
-	Deallocate ResultPtr
-	Deallocate rtfiText1
+	_Deallocate(ResultPtr)
+	_Deallocate(rtfiText1)
 	Return rtfiText
 End Function
 
@@ -358,7 +358,7 @@ Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As WString Ptr
 			WAdd(tableRTF, "\cell ")
 		End If
 		' Free headers array memory
-		Deallocate headers(j)
+		_Deallocate(headers(j))
 	Next
 	WAdd(tableRTF,  "\row ")
 	
@@ -384,7 +384,7 @@ Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As WString Ptr
 				WAdd(tableRTF, "\cell ")
 			End If
 			If colWidthMax(j) < Len(*Cells(j)) Then colWidthMax(j) = Len(*Cells(j))
-			Deallocate Cells(j)
+			_Deallocate(Cells(j))
 		Next
 		' Free Cells array memory
 		Erase Cells
@@ -399,7 +399,7 @@ Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As WString Ptr
 		colWidth += colWidthMax(j) * EditorFontSize * 7.5
 		Replace(*tableRTF, "\cellx" & (j + 1), "\cellx" & colWidth) ' Adjust column width
 	Next
-	Deallocate RowStrPtr
+	_Deallocate(RowStrPtr)
 	Return tableRTF
 End Function
 
@@ -498,7 +498,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 					WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))
 					'WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt\ul\cf6 " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))
 					'{\b\cf3 [Image: " & altiText & " (" & imgPath & ")]}\" & AIColorFore & "\b0\par"
-					Deallocate tmpPtr
+					_Deallocate(tmpPtr)
 				End If
 				Posi = InStr(endParen+1, *Result, "[")
 			Else
@@ -518,11 +518,11 @@ Function EscapeRTF(ByRef iText As WString) As WString Ptr
 	Dim As Integer bufferSize = iLen * 6 + 2
 	If iLen < 1 Then Return 0
 	Dim As String TmpStr
-	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
+	Dim As WString Ptr ResultPtr = _Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
 	For i As Integer = 0 To iLen - 1
 		If Posi >= bufferSize- 6 Then
 			bufferSize *= 2
-			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
+			ResultPtr = _Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
 		Select Case iText[i]
 		Case 92, 123, 125, 126, 94  ' ASCII码值: \ { }   ^

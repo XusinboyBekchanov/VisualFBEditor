@@ -173,7 +173,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			If AIMessages.Count < 1 Then frmMain.Cursor = 0 : Exit Sub
 			AddMRUAIChat FileName
 			WLet(RecentAIChat, FileName)
-			Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+			_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 			For i As Integer = 0 To AIMessages.Count - 1
 				If i <> AIMessages.Count - 1 Then
 					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text & Chr(10))
@@ -183,7 +183,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			Next
 			
 			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			If AIBodyWStringSavePtr Then AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
 			If AIBodyWStringPtr Then
 				txtAIAgent.TextRTF = *AIBodyWStringPtr
@@ -192,7 +192,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 			End If
-			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			frmMain.Cursor = 0
 		End If
 	Case "AIChatSave"
@@ -226,7 +226,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		If AIMessages.Count < 1 Then Exit Sub
 		AddMRUAIChat Sender.ToString
 		WLet(RecentAIChat, Sender.ToString)
-		Deallocate AIBodyWStringPtr
+		_Deallocate(AIBodyWStringPtr)
 		For i As Integer = 0 To AIMessages.Count - 1
 			If i <> AIMessages.Count - 1 Then
 				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10))
@@ -240,7 +240,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
-		Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+		_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	End Select
 End Sub
 
@@ -786,7 +786,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				End If
 				ptxtAIRequest->Text = ML("Explain the selected compiler error message") & ": " & lvProblems.SelectedItem->Text(0) & !"\r\n" & "```freeBasic" & !"\r\n" & *CodeStrPtr & !"\r\n" & "```"
 				ptxtAIRequest->SetFocus
-				Deallocate CodeStrPtr
+				_Deallocate(CodeStrPtr)
 			End If
 			
 		Case "AIIntellicode"

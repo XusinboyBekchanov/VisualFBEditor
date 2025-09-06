@@ -337,7 +337,7 @@ Function MP(ByRef V As WString) ByRef As WString
 					TempWstr &= "." & *LineParts(k)
 				End If
 			End If
-			Deallocate LineParts(k)
+			_Deallocate(LineParts(k))
 		Next
 		Erase LineParts
 		If TempWstr = "" Then
@@ -2934,7 +2934,7 @@ Sub RemoveFileFromProject
 	If ptn->ImageKey <> "Project" Then
 		If ptn->ImageKey = "Opened" AndAlso tn->Tag > 0 Then
 			Dim As ExplorerElement Ptr ee
-			ee = New ExplorerElement
+			ee = _New(ExplorerElement)
 			ee = tn->Tag
 			If ee->FileName> 0 AndAlso Dir(*ee->FileName) <> "" Then
 				'Move the file to temp folds.
@@ -3901,7 +3901,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Else
 				b &= """" & WSpace(Len(*res(j)))
 			End If
-			Deallocate res(j)
+			_Deallocate(res(j))
 		Next
 		Erase res
 		Pos4 = InStr(b, "'")
@@ -4202,7 +4202,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->FullName = te->Name
 						End If
 						Namespaces.Add te->Name, te
-						Deallocate res1(n)
+						_Deallocate(res1(n))
 					Next
 					Erase res1
 				ElseIf StartsWith(bTrimLCase & " ", "end namespace ") Then
@@ -4225,7 +4225,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
 					Pos4 = InStr(bTrim, "(")
 					If Pos4 > 0 AndAlso (Pos4 < Pos1 OrElse Pos1 = 0) Then Pos1 = Pos4
-					If StartsWith(LCase(Trim(Mid(bTrim, 9))), "operator") Then Continue For
+					If StartsWith(LCase(Trim(Mid(bTrim, 9))), "operator") Then _Deallocate(res(j)): Continue For
 					te = _New( TypeElement)
 					te->Declaration = True
 					Select Case LCase(IIf(Pos1 = 0, Trim(Mid(bTrim, iStart)), Trim(Mid(bTrim, iStart, Pos1 - iStart))))
@@ -4487,7 +4487,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->CtlLibrary = CtlLibrary
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
 							If tbi Then tbi->Elements.Add te->Name, te
-							Deallocate res1(n)
+							_Deallocate(res1(n))
 						Next n
 						Erase res1
 					End If
@@ -4527,7 +4527,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				ElseIf CInt(StartsWith(bTrimLCase, "end enum")) Then
 					inEnum = False
 				ElseIf inEnum Then
-					If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then Continue For
+					If StartsWith(bTrim, "#") OrElse StartsWith(bTrim, "'") Then _Deallocate(res(j)): Continue For
 					Dim As WString * 2048 b2 = b, ElementValue
 					Dim As WString Ptr res1(Any)
 					Pos2 = InStr(b2, "'")
@@ -4572,7 +4572,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
 						Args.Add te->Name, te
-						Deallocate res1(n)
+						_Deallocate(res1(n))
 					Next n
 					Erase res1
 				Else 'If LoadParameter <> LoadParam.OnlyTypes Then
@@ -4741,7 +4741,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						InFunc = True
 						Pos3 = InStr(bTrim, "(")
 						Pos5 = InStr(bTrimLCase, " function") + 9
-						If StartsWith(Trim(Mid(bTrim, Pos5)), "=") Then Continue For
+						If StartsWith(Trim(Mid(bTrim, Pos5)), "=") Then _Deallocate(res(j)): Continue For
 						n = Len(bTrim) - Len(Trim(Mid(bTrim, Pos5)))
 						Pos4 = InStr(n + 1, bTrim, " ")
 						If Pos4 > 0 AndAlso (Pos4 < Pos3 OrElse Pos3 = 0) Then Pos3 = Pos4
@@ -5003,13 +5003,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 									te->OwnerNamespace &= IIf(n_i = 0, "", ".") & Namespaces.Item(n_i)
 								Next
 							End If
-							Deallocate res1(n)
+							_Deallocate(res1(n))
 						Next
 						Erase res1
 					End If
 				End If
 			End If
-			Deallocate res(j)
+			_Deallocate(res(j))
 		Next
 		Erase res
 		If FormClosing Then MutexUnlock tlockSave: Exit Sub
@@ -6369,7 +6369,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				'Debug.Print Comps.Item(i)
 				AIContext.Add(Comps.Item(i), *FileContentPtr)
 			'End If
-			Deallocate FileContentPtr : FileContentPtr = 0
+			_Deallocate(FileContentPtr ): FileContentPtr = 0
 		Next i
 		WLet(FileContentPtr, "## " & "Globals Enums")
 		For i = 0 To Globals.Enums.Count - 1
@@ -6392,8 +6392,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		'SaveToFile(wikiFolder & "Globals Enums.md", *FileContentPtr, FileEncoding, NewLineType)
 		AIContext.Add("Globals Enums", *FileContentPtr)
-		Deallocate FileContentPtr : FileContentPtr = 0
-		Deallocate FileContentPtr1 : FileContentPtr1 = 0
+		_Deallocate(FileContentPtr ): FileContentPtr = 0
+		_Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
 		WLet(FileContentPtr1, "## Globals Procedures")
 		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|")
 		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |")
@@ -6407,7 +6407,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		'SaveToFile(wikiFolder & "Globals Procedures.md", *FileContentPtr1, FileEncoding, NewLineType)
 		AIContext.Add("Globals Procedures", *FileContentPtr1)
-		Deallocate FileContentPtr1 : FileContentPtr1 = 0
+		_Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
 		'WLet(FileContentPtr1, "## Globals Args")
 		'For i = 0 To Globals.Args.Count - 1
 		'	tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
@@ -8718,12 +8718,12 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As Integer Posi = 0, iLen = Len(iText)
 	If iLen < 1 Then Return ""
 	Dim As Integer bufferSize = iLen * 6 + 2
-	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
+	Dim As WString Ptr ResultPtr = _Allocate(bufferSize * SizeOf(WString))     ' 预分配最大可能空间
 	Dim As String TmpStr
 	For i As Integer = 0 To iLen  - 1
 		If Posi >= bufferSize - 6 Then
 			bufferSize *= 2
-			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
+			ResultPtr = _Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
 		If ResultPtr = 0 Then Return "" ' 内存分配失败保护
 		Select Case iText[i]
@@ -8803,7 +8803,7 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	#else
 		Function = ToUtf8(*ResultPtr)
 	#endif
-	Deallocate(ResultPtr)
+	_Deallocate((ResultPtr))
 End Function
 
 Function EscapeFromJson(ByRef iText As WString) As WString Ptr
@@ -8811,14 +8811,14 @@ Function EscapeFromJson(ByRef iText As WString) As WString Ptr
 	If iLen = 0 Then Return 0
 	' 预分配内存（按最大需求：每个制表符最多4个转义字符）
 	Dim As Integer bufferSize = iLen * 4 + 2
-	Dim As WString Ptr ResultPtr = Allocate(bufferSize * SizeOf(WString)) ' 预分配最大可能空间
+	Dim As WString Ptr ResultPtr = _Allocate(bufferSize * SizeOf(WString)) ' 预分配最大可能空间
 	If ResultPtr = 0 Then Return 0
 	Dim As String HexVal
 	Dim As Integer CharCode, Posi
 	For i As Integer = 0 To iLen - 1
 		If Posi >= bufferSize- 4 Then
 			bufferSize *= 2
-			ResultPtr = Reallocate(ResultPtr, bufferSize * SizeOf(WString))
+			ResultPtr = _Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
 		If iText[i] = 92  AndAlso i < iLen - 1 Then
 			Select Case iText[i + 1]
@@ -9064,9 +9064,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
 	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
-		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then Deallocate(tmpBodyWStrPtr) : Return
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate((tmpBodyWStrPtr) ): Return
 	End If
-	If AIBodyWStringPtr = 0 Then Deallocate(tmpBodyWStrPtr) : Return
+	If AIBodyWStringPtr = 0 Then _Deallocate((tmpBodyWStrPtr) ): Return
 	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
 	Dim As String ContentStart(0 To 3) = {"""content"":""",        """content"":""",               """content"":""",                ",""content"":"""}
 	Dim As String ContentEnd(0 To 3) = {""",""reasoning"":null",   """,""reasoning_content"":null", """},""finish_reason""",       """,""tool_calls"":"  }
@@ -9095,7 +9095,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						binReason = True
-						Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+						_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 						AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))))
 						If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
 						Exit For
@@ -9114,7 +9114,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 								txtAIAgent.SelEnd = txtAIAgent.SelStart
 								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
 							If AIBodyWStringPtr <> 0 Then
 								WAdd AIAssistantsAnswersPtr, *AIBodyWStringPtr
@@ -9125,7 +9125,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					End If
 				Next
 			End If
-			Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 		Else
 			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
 			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
@@ -9138,7 +9138,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					End If
 					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 					If AIBodyWStringSavePtr <> 0 Then
-						Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0
+						_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 						AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
 						If AIBodyWStringPtr <> 0 Then
 							txtAIAgent.TextRTF = *AIBodyWStringPtr
@@ -9149,16 +9149,16 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 				cboAIAgentModels.Enabled = True 
-				If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+				If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			Else
 				WLet(AIBodyWStringPtr, *Buff(i))
 			End If
 		End If
-		Deallocate Buff(i)
+		_Deallocate(Buff(i))
 	Next
 	Erase Buff
-	If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr : AIBodyWStringPtr = 0 
-	Deallocate(tmpBodyWStrPtr)
+	If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0 
+	_Deallocate((tmpBodyWStrPtr))
 	ThreadsLeave
 End Sub
 
@@ -9167,7 +9167,7 @@ Sub AIRequest(Param As Any Ptr)
 	bInThingk = False
 	bInNOTThingk = False
 	AIBold = False
-	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	HTTPAIAgent.Host = AIAgentHost
 	HTTPAIAgent.Port = AIAgentPort
 	Dim As HTTPRequest Request
@@ -9225,7 +9225,7 @@ Sub AIRequest(Param As Any Ptr)
 		
 		iPos1 = InStrRev(*Temp, ",""content"":""")
 		iPos2 = InStrRev(*Temp, """,""refusal""")
-		Deallocate(BuffPtr): BuffPtr = 0
+		_Deallocate((BuffPtr)): BuffPtr = 0
 		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12))
 		If BuffPtr <> 0 Then
 			AIPrintAnswer(*BuffPtr)
@@ -9321,7 +9321,7 @@ Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 				End If
 				AIIncludeFileNameList.Add(AIContext.Item(j)->Key)
 			End If
-			Deallocate ControlBIContentPtr : ControlBIContentPtr = 0
+			_Deallocate(ControlBIContentPtr ): ControlBIContentPtr = 0
 			Erase UserChunks
 		End If
 	Next
@@ -9388,8 +9388,8 @@ Public Sub AIResetContext()
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
 	Sleep(500)
-	Deallocate AIBodyWStringPtr: AIBodyWStringPtr = 0
-	Deallocate AIBodyWStringSavePtr: AIBodyWStringSavePtr = 0
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+	_Deallocate(AIBodyWStringSavePtr): AIBodyWStringSavePtr = 0
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & "true" & ", " & _
@@ -9408,7 +9408,7 @@ Public Sub AIResetContext()
 		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "/AIChat/" & FileName)
 		AIMessages.Clear
 	End If
-	Deallocate(RecentAIChat): RecentAIChat = 0
+	_Deallocate((RecentAIChat)): RecentAIChat = 0
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
@@ -12079,12 +12079,12 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(RecentProject)
 	WDeAllocate(RecentFolder)
 	WDeAllocate(RecentSession)
-	If AISystem_PromoptPtr Then Deallocate AISystem_PromoptPtr
-	If AIPostDataPtr_1st Then Deallocate AIPostDataPtr_1st
-	If AIPostDataPtr_2nd Then Deallocate AIPostDataPtr_2nd
-	If AIBodyWStringPtr Then Deallocate AIBodyWStringPtr
-	If AIBodyWStringSavePtr Then Deallocate AIBodyWStringSavePtr 
-	If AIAssistantsAnswersPtr Then Deallocate AIAssistantsAnswersPtr
+	If AISystem_PromoptPtr Then _Deallocate(AISystem_PromoptPtr)
+	If AIPostDataPtr_1st Then _Deallocate(AIPostDataPtr_1st)
+	If AIPostDataPtr_2nd Then _Deallocate(AIPostDataPtr_2nd)
+	If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr)
+	If AIBodyWStringSavePtr Then _Deallocate(AIBodyWStringSavePtr )
+	If AIAssistantsAnswersPtr Then _Deallocate(AIAssistantsAnswersPtr)
 	WDeAllocate(DefaultHelp)
 	WDeAllocate(HelpPath)
 	WDeAllocate(DefaultBuildConfiguration)
@@ -12100,9 +12100,9 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(EnvironmentVariables)
 	WDeAllocate(CommandPromptFolder)
 	_Deallocate(filenumbers)
-	'	For i As Integer = 0 To Threads.Count - 1
-	'		If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
-	'	Next
+	'For i As Integer = 0 To Threads.Count - 1
+	'	If Threads.Item(i) <> 0 Then ThreadWait Threads.Item(i)
+	'Next
 	MutexDestroy tlockToDo
 	MutexDestroy tlock
 	MutexDestroy tlockSave
