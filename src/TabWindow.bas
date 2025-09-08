@@ -2972,6 +2972,16 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 				DesignerChangeSelection *tb->Des, Ctrl
 			'#endif
 		End If
+		With tb->txtCode
+			For i As Integer = 0 To .LinesCount - 1
+				If StartsWith(Trim(LCase(.Lines(i)), Any !"\t ") & " ", "with " & LCase(Sender.Text) & " ") OrElse InStr(Trim(LCase(.Lines(i))), LCase(Sender.Text) & ".") > 0 Then
+					Var n = Len(.Lines(i)) - Len(LTrim(.Lines(i)))
+					.SetSelection i, i, n + 4, n + 4
+					.SetFocus
+					Exit For
+				End If
+			Next
+		End With
 	End If
 End Sub
 
@@ -3699,7 +3709,7 @@ Sub cboFunction_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBox
 			Exit Sub
 		ElseIf ii = 1 And jj = 0 Then
 			For i = 0 To .LinesCount - 1
-				If StartsWith(Trim(LCase(.Lines(i))), "type " & LCase(frmName) & " ") Then
+				If StartsWith(Trim(LCase(.Lines(i)), Any !"\t ") & " ", "type " & LCase(frmName) & " ") Then
 					Var n = Len(.Lines(i)) - Len(LTrim(.Lines(i)))
 					.TopLine = i
 					.SetSelection i + 1, i + 1, n + 4, n + 4
