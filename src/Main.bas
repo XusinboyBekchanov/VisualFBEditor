@@ -3889,6 +3889,13 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		ElseIf Trim(b1) = "" Then
 			Comment = ""
 			Continue For
+		Else
+			Pos1 = MAX(InStrRev(b1, Chr(34)),1)
+			Pos1 = InStr(Pos1, b1, "'")
+			If Pos1 > 0 Then 
+				Comment = Trim(Mid(b1, Pos1 + 1))
+				b1 = Mid(b1, 1, Pos1)
+			End If
 		End If
 		Dim As WString Ptr res(Any)
 		Split(b1, """", res())
@@ -11898,6 +11905,9 @@ End Sub
 
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
 	On Error Goto ErrorHandler
+	_Deallocate(AISystem_PromoptPtr)
+	_Deallocate(AIPostDataPtr_1st)
+	_Deallocate(AIPostDataPtr_2nd)
 	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
 		SaveSession(True)
 	End If
