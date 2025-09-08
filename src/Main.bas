@@ -8711,6 +8711,7 @@ tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
 txtAIAgent.Parent = @pnlAIAgent
+txtAIAgent.MaxLength = 1048576
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
