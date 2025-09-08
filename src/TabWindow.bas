@@ -891,7 +891,6 @@ Operator TabWindow.Cast As TabPage Ptr
 End Operator
 
 Sub DeleteFromTypeElement(te As TypeElement Ptr)
-	If te->Elements.Count < 1 Then Return
 	If te->ElementType <> E_Enum Then
 		For j As Integer = te->Elements.Count - 1 To 0 Step -1
 			DeleteFromTypeElement(te->Elements.Object(j))
@@ -1147,7 +1146,7 @@ Function CloseTab(ByRef tb As TabWindow Ptr, WithoutMessage As Boolean = False) 
 		If pfMenuEditor->tb = tb Then pfMenuEditor->CloseForm
 		If pfImageListEditor->tb = tb Then pfImageListEditor->CloseForm
 		#ifndef __USE_GTK__
-			If ptabCode->TabCount > 1 Then _Delete(tb)
+			_Delete(tb)
 		#endif
 		TabWindowRemovedCheck(pParentTabCode)
 		Return True
