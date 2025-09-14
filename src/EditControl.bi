@@ -378,7 +378,16 @@ Namespace My.Sys.Forms
 			Dim pSurface As IDXGISurface Ptr = 0
 			Dim pTexture As ID3D11Texture2D Ptr = 0
 			Dim pFormat As IDWriteTextFormat Ptr = 0
+			Dim pp As DXGI_PRESENT_PARAMETERS
+			Dim pBrushForeground As ID2D1Brush Ptr = 0
+			Dim pBrushBackground As ID2D1Brush Ptr = 0
+			Dim pLayout As IDWriteTextLayout Ptr = 0
+			Dim Metrics As DWRITE_TEXT_METRICS
 		#endif
+		Dim As Integer PosiBD, tIndex, Pos1
+		Dim As Boolean bKeyWord, bWithoutWith, TwoDots, OneDot
+		Dim As WString * 255 OriginalCaseWord, OldTypeName, TypeName
+		Dim As TypeElement Ptr te, Oldte
 		Dim As Integer iCount, BracketsStart, BracketsStartLine, BracketsEnd, BracketsEndLine, iStartBS, iStartBE, OldBracketsStartLine, OldBracketsEndLine
 		Dim As String BracketsLine, Symb, SymbOpenBrackets, SymbCloseBrackets, OpenBrackets = "([{", CloseBrackets = ")]}"
 		Dim As Boolean bFinded
@@ -518,6 +527,7 @@ Namespace My.Sys.Forms
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Static Sub EC_TimerProcBlink(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Sub SetDark(Value As Boolean)
+			Declare Sub ReleaseDirect2D
 			Declare Sub SetClientSize()
 		#endif
 		Declare Function deltaToScrollAmount(lDelta As Integer) As Integer
