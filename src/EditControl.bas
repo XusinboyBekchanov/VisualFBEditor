@@ -1809,7 +1809,7 @@ Namespace My.Sys.Forms
 					Dim As EditControlLine Ptr FECLine
 					WLet(FText, "")
 					Dim As Integer j = 0, jCount = Len(*wsFileContents)
-					Do While j <= jCount - 1
+					Do While j <= jCount
 						WAdd FText, WChr((*wsFileContents)[j])
 						If (*wsFileContents)[j] = 13 OrElse (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
 							FECLine = _New(EditControlLine)
@@ -2013,17 +2013,30 @@ Namespace My.Sys.Forms
 		#endif
 		If Not FileSaved Then
 			If Open(FileName For Output Encoding FileEncodingText As #Fn) = 0 Then
+				Var iCount = Content.Lines.Count - 1
 				If FileEncoding = FileEncodings.Utf8 Then
-					For i As Integer = 0 To Content.Lines.Count - 1
-						Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & NewLine;
+					For i As Integer = 0 To iCount
+						If i = iCount Then
+							Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text);
+						Else
+							Print #Fn, ToUtf8(*Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text) & NewLine;
+						End If
 					Next
 				ElseIf FileEncoding = FileEncodings.PlainText  Then
-					For i As Integer = 0 To Content.Lines.Count - 1
-						Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+					For i As Integer = 0 To iCount
+						If i = iCount Then
+							Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text;
+						Else
+							Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+						End If
 					Next
 				Else
-					For i As Integer = 0 To Content.Lines.Count - 1
-						Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+					For i As Integer = 0 To iCount
+						If i = iCount Then
+							Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text;
+						Else
+							Print #Fn, *Cast(EditControlLine Ptr, Content.Lines.Item(i))->Text & NewLine;
+						End If
 					Next
 				End If
 			Else
