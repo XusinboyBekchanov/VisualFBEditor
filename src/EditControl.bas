@@ -588,6 +588,7 @@ Namespace My.Sys.Forms
 		On Error Goto ErrorHandler
 		If Trim(wLine, Any !"\t ") = "" Then Return -1
 		Dim As String sLine = wLine
+		Dim As WString * 2048 sLineTrim
 		If InAsm AndAlso CBool(InStr(LCase(wLine), "asm") = 0) Then Return -1
 		If CStyle Then Return -1
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
@@ -601,29 +602,30 @@ Namespace My.Sys.Forms
 		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
+			sLineTrim = Trim(LCase(sLine), Any !"\t ") & " "
 			With Constructions(i)
-				If CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name0 & " "))) OrElse _
-					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name01 & " "))) OrElse _
-					CInt(.Name02 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name02 & " "))) OrElse _
-					CInt(.Name03 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name03 & " "))) OrElse _
-					CInt(.Name04 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name04 & " "))) OrElse _
-					CInt(.Name05 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name05 & " "))) OrElse _
-					CInt(.Name06 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name06 & " "))) OrElse _
-					CInt(.Name07 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name07 & " "))) OrElse _
-					CInt(.Name08 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name08 & " ")))))) AndAlso _
+				If CInt(CInt(StartsWith(sLineTrim, LCase(.Name0 & " "))) OrElse _
+					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name01 & " "))) OrElse _
+					CInt(.Name02 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name02 & " "))) OrElse _
+					CInt(.Name03 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name03 & " "))) OrElse _
+					CInt(.Name04 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name04 & " "))) OrElse _
+					CInt(.Name05 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name05 & " "))) OrElse _
+					CInt(.Name06 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name06 & " "))) OrElse _
+					CInt(.Name07 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name07 & " "))) OrElse _
+					CInt(.Name08 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name08 & " ")))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
 					CInt(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
 					CInt(LCase(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
 					iType = 0
 					Return i
-				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
-					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
-					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
+				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
+					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
+					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
 					iType = 1
 					Return i
-				ElseIf CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.EndName & " "))) OrElse _
-					CInt(CInt(i = 0) AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "endif "))) Then
+				ElseIf CInt(StartsWith(sLineTrim, LCase(.EndName & " "))) OrElse _
+					CInt(CInt(i = 0) AndAlso CInt(StartsWith(sLineTrim, "endif "))) Then
 					iType = 2
 					Return i
 				End If
