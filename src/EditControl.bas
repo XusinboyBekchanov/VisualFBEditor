@@ -1732,11 +1732,11 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes, WithoutScroll As Boolean = False)
 		Dim As WString Ptr pBuff
-		Dim As String Buff, EncodingStr, NewLineStr
+		Dim As String Buff, EncodingStr, NewLineStr, InContinueStr, InContinueStrOld, InContinueStrTmp
 		Dim As WString Ptr BuffRead
 		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
-		Dim As Integer iC = 0, OldiC = 0, i = 0
+		Dim As Integer iC = 0, OldiC = 0, i = 0, OldConsIndex, OldConsPart
 		Dim As Boolean InAsm = False, FileLoaded
 		Dim As Double  timeElapse = Timer
 		'check the Newlinetype again for missing Cr in AsicII file
@@ -1808,6 +1808,7 @@ Namespace My.Sys.Forms
 					Dim As WString Ptr FText
 					Dim As EditControlLine Ptr FECLine
 					WLet(FText, "")
+					InContinueStrOld = " "
 					Dim As Integer j = 0, jCount = Len(*wsFileContents)
 					Do While j <= jCount
 						WAdd FText, WChr((*wsFileContents)[j])
@@ -1820,16 +1821,31 @@ Namespace My.Sys.Forms
 							pBuff = 0
 							WLet(pBuff, Trim(Trim(Mid(*FText, 1, Len(*FText)), Any WChr(10)), Any WChr(13)))
 							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
-							iC = FindCommentIndex(*pBuff, OldiC)
-							FECLine->CommentIndex = iC
-							FECLine->InAsm = InAsm
 							Content.Lines.Add(FECLine)
-							ChangeCollapsibility i
-							If FECLine->ConstructionIndex = C_Asm Then
-								InAsm = FECLine->ConstructionPart = 0
-							End If
-							FECLine->InAsm = InAsm
-							OldiC = iC
+							iC = FindCommentIndex(*pBuff, OldiC)
+					FECLine->CommentIndex = iC
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					InContinueStr = Trim(*pBuff, Any !"\t ")
+					InContinueStrTmp = Right(InContinueStr, 2)
+					If InContinueStrTmp = " _" Then
+						InContinueStr = InContinueStrTmp
+					Else
+						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+					End If
+					If InContinueStr = InContinueStrOld Then
+						FECLine->ConstructionIndex = OldConsIndex 
+						FECLine->ConstructionPart = 2
+					Else
+						ChangeCollapsibility i
+						OldConsIndex = FECLine->ConstructionIndex
+						'OldConsPart = FECLine->ConstructionPart
+						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+					End If
 							i += 1
 							WLet(FText, "")
 							If (*wsFileContents)[j] = 13 AndAlso (*wsFileContents)[j + 1] = 10 Then j += 1
@@ -1900,6 +1916,7 @@ Namespace My.Sys.Forms
 			Content.Lines.Clear
 			'VisibleLines.Clear
 			i = 0
+			InContinueStrOld = " "
 			Fn = FreeFile_
 			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 			If Result = 0 Then
@@ -1924,16 +1941,31 @@ Namespace My.Sys.Forms
 						WLet(pBuff, *BuffRead)
 					End If
 					FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+					Content.Lines.Add(FECLine)
 					iC = FindCommentIndex(*pBuff, OldiC)
 					FECLine->CommentIndex = iC
-					FECLine->InAsm = InAsm
-					Content.Lines.Add(FECLine)
-					ChangeCollapsibility i
 					If FECLine->ConstructionIndex = C_Asm Then
 						InAsm = FECLine->ConstructionPart = 0
 					End If
 					FECLine->InAsm = InAsm
 					OldiC = iC
+					InContinueStr = Trim(*pBuff, Any !"\t ")
+					InContinueStrTmp = Right(InContinueStr, 2)
+					If InContinueStrTmp = " _" Then
+						InContinueStr = InContinueStrTmp
+					Else
+						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+					End If
+					If InContinueStr = InContinueStrOld Then
+						FECLine->ConstructionIndex = OldConsIndex 
+						FECLine->ConstructionPart = 2 'OldConsPart
+					Else
+						ChangeCollapsibility i
+						OldConsIndex = FECLine->ConstructionIndex
+						'OldConsPart = FECLine->ConstructionPart
+						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+					End If
 					i += 1
 				Loop
 				CalculateLeftMargin
@@ -8484,4 +8516,3 @@ Sub LoadKeyWords
 	'	Loop
 	'	Close #Fn
 End Sub
-
