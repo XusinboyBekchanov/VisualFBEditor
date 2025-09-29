@@ -1839,7 +1839,7 @@ Namespace My.Sys.Forms
 					End If
 					If InContinueStr = InContinueStrOld Then
 						FECLine->ConstructionIndex = OldConsIndex 
-						FECLine->ConstructionPart = 2
+						FECLine->ConstructionPart = 3
 					Else
 						ChangeCollapsibility i
 						OldConsIndex = FECLine->ConstructionIndex
@@ -1959,7 +1959,7 @@ Namespace My.Sys.Forms
 					End If
 					If InContinueStr = InContinueStrOld Then
 						FECLine->ConstructionIndex = OldConsIndex 
-						FECLine->ConstructionPart = 2 'OldConsPart
+						FECLine->ConstructionPart = 3
 					Else
 						ChangeCollapsibility i
 						OldConsIndex = FECLine->ConstructionIndex
