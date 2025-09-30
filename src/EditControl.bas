@@ -588,6 +588,7 @@ Namespace My.Sys.Forms
 		On Error Goto ErrorHandler
 		If Trim(wLine, Any !"\t ") = "" Then Return -1
 		Dim As String sLine = wLine
+		Dim As WString * 2048 sLineTrim
 		If InAsm AndAlso CBool(InStr(LCase(wLine), "asm") = 0) Then Return -1
 		If CStyle Then Return -1
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
@@ -601,29 +602,30 @@ Namespace My.Sys.Forms
 		iPos = InStr(sLine, "'")
 		If iPos = 0 Then iPos = Len(sLine) Else iPos -= 1
 		For i As Integer = 0 To UBound(Constructions)
+			sLineTrim = Trim(LCase(sLine), Any !"\t ") & " "
 			With Constructions(i)
-				If CInt(CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name0 & " "))) OrElse _
-					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name01 & " "))) OrElse _
-					CInt(.Name02 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name02 & " "))) OrElse _
-					CInt(.Name03 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name03 & " "))) OrElse _
-					CInt(.Name04 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name04 & " "))) OrElse _
-					CInt(.Name05 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name05 & " "))) OrElse _
-					CInt(.Name06 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name06 & " "))) OrElse _
-					CInt(.Name07 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name07 & " "))) OrElse _
-					CInt(.Name08 <> "" AndAlso StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name08 & " ")))))) AndAlso _
+				If CInt(CInt(StartsWith(sLineTrim, LCase(.Name0 & " "))) OrElse _
+					CInt(CInt(CInt(.Name01 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name01 & " "))) OrElse _
+					CInt(.Name02 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name02 & " "))) OrElse _
+					CInt(.Name03 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name03 & " "))) OrElse _
+					CInt(.Name04 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name04 & " "))) OrElse _
+					CInt(.Name05 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name05 & " "))) OrElse _
+					CInt(.Name06 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name06 & " "))) OrElse _
+					CInt(.Name07 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name07 & " "))) OrElse _
+					CInt(.Name08 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name08 & " ")))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
 					CInt(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
 					CInt(LCase(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
 					iType = 0
 					Return i
-				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
-					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
-					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
+				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
+					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
+					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
 					iType = 1
 					Return i
-				ElseIf CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", LCase(.EndName & " "))) OrElse _
-					CInt(CInt(i = 0) AndAlso CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & " ", "endif "))) Then
+				ElseIf CInt(StartsWith(sLineTrim, LCase(.EndName & " "))) OrElse _
+					CInt(CInt(i = 0) AndAlso CInt(StartsWith(sLineTrim, "endif "))) Then
 					iType = 2
 					Return i
 				End If
@@ -1732,11 +1734,11 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.LoadFromFile(ByRef FileName As WString, ByRef FileEncoding As FileEncodings, ByRef NewLineType As NewLineTypes, WithoutScroll As Boolean = False)
 		Dim As WString Ptr pBuff
-		Dim As String Buff, EncodingStr, NewLineStr
+		Dim As String Buff, EncodingStr, NewLineStr, InContinueStr, InContinueStrOld, InContinueStrTmp
 		Dim As WString Ptr BuffRead
 		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
-		Dim As Integer iC = 0, OldiC = 0, i = 0
+		Dim As Integer iC = 0, OldiC = 0, i = 0, OldConsIndex, OldConsPart
 		Dim As Boolean InAsm = False, FileLoaded
 		Dim As Double  timeElapse = Timer
 		'check the Newlinetype again for missing Cr in AsicII file
@@ -1808,6 +1810,7 @@ Namespace My.Sys.Forms
 					Dim As WString Ptr FText
 					Dim As EditControlLine Ptr FECLine
 					WLet(FText, "")
+					InContinueStrOld = " "
 					Dim As Integer j = 0, jCount = Len(*wsFileContents)
 					Do While j <= jCount
 						WAdd FText, WChr((*wsFileContents)[j])
@@ -1820,16 +1823,31 @@ Namespace My.Sys.Forms
 							pBuff = 0
 							WLet(pBuff, Trim(Trim(Mid(*FText, 1, Len(*FText)), Any WChr(10)), Any WChr(13)))
 							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
-							iC = FindCommentIndex(*pBuff, OldiC)
-							FECLine->CommentIndex = iC
-							FECLine->InAsm = InAsm
 							Content.Lines.Add(FECLine)
-							ChangeCollapsibility i
-							If FECLine->ConstructionIndex = C_Asm Then
-								InAsm = FECLine->ConstructionPart = 0
-							End If
-							FECLine->InAsm = InAsm
-							OldiC = iC
+							iC = FindCommentIndex(*pBuff, OldiC)
+					FECLine->CommentIndex = iC
+					If FECLine->ConstructionIndex = C_Asm Then
+						InAsm = FECLine->ConstructionPart = 0
+					End If
+					FECLine->InAsm = InAsm
+					OldiC = iC
+					InContinueStr = Trim(*pBuff, Any !"\t ")
+					InContinueStrTmp = Right(InContinueStr, 2)
+					If InContinueStrTmp = " _" Then
+						InContinueStr = InContinueStrTmp
+					Else
+						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+					End If
+					If InContinueStr = InContinueStrOld Then
+						FECLine->ConstructionIndex = OldConsIndex 
+						FECLine->ConstructionPart = 3
+					Else
+						ChangeCollapsibility i
+						OldConsIndex = FECLine->ConstructionIndex
+						'OldConsPart = FECLine->ConstructionPart
+						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+					End If
 							i += 1
 							WLet(FText, "")
 							If (*wsFileContents)[j] = 13 AndAlso (*wsFileContents)[j + 1] = 10 Then j += 1
@@ -1900,6 +1918,7 @@ Namespace My.Sys.Forms
 			Content.Lines.Clear
 			'VisibleLines.Clear
 			i = 0
+			InContinueStrOld = " "
 			Fn = FreeFile_
 			Result = Open(FileName For Input Encoding EncodingStr As #Fn)
 			If Result = 0 Then
@@ -1924,16 +1943,31 @@ Namespace My.Sys.Forms
 						WLet(pBuff, *BuffRead)
 					End If
 					FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
+					Content.Lines.Add(FECLine)
 					iC = FindCommentIndex(*pBuff, OldiC)
 					FECLine->CommentIndex = iC
-					FECLine->InAsm = InAsm
-					Content.Lines.Add(FECLine)
-					ChangeCollapsibility i
 					If FECLine->ConstructionIndex = C_Asm Then
 						InAsm = FECLine->ConstructionPart = 0
 					End If
 					FECLine->InAsm = InAsm
 					OldiC = iC
+					InContinueStr = Trim(*pBuff, Any !"\t ")
+					InContinueStrTmp = Right(InContinueStr, 2)
+					If InContinueStrTmp = " _" Then
+						InContinueStr = InContinueStrTmp
+					Else
+						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+					End If
+					If InContinueStr = InContinueStrOld Then
+						FECLine->ConstructionIndex = OldConsIndex 
+						FECLine->ConstructionPart = 3
+					Else
+						ChangeCollapsibility i
+						OldConsIndex = FECLine->ConstructionIndex
+						'OldConsPart = FECLine->ConstructionPart
+						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+					End If
 					i += 1
 				Loop
 				CalculateLeftMargin
@@ -8484,4 +8518,3 @@ Sub LoadKeyWords
 	'	Loop
 	'	Close #Fn
 End Sub
-
