@@ -11241,6 +11241,7 @@ Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Objec
 		stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width 
 	#endif
+	frmMain.RequestAlign(NewWidth, NewHeight, False)
 End Sub
 
 Sub frmMain_KeyDown(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, Key As Integer, Shift As Integer)
