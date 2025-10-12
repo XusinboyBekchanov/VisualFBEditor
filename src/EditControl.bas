@@ -3197,16 +3197,22 @@ Namespace My.Sys.Forms
 		Private Sub EditControl.ReleaseDirect2D
 			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->SetTarget(pRenderTarget, 0)
+			End If
+			If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
+			If pFormat Then pFormat->lpVtbl->Release(pFormat): pFormat = 0
+			If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
+			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
 			End If
-			If pFormat Then pFormat->lpVtbl->Release(pFormat): pFormat = 0
-			If pTargetBitmap Then pTargetBitmap->lpVtbl->Release(pTargetBitmap): pTargetBitmap = 0
-			If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
-			If pSurface Then pSurface->lpVtbl->Release(pSurface): pSurface = 0
+			If pD3D11DeviceContext Then
+			    pD3D11DeviceContext->lpVtbl->ClearState(pD3D11DeviceContext)
+			    pD3D11DeviceContext->lpVtbl->Flush(pD3D11DeviceContext)
+			End If
 			If pSwapChain Then
 				pSwapChain->lpVtbl->SetFullscreenState(pSwapChain, False, NULL)
 				pSwapChain->lpVtbl->Release(pSwapChain): pSwapChain = 0
 			End If
+			If pTexture Then pTexture->lpVtbl->Release(pTexture): pTexture = 0
 		End Sub
 		
 		Sub EditControl.SetClientSize()
@@ -3252,6 +3258,9 @@ Namespace My.Sys.Forms
 						swapChainDesc.Scaling = DXGI_SCALING_NONE
 						swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_SEQUENTIAL ' all apps must use This SwapEffect
 						swapChainDesc.Flags = 0
+						
+						pD3D11DeviceContext->lpVtbl->ClearState(pD3D11DeviceContext)
+						pD3D11DeviceContext->lpVtbl->Flush(pD3D11DeviceContext)
 						
 						Var hr = pDXGIFactory2->lpVtbl->CreateSwapChainForHwnd(pDXGIFactory2, Cast(IUnknown Ptr, pD3D11Device), FHandle, @swapChainDesc, 0, 0, @pSwapChain)
 						
@@ -4066,9 +4075,6 @@ Namespace My.Sys.Forms
 					SetTimer FHandle, 2, BlinkTime, @EC_TimerProcBlink
 				End If
 			End If
-			If pRenderTarget = 0 Then
-				hd = GetDC(FHandle)
-			End If
 			If CurrentFontSize <> EditorFontSize OrElse *CurrentFontName <> *EditorFontName Then
 				This.Font.Name = *EditorFontName
 				This.Font.Size = EditorFontSize
@@ -4076,6 +4082,7 @@ Namespace My.Sys.Forms
 				bFull = True
 			End If
 			If pRenderTarget = 0 Then
+				hd = GetDC(FHandle)
 				If bufDC = 0 Then
 					bufDC = CreateCompatibleDC(hd)
 					bufBMP = CreateCompatibleBitmap(hd, ScaleX(dwClientX), ScaleY(dwClientY))
@@ -5484,7 +5491,6 @@ Namespace My.Sys.Forms
 								MoveToEx bufDC, ScaleX(LeftMargin - 13 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY), 0
 								LineTo bufDC, ScaleX(LeftMargin - 8 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)
 							Else
-								pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(FoldLines.ForegroundRed, FoldLines.ForegroundGreen, FoldLines.ForegroundBlue, 1.0), 0, @pBrushForeground)
 								pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(CInt(ScaleX(LeftMargin - 15 + CodePaneX)) + 1, CInt(ScaleY((i - VScrollPos) * dwCharY + 3 + CodePaneY)) + 1, CInt(ScaleX(LeftMargin - 6 + CodePaneX)), CInt(ScaleY((i - VScrollPos) * dwCharY + 12 + CodePaneY))), pBrushForeground, 1)
 								pRenderTarget->lpVtbl->DrawLine(pRenderTarget, Type<D2D1_POINT_2F>(CInt(ScaleX(LeftMargin - 13 + CodePaneX)), CInt(ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)) + 1), Type<D2D1_POINT_2F>(CInt(ScaleX(LeftMargin - 8 + CodePaneX)), CInt(ScaleY((i - VScrollPos) * dwCharY + 7 + CodePaneY)) + 1), pBrushForeground, 1)
 							End If
@@ -8445,8 +8451,6 @@ Namespace My.Sys.Forms
 			If bufDC Then DeleteDC bufDC
 			If bufBMP Then DeleteObject bufBMP
 			ReleaseDirect2D
-			If pRenderTarget Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pRenderTarget, 2))(pRenderTarget): pRenderTarget = 0
-			If pFormat Then Cast(Sub(ByVal As Any Ptr), COM_METHOD(pFormat, 2))(pFormat): pFormat = 0
 		#endif
 		WDeAllocate(FLine)
 		WDeAllocate(FLineLeft)
