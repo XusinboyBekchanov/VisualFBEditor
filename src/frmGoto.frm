@@ -25,61 +25,74 @@ pfGoto = @fGoto
 	End Sub
 	
 	Constructor frmGoto
-		This.Name = "frmGoto"
-		This.Width = 320
-		This.Height = 100
-		#ifdef __USE_GTK__
-			This.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
-		#else
-			This.Icon.LoadFromResourceID(1)
-		#endif
-		This.StartPosition = FormStartPosition.CenterParent
-		lblFind.Caption = ML("Line") & ":"
-		lblFind.Align = DockStyle.alLeft
-		lblFind.CenterImage = True
-		lblFind.ID = 1095
-		lblFind.SetBounds 65180, 0, 74, 20
-		lblFind.Parent = @Panel1
-		txtFind.Name = "txtFind"
-		txtFind.Align = DockStyle.alClient
-		txtFind.SetBounds 65254, 0, 210, 20
-		txtFind.Anchor.Left = AnchorStyle.asNone
-		txtFind.Anchor.Right = AnchorStyle.asNone
-		txtFind.Parent = @Panel1
-		btnCancel.Caption = ML("&Cancel")
-		btnCancel.Anchor.Right = AnchorStyle.asNone
-		btnCancel.Align = DockStyle.alRight
-		btnCancel.ExtraMargins.Left = 10
-		btnCancel.SetBounds 184, 0, 100, 20
-		btnCancel.Parent = @Panel2
-		'AddRange 10, @lblFind, @txtFind, @lblReplace, @txtReplace, @chkRegistr, @btnFind, @btnReplace, @btnFindAll, @btnReplaceAll, @btnCancel
-		OnShow = @_Form_Show_
-		btnCancel.Text = ML("&Cancel")
-		btnCancel.OnClick = @_btnCancel_Click_
-		btnFind.Caption = ML("&Go")
-		btnFind.Default = True
-		btnFind.Align = DockStyle.alRight
-		btnFind.SetBounds 74, 0, 100, 20
-		btnFind.Anchor.Right = AnchorStyle.asNone
-		btnFind.Parent = @Panel2
-		btnFind.Text = ML("&Go")
-		btnFind.OnClick = @_btnFind_Click_
-		This.DefaultButton = @btnFind
-		This.Caption = ML("Goto")
-		This.Margins.Top = 10
-		This.Margins.Right = 10
-		This.Margins.Left = 10
-		This.Margins.Bottom = 10
-		This.AutoSize = True
-		This.CancelButton = @btnCancel
-		'This.BorderStyle = 2
+		With This
+			.Name = "frmGoto"
+			.Caption = ML("Goto")
+			#ifdef __USE_GTK__
+				.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+			#else
+				.Icon.LoadFromResourceID(1)
+			#endif
+			.MinimizeBox = False
+			.MaximizeBox = False
+			.OnShow = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Form), @Form_Show)
+			.DefaultButton = @btnFind
+			.CancelButton = @btnCancel
+			.Designer = @This
+			.BorderStyle = FormBorderStyle.FixedToolWindow
+			.SetBounds 0, 0, 243, 95
+		End With
+		
+		With lblFind
+			.Caption = ML("Line") & ":"
+			.Align = DockStyle.alLeft
+			.CenterImage = True
+			.ID = 1095
+			.SetBounds 5, 0, 74, 20
+			.Parent = @Panel1
+		End With
+		
+		With txtFind
+			.Name = "txtFind"
+			.Align = DockStyle.alClient
+			.SetBounds 70, 0, 210, 20
+			.Anchor.Left = AnchorStyle.asNone
+			.Anchor.Right = AnchorStyle.asNone
+			.Parent = @Panel1
+			.Designer = @This
+		End With
+		
+		With btnCancel
+			.Caption = ML("&Cancel")
+			.Anchor.Right = AnchorStyle.asNone
+			.Align = DockStyle.alRight
+			.ExtraMargins.Left = 10
+			.SetBounds 184, 0, 100, 20
+			.Parent = @Panel2
+			.Designer = @This
+			.Text = ML("&Cancel")
+			.OnClick = @_btnCancel_Click_
+		End With
+		
+		With btnFind
+			.Caption = ML("&Go")
+			.Default = True
+			.Align = DockStyle.alRight
+			.SetBounds 74, 0, 100, 20
+			.Anchor.Right = AnchorStyle.asNone
+			.Designer = @This
+			.Parent = @Panel2
+			.Text = ML("&Go")
+			.OnClick = @_btnFind_Click_
+		End With
 		' VerticalBox1
 		With VerticalBox1
 			.Name = "VerticalBox1"
 			.Text = "VerticalBox1"
 			.TabIndex = 5
 			.Align = DockStyle.alTop
-			.SetBounds 0, 0, 304, 20
+			.BorderStyle = BorderStyles.bsNone
+			.SetBounds 0, 0, 227, 50
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -109,7 +122,7 @@ pfGoto = @fGoto
 	End Constructor
 	
 	Destructor frmGoto
-	
+		
 	End Destructor
 '#End Region
 
