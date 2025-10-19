@@ -11818,7 +11818,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_WINAPI__
-		For i As Integer = 0 To 6
+		For i As Integer = 0 To 5
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
