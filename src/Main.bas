@@ -11738,11 +11738,11 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	MainReBar.Bands.Item(1)->Visible = ShowEditToolBar
 	MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar
 	'rbBottom.Bands.Item(0)->Visible = ShowFormatToolBar
-	MainReBar.Bands.Item(3)->Visible = ShowFormatToolBar
-	MainReBar.Bands.Item(4)->Visible = ShowBuildToolBar
-	MainReBar.Bands.Item(5)->Visible = ShowDebugToolBar
-	MainReBar.Bands.Item(6)->Visible = ShowRunToolBar
-	'MainReBar.Bands.Item(6)->FixedSize = True
+	MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar
+	MainReBar.Bands.Item(4)->Visible = ShowDebugToolBar
+	MainReBar.Bands.Item(5)->Visible = ShowRunToolBar
+	'MainReBar.Bands.Item(5)->FixedSize = True
+	MainReBar.Bands.Item(6)->Visible = ShowFormatToolBar
 	mnuStandardToolBar->Checked = ShowStandardToolBar
 	mnuEditToolBar->Checked = ShowEditToolBar
 	mnuProjectToolBar->Checked = ShowProjectToolBar
@@ -12184,10 +12184,10 @@ frmMain.Menu = @mnuMain
 MainReBar.Add @tbStandard
 MainReBar.Add @tbEdit
 MainReBar.Add @tbProject
-MainReBar.Add @tbFormat
 MainReBar.Add @tbBuild
 MainReBar.Add @tbDebug
 MainReBar.Add @tbRun
+MainReBar.Add @tbFormat
 'rbBottom.Add @tbFormat
 frmMain.Add @MainReBar
 'frmMain.Add @rbLeft
