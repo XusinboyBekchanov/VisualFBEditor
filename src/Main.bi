@@ -161,13 +161,13 @@ Common Shared As Boolean UseMakeOnStartWithCompile
 Common Shared As Boolean CreateNonStaticEventHandlers, CreateFormTypesWithoutTypeWord
 Common Shared As Boolean PlaceStaticEventHandlersAfterTheConstructor, CreateStaticEventHandlersWithAnUnderscoreAtTheBeginning, CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt
 Common Shared As Boolean LimitDebug, DisplayWarningsInDebug, TurnOnEnvironmentVariables
-Common Shared As Boolean UseDebugger, ParameterInfoShow
+Common Shared As Boolean UseDebugger, ParameterInfoShow, LockControls
 Common Shared As Boolean CompileGUI, bAIAgentFirstRun
 Common Shared As Boolean mFormFindInFile
 Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
-Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar, DarkMode, ShowStandardToolBar, ShowEditToolBar, ShowProjectToolBar, ShowBuildToolBar, ShowRunToolBar
+Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar, DarkMode, ShowStandardToolBar, ShowEditToolBar, ShowProjectToolBar, ShowFormatToolBar, ShowBuildToolBar, ShowRunToolBar
 Common Shared As Boolean ShowKeywordsToolTip, ShowTooltipsAtTheTop, ShowHorizontalSeparatorLines, ShowHolidayFrame, ShowTipoftheDay
 Common Shared As Boolean OpenCommandPromptInMainFileFolder, ShowProjectFolders
 Common Shared As Integer WhenVisualFBEditorStarts, ShowTipoftheDayIndex
@@ -297,6 +297,7 @@ Declare Sub StopProgress()
 Declare Sub ThreadCounter(Id As Any Ptr)
 Declare Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 Declare Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
+Declare Sub ChangeLockControls(bLockControls As Boolean, ChangeObject As Integer = -1)
 Declare Sub ChangeUseDebugger(bUseDebugger As Boolean, ChangeObject As Integer = -1)
 Declare Sub ChangeFileEncoding(FileEncoding As FileEncodings)
 Declare Sub ChangeNewLineType(NewLineType As NewLineTypes)

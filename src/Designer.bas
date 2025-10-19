@@ -1,5 +1,5 @@
 ﻿'#########################################################
-'#  frmAddIns.bas                                        #
+'#  Designer.bas                                        #
 '#  This file is part of VisualFBEditor                  #
 '#  Authors: Xusinboy Bekchanov (bxusinboy@mail.ru)      #
 '#           Liu XiaLin (LiuZiQi.HK@hotmail.com)         #
@@ -69,20 +69,48 @@ Namespace My.Sys.Forms
 	'End Sub
 	
 	Sub Designer.ChangeFirstMenuItem()
-		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
-		If st AndAlso st->ReadPropertyFunc Then
-			Select Case QWString(st->ReadPropertyFunc(SelectedControl, "ClassName"))
-			Case "MainMenu", "PopupMenu"
-				mnuDesigner.Item(0)->Caption = ML("Menu Editor")
-			Case "ToolBar"
-				mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
-			Case "StatusBar"
-				mnuDesigner.Item(0)->Caption = ML("StatusBar Editor")
-			Case "ImageList"
-				mnuDesigner.Item(0)->Caption = ML("ImageList Editor")
-			Case Else
-				mnuDesigner.Item(0)->Caption = ML("Default event")
-			End Select
+		If SelectedControl = DesignControl Then
+			mnuDesigner.Item("LockControls")->Visible = True
+			mnuDesigner.Item("Copy")->Visible = False
+			mnuDesigner.Item("Cut")->Visible = False
+			mnuDesigner.Item("Delete")->Visible = False
+			mnuDesigner.Item("DuplicateSeparator")->Visible = False
+			mnuDesigner.Item("Duplicate")->Visible = False
+			mnuDesigner.Item("OrderSeparator")->Visible = False
+			mnuDesigner.Item("BringToFront")->Visible = False
+			mnuDesigner.Item("SendToBack")->Visible = False
+			mnuDesigner.Item(0)->Caption = ML("Default event")
+			mnuDesigner.Item(0)->Image = "Code"
+		Else
+			mnuDesigner.Item("LockControls")->Visible = False
+			mnuDesigner.Item("Copy")->Visible = True
+			mnuDesigner.Item("Cut")->Visible = True
+			mnuDesigner.Item("Delete")->Visible = True
+			mnuDesigner.Item("DuplicateSeparator")->Visible = True
+			mnuDesigner.Item("Duplicate")->Visible = True
+			mnuDesigner.Item("OrderSeparator")->Visible = True
+			mnuDesigner.Item("BringToFront")->Visible = True
+			mnuDesigner.Item("SendToBack")->Visible = True
+			Dim As SymbolsType Ptr st = Symbols(SelectedControl)
+			If st AndAlso st->ReadPropertyFunc Then
+				Select Case QWString(st->ReadPropertyFunc(SelectedControl, "ClassName"))
+				Case "MainMenu", "PopupMenu"
+					mnuDesigner.Item(0)->Caption = ML("Menu Editor")
+					mnuDesigner.Item(0)->Image = ""
+				Case "ToolBar"
+					mnuDesigner.Item(0)->Caption = ML("ToolBar Editor")
+					mnuDesigner.Item(0)->Image = ""
+				Case "StatusBar"
+					mnuDesigner.Item(0)->Caption = ML("StatusBar Editor")
+					mnuDesigner.Item(0)->Image = ""
+				Case "ImageList"
+					mnuDesigner.Item(0)->Caption = ML("ImageList Editor")
+					mnuDesigner.Item(0)->Image = ""
+				Case Else
+					mnuDesigner.Item(0)->Caption = ML("Default event")
+					mnuDesigner.Item(0)->Image = "Code"
+				End Select
+			End If
 		End If
 	End Sub
 	
@@ -285,14 +313,14 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Function Dot_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Designer Ptr Des = data1
-			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") Then
+			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso Not Des->LockControls Then
 				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)
 			Else
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			End If
 			.cairo_rectangle(cr, 0, 0, Des->DotSize, Des->DotSize)
 			cairo_fill_preserve(cr)
-			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") Then
+			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso Not Des->LockControls Then
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			Else
 				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)
@@ -736,7 +764,7 @@ Namespace My.Sys.Forms
 		If FDotIndex <> -1 Then
 			FCanInsert  = False
 			FCanMove    = False
-			FCanSize    = True
+			FCanSize    = Not FLockControls
 			#ifdef __USE_GTK__
 				#ifndef __FB_WIN32__
 					If G_IS_OBJECT(FDots(0, FDotIndex)) Then
@@ -769,17 +797,21 @@ Namespace My.Sys.Forms
 				#endif
 			Next
 			#ifndef __USE_GTK__
-				Select Case FDotIndex
-				Case 0: SetCursor(crSizeNWSE)
-				Case 1: SetCursor(crSizeNS)
-				Case 2: SetCursor(crSizeNESW)
-				Case 3: SetCursor(crSizeWE)
-				Case 4: SetCursor(crSizeNWSE)
-				Case 5: SetCursor(crSizeNS)
-				Case 6: SetCursor(crSizeNESW)
-				Case 7: SetCursor(crSizeWE)
-				End Select
-				SetCapture(FDialog)
+				If FLockControls Then
+					SetCursor(crArrow)
+				Else
+					Select Case FDotIndex
+					Case 0: SetCursor(crSizeNWSE)
+					Case 1: SetCursor(crSizeNS)
+					Case 2: SetCursor(crSizeNESW)
+					Case 3: SetCursor(crSizeWE)
+					Case 4: SetCursor(crSizeNWSE)
+					Case 5: SetCursor(crSizeNS)
+					Case 6: SetCursor(crSizeNESW)
+					Case 7: SetCursor(crSizeWE)
+					End Select
+					SetCapture(FDialog)
+				End If
 			#endif
 		Else
 			If FSelControl <> FDialog Then
@@ -795,7 +827,7 @@ Namespace My.Sys.Forms
 					#endif
 				Else
 					FCanInsert = False
-					FCanMove   = True
+					FCanMove   = Not FLockControls
 					FCanSize   = False
 					#ifdef __USE_GTK__
 						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crSize))
@@ -835,7 +867,7 @@ Namespace My.Sys.Forms
 				Else
 					If OnChangeSelection Then OnChangeSelection(This, SelectedControl)
 				End If
-				If Not FCanInsert And Not FCanMove Then
+				If Not FCanInsert AndAlso Not FCanMove AndAlso (CBool(FSelControl = FDialog) OrElse Not FLockControls) Then
 					#ifndef __USE_GTK__
 						FHDC = GetDC(FDialog)
 						'SetROP2(hdc, R2_NOTXORPEN)
@@ -920,7 +952,7 @@ Namespace My.Sys.Forms
 					#endif
 				End If
 			End If
-			If Not FCanInsert And Not FCanMove And Not FCanSize Then
+			If Not FCanInsert AndAlso Not FCanMove AndAlso Not FCanSize AndAlso (CBool(FSelControl = FDialog) OrElse Not FLockControls) Then
 				#ifdef __USE_GTK__
 					If GTK_IS_WIDGET(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
 				#else
@@ -946,16 +978,20 @@ Namespace My.Sys.Forms
 				If OnMouseMove Then OnMouseMove(This, X, Y, GetControl(FOverControl))
 				Dim As Integer Id = IsDot(FOverControl)
 				If Id <> -1 Then
-					Select Case Id
-					Case 0 : SetCursor(crSizeNWSE)
-					Case 1 : SetCursor(crSizeNS)
-					Case 2 : SetCursor(crSizeNESW)
-					Case 3 : SetCursor(crSizeWE)
-					Case 4 : SetCursor(crSizeNWSE)
-					Case 5 : SetCursor(crSizeNS)
-					Case 6 : SetCursor(crSizeNESW)
-					Case 7 : SetCursor(crSizeWE)
-					End Select
+					If FLockControls Then
+						SetCursor(crArrow)
+					Else
+						Select Case Id
+						Case 0 : SetCursor(crSizeNWSE)
+						Case 1 : SetCursor(crSizeNS)
+						Case 2 : SetCursor(crSizeNESW)
+						Case 3 : SetCursor(crSizeWE)
+						Case 4 : SetCursor(crSizeNWSE)
+						Case 5 : SetCursor(crSizeNS)
+						Case 6 : SetCursor(crSizeNESW)
+						Case 7 : SetCursor(crSizeWE)
+						End Select
+					End If
 				Else
 					If GetAncestor(FOverControl,GA_ROOTOWNER) <> FDialog Then
 						ReleaseCapture
@@ -998,7 +1034,7 @@ Namespace My.Sys.Forms
 			'            swap FBeginY, FNewY
 			'        end if
 			FDown = False
-			If Not FCanMove And Not FCanInsert And Not FCanSize Then
+			If Not FCanMove AndAlso Not FCanInsert AndAlso Not FCanSize Then
 				If FBeginX > FNewX Then Swap FBeginX, FNewX
 				If FBeginY > FNewY Then Swap FBeginY, FNewY
 				SelectedControls.Clear
@@ -1021,9 +1057,11 @@ Namespace My.Sys.Forms
 						End If
 					Next i
 				#else
-					FHDC = GetDC(FDialog)
-					DrawFocusRect(FHDC, @Type<Rect>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
-					ReleaseDC(FDialog, FHDC)
+					If CBool(FSelControl = FDialog) OrElse Not FLockControls Then
+						FHDC = GetDC(FDialog)
+						DrawFocusRect(FHDC, @Type<Rect>(ScaleX(FBeginX), ScaleY(FBeginY), ScaleX(FNewX), ScaleY(FNewY)))
+						ReleaseDC(FDialog, FHDC)
+					End If
 					SelectedControl = DesignControl
 					FSelControl = FDialog
 					Dim As Rect R, R1
@@ -2348,6 +2386,472 @@ Namespace My.Sys.Forms
 		'#EndIf
 	End Function
 	
+	Public Sub Designer.AlignLefts
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiLeft = iLeft
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignCenters
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiLeft = iLeft + iWidth / 2 - iiWidth / 2
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignRights
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiLeft = iLeft + iWidth - iiWidth
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignTops
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiTop = iTop
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignMiddles
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiTop = iTop + iHeight / 2 - iiHeight / 2
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignBottoms
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiTop = iTop + iHeight - iiHeight
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.AlignToGrid
+		If Components.Count > 0 Then
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiLeft = Int(iiLeft / GridSize) * GridSize
+				iiTop = Int(iiTop / GridSize) * GridSize
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.MakeSameSizeWidth
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiWidth = iWidth
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.MakeSameSizeHeight
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiHeight = iHeight
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.MakeSameSizeBoth
+		If Components.Count > 0 Then
+			Dim As Integer iLeft, iTop, iWidth, iHeight
+			GetControlBounds(SelectedControl, iLeft, iTop, iWidth, iHeight)
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiWidth = iWidth
+				iiHeight = iHeight
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.SizeToGrid
+		If Components.Count > 0 Then
+			For i As Integer = 0 To SelectedControls.Count - 1
+				Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+				GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				iiLeft = Int(iiLeft / GridSize) * GridSize
+				iiTop = Int(iiTop / GridSize) * GridSize
+				iiWidth = Int(iiWidth / GridSize) * GridSize
+				iiHeight = Int(iiHeight / GridSize) * GridSize
+				SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+				If OnModified Then OnModified(This, SelectedControls.Items[i], , , , iiLeft, iiTop, iiWidth, iiHeight)
+			Next
+			MoveDots SelectedControl
+		End If
+	End Sub
+	
+	Public Sub Designer.HorizontalSpacingMakeEqual
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 3 Then Exit Sub
+		Dim As Integer iMin, iMax, iLefts, iWidths, iAverage, iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+			iWidths += iiWidth
+		Next
+		iListOfLefts.Sort
+		iMin = iListOfLefts.Item(0)
+		iMax = iListOfLefts.Item(iCount - 1)
+		iIndex = iListOfWidths.IndexOfObject(iListOfLefts.Object(iCount - 1))
+		iWidths -= iListOfWidths.Item(iIndex)
+		iAverage = (iMax - iMin - iWidths) / (iCount - 1)
+		iIndex = iListOfWidths.IndexOfObject(iListOfLefts.Object(0))
+		iLefts = iMin + iListOfWidths.Item(iIndex)
+		For i As Integer = 1 To iCount - 2
+			Ctrl = iListOfLefts.Object(i)
+			iIndex = iListOfTops.IndexOfObject(Ctrl)
+			iLefts += iAverage
+			iiLeft = iLefts
+			iiTop = iListOfTops.Item(iIndex)
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+			iLefts += iiWidth
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.HorizontalSpacingIncrease
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfLefts.Sort
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfLefts.Object(i)
+			iIndex = iListOfTops.IndexOfObject(Ctrl)
+			iiLeft = iListOfLefts.Item(i) + GridSize * i
+			iiTop = iListOfTops.Item(iIndex)
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.HorizontalSpacingDecrease
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfLefts.Sort
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfLefts.Object(i)
+			iIndex = iListOfTops.IndexOfObject(Ctrl)
+			iiLeft = iListOfLefts.Item(i) - GridSize * i
+			iiTop = iListOfTops.Item(iIndex)
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.HorizontalSpacingRemove
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex, iLefts
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfLefts.Sort
+		iIndex = iListOfWidths.IndexOfObject(iListOfLefts.Object(0))
+		iLefts = iListOfLefts.Item(0) + iListOfWidths.Item(iIndex)
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfLefts.Object(i)
+			iIndex = iListOfTops.IndexOfObject(Ctrl)
+			iiLeft = iLefts
+			iiTop = iListOfTops.Item(iIndex)
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+			iLefts += iiWidth
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.VerticalSpacingMakeEqual
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 3 Then Exit Sub
+		Dim As Integer iMin, iMax, iTops, iHeights, iAverage, iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+			iHeights += iiHeight
+		Next
+		iListOfTops.Sort
+		iMin = iListOfTops.Item(0)
+		iMax = iListOfTops.Item(iCount - 1)
+		iIndex = iListOfHeights.IndexOfObject(iListOfTops.Object(iCount - 1))
+		iHeights -= iListOfHeights.Item(iIndex)
+		iAverage = (iMax - iMin - iHeights) / (iCount - 1)
+		iIndex = iListOfHeights.IndexOfObject(iListOfTops.Object(0))
+		iTops = iMin + iListOfHeights.Item(iIndex)
+		For i As Integer = 1 To iCount - 2
+			Ctrl = iListOfTops.Object(i)
+			iIndex = iListOfLefts.IndexOfObject(Ctrl)
+			iTops += iAverage
+			iiLeft = iListOfLefts.Item(iIndex)
+			iiTop = iTops
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+			iTops += iiHeight
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.VerticalSpacingIncrease
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfTops.Sort
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfTops.Object(i)
+			iIndex = iListOfLefts.IndexOfObject(Ctrl)
+			iiLeft = iListOfLefts.Item(iIndex)
+			iiTop = iListOfTops.Item(i) + GridSize * i
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.VerticalSpacingDecrease
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfTops.Sort
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfTops.Object(i)
+			iIndex = iListOfLefts.IndexOfObject(Ctrl)
+			iiLeft = iListOfLefts.Item(iIndex)
+			iiTop = iListOfTops.Item(i) - GridSize * i
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.VerticalSpacingRemove
+		If Components.Count = 0 Then Exit Sub
+		Dim As Integer iCount = SelectedControls.Count
+		If iCount < 2 Then Exit Sub
+		Dim As Integer iIndex, iTops
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		Dim As IntegerList iListOfLefts, iListOfTops, iListOfWidths, iListOfHeights
+		Dim As Any Ptr Ctrl
+		For i As Integer = 0 To iCount - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iListOfLefts.Add iiLeft, SelectedControls.Items[i]
+			iListOfTops.Add iiTop, SelectedControls.Items[i]
+			iListOfWidths.Add iiWidth, SelectedControls.Items[i]
+			iListOfHeights.Add iiHeight, SelectedControls.Items[i]
+		Next
+		iListOfTops.Sort
+		iIndex = iListOfHeights.IndexOfObject(iListOfTops.Object(0))
+		iTops = iListOfTops.Item(0) + iListOfHeights.Item(iIndex)
+		For i As Integer = 1 To iCount - 1
+			Ctrl = iListOfTops.Object(i)
+			iIndex = iListOfLefts.IndexOfObject(Ctrl)
+			iiLeft = iListOfLefts.Item(iIndex)
+			iiTop = iTops
+			iiWidth = iListOfWidths.Item(iIndex)
+			iiHeight = iListOfHeights.Item(iIndex)
+			SetControlBounds(Ctrl, iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+			iTops += iiHeight
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.CenterInParentHorizontally
+		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
+		If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+		Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent")
+		If ParentCtrl = 0 Then Exit Sub
+		Dim As Integer iLeft, iTop, iWidth, iHeight
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		GetControlBounds(ParentCtrl, iLeft, iTop, iWidth, iHeight)
+		For i As Integer = 0 To SelectedControls.Count - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iiLeft = (iWidth - iiWidth) / 2
+			SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Sub Designer.CenterInParentVertically
+		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
+		If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+		Dim As Any Ptr ParentCtrl = st->ReadPropertyFunc(SelectedControl, "Parent")
+		If ParentCtrl = 0 Then Exit Sub
+		Dim As Integer iLeft, iTop, iWidth, iHeight
+		Dim As Integer iiLeft, iiTop, iiWidth, iiHeight
+		GetControlBounds(ParentCtrl, iLeft, iTop, iWidth, iHeight)
+		For i As Integer = 0 To SelectedControls.Count - 1
+			GetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			iiTop = (iHeight - iiHeight) / 2
+			SetControlBounds(SelectedControls.Items[i], iiLeft, iiTop, iiWidth, iiHeight)
+			If OnModified Then OnModified(This, Ctrl, , , , iiLeft, iiTop, iiWidth, iiHeight)
+		Next
+		MoveDots SelectedControl
+	End Sub
+	
+	Public Property Designer.LockControls As Boolean
+		Return FLockControls
+	End Property
+	
+	Public Property Designer.LockControls(Value As Boolean)
+		FLockControls = Value
+	End Property
+	
 	Sub Designer.BringToFront(Ctrl As Any Ptr = 0)
 		Dim As SymbolsType Ptr st = Symbols(SelectedControl)
 		#ifdef __USE_GTK__
@@ -3114,15 +3618,15 @@ Namespace My.Sys.Forms
 		If Des Then
 			With *Des
 				#ifdef __USE_GTK__
-					Select Case Event->Type
+					Select Case Event->type
 				#else
 					Select Case uMsg
 					Case WM_PAINT
 						Dim As PAINTSTRUCT Ps
 						Dim As HDC FHDc = BeginPaint(hDlg, @Ps)
-						Dim As HPEN Pen = CreatePen(PS_SOLID, 0, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHTTEXT), GetSysColor(COLOR_HIGHLIGHT)))
+						Dim As HPEN Pen = CreatePen(PS_SOLID, 0, IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl AndAlso Not .FLockControls, GetSysColor(COLOR_HIGHLIGHTTEXT), GetSysColor(COLOR_HIGHLIGHT)))
 						Dim As HPEN PrevPen = SelectObject(FHDc, Pen)
-						Dim As HBRUSH Brush = CreateSolidBrush(IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl, GetSysColor(COLOR_HIGHLIGHT), GetSysColor(COLOR_HIGHLIGHTTEXT)))
+						Dim As HBRUSH Brush = CreateSolidBrush(IIf(GetProp(hDlg, "@@@Control2") = .SelectedControl AndAlso Not .FLockControls, GetSysColor(COLOR_HIGHLIGHT), GetSysColor(COLOR_HIGHLIGHTTEXT)))
 						Dim As HBRUSH PrevBrush = SelectObject(FHDc, Brush)
 						Rectangle(FHDc, Ps.rcPaint.Left, Ps.rcPaint.Top, Ps.rcPaint.Right, Ps.rcPaint.Bottom)
 						SelectObject(FHDc, PrevBrush)
@@ -3135,7 +3639,7 @@ Namespace My.Sys.Forms
 				#endif
 					#ifdef __USE_GTK__
 					Case GDK_MOTION_NOTIFY
-						.FOverControl = Widget
+						.FOverControl = widget
 					#else
 					Case WM_MOUSEMOVE
 						'.MouseMove(loWord(lParam), hiWord(lParam),wParam and &HFFFF )
@@ -3207,7 +3711,7 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->Key.keyval, Event->Key.state)
+						.KeyDown(Event->key.keyval, Event->key.state)
 					#else
 						.KeyDown(wParam, wParam And &HFFFF)
 					#endif
@@ -3521,16 +4025,17 @@ Namespace My.Sys.Forms
 	End Destructor
 End Namespace
 
-mnuDesigner.Add(ML("Default event"), "", "Default", @PopupClick)
+mnuDesigner.Add(ML("Default event"), "Code", "Default", @PopupClick)
 mnuDesigner.Add("-")
+mnuDesigner.Add(ML("Lock Controls"), "LockControls", "LockControls", @PopupClick)
 mnuDesigner.Add(ML("Copy") & !"\t Ctrl+C", "Copy", "Copy", @PopupClick)
 mnuDesigner.Add(ML("Cut") & !"\t Ctrl+X", "Cut", "Cut", @PopupClick)
 mnuDesigner.Add(ML("Paste") & !"\t Ctrl+V", "Paste", "Paste", @PopupClick)
 mnuDesigner.Add(ML("Delete"), "", "Delete", @PopupClick)
-mnuDesigner.Add("-")
+mnuDesigner.Add("-", "", "DuplicateSeparator")
 mnuDesigner.Add(ML("Duplicate") & !"\t Ctrl+D", "", "Duplicate", @mClick)
+mnuDesigner.Add("-", "", "OrderSeparator")
+mnuDesigner.Add(ML("Bring to Front"), "BringToFront", "BringToFront", @PopupClick)
+mnuDesigner.Add(ML("Send to Back"), "SendToBack", "SendToBack", @PopupClick)
 mnuDesigner.Add("-")
-mnuDesigner.Add(ML("Bring to Front"), "", "BringToFront", @PopupClick)
-mnuDesigner.Add(ML("Send to Back"), "", "SendToBack", @PopupClick)
-mnuDesigner.Add("-")
-mnuDesigner.Add(ML("Properties"), "", "Properties", @PopupClick)
+mnuDesigner.Add(ML("Properties"), "Property", "Properties", @PopupClick)

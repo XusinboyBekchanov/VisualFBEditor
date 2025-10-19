@@ -147,6 +147,7 @@ Namespace My.Sys.Forms
 			FHDC        As HDC
 			FPoint As ..Point
 		#endif
+		FLockControls     As Boolean
 		Dim Ctrl As Any Ptr
 		#ifndef __USE_GTK__
 			Brush         As HBRUSH
@@ -247,6 +248,27 @@ Namespace My.Sys.Forms
 		#endif
 		OffsetX As Integer
 		OffsetY As Integer
+		Declare Sub AlignLefts
+		Declare Sub AlignCenters
+		Declare Sub AlignRights
+		Declare Sub AlignTops
+		Declare Sub AlignMiddles
+		Declare Sub AlignBottoms
+		Declare Sub AlignToGrid
+		Declare Sub MakeSameSizeWidth
+		Declare Sub MakeSameSizeHeight
+		Declare Sub MakeSameSizeBoth
+		Declare Sub SizeToGrid
+		Declare Sub HorizontalSpacingMakeEqual
+		Declare Sub HorizontalSpacingIncrease
+		Declare Sub HorizontalSpacingDecrease
+		Declare Sub HorizontalSpacingRemove
+		Declare Sub VerticalSpacingMakeEqual
+		Declare Sub VerticalSpacingIncrease
+		Declare Sub VerticalSpacingDecrease
+		Declare Sub VerticalSpacingRemove
+		Declare Sub CenterInParentHorizontally
+		Declare Sub CenterInParentVertically
 		Declare Sub CheckTopMenuVisible(ChangeHeight As Boolean = True, bMoveDots As Boolean = True)
 		Declare Sub ChangeFirstMenuItem()
 		Declare Sub Hook
@@ -328,6 +350,8 @@ Namespace My.Sys.Forms
 		Declare Property ShowGrid(value As Boolean)
 		Declare Property ClassName As String
 		Declare Property ClassName(value As String)
+		Declare Property LockControls As Boolean
+		Declare Property LockControls(value As Boolean)
 		Declare Operator Cast As Any Ptr
 		Declare Operator Cast As Control Ptr
 		Declare Constructor(ParentControl As Control Ptr)

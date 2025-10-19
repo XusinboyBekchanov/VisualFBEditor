@@ -89,6 +89,7 @@ Sub PopupClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
 	If tb = 0 OrElse tb->Des = 0 Then Exit Sub
 	Select Case Sender.ToString
 	Case "Default":         DesignerDblClickControl(*tb->Des, tb->Des->SelectedControl)
+	Case "LockControls":    ChangeLockControls Not miLockControls->Checked, 1: tb->Des->LockControls = miLockControls->Checked: tb->Des->Parent->Repaint
 	Case "Copy":            tb->Des->CopyControl()
 	Case "Cut":             tb->Des->CutControl()
 	Case "Paste":           tb->Des->PasteControl()
@@ -587,6 +588,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 		End If
 		TabCtl.MoveCloseButtons ptabCode
 	End If
+	If Not bNoActivate Then miLockControls->Checked = False
 	tb->txtCode.SetFocus
 	frmMain.UpdateUnLock
 	frmMain.Update

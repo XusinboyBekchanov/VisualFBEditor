@@ -390,6 +390,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "Standard":                            ShowStandardToolBar = Not ShowStandardToolBar: MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar: mnuStandardToolBar->Checked = ShowStandardToolBar: pfrmMain->RequestAlign
 	Case "Edit":                                ShowEditToolBar = Not ShowEditToolBar: MainReBar.Bands.Item(1)->Visible = ShowEditToolBar: mnuEditToolBar->Checked = ShowEditToolBar: pfrmMain->RequestAlign
 	Case "Project":                             ShowProjectToolBar = Not ShowProjectToolBar: MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar: mnuProjectToolBar->Checked = ShowProjectToolBar: pfrmMain->RequestAlign
+	Case "FormFormat":                          ShowFormatToolBar = Not ShowFormatToolBar: rbBottom.Bands.Item(0)->Visible = ShowFormatToolBar: mnuFormatToolBar->Checked = ShowFormatToolBar: pfrmMain->RequestAlign
 	Case "Build":                               ShowBuildToolBar = Not ShowBuildToolBar: MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar: mnuBuildToolBar->Checked = ShowBuildToolBar: pfrmMain->RequestAlign
 	Case "Run":                                 ShowRunToolBar = Not ShowRunToolBar: MainReBar.Bands.Item(4)->Visible = ShowRunToolBar: mnuRunToolBar->Checked = ShowRunToolBar: pfrmMain->RequestAlign
 	Case "TBUseDebugger":                       ChangeUseDebugger tbtUseDebugger->Checked, 0
@@ -971,7 +972,26 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _
-		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define"
+		"CollapseCurrent", "UnCollapseCurrent", "CompleteWord", "ParameterInfo", "OnErrorGoto", "OnErrorGotoResumeNext", "OnLocalErrorGoto", "OnLocalErrorGotoResumeNext", "RemoveErrorHandling", "Define", _
+		"AlignLefts", "AlignCenters", "AlignRights", "AlignTops", "AlignMiddles", "AlignBottoms", "AlignToGrid", "MakeSameSizeWidth", "MakeSameSizeHeight", "MakeSameSizeBoth", "SizeToGrid", _
+		"HorizontalSpacingMakeEqual", "HorizontalSpacingIncrease", "HorizontalSpacingDecrease", "HorizontalSpacingRemove", "VerticalSpacingMakeEqual", "VerticalSpacingIncrease", "VerticalSpacingDecrease", _
+		"VerticalSpacingRemove", "CenterInParentHorizontally", "CenterInParentVertically", "SendToBack", "BringToFront", "LockControls", "TBLockControls"
+		If Sender.ToString = "LockControls" OrElse Sender.ToString = "TBLockControls" Then
+			Select Case Sender.ToString
+			Case "TBLockControls": ChangeLockControls tbtLockControls->Checked, 0
+			Case "LockControls": ChangeLockControls Not miLockControls->Checked, 1
+			End Select
+			If ptabCode <> 0 Then
+				Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+				If tb <> 0 Then
+					Dim des As Designer Ptr = tb->Des
+					If des <> 0 Then
+						des->LockControls = miLockControls->Checked
+						des->Parent->Repaint
+					End If
+				End If
+			End If
+		End If
 		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 		If ActiveForm = 0 Then Exit Sub
 		If ActiveForm->ActiveControl = 0 Then
@@ -980,14 +1000,37 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Dim des As Designer Ptr = tb->Des
 				If des = 0 Then Exit Sub
 				Select Case Sender.ToString
-				Case "Cut":                     des->CutControl
-				Case "Copy":                    des->CopyControl
-				Case "Paste":                   des->PasteControl
-				Case "Delete":                  des->DeleteControl
-				Case "Duplicate":               des->DuplicateControl
-				Case "SelectAll":               des->SelectAllControls
-				Case "Indent":                  des->SelectNextControl
-				Case "Outdent":                 des->SelectNextControl - 1
+				Case "Cut":                         des->CutControl
+				Case "Copy":                        des->CopyControl
+				Case "Paste":                       des->PasteControl
+				Case "Delete":                      des->DeleteControl
+				Case "Duplicate":                   des->DuplicateControl
+				Case "SelectAll":                   des->SelectAllControls
+				Case "Indent":                      des->SelectNextControl
+				Case "Outdent":                     des->SelectNextControl - 1
+				Case "AlignLefts":                  des->AlignLefts
+				Case "AlignCenters":                des->AlignCenters
+				Case "AlignRights":                 des->AlignRights
+				Case "AlignTops":                   des->AlignTops
+				Case "AlignMiddles":                des->AlignMiddles
+				Case "AlignBottoms":                des->AlignBottoms
+				Case "AlignToGrid":                 des->AlignToGrid
+				Case "MakeSameSizeWidth":           des->MakeSameSizeWidth
+				Case "MakeSameSizeHeight":          des->MakeSameSizeHeight
+				Case "MakeSameSizeBoth":            des->MakeSameSizeBoth
+				Case "SizeToGrid":                  des->SizeToGrid
+				Case "HorizontalSpacingMakeEqual":  des->HorizontalSpacingMakeEqual
+				Case "HorizontalSpacingIncrease":   des->HorizontalSpacingIncrease
+				Case "HorizontalSpacingDecrease":   des->HorizontalSpacingDecrease
+				Case "HorizontalSpacingRemove":     des->HorizontalSpacingRemove
+				Case "VerticalSpacingMakeEqual":    des->VerticalSpacingMakeEqual
+				Case "VerticalSpacingIncrease":     des->VerticalSpacingIncrease
+				Case "VerticalSpacingDecrease":     des->VerticalSpacingDecrease
+				Case "VerticalSpacingRemove":       des->VerticalSpacingRemove
+				Case "CenterInParentHorizontally":  des->CenterInParentHorizontally
+				Case "CenterInParentVertically":    des->CenterInParentVertically
+				Case "SendToBack":                  des->SendToBack
+				Case "BringToFront":                des->BringToFront
 				End Select
 			End If
 			Exit Sub
@@ -1000,54 +1043,77 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		If ActiveForm->ActiveControl->ClassName = "TextBox" OrElse ActiveForm->ActiveControl->ClassName = "RichTextBox" Then
 			Dim txt As TextBox Ptr = Cast(TextBox Ptr, pfrmMain->ActiveControl)
 			Select Case Sender.ToString
-			Case "Undo":                    txt->Undo
-			Case "Cut":                     txt->CutToClipboard
-			Case "Copy":                    txt->CopyToClipboard
-			Case "Paste":                   txt->PasteFromClipboard
-			Case "SelectAll":               txt->SelectAll
+			Case "Undo":                            txt->Undo
+			Case "Cut":                             txt->CutToClipboard
+			Case "Copy":                            txt->CopyToClipboard
+			Case "Paste":                           txt->PasteFromClipboard
+			Case "SelectAll":                       txt->SelectAll
 			End Select
 		ElseIf ActiveForm->ActiveControl->ClassName = "ComboBoxEdit" OrElse ActiveForm->ActiveControl->ClassName = "ComboBoxEx" Then
 			Dim cbo As ComboBoxEdit Ptr = Cast(ComboBoxEdit Ptr, ActiveForm->ActiveControl)
 			Select Case Sender.ToString
-			Case "Undo":                    cbo->Undo
-			Case "Cut":                     cbo->CutToClipboard
-			Case "Copy":                    cbo->CopyToClipboard
-			Case "Paste":                   cbo->PasteFromClipboard
-			Case "SelectAll":               cbo->SelectAll
+			Case "Undo":                            cbo->Undo
+			Case "Cut":                             cbo->CutToClipboard
+			Case "Copy":                            cbo->CopyToClipboard
+			Case "Paste":                           cbo->PasteFromClipboard
+			Case "SelectAll":                       cbo->SelectAll
 			End Select
 		ElseIf tb <> 0 Then
 			If tb->cboClass.ItemIndex > 0 Then
 				Dim des As Designer Ptr = tb->Des
 				If des = 0 Then Exit Sub
 				Select Case Sender.ToString
-				Case "Cut":                     des->CutControl
-				Case "Copy":                    des->CopyControl
-				Case "Paste":                   des->PasteControl
-				Case "Delete":                  des->DeleteControl
-				Case "Duplicate":               des->DuplicateControl
-				Case "SelectAll":               des->SelectAllControls
-				Case "Indent":                  des->SelectNextControl
-				Case "Outdent":                 des->SelectNextControl - 1
+				Case "Cut":                         des->CutControl
+				Case "Copy":                        des->CopyControl
+				Case "Paste":                       des->PasteControl
+				Case "Delete":                      des->DeleteControl
+				Case "Duplicate":                   des->DuplicateControl
+				Case "SelectAll":                   des->SelectAllControls
+				Case "Indent":                      des->SelectNextControl
+				Case "Outdent":                     des->SelectNextControl - 1
+				Case "AlignLefts":                  des->AlignLefts
+				Case "AlignCenters":                des->AlignCenters
+				Case "AlignRights":                 des->AlignRights
+				Case "AlignTops":                   des->AlignTops
+				Case "AlignMiddles":                des->AlignMiddles
+				Case "AlignBottoms":                des->AlignBottoms
+				Case "AlignToGrid":                 des->AlignToGrid
+				Case "MakeSameSizeWidth":           des->MakeSameSizeWidth
+				Case "MakeSameSizeHeight":          des->MakeSameSizeHeight
+				Case "MakeSameSizeBoth":            des->MakeSameSizeBoth
+				Case "SizeToGrid":                  des->SizeToGrid
+				Case "HorizontalSpacingMakeEqual":  des->HorizontalSpacingMakeEqual
+				Case "HorizontalSpacingIncrease":   des->HorizontalSpacingIncrease
+				Case "HorizontalSpacingDecrease":   des->HorizontalSpacingDecrease
+				Case "HorizontalSpacingRemove":     des->HorizontalSpacingRemove
+				Case "VerticalSpacingMakeEqual":    des->VerticalSpacingMakeEqual
+				Case "VerticalSpacingIncrease":     des->VerticalSpacingIncrease
+				Case "VerticalSpacingDecrease":     des->VerticalSpacingDecrease
+				Case "VerticalSpacingRemove":       des->VerticalSpacingRemove
+				Case "CenterInParentHorizontally":  des->CenterInParentHorizontally
+				Case "CenterInParentVertically":    des->CenterInParentVertically
+				Case "SendToBack":                  des->SendToBack
+				Case "BringToFront":                des->BringToFront
 				End Select
 			ElseIf ActiveForm->ActiveControl->ClassName = "EditControl" OrElse ActiveForm->ActiveControl->ClassName = "Panel" Then
 				Dim ec As EditControl Ptr = @tb->txtCode
 				Select Case Sender.ToString
-				Case "Redo":                    ec->Redo
-				Case "Undo":                    ec->Undo
-				Case "CutCurrentLine":          ec->CutCurrentLineToClipboard
-				Case "Cut":                     ec->CutToClipboard
-				Case "Copy":                    ec->CopyToClipboard
-				Case "Paste":                   ec->PasteFromClipboard
-				Case "Duplicate":               ec->DuplicateLine
-				Case "SelectAll":               ec->SelectAll
-				Case "SingleComment":           ec->CommentSingle
-				Case "BlockComment":            ec->CommentBlock
-				Case "UnComment":               ec->UnComment
-				Case "Indent":                  ec->Indent
-				Case "Outdent":                 ec->Outdent
-				Case "Format":                  ec->FormatCode
-				Case "Unformat":                ec->UnformatCode
-				Case "AddSpaces":               tb->AddSpaces
+				Case "Redo":                        ec->Redo
+				Case "Undo":                        ec->Undo
+				Case "CutCurrentLine":              ec->CutCurrentLineToClipboard
+				Case "Cut":                         ec->CutToClipboard
+				Case "Copy":                        ec->CopyToClipboard
+				Case "Paste":                       ec->PasteFromClipboard
+				Case "Duplicate":                   ec->DuplicateLine
+				Case "SelectAll":                   ec->SelectAll
+				Case "SingleComment":               ec->CommentSingle
+				Case "BlockComment":                ec->CommentBlock
+				Case "UnComment":                   ec->UnComment
+				Case "Indent":                      ec->Indent
+				Case "Outdent":                     ec->Outdent
+				Case "Format":                      ec->FormatCode
+				Case "Unformat":                    ec->UnformatCode
+				Case "AddSpaces":                   tb->AddSpaces
 				Case "Breakpoint":
 					Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
 					If CurrentDebugger = IntegratedGDBDebugger Then
@@ -1062,30 +1128,30 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 						#endif
 					End If
 					ec->Breakpoint
-				Case "CollapseAll":             ec->CollapseAll
-				Case "UnCollapseAll":           ec->UnCollapseAll
-				Case "CollapseAllProcedures":   ec->CollapseAllProcedures
-				Case "UnCollapseAllProcedures": ec->UnCollapseAllProcedures
-				Case "CollapseCurrent":         ec->CollapseCurrent
-				Case "UnCollapseCurrent":       ec->UnCollapseCurrent
-				Case "CompleteWord":            CompleteWord
-				Case "ParameterInfo":           ParameterInfo 0
-				Case "ToggleBookmark":          ec->Bookmark
-				Case "Define":                  tb->Define
-				Case "NumberOn":        	    tb->NumberOn
-				Case "MacroNumberOn":        	tb->NumberOn , , True
-				Case "NumberOff":               tb->NumberOff
-				Case "ProcedureNumberOn":       tb->ProcedureNumberOn
-				Case "ProcedureMacroNumberOn":  tb->ProcedureNumberOn True
-				Case "ProcedureNumberOff":      tb->ProcedureNumberOff
-				Case "PreprocessorNumberOn":    tb->PreprocessorNumberOn
-				Case "PreprocessorNumberOff":   tb->PreprocessorNumberOff
+				Case "CollapseAll":                 ec->CollapseAll
+				Case "UnCollapseAll":               ec->UnCollapseAll
+				Case "CollapseAllProcedures":       ec->CollapseAllProcedures
+				Case "UnCollapseAllProcedures":     ec->UnCollapseAllProcedures
+				Case "CollapseCurrent":             ec->CollapseCurrent
+				Case "UnCollapseCurrent":           ec->UnCollapseCurrent
+				Case "CompleteWord":                CompleteWord
+				Case "ParameterInfo":               ParameterInfo 0
+				Case "ToggleBookmark":              ec->Bookmark
+				Case "Define":                      tb->Define
+				Case "NumberOn":        	        tb->NumberOn
+				Case "MacroNumberOn":        	    tb->NumberOn , , True
+				Case "NumberOff":                   tb->NumberOff
+				Case "ProcedureNumberOn":           tb->ProcedureNumberOn
+				Case "ProcedureMacroNumberOn":      tb->ProcedureNumberOn True
+				Case "ProcedureNumberOff":          tb->ProcedureNumberOff
+				Case "PreprocessorNumberOn":        tb->PreprocessorNumberOn
+				Case "PreprocessorNumberOff":       tb->PreprocessorNumberOff
 					'Case "OnErrorResumeNext":       tb->SetErrorHandling "On Error Resume Next", ""
-				Case "OnErrorGoto":             tb->SetErrorHandling "On Error Goto ErrorHandler", ""
-				Case "OnErrorGotoResumeNext":   tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
-				Case "OnLocalErrorGoto":           tb->SetErrorHandling "On Local Error Goto ErrorHandler", ""
-				Case "OnLocalErrorGotoResumeNext": tb->SetErrorHandling "On Local Error Goto ErrorHandler", "Resume Next"
-				Case "RemoveErrorHandling":     tb->RemoveErrorHandling
+				Case "OnErrorGoto":                 tb->SetErrorHandling "On Error Goto ErrorHandler", ""
+				Case "OnErrorGotoResumeNext":       tb->SetErrorHandling "On Error Goto ErrorHandler", "Resume Next"
+				Case "OnLocalErrorGoto":            tb->SetErrorHandling "On Local Error Goto ErrorHandler", ""
+				Case "OnLocalErrorGotoResumeNext":  tb->SetErrorHandling "On Local Error Goto ErrorHandler", "Resume Next"
+				Case "RemoveErrorHandling":         tb->RemoveErrorHandling
 				End Select
 			End If
 		End If
