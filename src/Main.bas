@@ -11737,11 +11737,12 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	MainReBar.Bands.Item(0)->Visible = ShowStandardToolBar
 	MainReBar.Bands.Item(1)->Visible = ShowEditToolBar
 	MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar
-	rbBottom.Bands.Item(0)->Visible = ShowFormatToolBar
-	MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar
-	MainReBar.Bands.Item(4)->Visible = ShowDebugToolBar
-	MainReBar.Bands.Item(5)->Visible = ShowRunToolBar
-	'MainReBar.Bands.Item(5)->FixedSize = True
+	'rbBottom.Bands.Item(0)->Visible = ShowFormatToolBar
+	MainReBar.Bands.Item(3)->Visible = ShowFormatToolBar
+	MainReBar.Bands.Item(4)->Visible = ShowBuildToolBar
+	MainReBar.Bands.Item(5)->Visible = ShowDebugToolBar
+	MainReBar.Bands.Item(6)->Visible = ShowRunToolBar
+	'MainReBar.Bands.Item(6)->FixedSize = True
 	mnuStandardToolBar->Checked = ShowStandardToolBar
 	mnuEditToolBar->Checked = ShowEditToolBar
 	mnuProjectToolBar->Checked = ShowProjectToolBar
@@ -11817,7 +11818,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_WINAPI__
-		For i As Integer = 0 To 5
+		For i As Integer = 0 To 6
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
@@ -12183,10 +12184,11 @@ frmMain.Menu = @mnuMain
 MainReBar.Add @tbStandard
 MainReBar.Add @tbEdit
 MainReBar.Add @tbProject
+MainReBar.Add @tbFormat
 MainReBar.Add @tbBuild
 MainReBar.Add @tbDebug
 MainReBar.Add @tbRun
-rbBottom.Add @tbFormat
+'rbBottom.Add @tbFormat
 frmMain.Add @MainReBar
 'frmMain.Add @rbLeft
 'frmMain.Add @rbRight
@@ -12195,7 +12197,7 @@ frmMain.Add @MainReBar
 '	frmMain.Add @tbStandard
 '#endif
 frmMain.Add @stBar
-frmMain.Add @rbBottom
+'frmMain.Add @rbBottom
 frmMain.Add @pnlLeft
 frmMain.Add @splLeft
 frmMain.Add @pnlRight
