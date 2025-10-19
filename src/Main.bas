@@ -88,7 +88,7 @@ Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration, cboAIAgentModels
 Dim Shared As IniFile iniSettings, iniTheme
 Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
-Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbRun, tbProject, tbExplorer, tbForm, tbAIAgent, tbProperties, tbEvents, tbBottom, tbLeft, tbRight, tbFormat
+Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbDebug, tbRun, tbProject, tbExplorer, tbForm, tbAIAgent, tbProperties, tbEvents, tbBottom, tbLeft, tbRight, tbFormat
 Dim Shared As StatusBar stBar
 Dim Shared As Splitter splLeft, splRight, splBottom, splAIAgent, splProperties, splEvents
 Dim Shared As ListControl lstLeft
@@ -99,7 +99,7 @@ Dim Shared As Label lblLeft
 Dim Shared As Panel pnlLeft, pnlRight, pnlBottom, pnlBottomTab, pnlLeftPin, pnlRightPin, pnlBottomPin, pnlPropertyValue, pnlColor
 Dim Shared As TrackBar trLeft
 Dim Shared As MainMenu mnuMain
-Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuFormatToolBar, mnuBuildToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miClearStartUp, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
+Dim Shared As MenuItem Ptr mnuStartWithCompile, mnuStart, mnuBreak, mnuEnd, mnuRestart, mnuStandardToolBar, mnuEditToolBar, mnuProjectToolBar, mnuFormatToolBar, mnuBuildToolBar, mnuDebugToolBar, mnuRunToolBar, mnuSplit, mnuSplitHorizontally, mnuSplitVertically, mnuWindowSeparator, miRecentProjects, miRecentFiles, miRecentFolders, miRecentSessions, miSetAsMain, miClearStartUp, miTabSetAsMain, miTabReloadHistoryCode, miRemoveFiles, miToolBars
 Dim Shared As MenuItem Ptr miRecentAIChat,  miFileAIChat
 Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miCloseFolder, miSave, miSaveAs, miSaveAll, miClose, miCloseAll, miCloseSession, miPrint, miPrintPreview, miPageSetup, miOpenProjectFolder, miProjectProperties, miExplorerOpenProjectFolder, miExplorerRename, miExplorerProjectProperties, miExplorerCloseProject, miRename, miRemoveFileFromProject
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miDeleteBlankLines, miSuggestions, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
@@ -109,7 +109,7 @@ Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miGotoCodeForm, miColl
 Dim Shared As MenuItem Ptr miAlignLefts, miAlignCenters, miAlignRights, miAlignTops, miAlignMiddles, miAlignBottoms, miAlignToGrid, miMakeSameSizeWidth, miMakeSameSizeHeight, miMakeSameSizeBoth, miSizeToGrid, miHorizontalSpacingMakeEqual, miHorizontalSpacingIncrease, miHorizontalSpacingDecrease, miHorizontalSpacingRemove, miVerticalSpacingMakeEqual, miVerticalSpacingIncrease, miVerticalSpacingDecrease, miVerticalSpacingRemove, miCenterInParentHorizontally, miCenterInParentVertically, miOrderBringToFront, miOrderSendToBack, miLockControls
 Dim Shared As MenuItem Ptr miShowWithFolders, miShowWithoutFolders, miShowAsFolder
 Dim Shared As ToolButton Ptr tbtAlignLefts, tbtAlignCenters, tbtAlignRights, tbtAlignTops, tbtAlignMiddles, tbtAlignBottoms, tbtAlignToGrid, tbtMakeSameSizeWidth, tbtMakeSameSizeHeight, tbtMakeSameSizeBoth, tbtSizeToGrid, tbtHorizontalSpacingMakeEqual, tbtHorizontalSpacingIncrease, tbtHorizontalSpacingDecrease, tbtHorizontalSpacingRemove, tbtVerticalSpacingMakeEqual, tbtVerticalSpacingIncrease, tbtVerticalSpacingDecrease, tbtVerticalSpacingRemove, tbtCenterInParentHorizontally, tbtCenterInParentVertically, tbtOrderBringToFront, tbtOrderSendToBack, tbtLockControls
-Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtBlockComment, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtUseDirect2D, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI
+Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtBlockComment, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtUseDirect2D, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI, tbtStepInto, tbtStepOver, tbtStepOut, tbtRunToCursor, tbtToggleBreakpoint, tbtSetNextStatement, tbtShowNextStatement
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar, rbLeft, rbRight, rbBottom
 #ifndef __USE_GTK__
@@ -7281,6 +7281,12 @@ Sub CreateMenusAndToolBars
 	imgList.Add "BringToFront", "BringToFront"
 	imgList.Add "SendToBack", "SendToBack"
 	imgList.Add "LockControls", "LockControls"
+	imgList.Add "StepInto", "StepInto"
+	imgList.Add "StepOver", "StepOver"
+	imgList.Add "StepOut", "StepOut"
+	imgList.Add "RunToCursor", "RunToCursor"
+	imgList.Add "SetNextStatement", "SetNextStatement"
+	imgList.Add "ShowNextStatement", "ShowNextStatement"
 	
 	'imgListD.Add "StartWithCompileD", "StartWithCompile"
 	'imgListD.Add "StartD", "Start"
@@ -7555,6 +7561,7 @@ Sub CreateMenusAndToolBars
 	mnuProjectToolBar = miToolBars->Add(ML("Project") & HK("Project"), "", "Project", @mClick, True)
 	mnuFormatToolBar = miToolBars->Add(ML("Format") & HK("FormFormat"), "", "FormFormat", @mClick, True)
 	mnuBuildToolBar = miToolBars->Add(ML("Build") & HK("Build"), "", "Build", @mClick, True)
+	mnuDebugToolBar = miToolBars->Add(ML("Debug") & HK("Debug"), "", "Debug", @mClick, True)
 	mnuRunToolBar = miToolBars->Add(ML("Run") & HK("Run"), "", "Run", @mClick, True)
 	
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
@@ -7638,10 +7645,10 @@ Sub CreateMenusAndToolBars
 	mnuUseDebugger = miDebug->Add(ML("&Use Debugger") & HK("UseDebugger"), "", "UseDebugger", @mClick, True)
 	mnuUseProfiler = miDebug->Add(ML("Use &Profiler") & HK("UseProfiler"), "", "UseProfiler", @mClick, True)
 	miDebug->Add("-")
-	miStepInto = miDebug->Add(ML("Step &Into") & HK("StepInto", "F8"), "", "StepInto", @mClick, , , False)
-	miStepOver = miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "", "StepOver", @mClick, , , False)
-	miStepOut = miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "", "StepOut", @mClick, , , False)
-	miRunToCursor = miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "", "RunToCursor", @mClick, , , False)
+	miStepInto = miDebug->Add(ML("Step &Into") & HK("StepInto", "F8"), "StepInto", "StepInto", @mClick, , , False)
+	miStepOver = miDebug->Add(ML("Step &Over") & HK("StepOver", "Shift+F8"), "StepOver", "StepOver", @mClick, , , False)
+	miStepOut = miDebug->Add(ML("Step O&ut") & HK("StepOut", "Ctrl+Shift+F8"), "StepOut", "StepOut", @mClick, , , False)
+	miRunToCursor = miDebug->Add(ML("&Run To Cursor") & HK("RunToCursor", "Ctrl+F8"), "RunToCursor", "RunToCursor", @mClick, , , False)
 	miDebug->Add("-")
 	miGDBCommand = miDebug->Add(ML("&GDB Command") & HK("GDBCommand"), "", "GDBCommand", @mClick, , , False)
 	miAddWatch = miDebug->Add(ML("&Add Watch") & HK("AddWatch"), "", "AddWatch", @mClick, , , False)
@@ -7649,8 +7656,8 @@ Sub CreateMenusAndToolBars
 	miToggleBreakpoint = miDebug->Add(ML("&Toggle Breakpoint") & HK("Breakpoint", "F9"), "Breakpoint", "Breakpoint", @mClick, , , False)
 	miClearAllBreakpoints = miDebug->Add(ML("&Clear All Breakpoints") & HK("ClearAllBreakpoints", "Ctrl+Shift+F9"), "", "ClearAllBreakpoints", @mClick, , , False)
 	miDebug->Add("-")
-	miSetNextStatement = miDebug->Add(ML("Set &Next Statement") & HK("SetNextStatement"), "", "SetNextStatement", @mClick, , , False)
-	miShowNextStatement = miDebug->Add(ML("Show Ne&xt Statement") & HK("ShowNextStatement"), "", "ShowNextStatement", @mClick, , , False)
+	miSetNextStatement = miDebug->Add(ML("Set &Next Statement") & HK("SetNextStatement"), "SetNextStatement", "SetNextStatement", @mClick, , , False)
+	miShowNextStatement = miDebug->Add(ML("Show Ne&xt Statement") & HK("ShowNextStatement"), "ShowNextStatement", "ShowNextStatement", @mClick, , , False)
 	
 	Var miRun = mnuMain.Add(ML("&Run"), "", "Run")
 	mnuStartWithCompile = miRun->Add(ML("Start With &Compile") & HK("StartWithCompile", "F5"), "StartWithCompile", "StartWithCompile", @mClick, , , False)
@@ -7913,6 +7920,27 @@ Sub CreateMenusAndToolBars
 	dmiMake = tbMake->DropDownMenu.Add("Make", "", "Make", @mClick, , , False)
 	dmiMakeClean = tbMake->DropDownMenu.Add("Make clean", "", "MakeClean", @mClick, , , False)
 	tbBuild.Buttons.Add , "Parameters", , @mClick, "Parameters", , ML("Parameters"), True
+	tbBuild.Name = "Build"
+	tbBuild.ImagesList = @imgList
+	tbBuild.HotImagesList = @imgList
+	'tbBuild.DisabledImagesList = @imgListD
+	'	#ifdef __USE_GTK__
+	'		tbBuild.Align = 3
+	'	#endif
+	tbDebug.Name = "Run"
+	tbDebug.ImagesList = @imgList
+	tbDebug.HotImagesList = @imgList
+	tbDebug.Flat = True
+	tbDebug.List = True
+	tbtStepInto = tbDebug.Buttons.Add(, "StepInto", , @mClick, "StepInto", , ML("Step Into") & HK("StepInto", "F8", True), True)
+	tbtStepOver = tbDebug.Buttons.Add(, "StepOver", , @mClick, "StepOver", , ML("Step Over") & HK("StepOver", "Shift+F8", True), True)
+	tbtStepOut = tbDebug.Buttons.Add(, "StepOut", , @mClick, "StepOut", , ML("Step Out") & HK("StepOut", "Ctrl+Shift+F8", True), True)
+	tbtRunToCursor = tbDebug.Buttons.Add(, "RunToCursor", , @mClick, "RunToCursor", , ML("RunToCursor") & HK("RunToCursor", "Ctrl+F8", True), True)
+	tbDebug.Buttons.Add tbsSeparator
+	tbtToggleBreakpoint = tbDebug.Buttons.Add(, "Breakpoint", , @mClick, "ToggleBreakpoint", , ML("Toggle Breakpoint") & HK("ToggleBreakpoint", "F9", True), True)
+	tbDebug.Buttons.Add tbsSeparator
+	tbtSetNextStatement = tbDebug.Buttons.Add(, "SetNextStatement", , @mClick, "SetNextStatement", , ML("Set Next Statement") & HK("SetNextStatement", , True), True)
+	tbtToggleBreakpoint = tbDebug.Buttons.Add(, "ShowNextStatement", , @mClick, "ShowNextStatement", , ML("Show Next Statement") & HK("ShowNextStatement", , True), True)
 	'tbStandard.Buttons.Add tbsSeparator
 	tbRun.Name = "Run"
 	tbRun.ImagesList = @imgList
@@ -11702,6 +11730,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	ShowProjectToolBar = iniSettings.ReadBool("MainWindow", "ShowProjectToolbar", True)
 	ShowFormatToolBar = iniSettings.ReadBool("MainWindow", "ShowFormatToolbar", False)
 	ShowBuildToolBar = iniSettings.ReadBool("MainWindow", "ShowBuildToolbar", True)
+	ShowDebugToolBar = iniSettings.ReadBool("MainWindow", "ShowDebugToolbar", False)
 	ShowRunToolBar = iniSettings.ReadBool("MainWindow", "ShowRunToolbar", True)
 	ShowTipoftheDay = iniSettings.ReadBool("MainWindow", "ShowTipoftheDay", True)
 	ShowTipoftheDayIndex = iniSettings.ReadInteger("MainWindow", "ShowTipoftheDayIndex", 0)
@@ -11710,12 +11739,15 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	MainReBar.Bands.Item(2)->Visible = ShowProjectToolBar
 	rbBottom.Bands.Item(0)->Visible = ShowFormatToolBar
 	MainReBar.Bands.Item(3)->Visible = ShowBuildToolBar
-	MainReBar.Bands.Item(4)->Visible = ShowRunToolBar
+	MainReBar.Bands.Item(4)->Visible = ShowDebugToolBar
+	MainReBar.Bands.Item(5)->Visible = ShowRunToolBar
+	'MainReBar.Bands.Item(5)->FixedSize = True
 	mnuStandardToolBar->Checked = ShowStandardToolBar
 	mnuEditToolBar->Checked = ShowEditToolBar
 	mnuProjectToolBar->Checked = ShowProjectToolBar
 	mnuFormatToolBar->Checked = ShowFormatToolBar
 	mnuBuildToolBar->Checked = ShowBuildToolBar
+	mnuDebugToolBar->Checked = ShowDebugToolBar
 	mnuRunToolBar->Checked = ShowRunToolBar
 	'Dim As Integer Subsystem = iniSettings.ReadInteger("MainWindow", "Subsystem", 0)
 	tbtNotSetted->Checked = True
@@ -11785,7 +11817,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_WINAPI__
-		For i As Integer = 0 To 4
+		For i As Integer = 0 To 5
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
@@ -12105,9 +12137,11 @@ End Sub
 tbStandard.OnMouseUp = @ToolBar_MouseUp
 tbEdit.OnMouseUp = @ToolBar_MouseUp
 tbProject.OnMouseUp = @ToolBar_MouseUp
-tbBuild.OnMouseUp = @ToolBar_MouseUp
-tbRun.OnMouseUp = @ToolBar_MouseUp
 tbFormat.OnMouseUp = @ToolBar_MouseUp
+tbBuild.OnMouseUp = @ToolBar_MouseUp
+tbDebug.OnMouseUp = @ToolBar_MouseUp
+tbRun.OnMouseUp = @ToolBar_MouseUp
+
 
 MainReBar.Name = "MainReBar"
 MainReBar.Align = DockStyle.alTop
@@ -12150,6 +12184,7 @@ MainReBar.Add @tbStandard
 MainReBar.Add @tbEdit
 MainReBar.Add @tbProject
 MainReBar.Add @tbBuild
+MainReBar.Add @tbDebug
 MainReBar.Add @tbRun
 rbBottom.Add @tbFormat
 frmMain.Add @MainReBar
