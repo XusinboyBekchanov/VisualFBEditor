@@ -614,13 +614,13 @@ Namespace My.Sys.Forms
 					CInt(.Name07 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name07 & " "))) OrElse _
 					CInt(.Name08 <> "" AndAlso StartsWith(sLineTrim, LCase(.Name08 & " ")))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(Replace(sLine, !"\t", " "), iPos), Any !"\t ")), LCase(.Exception)) = 0)) AndAlso _
-					CInt(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
-					CInt(LCase(..Left(LTrim(Mid(LTrim(sLine, Any !"\t "), Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
+					CInt(..Left(LTrim(Mid(sLineTrim, Len(Trim(.Name0)) + 1), Any !"\t "), 1) <> "=") AndAlso _
+					CInt(LCase(..Left(LTrim(Mid(sLineTrim, Len(Trim(.Name0)) + 1), Any !"\t "), 3)) <> "as " OrElse InStr(Trim(.Name0), " ") > 0) Then
 					iType = 0
 					Return i
-				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name1))))) OrElse _
-					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name2))))) OrElse _
-					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(LCase(sLine), Any !"\t ") & ":", LCase(.Name3)))))) AndAlso _
+				ElseIf CInt(CInt(CInt(.Name1 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name1) & " ")) OrElse CInt(StartsWith(Trim(sLineTrim), LCase(.Name1))))) OrElse _
+					CInt(CInt(.Name2 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name2) & " ")) OrElse CInt(StartsWith(Trim(sLineTrim) & ":", LCase(.Name2))))) OrElse _
+					CInt(CInt(.Name3 <> "") AndAlso (CInt(StartsWith(sLineTrim, LCase(.Name3) & " ")) OrElse CInt(StartsWith(Trim(sLineTrim) & ":", LCase(.Name3)))))) AndAlso _
 					CInt(CInt(.Exception = "") OrElse CInt(InStr(LCase(Trim(..Left(sLine, iPos), Any !"\t ")), LCase(.Exception)) = 0)) Then
 					iType = 1
 					Return i
@@ -1738,7 +1738,7 @@ Namespace My.Sys.Forms
 		Dim As WString Ptr BuffRead
 		Dim As Integer Result = -1, Fn, FileSize
 		Dim As FileEncodings OldFileEncoding
-		Dim As Integer iC = 0, OldiC = 0, i = 0, OldConsIndex, OldConsPart
+		Dim As Integer iC = 0, OldiC = 0, i = 0, OldConsIndex, OldConsPart, OldConsNextCount
 		Dim As Boolean InAsm = False, FileLoaded
 		Dim As Double  timeElapse = Timer
 		'check the Newlinetype again for missing Cr in AsicII file
@@ -1840,12 +1840,14 @@ Namespace My.Sys.Forms
 						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
 					End If
 					If InContinueStr = InContinueStrOld Then
-						FECLine->ConstructionIndex = OldConsIndex 
-						FECLine->ConstructionPart = 3
+						FECLine->ConstructionIndex = -1 ' OldConsIndex 
+						FECLine->ConstructionPart = OldConsPart
+						FECLine->ConstructionNextCount = OldConsNextCount
 					Else
 						ChangeCollapsibility i
 						OldConsIndex = FECLine->ConstructionIndex
-						'OldConsPart = FECLine->ConstructionPart
+						OldConsPart = FECLine->ConstructionPart
+						OldConsNextCount = FECLine->ConstructionNextCount
 						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
 					End If
 							i += 1
@@ -1960,12 +1962,14 @@ Namespace My.Sys.Forms
 						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
 					End If
 					If InContinueStr = InContinueStrOld Then
-						FECLine->ConstructionIndex = OldConsIndex 
-						FECLine->ConstructionPart = 3
+						FECLine->ConstructionIndex = -1 ' OldConsIndex 
+						FECLine->ConstructionPart = OldConsPart
+						FECLine->ConstructionNextCount = OldConsNextCount
 					Else
 						ChangeCollapsibility i
 						OldConsIndex = FECLine->ConstructionIndex
-						'OldConsPart = FECLine->ConstructionPart
+						OldConsPart = FECLine->ConstructionPart
+						OldConsNextCount = FECLine->ConstructionNextCount
 						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
 					End If
 					i += 1
@@ -2236,7 +2240,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.FormatCode(WithoutUpdate As Boolean = False)
 		Dim As Integer iIndents, CurIndents, iCount, iComment, ConstructionIndex, ConstructionPart
 		Dim As EditControlLine Ptr ECLine2
-		Dim As UString LineParts(Any), LineQuotes(Any)
+		Dim As WString Ptr LineParts(Any), LineQuotes(Any)
 		Dim As Integer iType = -1 '
 		If Not WithoutUpdate Then UpdateLock
 		Changing("Format")
@@ -2245,7 +2249,6 @@ Namespace My.Sys.Forms
 			FECLine->Ends.Clear
 			FECLine->EndsCompleted = False
 			If Trim(*FECLine->Text, Any !"\t ") <> "" Then WLet(FECLine->Text, Trim(*FECLine->Text, Any !"\t "))
-			'If *FECLine->Text = "" Then Continue For
 			If .Left(Trim(LCase(*FECLine->Text), Any !"\t "), 3) = "if(" Then WLet(FECLine->Text, "If (" & Mid(*FECLine->Text, 4))
 			If LCase(Trim(*FECLine->Text, Any !"\t ")) = "endif" Then WLet(FECLine->Text, "End If")
 			If iComment = 0 Then
@@ -2253,12 +2256,14 @@ Namespace My.Sys.Forms
 					Split(*FECLine->Text, """", LineQuotes())
 					WLet(FLine, "")
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
-						WAdd FLine, LineQuotes(k)
+						WAdd FLine, *LineQuotes(k)
+						_Deallocate(LineQuotes(k))
 					Next
+					Erase LineQuotes
 					iPos = InStr(*FLine, "'") - 1
 					If iPos = -1 Then iPos = Len(*FLine)
 					Split(.Left(*FLine, iPos), ":", LineParts())
-					ConstructionIndex = Content.GetConstruction(LineParts(0), ConstructionPart, 0, FECLine->InAsm)
+					ConstructionIndex = Content.GetConstruction(*LineParts(0), ConstructionPart, 0, FECLine->InAsm)
 					If ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 						iIndents = Max(0, iIndents - 1)
 					End If
@@ -2298,14 +2303,16 @@ Namespace My.Sys.Forms
 			If iComment = 0 Then
 				If FECLine->Statements.Count > 1 Then
 					For k As Integer = 0 To UBound(LineParts)
-						ConstructionIndex = Content.GetConstruction(LineParts(k), ConstructionPart, 0, FECLine->InAsm)
+						ConstructionIndex = Content.GetConstruction(*LineParts(k), ConstructionPart, 0, FECLine->InAsm)
 						If k > 0 AndAlso ConstructionIndex > -1 AndAlso ConstructionPart > 0 Then
 							iIndents = Max(0, iIndents - 1)
 						End If
 						If ConstructionIndex > -1 AndAlso ConstructionPart < 2 Then
 							iIndents += 1
 						End If
+						_Deallocate(LineParts(k))
 					Next k
+					Erase LineParts
 				Else
 					If FECLine->ConstructionIndex > -1 AndAlso FECLine->ConstructionPart < 2 Then
 						iIndents += 1
