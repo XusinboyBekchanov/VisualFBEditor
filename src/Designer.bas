@@ -1456,28 +1456,22 @@ Namespace My.Sys.Forms
 			#else
 				If Clipboard.HasFormat(fformat) Then
 					If ( OpenClipboard(NULL) ) Then
-						
 						'извлекаем данные из буфера 'Extract data from buffer
-						
 						Dim As HANDLE hData = GetClipboardData(fformat)
-						
 						Dim As UInteger Ptr buffer = Cast(UInteger Ptr, GlobalLock( hData ))
-						
 						GlobalUnlock( hData )
-						
 						CloseClipboard()
 						Dim As PointerList Ptr Value = Cast(Any Ptr, *buffer)
 			#endif
 					'If ReadPropertyFunc <> 0 AndAlso ComponentGetBoundsSub <> 0 Then
-						SelectedControls.Clear
-						For j As Integer = 0 To Value->Count - 1
-							AddPasteControls Value->Item(j), Value->Object(j), ParentCtrl, True
-						Next
+					SelectedControls.Clear
+					For j As Integer = 0 To Value->Count - 1
+						If FSelControl Then AddPasteControls Value->Item(j), Value->Object(j), ParentCtrl, True
 						MoveDots(SelectedControl)
 						#ifndef __USE_GTK__
 							LockWindowUpdate(0)
 						#endif
-					'End If
+					Next
 					#ifndef __USE_GTK__
 					End If
 				End If
