@@ -7935,7 +7935,7 @@ Sub CreateMenusAndToolBars
 	tbtStepInto = tbDebug.Buttons.Add(, "StepInto", , @mClick, "StepInto", , ML("Step Into") & HK("StepInto", "F8", True), True)
 	tbtStepOver = tbDebug.Buttons.Add(, "StepOver", , @mClick, "StepOver", , ML("Step Over") & HK("StepOver", "Shift+F8", True), True)
 	tbtStepOut = tbDebug.Buttons.Add(, "StepOut", , @mClick, "StepOut", , ML("Step Out") & HK("StepOut", "Ctrl+Shift+F8", True), True)
-	tbtRunToCursor = tbDebug.Buttons.Add(, "RunToCursor", , @mClick, "RunToCursor", , ML("RunToCursor") & HK("RunToCursor", "Ctrl+F8", True), True)
+	tbtRunToCursor = tbDebug.Buttons.Add(, "RunToCursor", , @mClick, "RunToCursor", , ML("Run To Cursor") & HK("RunToCursor", "Ctrl+F8", True), True)
 	tbDebug.Buttons.Add tbsSeparator
 	tbtToggleBreakpoint = tbDebug.Buttons.Add(, "Breakpoint", , @mClick, "ToggleBreakpoint", , ML("Toggle Breakpoint") & HK("ToggleBreakpoint", "F9", True), True)
 	tbDebug.Buttons.Add tbsSeparator
