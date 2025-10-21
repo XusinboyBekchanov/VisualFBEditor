@@ -91,14 +91,14 @@ Sub StartDebuggingWithCompile(Param As Any Ptr)
 	'	ThreadsEnter
 	'	ChangeEnabledDebug False, True, True
 	'	ThreadsLeave
-	If Compile("Run") Then RunWithDebug(0) Else ThreadsEnter: ChangeEnabledDebug True, False, False: ThreadsLeave
+	If Compile("RunWithDebug") Then Else ThreadsEnter: ChangeEnabledDebug True, False, False: ThreadsLeave
 End Sub
 
 Sub StartDebugging(Param As Any Ptr)
 	ThreadsEnter
 	ChangeEnabledDebug False, True, True
 	ThreadsLeave
-	RunWithDebug(0)
+	RunProgramWithDebug(0)
 End Sub
 
 Sub RunCmd(Param As Any Ptr)

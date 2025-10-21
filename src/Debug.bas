@@ -14955,7 +14955,7 @@ Private Sub hard_closing(errormsg As String)
 	ThreadsLeave
 End Sub
 
-Sub RunWithDebug(Param As Any Ptr)
+Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 	On Error Goto ErrorHandler
 	'Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	'If tb = 0 Then Exit Sub
@@ -14967,10 +14967,10 @@ Sub RunWithDebug(Param As Any Ptr)
 		Dim pinfo As PROCESS_INFORMATION
 	#endif
 	ThreadsEnter()
-	Dim As ProjectElement Ptr Project
-	Dim As TreeNode Ptr ProjectNode
-	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
-	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	'Dim As ProjectElement Ptr Project
+	'Dim As TreeNode Ptr ProjectNode
+	'Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	'Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
 	ThreadsLeave()
 	If Not Restarting Then
 		'#IfNDef __USE_GTK__
@@ -15026,7 +15026,7 @@ Sub RunWithDebug(Param As Any Ptr)
 		Else
 			WAdd(CmdL, " " & *RunArguments)
 		End If
-		If Project Then WLetEx(CmdL, *CmdL & " " & WGet(Project->CommandLineArguments), True)
+		If ProjectCommandLineArguments <> "" Then WLetEx(CmdL, *CmdL & " " & WGet(ProjectCommandLineArguments), True)
 	End If
 	#ifndef __USE_GTK__
 		exename = Replace(exename, BackSlash, Slash)
@@ -15238,3 +15238,14 @@ Sub RunWithDebug(Param As Any Ptr)
 	ThreadsLeave()
 End Sub
 
+Sub RunProgramWithDebug(Param As Any Ptr)
+	Dim As ProjectElement Ptr Project
+	Dim As TreeNode Ptr ProjectNode
+	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
+	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	If Project <> 0 Then
+		RunWithDebug , *Project->FileName, *Project->CommandLineArguments, MainFile, CompileLine, FirstLine
+	Else
+		RunWithDebug , "", "", MainFile, CompileLine, FirstLine
+	End If
+End Sub
