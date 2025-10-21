@@ -778,7 +778,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
 			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
 		End If
-		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
+		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run" OrElse Parameter = "RunWithDebug") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
 			Dim As String Colon = ""
 			#ifdef __USE_GTK__
 				Colon = ":"
@@ -855,7 +855,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Next i
 			CloseFile_(Fn2)
 		Else
-			If CInt(Parameter = "Make") OrElse CInt(Parameter = "MakeClean") OrElse CInt(CInt(Parameter = "Run") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
+			If CInt(Parameter = "Make") OrElse CInt(Parameter = "MakeClean") OrElse CInt(CInt(Parameter = "Run" OrElse Parameter = "RunWithDebug") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
 				If FileExists(GetFolderName(*MainFile) & "/makefile") Then
 					ChDir(GetFolderName(*MainFile))
 				Else
@@ -1217,6 +1217,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					RunPr , *Project->FileName, *Project->CommandLineArguments, *MainFile, CompileLine, *FirstLine
 				Else
 					RunPr , "", "", *MainFile, CompileLine, *FirstLine
+				End If
+			ElseIf Parameter = "RunWithDebug" Then
+				If Project <> 0 Then
+					RunWithDebug , *Project->FileName, *Project->CommandLineArguments, *MainFile, CompileLine, *FirstLine
+				Else
+					RunWithDebug , "", "", *MainFile, CompileLine, *FirstLine
 				End If
 			End If
 		End If

@@ -982,7 +982,8 @@ Declare Sub proc_end()
 Declare Sub thread_status()
 Declare Function thread_select(id As Integer = 0) As Integer
 Declare Function var_search(pproc As Integer, text() As String, vnb As Integer, varr As Integer, vpnt As Integer = 0) As Integer
-Declare Sub RunWithDebug(Param As Any Ptr)
+Declare Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
+Declare Sub RunProgramWithDebug(Param As Any Ptr)
 #ifndef __FB_WIN32__
 	Declare Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 	Declare Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
