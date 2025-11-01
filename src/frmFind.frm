@@ -372,8 +372,9 @@ Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False
 					iPos = InStr(iPos + 1, LCase(txt->Lines(i)), LCase(*gSearchSave))
 				End If
 				If iPos > 0 Then
+					If jj > SearchCount OrElse jj < 0 Then jj = SearchCount - 1
 					If iPos = Result Then gSearchItemIndex = jj
-					If CBool(jj <= SearchCount) AndAlso CBool(plvSearch->ListItems.Item(jj)->Text(1) = Str(i + 1)) AndAlso CBool(plvSearch->ListItems.Item(jj)->Text(3) = tb->FileName) Then
+					If CBool(plvSearch->ListItems.Item(jj)->Text(1) = Str(i + 1)) AndAlso CBool(plvSearch->ListItems.Item(jj)->Text(3) = tb->FileName) Then
 						plvSearch->ListItems.Item(jj)->Text(1) = Str(i + 1)
 						plvSearch->ListItems.Item(jj)->Text(2) = Str(iPos)
 						If CBool(Val(plvSearch->ListItems.Item(jj)->Text(1)) = i + 1) Then jj += 1 Else Exit Do
