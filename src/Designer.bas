@@ -313,14 +313,14 @@ Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Function Dot_Draw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			Dim As Designer Ptr Des = data1
-			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso Not Des->LockControls Then
+			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso CInt(Not Des->LockControls) Then
 				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)
 			Else
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			End If
 			.cairo_rectangle(cr, 0, 0, Des->DotSize, Des->DotSize)
 			cairo_fill_preserve(cr)
-			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso Not Des->LockControls Then
+			If Des->SelectedControl AndAlso Des->SelectedControl = g_object_get_data(G_OBJECT(widget), "@@@Control2") AndAlso CInt(Not Des->LockControls) Then
 				cairo_set_source_rgb(cr, 1.0, 1.0, 1.0)
 			Else
 				cairo_set_source_rgb(cr, 0.0, 0.0, 1.0)

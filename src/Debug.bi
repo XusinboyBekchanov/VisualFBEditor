@@ -119,6 +119,7 @@ Declare Sub DeleteDebugCursor
 	
 	#define HCOMBO 500
 
+	#define WSTRSIZE 2 ''size of one charactere in wstring
 ''==========================================================
 #else ''======================== LINUX =====================
 ''==========================================================
@@ -317,6 +318,8 @@ Declare Sub DeleteDebugCursor
 	'#define	EPIPE		32
 	'#define	EDOM		33
 	'#define	ERANGE		34
+	
+	#define WSTRSIZE 4
 #endif
 ''====================== end for linux =========================
 
@@ -361,7 +364,8 @@ Type tlist
 	'as INTEGER idx
 End Type
 
-#Define TYPESTD 17 ''upper limit for standard type, now 17 for va_list 2020/02/05
+#define TYPESTD 18 ''upper limit for standard type, now 17 for va_list 2020/02/05
+Const STYPESTD = ":t" + Str(TYPESTD)
 
 '' DATA STAB
 Type udtstab
@@ -370,7 +374,7 @@ Type udtstab
 	nline As UShort  ''line number
 	ad As Integer   ''address 64bit for gas64
 End Type
-#Define STAB_SZ_MAX 60000  ''max stabs string
+#define STAB_SZ_MAX 60000  ''max stabs string
 
 Enum
 NODLL
@@ -378,7 +382,7 @@ DLL
 End Enum
 
 ''source code files
-#Define SRCSIZEMAX 5000000 ''max source size
+#define SRCSIZEMAX 5000000 ''max source size
 
 Const   SRCMAX=1000		   ''max source file
 
@@ -470,13 +474,13 @@ End Enum
 
 Union pointeurs
 	pxxx As Any Ptr
-	#Ifdef __FB_64BIT__
+	#ifdef __FB_64BIT__
 	   pinteger As Long Ptr
 	   puinteger As ULong Ptr
-	#Else
+	#else
 	   pinteger As Integer Ptr
 	   puinteger As UInteger Ptr
-	#EndIf
+	#endif
 	'pinteger As Integer Ptr
 	'puinteger As UInteger Ptr
 	psingle As Single Ptr
@@ -562,6 +566,7 @@ Type tvrb
 	mem As UByte    'scope
 	arr As tarr Ptr 'pointer to array def
 	pt As Long      'pointer
+	fxlen As Integer 'lenght of fix-len string (string *N)
 End Type
 
 ''========================== Running variables ============================
@@ -613,6 +618,7 @@ Type tcudt
     lg As UInteger  'lenght
 	arr As tarr Ptr 'arr ptr
 	pt As Long
+	fxlen As Integer 'lenght of fix-len string (string *N)
 End Type
 
 ''========================= Excluded lines for procs added in dll (DllMain and tmp$x) ================
@@ -643,6 +649,7 @@ Type twtch
     vnm(10) As String   'name of var or component
     vty(10) As String   'type
     Var     As Integer  'array=1 / no array=0
+    fxlen   As Integer
 End Type
 
 ''========================= Breakpoint on line ===================================
@@ -723,6 +730,7 @@ Type tvarfind
 	pr As Integer   'index of running var parent (if no parent same as ivr)
 	ad As UInteger
 	iv As Integer   'index of running var
+	fxlen As Integer
 	tv As Any Ptr   'handle treeview
     tl As Any Ptr   'handle line
 End Type
@@ -754,6 +762,7 @@ Type tvrp
 	ad As UInteger  'address
 	tl As Any Ptr   'line in treeview
 	iv As Integer   'index of variables
+	fxlen As Integer
 End Type
 
 Type tindexdata
@@ -940,7 +949,7 @@ Declare Sub dump_sh()
 Declare Sub var_sh()
 Declare Sub index_update()
 Declare Function var_find() As Integer
-Declare Function var_sh2(t As Integer,pany As UInteger,p As UByte=0,sOffset As String="") As String
+Declare Function var_sh2(t As Integer, pany As UInteger, p As UByte= 0, sOffset As String = "", fxlen As Integer = 0) As String
 Declare Sub shwexp_init()
 Declare Sub edit_fill(txt As String,adr As Integer,typ As Integer, pt As Integer, src As Integer)
 Declare Function debug_extract(exebase As UInteger,nfile As String,dllflag As Long = NODLL) As Integer

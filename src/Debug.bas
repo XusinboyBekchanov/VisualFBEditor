@@ -317,7 +317,8 @@ udt(12).nm="Double":udt(12).lg=Len(Double)
 udt(13).nm="String":udt(13).lg=Len(String)
 udt(14).nm="Fstring":udt(14).lg=Len(Integer)
 udt(15).nm="fb_Object":udt(15).lg=Len(UInteger)
-udt(16).nm="Boolean":udt(16).lg=Len(Boolean)
+udt(16).nm = "Boolean": udt(16).lg = Len(Boolean)
+udt(18).nm = "Wstring": udt(18).lg = Len(Integer)
 
 reinit()
 
@@ -896,9 +897,6 @@ Private Sub brk_unset(ubpon As Integer=False)
 			End If
 		#endif
 		
-		
-		
-		
 		For jbrk As Integer = 1 To brknb ''restore if needed the UBP
 			If brkol(jbrk).typ<50 Then
 				If ubpon=True Then
@@ -1255,8 +1253,8 @@ End Sub
 '=======================================================================
 '' puts the intruction breakcpu at the beginning of every executable line
 '=======================================================================
-Private Sub put_breakcpu(beginline As Integer=1)
-	For iline As Integer=beginline To linenb
+Private Sub put_breakcpu(beginline As Integer = 1)
+	For iline As Integer = beginline To linenb
 		ReadProcessMemory(dbghand,Cast(LPCVOID,rline(iline).ad),@rline(iline).sv,1,0) 'sav 1 byte before writing breakcpu
 		WriteProcessMemory(dbghand,Cast(LPVOID,rline(iline).ad),@breakcpu,1,0)
 	Next
@@ -1430,7 +1428,7 @@ Private Function debug_event() As Integer
 			dll_load()
 		#else
 			ThreadsEnter
-			MsgBox("Linux dll", "nedd to be coded")
+			MsgBox("Linux dll", "need to be coded")
 			ThreadsLeave
 		#endif
 	Case KDBGDLLUNLOAD
@@ -2999,7 +2997,7 @@ End Sub
 							End If
 							
 						Else ''RTSTEP
-							If stopcode=CSUSER Then ''CSUSER : user halts the debuggee
+							If stopcode= CSUSER Then ''CSUSER : user halts the debuggee
 								brp_stop(threadcur,stopcode,xip)
 								
 							Else
@@ -3379,6 +3377,7 @@ End Sub
 					thread(threadcur).pe=True        'is last instruction ?
 				End If
 			End If
+			
 			'NOTA If rline(i).nu=-1 Then
 			'fb_message("No line for this proc","Code added by compiler (constructor,...)")
 			'Else
@@ -4422,15 +4421,17 @@ End Function
 '' parse
 '--------------------------------------------
 Private Sub parse_var2(gv As String,f As Byte)
-	Dim p As Integer=1,c As Integer,e As Integer,gv2 As String,pp As Integer
+	Dim As Integer p=1,c,e,pp,fxlen
+	Dim As String gv2
 	If InStr(gv,"=")=0 Then
 		c=Val(Mid(gv,p,9))
 		'workaround with gas boolean are not correctly defined type value 15 instead 16 so change the value as pchar (15) is not used
 		'done also with array just below and param
 		'dbg_prt2("cut up=2"+vrb(*vrbptr).nm+" value c="+Str(c))
 		If c=15 Then c=16
+		'If c=18 Then c=6
 		'==================================
-		
+
 		If c>TYPESTD Then c+=udtcpt 'udt type so adding the decal
 		pp=0
 		If f=TYUDT Then
@@ -4455,7 +4456,7 @@ Private Sub parse_var2(gv As String,f As Byte)
 					pp=200+c 'sub
 				Else
 					pp=220+c 'function
-				End If
+				EndIf
 			Else
 				pp=c
 				If gv2[e]=Asc("*")Then e+=1
@@ -4464,22 +4465,38 @@ Private Sub parse_var2(gv As String,f As Byte)
 			pp=0
 		End If
 		c=Val(Mid(gv2,e+1))
-		
+
 		'workaround with gas boolean are not correctly defined type value 15 instead 16 so change the value as pchar (15) is not used
 		'done also with simple var and param
 		'dbg_prt2("cut up=2"+vrb(*vrbptr).nm+" value c="+Str(c))
 		If c=15 Then c=16
+		'If c=18 Then c=6
 		'========================================================
-		
-		If c>TYPESTD Then c+=udtcpt 'udt type so adding the decal 20/08/2015
+		If (c=14 Or c=4 Or c=18) And pp=0 Then ''fix-len strg
+			If arr(arrnb).dm=1 Then ''not an array just lenght of fix-len string
+				fxlen=arr(arrnb).nlu(0).ub+1
+				arrnb-=1
+				If f=TYDIM Then
+					vrb(*vrbptr).arr=0
+				Else
+					cudt(cudtnb).arr=0
+				End If
+			Else
+				fxlen=arr(arrnb).nlu(arr(arrnb).dm-1).ub+1
+				arr(arrnb).dm-=1
+			End If
+		End If
+		If c > TYPESTD Then c += udtcpt 'udt type so adding the decal 20/08/2015
 		If f=TYUDT Then
 			cudt(cudtnb).pt=pp
 			cudt(cudtnb).typ=c
+			cudt(cudtnb).fxlen=fxlen
 		Else
 			vrb(*vrbptr).pt=pp
 			vrb(*vrbptr).typ=c
+			vrb(*vrbptr).fxlen=fxlen
 		End If
-	End If
+	EndIf
 End Sub
 
 '------------
@@ -4550,7 +4567,7 @@ Private Sub parse_udt(readl As String)
 		q=InStr(p,readl,";")
 		lgbits=Val(Mid(readl,p,q-p))	'length in bits
 		
-		If cudt(cudtnb).typ<>4 And cudt(cudtnb).pt=0 And cudt(cudtnb).arr=0 Then 'not zstring, pointer,array !!!
+		If cudt(cudtnb).typ <> 4 And cudt(cudtnb).typ <> 14 And cudt(cudtnb).pt = 0 And cudt(cudtnb).arr = 0 Then 'not zstring, pointer,array !!!
 			If lgbits<>udt(cudt(cudtnb).typ).lg*8 Then 'bitfield
 				cudt(cudtnb).typ=TYPEMAX 'special type for bitfield
 				cudt(cudtnb).ofb=cudt(cudtnb).ofs-(cudt(cudtnb).ofs\8) * 8 ' bits mod byte
@@ -4616,7 +4633,7 @@ Private Sub parse_var(gv As String,ad As UInteger, dlldelta As Integer=0)
 	Static defaulttype As Integer
 	Dim As String vname
 	
-	If InStr(gv,"va_list:t") Then 'last default type
+	If InStr(gv, STYPESTD) Then 'last default type
 		defaulttype=0
 	ElseIf InStr(gv,"integer:t") Then
 		defaulttype=1
@@ -6039,14 +6056,14 @@ End Sub
 '' -----------------------
 Private Sub dbg_line(linenum As Integer, ofset As Integer)
 	If linenum Then
-		#ifndef __FB_64BIT__
-			''to skip stabd
-			If linenum<rline(linenb).nu Then
-				If procnb=rline(linenb).px Then
-					Exit Sub
-				End If
-			End If
-		#endif
+		'#ifndef __FB_64BIT__
+		'	''to skip stabd
+		'	If linenum<rline(linenb).nu Then
+		'		If procnb=rline(linenb).px Then
+		'			Exit Sub
+		'		End If
+		'	End If
+		'#endif
 		If ofset+proc(procnb).db<>rline(linenb).ad Then ''checking to avoid asm with just comment line
 			linenb+=1
 		End If
@@ -6082,6 +6099,9 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 			If flagmain=True And procname="main" Then
 				procmain=procnb+1
 				flagmain=False
+				#ifndef __FB_64BIT__
+					linenb-=1 ''skip stabd
+				#endif
 				'flagstabd=TRUE'first main ok but not the others
 				'dbg_prt2 "main found=";procnb+1
 			End If
@@ -6114,11 +6134,16 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 		'for proc added by fbc (constructor, operator, ...) ''adding >2 to avoid case only one line ...
 		'dbg_prt2 "Checking procedure added by compiler =";proc(procnb).nm,proc(procnb).nu,rline(linenb).nu,hex(proc(procnb).db),hex(proc(procnb).fn)
 		'If proc(procnb).nu=rline(linenb).nu AndAlso linenb>2 then
-		If rline(linenb).nu=1 Then
-			
+		If procnb <> procmain Then
+			#ifdef __FB_64BIT__
+			If rline(linenb).nu = 1 Then
+			#else
+			If proc(procnb).nu=rline(linenb).nu Then
+			#endif
 			proc(procnb).nu=-1
 			linenb-=1
-			dbg_prt2 "Procedure added by compiler (constructor, etc) =";proc(procnb).nm
+			dbg_prt2 "Procedure added by compiler (constructor, etc) ="; proc(procnb).nm
+			End If
 			'For i As Integer =1 To linenb
 			'dbg_prt2("Proc db/fn inside for stab="+Hex(proc(procnb).db)+" "+Hex(proc(procnb).fn))
 			'dbg_prt2("Line Adr="+Hex(rline(i).ad)+" "+Str(rline(i).ad))
@@ -6179,6 +6204,7 @@ Private Sub dbg_epilog(ofset As Integer)
 		For iline As Integer = linenb To 1 Step -1
 			If rline(iline).px=procmain Then
 				For iproc As Integer = 1 To procnb
+					If iproc = procmain Then Continue For
 					If proc(iproc).nu=rline(iline).nu Then
 						If proc(iproc).sr=proc(procmain).sr Then
 							linenb-=1
@@ -6614,7 +6640,7 @@ Private Sub var_dump(tv As Any Ptr, ptd As Long = 0)
 		Case 13 'string
 			 dumptyp=2 'default for string
 			 ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,SizeOf(Integer),0) ''string address
-		Case 4,14 'f or zstring
+		Case 4, 14, 18 'f or zstring or wstring
 			dumptyp=2
 		Case Is>TYPESTD
 			 dumptyp=8 'default for pudt and any
@@ -6648,12 +6674,14 @@ Private Sub var_fill(i As Integer)
 		varfind.ty=cudt(-vrr(i).vr).typ
 		varfind.pt=cudt(-vrr(i).vr).pt
 		varfind.nm=cudt(-vrr(i).vr).nm
-		varfind.pr=vrr(var_parent(vrr(i).tv)).vr'index of the vrb
+		varfind.pr = vrr(var_parent(vrr(i).tv)).vr 'index of the vrb
+		varfind.fxlen = cudt(-vrr(i).vr).fxlen
 	Else
 		varfind.ty=vrb(vrr(i).vr).typ
 		varfind.pt=vrb(vrr(i).vr).pt
 		varfind.nm=vrb(vrr(i).vr).nm
-		varfind.pr=vrr(i).vr 'no parent so himself, index of the vrb
+		varfind.pr = vrr(i).vr 'no parent so himself, index of the vrb
+		varfind.fxlen = vrb(vrr(i).vr).fxlen
 	End If
 	varfind.ad=vrr(i).ad
 	varfind.iv=i
@@ -6732,7 +6760,8 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 		varfind.ad=wtch(idx).adr
 		varfind.tv=tviewwch 'handle treeview
 		varfind.tl=wtch(idx).tvl 'handle line
-		varfind.iv=wtch(idx).ivr
+		varfind.iv = wtch(idx).ivr
+		varfind.fxlen = wtch(idx).fxlen
 	Else'shw/expand tree
 		For idx =1 To SHWEXPMAX
 			If shwexp1(idx).tv = tv Then Exit For 'found index matching tview
@@ -6753,6 +6782,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 				varfind.tv=tv 'handle treeview
 				varfind.tl=hitem 'handle line
 				varfind.iv = -1
+				varfind.fxlen = vrp(i).fxlen
 				Return i
 			End If
 		Next
@@ -6769,7 +6799,7 @@ End Function
 		Static As Byte wrapflag,buf(32004)
 		If var_find2(tv)=-1 Then Exit Sub 'search index variable under cursor
 		
-		If varfind.ty<>4 And varfind.ty<>13 And varfind.ty<>14 And varfind.ty <>6 Then 'or ty<>15
+		If varfind.ty <> 4 And varfind.ty <> 13 And varfind.ty <> 14 And varfind.ty <> 6 And varfind.ty <> 18 Then 'or ty<>15
 			ThreadsEnter: MsgBox("Show string error: Select only a string variable"): ThreadsLeave
 			Exit Sub
 		End If
@@ -6779,7 +6809,7 @@ End Function
 			If varfind.pt=2 Then ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,SizeOf(Integer),0) 'if two levels
 		End If
 		Dim f As Integer,inc As Integer=32000,wstrg As WString *32001,bufw As UShort
-		If varfind.ty <>6 Then
+		If varfind.ty <> 18 Then
 			If varfind.ty=13 Then 'string
 				ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,SizeOf(Integer),0)'string address
 			End If
@@ -6803,12 +6833,12 @@ End Function
 			'If helpbx=0 Then helptyp=4:fb_Dialog(@help_box,"String : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,260)
 		Else
 			inc=0:wstrg=""
-			ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@bufw,2,0)
+			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @bufw, WSTRSIZE, 0)
 			While bufw
 				wstrg[inc]=bufw
 				inc+=1
 				If inc=32000 Then Exit While 'limit if wstring >32000
-				ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr+inc*2),@bufw,2,0)
+				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr + inc * 2), @bufw, WSTRSIZE, 0)
 			Wend
 			wstrg[inc]=0 'end of wstring
 			txt.Text = wstrg
@@ -6952,7 +6982,7 @@ Private Function enum_find(t As Integer,v As Integer) As String
 	Return "Unknown Enum value"
 End Function
 
-Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As String = "") As String
+Private Function var_sh2(t As Integer, pany As UInteger, p As UByte = 0, sOffset As String = "", fxlen As Integer = 0) As String
 	Dim adr As UInteger,varlib As String
 	Union pointers
 		#ifdef __FB_64BIT__  '25/07/2015
@@ -6987,7 +7017,7 @@ Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As
 			varlib=String(p,Str("*"))+" "+udt(t).nm+">"
 		End If
 		
-		If flagverbose Then varlib+="[sz"+Str(SizeOf(Integer))+" / "+sOffset+Str(pany)+"]" '25/07/2015
+		If flagverbose Then varlib += "[sz " + Str(SizeOf(Integer)) + " / " + sOffset + Str(pany) + "]" '25/07/2015
 		If pany Then
 			ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0) '25/07/2015
 			If p>200 Then
@@ -7000,7 +7030,18 @@ Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As
 		End If
 	Else
 		varlib=udt(t).nm+">"
-		If flagverbose Then varlib+="[sz "+Str(udt(t).lg)+" / "+sOffset+Str(pany)+"]"
+		If fxlen<>0 Then
+			varlib+="("+Str(fxlen)+") "
+		End If
+		If flagverbose Then
+			If t=14 Or t=4 Then
+				varlib+="[sz "+Str(fxlen)+" / "+sOffset+Hex(pany)+"]"
+			ElseIf t=18 Then
+				varlib+="[sz "+Str(fxlen*WSTRSIZE)+" / "+sOffset+Hex(pany)+"]"
+			Else
+				varlib+="[sz "+Str(udt(t).lg)+" / "+sOffset+Hex(pany)+"]"
+			End If
+		End If
 		If pany Then
 			If t>0 And t<=TYPESTD Then '20/08/2015
 				varlib+="="
@@ -7022,7 +7063,14 @@ Private Function var_sh2(t As Integer,pany As UInteger,p As UByte = 0,sOffset As
 					End If
 					Clear recup(0),0,71 'max 70 char
 					ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@recup(0),70,0) 'value
+					If t = 14 Then
+						If fxlen<70 Then
+							recup(fxlen)=0
+						End If
+					End If
 					varlib+=*Ptrs.pzstring
+				Case 18
+					varlib += " Use show z/w/string option"
 				Case 5 'short
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
 					varlib+=Str(*Ptrs.pshort)
@@ -7189,7 +7237,7 @@ Private Sub watch_sh(aff As Integer = 0) 'default all watched
 			ElseIf wtch(i).psk=-4 Then
 				value=libel
 			Else
-				value=var_sh2(wtch(i).typ,wtch(i).adr,wtch(i).pnt)
+				value= var_sh2(wtch(i).typ, wtch(i).adr, wtch(i).pnt, , wtch(i).fxlen)
 				libel+=value '2 spaces for trace T
 			End If
 			'trace
@@ -7226,7 +7274,8 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 	wtch(t).pnt=varfind.pt
 	wtch(t).adr=varfind.ad
 	wtch(t).arr=0
-	wtch(t).tad=f
+	wtch(t).tad = f
+	wtch(t).fxlen = varfind.fxlen
 	
 	If varfind.iv=-1 Then 'memory from dump_box or shw/expand
 		wtch(t).lbl=varfind.nm
@@ -7680,7 +7729,8 @@ Private Sub watch_check(wname() As String)
 		wtch(index).vnb=vnb
 		wtch(index).idx=pidx
 		wtch(index).pnt=ispnt
-		wtch(index).tad=tad
+		wtch(index).tad = tad
+		wtch(index).fxlen = tad
 		wtchcpt+=1
 		index+=1
 	Wend
@@ -8971,13 +9021,26 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 			Return -1
 		End If
 	Else
+		#ifndef __FB_64BIT__
+			If flagdll=NODLL Then
+				If baseimg<>&h400000 Then
+					baseimg-=&h400000 ''with new version of gcc the base image is changed
+				Else
+					baseimg=0
+				End If
+			Else
+				baseimg=0
+			End If
+		#else
+			baseimg=0
+		#endif
 		basestab += exebase + SizeOf(udtstab) ''12 for 32bit / 16 for 64bit could be greater if udtstab is changed
 		basestabs += exebase
 		#ifdef __FB_WIN32__
 			gengcc = 0 'by default
 		#endif
 		While 1
-			If ReadProcessMemory(dbghand,Cast(LPCVOID,basestab),@recupstab,SizeOf(udtstab),0)=0 Then
+			If ReadProcessMemory(dbghand, Cast(LPCVOID, basestab), @recupstab, SizeOf(udtstab), 0) = 0 Then
 				#ifdef fulldbg_prt
 					#ifdef __FB_WIN32__
 						dbg_prt ("error reading memory " + GetErrorString(GetLastError))
@@ -9023,14 +9086,16 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 						dbg_file(recup,recupstab.ad)
 					Case 255 ''not as standard stab freebasic version and maybe other information
 						compilerversion=recup
-					Case 32,38,40,128,160 'init common/ var / uninit var / local / parameter
-						parse_var(recup,recupstab.ad)',exebase-baseimg) ''todo
+					Case 32,38,40 'init common/ var / uninit var / local / parameter
+						parse_var(recup, recupstab.ad + baseimg) ',exebase-baseimg) ''todo
+					Case 128,160 'init common/ var / uninit var / local / parameter
+						parse_var(recup,recupstab.ad)'+baseimg)',exebase-baseimg) ''todo
 					Case 132 '' file name
 						dbg_include(recup)
 					Case 36 ''procedure
-						dbg_proc(recup,recupstab.nline,recupstab.ad)
+						dbg_proc(recup,recupstab.nline,recupstab.ad+baseimg)
 					Case 68 ''line
-						dbg_line(recupstab.nline,recupstab.ad)
+						dbg_line(recupstab.nline, recupstab.ad) ''no need of baseimage as the address is relative to address of proc
 					Case 224 ''address epilog
 						dbg_epilog(recupstab.ad)
 					Case 42 ''main entry point
@@ -9380,11 +9445,21 @@ Private Sub list_all()
 	Next
 	Print "global variables ---------------------------------------------------------- ";vrbgbl
 	For ivrb As Integer=1 To vrbgbl
-		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem)
+		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem);
+		If vrb(ivrb).typ=14 Or vrb(ivrb).typ=4 Or vrb(ivrb).typ=18 Then
+			Print " ";vrb(ivrb).fxlen
+		Else
+			Print
+		End If
 	Next
 	Print "local variables ----------------------------------------------------------- ";vrbloc-VGBLMAX
 	For ivrb As Integer=VGBLMAX+1 To vrbloc
-		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem)
+		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem);
+		If vrb(ivrb).typ=14 Or vrb(ivrb).typ=4 Or vrb(ivrb).typ=18 Then
+			Print " ";vrb(ivrb).fxlen
+		Else
+			Print
+		End If
 	Next
 	Print "end of list all"
 End Sub
@@ -9764,7 +9839,7 @@ Private Sub brkv_set(a As Integer) 'breakon variable
 			GetWindowText(brkvhnd,ztxt,150)
 		#endif
 	End If
-	brkv2.txt=Left(ztxt,InStr(ztxt,"<"))+var_sh2(brkv2.typ,brkv2.adr,p)
+	brkv2.txt = Left(ztxt, InStr(ztxt, "<")) + var_sh2(brkv2.typ, brkv2.adr, p)
 	
 	'fb_MDialog(@brkv_box,"Test for break on value",windmain,283,25,350,50)
 	
@@ -10065,21 +10140,39 @@ Private Sub update_address(midx As Long) ''to propagate address dynamaic array o
 End Sub
 
 Private Function var_sh1(i As Integer) As String '23/04/2014
-	Dim adr As Integer,text As String,soffset As String
+	Dim adr As Integer, text As String, soffset As String, fxlen As Integer
 	Dim As Integer temp1,temp2,temp3,vlbound(4),vubound(4)
 	Dim As tarr Ptr arradr
 	Dim As Long vflong,udtlg,nbdim,typ
 	If vrr(i).vr < 0 Then ''field
-		text=cudt(Abs(vrr(i).vr)).nm+" "
+		text = cudt(Abs(vrr(i).vr)).nm + " "
+		If cudt(Abs(vrr(i).vr)).typ=14 Or cudt(Abs(vrr(i).vr)).typ=4 Or cudt(Abs(vrr(i).vr)).typ=18 Then
+			fxlen=cudt(Abs(vrr(i).vr)).fxlen
+			If cudt(Abs(vrr(i).vr)).typ=18 Then
+				udtlg=fxlen*WSTRSIZE
+			Else
+				udtlg=fxlen
+			End If
+		Else
+			udtlg=udt(cudt(Abs(vrr(i).vr)).typ).lg
+		End If
 		arradr=cudt(Abs(vrr(i).vr)).arr
-		udtlg=udt(cudt(Abs(vrr(i).vr)).typ).lg
-		If Cast(Integer,cudt(Abs(vrr(i).vr)).arr)>0 Then nbdim=cudt(Abs(vrr(i).vr)).arr->dm-1 ''only used in case of fixed-lenght array
+		If Cast(Integer, cudt(Abs(vrr(i).vr)).arr) > 0 Then nbdim = cudt(Abs(vrr(i).vr)).arr->dm - 1 ''only used in case of fixed-lenght array
 		typ = cudt(Abs(vrr(i).vr)).typ
 	Else
-		text=vrb(vrr(i).vr).nm+" "
+		text = vrb(vrr(i).vr).nm + " "
+		If vrb(vrr(i).vr).typ=14 Or vrb(vrr(i).vr).typ=4  Or vrb(vrr(i).vr).typ=18 Then
+			fxlen=vrb(vrr(i).vr).fxlen
+			If vrb(vrr(i).vr).typ=18 Then
+				udtlg=fxlen*WSTRSIZE
+			Else
+				udtlg=fxlen
+			End If
+		Else
+			udtlg=udt(vrb(vrr(i).vr).typ).lg
+		End If
 		arradr=vrb(vrr(i).vr).arr
-		udtlg=udt(vrb(vrr(i).vr).typ).lg
-		If Cast(Integer,vrb(vrr(i).vr).arr)>0 Then nbdim=vrb(vrr(i).vr).arr->dm-1 ''only used in case of fixed-lenght array
+		If Cast(Integer, vrb(vrr(i).vr).arr) > 0 Then nbdim = vrb(vrr(i).vr).arr->dm - 1 ''only used in case of fixed-lenght array
 		typ = vrb(vrr(i).vr).typ
 	End If
 	If arradr Then ''fixed lenght or dynamic array
@@ -10098,7 +10191,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 					If vrr(i).arrid Then ''array tracked ?
 						''Read the value need to be done here as the value could not be retrieved too late after the display of the array
 						If trckarr(k).memadr<>0 Then
-							Dim As String libel=var_sh2(trckarr(k).typ,trckarr(k).memadr,0,"")
+							Dim As String libel = var_sh2(trckarr(k).typ, trckarr(k).memadr, 0, "")
 							vflong=ValInt(Mid(libel,InStr(libel,"=")+1))
 							vrr(i).ix(k)=vflong
 						End If
@@ -10144,7 +10237,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				If vrr(i).arrid Then ''array tracked ?
 					''Read the value need to be done here as the value could not be retrieved too late after the display of the array
 					If trckarr(k).memadr<>0 Then
-						Dim As String libel=var_sh2(trckarr(k).typ,trckarr(k).memadr,0,"")
+						Dim As String libel = var_sh2(trckarr(k).typ, trckarr(k).memadr, 0, "")
 						vflong=ValInt(Mid(libel,InStr(libel,"=")+1))
 						
 						''Check If the value Is inside the bounds, If Not the Case set LBound/UBound
@@ -10178,7 +10271,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 	If vrr(i).vr<0 Then ''field
 		With cudt(Abs(vrr(i).vr))
 			If .typ=TYPEMAX Then 'bitfield
-				text+="<BITF"+var_sh2(2,vrr(i).ad,.pt,Str(.ofs)+" / ")
+				text += "<BITF" + var_sh2(2, vrr(i).ad, .pt, Str(.ofs) + " / ", .fxlen)
 				temp1=ValInt(Right(text,1)) 'byte value
 				temp1=temp1 Shr .ofb        'shifts to get the concerned bit on the right
 				temp1=temp1 And ((2*.lg)-1) 'clear others bits
@@ -10187,7 +10280,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 			Else
 				soffset=Str(.ofs)+" / "
 				If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini)+" >> "  '19/05/2014
-				text+="<"+var_sh2(.typ,vrr(i).ad,.pt,soffset)
+				text += "<" + var_sh2(.typ, vrr(i).ad, .pt, soffset, .fxlen)
 			End If
 			#ifdef __USE_WINAPI__
 				If InStr(text, "Ushort") > 0 Then
@@ -10224,7 +10317,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				text+="<Common / "
 			End Select
 			If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini+SizeOf(Integer))+" >> "  '25/07/2015
-			text += var_sh2(.typ, adr, .pt, soffset)
+			text += var_sh2(.typ, adr, .pt, soffset, .fxlen)
 			#ifdef __USE_WINAPI__
 				If InStr(text, "Ushort") > 0 Then
 					Dim As UString result = get_sh(i)
@@ -10634,7 +10727,7 @@ End Sub
 Dim Shared focusbx   As Any Ptr
 
 Private Sub dsp_change(index As Integer)
-	Dim As Integer icurold,icurlig,curold,decal,clrold,clrcur
+	Dim As Integer icurold, icurlig, curold, decal, clrold, clrcur
 	Dim ntab As Integer = rline(index).sx
 	'Var tb = AddTab(source(ntab))
 	fntab = ntab
@@ -10773,7 +10866,7 @@ End Sub
 		vcontext.ContextFlags=CONTEXT_CONTROL
 		GetThreadContext(threadhs,@vcontext)
 		vcontext.regip=rline(i).ad
-		SetThreadContext(threadhs,@vcontext)
+		SetThreadContext(threadhs, @vcontext)
 		
 		dsp_change(i)
 	End Sub
@@ -11048,7 +11141,7 @@ End Sub
 #ifdef __USE_WINAPI__
 	Sub brk_set(t As Integer)
 		Dim l As Integer,i As Integer,range As CHARRANGE,b As Integer,ln As Integer
-		range.cpMin=-1 :range.cpMax=0
+		range.cpMin = -1 : range.cpMax = 0
 		Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
@@ -11167,7 +11260,7 @@ Private Sub thread_change(th As Integer =-1)
 	procsv=rline(thread(threadcur).sv).px
 	thread_text(t)
 	thread_text(s)
-	threadsel=threadcur
+	threadsel = threadcur
 	dsp_change(thread(threadcur).sv)
 End Sub
 
@@ -11223,7 +11316,7 @@ Private Sub thread_del(thid As UInteger)
 		threadsel=0
 		threadhs=thread(0).hd
 		thread_text(0)
-		runtype=RTSTEP
+		runtype= RTSTEP
 		dsp_change(thread(0).sv)
 	End If
 End Sub
@@ -11428,7 +11521,7 @@ End Function
 Private Sub singlestep_on(tid As Integer,rln As Integer,running As Integer =1)
 	Dim As Integer dummy ''used to align vcontext on 16bit
 	Dim vcontext As CONTEXT
-    For i As Integer =0 To threadnb
+    For i As Integer = 0 To threadnb
 		If tid=thread(i).id Then
 			threadcontext=thread(i).hd
 
@@ -11469,10 +11562,10 @@ End Sub
 Private Sub thread_search(tid As Integer,bptype As Integer,ddata As Integer)
 	For i As Integer =0 To threadnb
 		If tid=thread(i).id Then
-			threadcontext=thread(i).hd
+			threadcontext=thread(i).hd 
 			threadhs=threadcontext
 			SuspendThread(threadcontext)
-			threadcur=i
+			threadcur = i
 			stopcode=bptype
 			debugdata=ddata
 			debugevent=KDBGRKPOINT
@@ -11504,8 +11597,7 @@ End Sub
 ''  handles breakpoints
 '========================================================
 	Private Sub gest_brk(ad As Integer, ByVal rln As Integer = -1)
-	
-			Dim As Integer dummy
+		Dim As Integer dummy
 		Dim vcontext As CONTEXT
 			vcontext.ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
 			Dim As UInteger i, debut = 1, fin = linenb + 1, adr, iold
@@ -11902,7 +11994,7 @@ End Sub
 						'	End If
 						'Next
 						'gest_brk(adr)
-						'ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, dwContinueStatus)
+						'ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 						'=========================
 						While 1
 							'dbg_prt2 "------------------------------------------------------------------------------------------"
@@ -11986,13 +12078,12 @@ End Sub
 								If stopcode=CSUSER Then ''CSUSER
 									thread_search(DebugEv.dwThreadId,stopcode,adr)
 								Else
-									thread_search(DebugEv.dwThreadId,CSSTEP,adr)
+									thread_search(DebugEv.dwThreadId, CSSTEP, adr)
 								End If
 								Exit While
 							End If
 						Wend
-
-						ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, dwContinueStatus)
+						ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 					Case Else 'Exception
 						With DebugEv.u.Exception.ExceptionRecord
 							For i As Integer = 0 To threadnb 'if msg from thread then flag off

@@ -10120,7 +10120,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 													If CurrentStatusBarName = CtrlName Then pfMenuEditor->CurrentStatusBar = Ctrl
 												End If
 												#ifdef __USE_GTK__
-													gtk_widget_show(st->ReadPropertyFunc(Ctrl, "Widget"))
+													Var CtrlWidget = st->ReadPropertyFunc(Ctrl, "Widget")
+													If GTK_IS_WIDGET(CtrlWidget) Then
+														gtk_widget_show(CtrlWidget)
+													End If
 												#endif
 											End If
 										End If

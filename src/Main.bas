@@ -8624,7 +8624,9 @@ tvExplorer.Images = @imgList
 tvExplorer.SelectedImages = @imgList
 tvExplorer.Align = DockStyle.alClient
 tvExplorer.HideSelection = False
-tvExplorer.EditLabels = True
+#ifdef __USE_WINAPI__
+	tvExplorer.EditLabels = True
+#endif
 'tvExplorer.OnDblClick = @tvExplorer_DblClick
 tvExplorer.OnNodeActivate = @tvExplorer_NodeActivate
 tvExplorer.OnNodeExpanding = @tvExplorer_NodeExpanding
