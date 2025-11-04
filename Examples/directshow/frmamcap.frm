@@ -1,5 +1,5 @@
 ﻿'AMCap摄像头捕捉
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -54,7 +54,7 @@
 		Dim As Panel Panel1, Panel2
 		Dim As CheckBox CheckBox1, CheckBox2
 		Dim As TextBox TextBox1, TextBox2, TextBox3, TextBox4
-		Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, CommandButton7, CommandButton8, CommandButton9
+		Dim As CommandButton CommandButton1, CommandButton2, CommandButton3, CommandButton4, CommandButton5, CommandButton6, CommandButton7, CommandButton8, CommandButton9, CommandButton10
 		Dim As TimerComponent TimerComponent1
 		Dim As SaveFileDialog SaveFileDialog1
 		Dim As StatusBar StatusBar1
@@ -215,6 +215,18 @@
 			.OnSelected = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit, ItemIndex As Integer), @ComboBoxEdit_Selected)
 			.ItemIndex = 0
 		End With
+		' CommandButton10
+		With CommandButton10
+			.Name = "CommandButton10"
+			.Text = "Screenshot"
+			.TabIndex = 20
+			.Caption = "Screenshot"
+			.Enabled = False
+			.SetBounds 320, 70, 90, 22
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
+			.Parent = @Panel1
+		End With
 		'CommandButton2
 		With CommandButton2
 			.Name = "CommandButton2"
@@ -306,6 +318,7 @@
 			.Text = "Capture"
 			.TabIndex = 19
 			.Caption = "Capture"
+			.Enabled = False
 			.SetBounds 520, 70, 90, 22
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton_Click)
@@ -427,13 +440,7 @@ End Function
 Private Sub frmamcapType.ControlEnable(e As Boolean)
 	ComboBoxEdit1.Enabled = e
 	ComboBoxEdit2.Enabled = e
-	'ComboBoxEdit3.Enabled = e
 	TextBox1.Enabled = e
-	'TextBox2.Enabled = e
-	'TextBox3.Enabled = e
-	'TextBox4.Enabled = e
-	'CheckBox1.Enabled = e
-	'CheckBox2.Enabled = e
 	CommandButton1.Enabled = e
 	CommandButton2.Enabled = e
 	CommandButton3.Enabled = e
@@ -496,6 +503,8 @@ Private Sub frmamcapType.CheckBox_Click(ByRef Sender As CheckBox)
 		CommandButton3.Enabled = IIf(pACap, True, False)
 		CommandButton4.Enabled = IIf(pVCap, True, False)
 		CommandButton5.Enabled = IIf(pVSC, True, False)
+		CommandButton9.Enabled = CommandButton4.Enabled 
+		CommandButton10.Enabled = CommandButton4.Enabled 
 		If Sender.Checked Then AVRun
 	Case "CheckBox2"
 		ComboBoxEdit2.Enabled = Sender.Checked
@@ -508,6 +517,11 @@ End Sub
 Private Sub frmamcapType.CommandButton_Click(ByRef Sender As Control)
 	Dim As HRESULT hr
 	Select Case Sender.Text
+	Case "Screenshot"
+		Dim f As ZString Ptr = CAllocate(1024)
+		*f = ExePath & "\amcap_" & Format(Now, "yyyymmdd_hhmmss") & ".bmp"
+		CaptureBmp(f)
+		?*f
 	Case "Audio format..."
 		DialogAudioFormat(This.Handle)
 	Case "Audio filter..."

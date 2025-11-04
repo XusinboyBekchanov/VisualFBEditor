@@ -1,5 +1,5 @@
 ﻿'AMCap摄像头捕捉
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "win/amvideo.bi"

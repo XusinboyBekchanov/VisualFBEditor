@@ -1,5 +1,5 @@
 ﻿'AMCap摄像头捕捉
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 #include once "amcap.bi"
@@ -90,32 +90,36 @@ Private Function CaptureBmp(filename As ZString Ptr) As HRESULT
 	Dim As HRESULT hr
 	
 	'1, 检查pBV2是否存在
-	Print "pBV2 = " & pBV2
+	?"pBV2 = " & pBV2
 	If pBV2 = NULL Then Return True
+	
+	pMC->lpVtbl->Pause(pMC)
 	
 	'2, 检查视频是否在暂停状态
 	'Retrieves the state of the filter graph—paused, running, or stopped.
 	Dim As FILTER_STATE pfs
 	Do
 		hr = pMC->lpVtbl->GetState(pMC, NULL, @pfs)
-		Print "FILTER_STATE=" & pfs & ", " &  hr
+		?"FILTER_STATE=" & pfs & ", " &  hr
 		Select Case hr
 		Case VFW_S_STATE_INTERMEDIATE
-			Print "VFW_S_STATE_INTERMEDIATE"
+			?"VFW_S_STATE_INTERMEDIATE"
 		Case VFW_S_CANT_CUE
-			Print "VFW_S_CANT_CUE"
+			?"VFW_S_CANT_CUE"
 		Case E_FAIL
-			Print "E_FAIL"
+			?"E_FAIL"
 			Return hr
 		Case Else
 		End Select
 	Loop While pfs <> State_Paused
 	
+	Sleep(150)
+	
 	'3, 获取视频宽高
 	Dim As Long lHeight
 	Dim As Long lWidth
 	hr = pBV2->lpVtbl->GetVideoSize(pBV2, @lWidth, @lHeight)
-	Print "pBV2->lpVtbl->GetVideoSize = " & hr
+	?"pBV2->lpVtbl->GetVideoSize = " & hr, lWidth, lHeight
 	If hr Then Return hr
 	
 	'4, 创建位图文件头
@@ -139,26 +143,27 @@ Private Function CaptureBmp(filename As ZString Ptr) As HRESULT
 	mbitmapInfoHeader.biClrUsed = 0
 	mbitmapInfoHeader.biClrImportant = 0
 	
-	Dim pBufferSize As Long ' = SizeOf(BITMAPFILEHEADER) + lHeight * lWidth * (mbitmapInfoHeader.biBitCount / 8)
+	Dim pBufferSize As Long = SizeOf(BITMAPFILEHEADER) + lHeight * lWidth * (mbitmapInfoHeader.biBitCount / 8)
 	Dim pDIBImage As Long Ptr = NULL
 	
 	'6, 获取缓存大小和申请缓存
-	hr = pBV2->lpVtbl->GetCurrentImage(pBV2, @pBufferSize, NULL)
-	Print "pBV2->lpVtbl->GetCurrentImage = " & hr
+	'hr = pBV2->lpVtbl->GetCurrentImage(pBV2, @pBufferSize, NULL)
+	?"pBV2->lpVtbl->GetCurrentImage = " & hr, pBufferSize, SizeOf(BITMAPFILEHEADER) + lHeight * lWidth * (mbitmapInfoHeader.biBitCount / 8)
 	If hr Then Return hr
-	pDIBImage = Cast(Long Ptr, Allocate(pBufferSize))
+	pDIBImage = CoTaskMemAlloc(pBufferSize)
+	'pDIBImage = Cast(Long Ptr, Allocate(pBufferSize))	
 	
 	'7, 更新位图文件头
 	mbitmapFileHeader.bfSize = pBufferSize + SizeOf(BITMAPFILEHEADER)
 	
 	'8, Retrieves the current image waiting at the renderer.
 	hr = pBV2->lpVtbl->GetCurrentImage(pBV2, @pBufferSize, pDIBImage)
-	Print "pBV2->lpVtbl->GetCurrentImage = " & hr
+	?"pBV2->lpVtbl->GetCurrentImage = " & hr
 	If hr = VFW_E_NOT_PAUSED Then
-		Print "VFW_E_NOT_PAUSED"
+		?"VFW_E_NOT_PAUSED"
 	End If
 	If hr = E_UNEXPECTED Then
-		Print "E_UNEXPECTED"
+		?"E_UNEXPECTED"
 	End If
 	If hr Then Return hr
 	
@@ -172,7 +177,7 @@ Private Function CaptureBmp(filename As ZString Ptr) As HRESULT
 	
 	'10, 写入文件
 	fileHandle = fopen(filename, @Str("wb"))
-	Print "fopen(filename, @Str(wb)): " & fileHandle
+	'Print "fopen(filename, @Str(wb)): " & fileHandle
 	If fileHandle Then
 		Dim As DWORD bytesWritten = fwrite(@mbitmapFileHeader, 1, SizeOf(BITMAPFILEHEADER), fileHandle)
 		bytesWritten = fwrite(@mbitmapInfoHeader, 1, SizeOf(BITMAPINFOHEADER), fileHandle)
@@ -181,9 +186,12 @@ Private Function CaptureBmp(filename As ZString Ptr) As HRESULT
 	End If
 	
 	'11, 释放缓存
-	Deallocate(pDIBImage)
+	CoTaskMemFree(pDIBImage)
+	'Deallocate(pDIBImage)
 	
-	Print "CaptureBmp Success"
+	pMC->lpVtbl->Run(pMC)
+	
+	?"CaptureBmp Success"
 	
 	Return 0
 End Function
@@ -483,18 +491,18 @@ Private Sub Initial(ByVal bPreview As Boolean = True, ByVal bCapture As Boolean 
 			Print "17.2. query videowindow: " & hr
 			
 			hr = pVW->lpVtbl->get_Width(pVW, @lWidth)
-			Print "Cannot get video window width", hr
+			Print "get video window width", hr, lWidth
 			
 			hr = pVW->lpVtbl->get_Height(pVW, @lHeight)
-			Print "Cannot get video window height", hr
+			Print "get video window height", hr, lHeight
 			
 			'Set the video window to be a child of the main window
 			hr = pVW->lpVtbl->put_Owner(pVW, Cast(OAHWND, hPreviewhWnd)) 'We own the window now
-			Print "Cannot own the video window", hr
+			Print "own the video window", hr
 			
 			'Set video window style
 			hr = pVW->lpVtbl->put_WindowStyle(pVW, WS_CHILD Or WS_CLIPCHILDREN) 'you are now a child
-			Print "Cannot set video window as child", hr
+			Print "set video window as child", hr
 			
 			'Give the preview window all our space
 			hr = PreviewResize()
@@ -506,8 +514,10 @@ Private Sub Initial(ByVal bPreview As Boolean = True, ByVal bCapture As Boolean 
 	End If
 	
 	'Query MediaControl interface
-	hr = pGraph->lpVtbl->QueryInterface(pGraph, @IID_IMediaControl, @pMC)
-	Print "17.1. query mediacontrol: " & hr
+	If pGraph Then
+		hr = pGraph->lpVtbl->QueryInterface(pGraph, @IID_IMediaControl, @pMC)
+		Print "17.1. query mediacontrol: " & hr
+	End If
 End Sub
 
 Private Sub Terminate()
