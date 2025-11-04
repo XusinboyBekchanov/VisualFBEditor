@@ -12,7 +12,8 @@ This method fails If the renderer Is Using DirectDraw acceleration. Unfortunatel
 This depends On the End-user's hardware configuration, so in practice this method is not reliable.
 A better way to obtain a sample from a stream in the graph is to use the ISampleGrabber interface.
 
-but ISampleGrabber qedit.bi not being imported on freebasic
+ISampleGrabber qedit.bi is already included in this project.
+Please refer to the following Player Grab and Camera Grab examples.
 
 ![image](https://github.com/chunmingwang/directshow/assets/35757455/ebf37e7e-051b-47bd-a2ac-bc14567d4fc3)
 
@@ -39,3 +40,15 @@ Video capture pin dialog
 ## sysenum
 
 ![image](https://github.com/chunmingwang/directshow/assets/35757455/d166f9e6-4774-4785-adce-2789f187c01f)
+
+## Player Grab
+
+Playing video files, take screenshots using the ISampleGrabber method
+
+<img width="346" height="293" alt="image" src="https://github.com/user-attachments/assets/79642ee4-00ad-4931-a683-9da3ecaa0739" />
+
+## Camera Grab
+
+Drive the camera for preview and take screenshots using the ISampleGrabber method
+
+<img width="396" height="293" alt="image" src="https://github.com/user-attachments/assets/74be5521-80b9-4ead-89df-324da4467468" />

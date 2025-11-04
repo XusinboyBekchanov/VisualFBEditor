@@ -1,5 +1,5 @@
 ﻿'playcap摄像设备预览和截图
-' Copyright (c) 2024 CM.Wang
+' Copyright (c) 2025 CM.Wang
 ' Freeware. Use at your own risk.
 
 '#Region "Form"
@@ -100,7 +100,7 @@ Private Sub frmplaycapType.Form_Create(ByRef Sender As Control)
 	Print *Cast(WString Ptr, pFName.bstrVal)
 	Print *Cast(WString Ptr, pClsid.bstrVal)
 	Caption = Caption & " - " & *Cast(WString Ptr, pFName.bstrVal)
-	TimerComponent1.Enabled = True 
+	TimerComponent1.Enabled = True
 End Sub
 
 Private Sub frmplaycapType.Form_Destroy(ByRef Sender As Control)
@@ -115,12 +115,12 @@ End Sub
 Private Sub frmplaycapType.TimerComponent1_Timer(ByRef Sender As TimerComponent)
 	TimerComponent1.Enabled = False
 	pMC->lpVtbl->Pause(pMC)
-
+	
 	If CaptureBmp(@Str("playcap.bmp")) Then
-		TimerComponent1.Enabled = True
+		'TimerComponent1.Enabled = True
 	End If
 	
-	pMC->lpVtbl->run(pMC)
+	pMC->lpVtbl->Run(pMC)
 End Sub
 
 Private Sub frmplaycapType.TimerComponent2_Timer(ByRef Sender As TimerComponent)

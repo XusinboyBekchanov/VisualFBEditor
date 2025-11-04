@@ -1,3 +1,7 @@
-﻿*File=amcap.vfp
+﻿File=CamGrab.vfp
+File=PlayerGrab.vfp
+File=TCamGrab.vfp
+File=TPlayerGrab.vfp
+File=amcap.vfp
 File=playcap.vfp
 File=sysenum.vfp
