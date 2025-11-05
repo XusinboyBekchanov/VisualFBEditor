@@ -7,7 +7,6 @@
 		Const _MAIN_FILE_ = __FILE__
 	#endif
 	#include once "mff/Form.bi"
-	#include once "mff/sys.bi"
 	#include once "mff/ComboBoxEx.bi"
 	#include once "mff/TreeView.bi"
 	#include once "mff/ListView.bi"
