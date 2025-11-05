@@ -651,6 +651,9 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0  OrElse tb->txtCode.LinesCount < 1 Then Exit Sub
 	'If tb->txtCode.DropDownShowed Then Exit Sub
+	#ifdef __USE_GTK__
+		Return
+	#endif
 	If tb->txtCode.MouseHoverToolTipShowed Then
 		If CBool((Abs(OldY - y) > 0 OrElse Abs(OldX - x) > 0)) Then
 			tb->txtCode.CloseMouseHoverToolTip

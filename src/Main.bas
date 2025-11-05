@@ -7317,7 +7317,7 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "UserControl32", "UserControl32"
 	imgList32.Add "Form32", "Form32"
 	imgList32.Add "Form3D32", "Form3D32"
-	imgList32.Add "FormRC", "FormRC"
+	'imgList32.Add "FormRC", "FormRC"
 	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList

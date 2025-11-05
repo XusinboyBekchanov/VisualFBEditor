@@ -1789,13 +1789,13 @@ Namespace My.Sys.Forms
 							'							WritePropertyFunc(Cpnt, "Top", @y)
 							'							WritePropertyFunc(Cpnt, "Width", @FWidth)
 							'							WritePropertyFunc(Cpnt, "Height", @FHeight)
-							If GTK_IS_WIDGET(FSelControl) Then
-								If AParent = 0 OrElse Result = 0 Then
-									If st->ReadPropertyFunc Then gtk_layout_put(GTK_LAYOUT(st->ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
-								Else
-									gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
-								End If
-							End If
+							'If GTK_IS_WIDGET(FSelControl) Then
+							'	If AParent = 0 OrElse Result = 0 Then
+							'		If st->ReadPropertyFunc Then gtk_layout_put(GTK_LAYOUT(st->ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
+							'	Else
+							'		gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
+							'	End If
+							'End If
 							gtk_widget_show_all(FSelControl)
 						#else
 							If st->ReadPropertyFunc Then
