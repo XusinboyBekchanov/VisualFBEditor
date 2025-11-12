@@ -1831,25 +1831,25 @@ Namespace My.Sys.Forms
 					End If
 					FECLine->InAsm = InAsm
 					OldiC = iC
-					InContinueStr = Trim(*pBuff, Any !"\t ")
-					InContinueStrTmp = Right(InContinueStr, 2)
-					If InContinueStrTmp = " _" Then
-						InContinueStr = InContinueStrTmp
-					Else
-						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
-						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
-					End If
-					If InContinueStr = InContinueStrOld Then
-						FECLine->ConstructionIndex = -1 ' OldConsIndex 
-						FECLine->ConstructionPart = OldConsPart
-						FECLine->ConstructionNextCount = OldConsNextCount
-					Else
+					'InContinueStr = Trim(*pBuff, Any !"\t ")
+					'InContinueStrTmp = Right(InContinueStr, 2)
+					'If InContinueStrTmp = " _" Then
+					'	InContinueStr = InContinueStrTmp
+					'Else
+					'	InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+					'	If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+					'End If
+					'If InContinueStr = InContinueStrOld Then
+					'	FECLine->ConstructionIndex = -1 ' OldConsIndex 
+					'	FECLine->ConstructionPart = OldConsPart
+					'	FECLine->ConstructionNextCount = OldConsNextCount
+					'Else
 						ChangeCollapsibility i
-						OldConsIndex = FECLine->ConstructionIndex
-						OldConsPart = FECLine->ConstructionPart
-						OldConsNextCount = FECLine->ConstructionNextCount
-						InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
-					End If
+						'OldConsIndex = FECLine->ConstructionIndex
+						'OldConsPart = FECLine->ConstructionPart
+						'OldConsNextCount = FECLine->ConstructionNextCount
+						'InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+					'End If
 							i += 1
 							WLet(FText, "")
 							If (*wsFileContents)[j] = 13 AndAlso (*wsFileContents)[j + 1] = 10 Then j += 1
