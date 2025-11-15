@@ -18,6 +18,13 @@
 #endif
 '#include once "Main.bi"
 
+Enum IdentifiersCase
+	OriginalCase
+	CapitalizedCase
+	LowerCase
+	UpperCase
+End Enum
+
 Enum KeyWordsCase
 	OriginalCase
 	LowerCase
@@ -35,6 +42,7 @@ Common Shared As Integer TabWidth
 Common Shared As Integer HistoryLimit, AutoSaveCharMax
 Common Shared As Integer IntellisenseLimit
 Common Shared As Integer TabAsSpaces
+Common Shared As IdentifiersCase ChoosedIdentifiersCase
 Common Shared As KeyWordsCase ChoosedKeyWordsCase
 Common Shared As ConstructionTypes ChoosedConstructions
 Common Shared As Integer ChoosedTabStyle
@@ -483,7 +491,7 @@ Namespace My.Sys.Forms
 		Dim As Integer iCursorLineOld
 		Dim As Integer IzohBoshi, QavsBoshi, MatnBoshi, OddiyMatnBoshi
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-		Dim As String KeyWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
+		Dim As String KeyWord, IdentifierWord, Matn, MatnLCase, OldMatnLCase, MatnLCaseWithoutOldSymbol, MatnWithoutOldSymbol
 		Dim As Boolean WithOldSymbol, bTypeAs, bInAsm
 		Dim As Integer OldPos, OldLinesCount
 		Dim pkeywords As WStringOrStringList Ptr
@@ -771,6 +779,8 @@ Namespace My.Sys.Forms
 		Declare Sub cairo_rectangle(cr As cairo_t Ptr, x As Double, y As Double, x1 As Double, y1 As Double, z As Boolean)
 		Declare Sub cairo_rectangle_(cr As cairo_t Ptr, x As Double, y As Double, x1 As Double, y1 As Double, z As Boolean)
 	#endif
+	
+	Declare Function GetIdentifierCase(ByRef IdentifierWord As String, ByRef OriginalCaseWord As String) As String
 	
 	Declare Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringOrStringList Ptr = 0, OriginalCaseWord As String = "") As String
 	

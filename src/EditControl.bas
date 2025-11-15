@@ -5035,8 +5035,9 @@ Namespace My.Sys.Forms
 															Mid(*FECLine->Text, MatnBoshi, j - MatnBoshi + 1) = KeyWord
 														End If
 													ElseIf (Not bKeyWord) AndAlso ChangeIdentifiersCase AndAlso MatnLCase = LCase(OriginalCaseWord) AndAlso tIndex <> -1 AndAlso FSelEndLine <> z Then
-														If MatnWithoutOldSymbol <> OriginalCaseWord Then
-															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = OriginalCaseWord
+														IdentifierWord = GetIdentifierCase(MatnWithoutOldSymbol, OriginalCaseWord)
+														If IdentifierWord <> MatnWithoutOldSymbol Then
+															Mid(*FECLine->Text, MatnBoshi + IIf(WithOldSymbol, 1, 0), j - MatnBoshi + 1) = IdentifierWord
 														End If
 													ElseIf tIndex = -1 Then
 														If IsNumeric(Matn) OrElse IsNumeric(MatnWithoutOldSymbol) OrElse LCase(.Left(Matn, 2)) = "&h" Then
@@ -6440,6 +6441,18 @@ Namespace My.Sys.Forms
 			SendMessage(hwndTT, TTM_TRACKACTIVATE, False, Cast(LPARAM, @ti))
 		#endif
 	End Sub
+	
+	Function GetIdentifierCase(ByRef IdentifierWord As String, ByRef OriginalCaseWord As String) As String
+		If ChangeIdentifiersCase Then
+			Select Case ChoosedIdentifiersCase
+			Case IdentifiersCase.OriginalCase: Return OriginalCaseWord
+			Case IdentifiersCase.CapitalizedCase: Return UCase(Left(IdentifierWord, 1)) & LCase(Mid(IdentifierWord, 2))
+			Case IdentifiersCase.LowerCase: Return LCase(IdentifierWord)
+			Case IdentifiersCase.UpperCase: Return UCase(IdentifierWord)
+			End Select
+		End If
+		Return IdentifierWord
+	End Function
 	
 	Function GetKeyWordCase(ByRef KeyWord As String, KeyWordsList As WStringOrStringList Ptr = 0, OriginalCaseWord As String = "") As String
 		If ChangeKeyWordsCase Then

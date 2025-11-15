@@ -977,20 +977,41 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @vbxCodeEditor
 		End With
+		' pnlChangeIdentifiersCase
+		With pnlChangeIdentifiersCase
+			.Name = "pnlChangeIdentifiersCase"
+			.Text = "Panel1"
+			.TabIndex = 206
+			.Align = DockStyle.alTop
+			.AutoSize = True
+			.SetBounds 0, 233, 417, 23
+			.Designer = @This
+			.Parent = @vbxCodeEditor
+		End With
 		' chkChangeIdentifiersCase
 		With chkChangeIdentifiersCase
 			.Name = "chkChangeIdentifiersCase"
-			.Text = ML("Change Identifiers Case")
+			.Text = ML("Change Identifiers Case To") & ":"
 			.TabIndex = 120
-			.Align = DockStyle.alTop
-			.Caption = ML("Change Identifiers Case")
+			.Align = DockStyle.alLeft
 			.ExtraMargins.Top = 0
 			.Constraints.Height = 21
 			.AutoSize = True
 			.SetBounds 0, 254, 171, 21
 			.Designer = @This
-			.Parent = @vbxCodeEditor
+			.Parent = @pnlChangeIdentifiersCase
 		End With
+		' cboIdentifiersCase
+		cboIdentifiersCase.Name = "cboIdentifiersCase"
+		cboIdentifiersCase.Text = "ComboBoxEdit2"
+		cboIdentifiersCase.ExtraMargins.Right = 20
+		cboIdentifiersCase.ExtraMargins.Top = 0
+		cboIdentifiersCase.ExtraMargins.Left = 0
+		cboIdentifiersCase.Align = DockStyle.alRight
+		cboIdentifiersCase.ExtraMargins.Bottom = 2
+		cboIdentifiersCase.TabIndex = 32
+		cboIdentifiersCase.SetBounds 198, 0, 150, 21
+		cboIdentifiersCase.Parent = @pnlChangeIdentifiersCase
 		' chkChangeKeywordsCase
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
@@ -3211,6 +3232,7 @@ Sub frmOptions.LoadSettings()
 		.chkTabAsSpaces.Checked = TabAsSpaces
 		.cboTabStyle.ItemIndex = ChoosedTabStyle
 		.txtCodeEditorHoverTime.Text = Str(CodeEditorHoverTime)
+		.cboIdentifiersCase.ItemIndex = ChoosedIdentifiersCase
 		.cboCase.ItemIndex = ChoosedKeyWordsCase
 		.cboConstructions.ItemIndex = ChoosedConstructions
 		.chkSyntaxHighlightingIdentifiers.Checked = SyntaxHighlightingIdentifiers 
@@ -3652,6 +3674,11 @@ Private Sub frmOptions.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender
 		.cboCase.AddItem ML("Original Case")
 		.cboCase.AddItem ML("Lower Case")
 		.cboCase.AddItem ML("Upper Case")
+		.cboIdentifiersCase.Clear
+		.cboIdentifiersCase.AddItem ML("Original Case")
+		.cboIdentifiersCase.AddItem ML("Capitalized Case")
+		.cboIdentifiersCase.AddItem ML("Lower Case")
+		.cboIdentifiersCase.AddItem ML("Upper Case")
 		.cboConstructions.Clear
 		.cboConstructions.AddItem ML("All Constructions")
 		.cboConstructions.AddItem ML("Only Procedures")
@@ -4009,6 +4036,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		ChangeIdentifiersCase = .chkChangeIdentifiersCase.Checked
 		ChangeKeyWordsCase = .chkChangeKeywordsCase.Checked
 		ChangeEndingType = .chkChangeEndingType.Checked
+		ChoosedIdentifiersCase = .cboIdentifiersCase.ItemIndex
 		ChoosedKeyWordsCase = .cboCase.ItemIndex
 		ChoosedConstructions = .cboConstructions.ItemIndex
 		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
@@ -4243,6 +4271,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "ChangeIdentifiersCase", ChangeIdentifiersCase
 		piniSettings->WriteBool "Options", "ChangeKeywordsCase", ChangeKeyWordsCase
 		piniSettings->WriteBool "Options", "ChangeEndingType", ChangeEndingType
+		piniSettings->WriteInteger "Options", "ChoosedIdentifiersCase", ChoosedIdentifiersCase
 		piniSettings->WriteInteger "Options", "ChoosedKeywordsCase", ChoosedKeyWordsCase
 		piniSettings->WriteInteger "Options", "ChoosedConstructions", ChoosedConstructions
 		piniSettings->WriteBool "Options", "AddSpacesToOperators", AddSpacesToOperators

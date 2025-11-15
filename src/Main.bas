@@ -6904,6 +6904,7 @@ Sub LoadSettings
 	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
 	ChangeEndingType = iniSettings.ReadBool("Options", "ChangeEndingType", True)
+	ChoosedIdentifiersCase = iniSettings.ReadInteger("Options", "ChoosedIdentifiersCase", 0)
 	ChoosedKeyWordsCase = iniSettings.ReadInteger("Options", "ChoosedKeyWordsCase", 0)
 	ChoosedConstructions = iniSettings.ReadInteger("Options", "ChoosedConstructions", 0)
 	AddSpacesToOperators = iniSettings.ReadBool("Options", "AddSpacesToOperators", True)
