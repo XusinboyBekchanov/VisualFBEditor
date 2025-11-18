@@ -5265,7 +5265,7 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 	MouseHoverTimerVal = Timer
 	Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 	tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
-	Dim As String UnicodeStr = Hex(Asc(Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar, 1)), 4)
+	Dim As String UnicodeStr = Hex(Asc(Mid(tb->txtCode.Lines(iSelEndLine), iSelEndChar + 1, 1)), 4)
 	If Len(UnicodeStr) > 3 Then
 		If Mid(UnicodeStr, 1, 2) = "00" Then
 			UnicodeStr = " HEX: " & UnicodeStr & " (ASC: " & Val("&H" & UnicodeStr) & ")"
