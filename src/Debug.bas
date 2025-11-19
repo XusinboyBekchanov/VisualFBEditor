@@ -179,6 +179,7 @@ Dim Shared As Integer dsptyp=0      ''type of display : 0 normal/ 1 source/ 2 va
 
 ''put in a ctx with type ??
 Dim Shared As Boolean procnodll
+Dim Shared As Boolean skipline = False
 Dim Shared As Boolean flagmain
 Dim Shared As Boolean flagkill =False 'flag if killing process to avoid freeze in thread_del
 Dim Shared As Integer flagrestart=-1  'flag to indicate restart in fact number of bas files to avoid to reload those files
@@ -1263,7 +1264,7 @@ End Sub
 '===================================================
 '' initializes for the current debuggee
 '===================================================
-Private Sub init_debuggee(srcstart As Integer)
+Private Sub init_debuggee(srcstart As Integer, linestart As Integer = 1)
 	''end of extraction ''todo add that for linux when the exe is running
 	'dbg_prt2 "in init_debuggee"
 	Dim As Integer listidx
@@ -1282,7 +1283,7 @@ Private Sub init_debuggee(srcstart As Integer)
 	
 	
 	#ifdef __FB_WIN32__
-		put_breakcpu()
+		put_breakcpu(linestart)
 	#endif
 	''srcstart contains the index for starting the loading of source codes
 	'sources_load(srcstart,FileDateTime(exename))
@@ -3738,7 +3739,7 @@ runtype = RTOFF
 				dllnb-=1
 			Else
 				'ResetAllComboBox(GFILELIST) ''as combobox completely refilled in init_debuggee
-				init_debuggee(srcstart)
+				init_debuggee(srcstart, linenbprev + 1)
 				
 				dlldata(dllnb).fnm=dllfn
 				dlldata(dllnb).gbln=vrbgbl-vrbgblprev
@@ -6088,13 +6089,13 @@ End Sub
 '' Handling procedure sub/function/etc code=36
 '' ---------------------------------------------
 Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
-	Dim As String procname
+	Static As String procname
 	If linenum Then
 		procnodll=False
 		procname=parse_proc(strg)
 		
 		'procname=left(strg,instr(strg,":")-1)
-		If procname<>"" And (flagmain=True Or procname<>"main") Then
+		If Len(procname) <> 0 And (flagmain = True Or procname <> "main") Then
 			'If InStr(procname,".LT")=0 then  ''to be checked if useful
 			If flagmain=True And procname="main" Then
 				procmain=procnb+1
@@ -6106,7 +6107,7 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 				'dbg_prt2 "main found=";procnb+1
 			End If
 			procnodll=True
-			
+			skipline = False
 			procnb+=1
 			'dbg_prt2 "in proc=";procname,procnb,sourceix
 			proc(procnb).sr=sourceix
@@ -6123,8 +6124,16 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 			proc(procnb).rvadr=0 'for now only used in gcc case
 			
 			'dbg_prt2 "proc =";proc(procnb).nm;" in source=";source(proc(procnb).sr)
+		Else
+			skipline=True
+			procname= ""
 		End If
 	Else
+		''dll and ddlmain but no proc name
+		If Len(procname)=0 Then
+			Exit Sub
+		End If
+		skipline=true
 		proc(procnb).ed=proc(procnb).db+adr
 		'dbg_prt2 "end of proc=";proc(procnb).ed,hex(proc(procnb).ed)
 		proc(procnb).sr=sourceix
@@ -6182,7 +6191,7 @@ End Sub
 Private Sub dbg_epilog(ofset As Integer)
 	proc(procnb).fn=proc(procnb).db+ofset
 	If proc(procnb).fn<>rline(linenb).ad Then
-		If proc(procnb).nm<>"main" And proc(procnb).nm<>"{MODLEVEL}" Then
+		If skipline= False And proc(procnb).nm <> "main" And proc(procnb).nm <> "{MODLEVEL}" Then
 			'' this test is useless as for sub it is ok  .fn = .ad  --> mov rsp, rbp
 			'' for function the last line ('end function' is not given by 224)
 			'' so forcing it except for main
@@ -9029,7 +9038,11 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					baseimg=0
 				End If
 			Else
-				baseimg=0
+				If baseimg<>&h10000000 Then
+					baseimg-=&h10000000 ''with new version of gcc the base image is changed
+				Else
+					baseimg=0
+				End If
 			End If
 		#else
 			baseimg=0
@@ -9093,9 +9106,15 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					Case 132 '' file name
 						dbg_include(recup)
 					Case 36 ''procedure
-						dbg_proc(recup,recupstab.nline,recupstab.ad+baseimg)
+						If recupstab.nline Then
+							dbg_proc(recup, recupstab.nline, recupstab.ad + baseimg)
+						Else
+							dbg_proc(recup,recupstab.nline,recupstab.ad)
+						End If
 					Case 68 ''line
-						dbg_line(recupstab.nline, recupstab.ad) ''no need of baseimage as the address is relative to address of proc
+						If skipline=False Then
+							dbg_line(recupstab.nline, recupstab.ad) ''no need of baseimage as the address is relative to address of proc
+						End If
 					Case 224 ''address epilog
 						dbg_epilog(recupstab.ad)
 					Case 42 ''main entry point
@@ -9445,7 +9464,7 @@ Private Sub list_all()
 	Next
 	Print "global variables ---------------------------------------------------------- ";vrbgbl
 	For ivrb As Integer=1 To vrbgbl
-		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem);
+		Print "ivrb="; ivrb; " "; vrb(ivrb).nm; " "; udt(vrb(ivrb).typ).nm; " "; vrb(ivrb).adr; "/"; Hex(vrb(ivrb).adr); " "; *scopelabel(vrb(ivrb).mem);
 		If vrb(ivrb).typ=14 Or vrb(ivrb).typ=4 Or vrb(ivrb).typ=18 Then
 			Print " ";vrb(ivrb).fxlen
 		Else
@@ -9454,7 +9473,7 @@ Private Sub list_all()
 	Next
 	Print "local variables ----------------------------------------------------------- ";vrbloc-VGBLMAX
 	For ivrb As Integer=VGBLMAX+1 To vrbloc
-		Print "ivrb=";ivrb;" ";vrb(ivrb).nm;" ";udt(vrb(ivrb).typ).nm;" ";vrb(ivrb).adr;" ";*scopelabel(vrb(ivrb).mem);
+		Print "ivrb="; ivrb; " "; vrb(ivrb).nm; " "; udt(vrb(ivrb).typ).nm; " "; vrb(ivrb).adr; "/"; Hex(vrb(ivrb).adr); " "; *scopelabel(vrb(ivrb).mem);
 		If vrb(ivrb).typ=14 Or vrb(ivrb).typ=4 Or vrb(ivrb).typ=18 Then
 			Print " ";vrb(ivrb).fxlen
 		Else
@@ -10730,6 +10749,7 @@ Private Sub dsp_change(index As Integer)
 	Dim As Integer icurold, icurlig, curold, decal, clrold, clrcur
 	Dim ntab As Integer = rline(index).sx
 	'Var tb = AddTab(source(ntab))
+	If runtype = RTAUTO Then Exit Sub
 	fntab = ntab
 	'''unicode 10/05/2015
 	'Dim As GETTEXTEX gtx
@@ -10741,7 +10761,7 @@ Private Sub dsp_change(index As Integer)
 	'gtx.lpDefaultChar=0
 	'gtx.lpUsedDefChar=0
 	''
-	curold=curlig
+	curold = curlig
 	curlig=rline(index).nu
 	fcurlig = curlig
 	icurold=False :icurlig=False
@@ -11953,7 +11973,10 @@ End Sub
 			End If
 			' Process the debugging event code.
 			Select Case (DebugEv.dwDebugEventCode)
+			'=========================  code 1
 			Case EXCEPTION_DEBUG_EVENT
+				'=========================
+				'dbg_prt("EXCEPTION_DEBUG_EVENT code="+Hex(DebugEv.u.Exception.ExceptionRecord.ExceptionCode)+ " "+hex(DebugEv.u.Exception.dwfirstchance)+" adr : "+hex(DebugEv.u.Exception.ExceptionRecord.ExceptionAddress))
 				FirstChance = DebugEv.u.Exception.dwFirstChance
 				adr = Cast(UInteger, DebugEv.u.Exception.ExceptionRecord.ExceptionAddress)
 				If FirstChance = 0 Then 'second try
@@ -11981,10 +12004,14 @@ End Sub
 				End If
 				If FirstChance Then 'if =0 second try so no compute code
 					Select Case (DebugEv.u.Exception.ExceptionRecord.ExceptionCode)
+					'========================== code 80000004
 					Case EXCEPTION_SINGLE_STEP
+						'==========================
 						WriteProcessMemory(dbghand, Cast(LPVOID, ssadr), @breakcpu, 1, 0)
 						ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
+						'========================= code 80000003
 					Case EXCEPTION_BREAKPOINT:
+						'=========================
 						'For i As Integer = 0 To threadnb 'if msg from thread then flag off
 						'	If DebugEv.dwThreadId = thread(i).id Then
 						'		threadcur = i
@@ -12200,6 +12227,7 @@ End Sub
 					ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, DBG_EXCEPTION_NOT_HANDLED)
 					
 				End If
+				'========================= code 2
 			Case CREATE_THREAD_DEBUG_EVENT:
 				With DebugEv.u.CreateThread
 					If threadnb < THREADMAX Then
@@ -12221,6 +12249,7 @@ End Sub
 					End If
 				End With
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
+				'========================= code 3
 			Case CREATE_PROCESS_DEBUG_EVENT
 				With DebugEv.u.CreateProcessInfo
 					dbghfile=.hFile' to close the handle and liberate the file .exe
@@ -12243,6 +12272,7 @@ End Sub
 					'debug_extract(Cast(UInteger,.lpBaseOfImage),exename)
 				End With
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
+				'========================= code 4
 			Case EXIT_THREAD_DEBUG_EVENT:
 				If flagkill = False Then
 					debugdata=DebugEv.dwThreadId
@@ -12252,6 +12282,7 @@ End Sub
 					'thread_del(DebugEv.dwThreadId)
 				End If
 				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
+				'========================= code 5
 			Case EXIT_PROCESS_DEBUG_EVENT:
 				'MsgBox(ML("END OF DEBUGGED PROCESS"), "Visual FB Editor")
 				CloseHandle(dbghand)
@@ -12268,14 +12299,15 @@ End Sub
 				prun = False
 				runtype = RTEND
 				Exit Do
+				'========================= code 6
 			Case LOAD_DLL_DEBUG_EVENT:
 				Dim loaddll As LOAD_DLL_DEBUG_INFO = DebugEv.u.LoadDll
 				
 				debugdata=Cast(Integer,@loaddll)
-			debugevent=KDBGDLL
-			MutexLock blocker ''waiting the Go from main thread
-			MutexUnlock blocker
-			ContinueDebugEvent(DebugEv.dwProcessId,DebugEv.dwThreadId, dwContinueStatus)
+				debugevent = KDBGDLL
+				MutexLock blocker ''waiting the Go from main thread
+				MutexUnlock blocker
+				ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 			
 				'Dim As String dllfn
 				'Dim As Integer d, delta
@@ -12318,6 +12350,7 @@ End Sub
 				'	End If
 				'End If
 				'ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
+				'========================= code 7
 			Case UNLOAD_DLL_DEBUG_EVENT:
 				Dim unloaddll As UNLOAD_DLL_DEBUG_INFO = DebugEv.u.UnloadDll
 				For i As Integer = 1 To dllnb
