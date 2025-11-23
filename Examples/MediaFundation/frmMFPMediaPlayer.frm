@@ -22,7 +22,7 @@
 	
 	#include once "mfplay.bi"
 	
-#d	Using My.Sys.Forms
+	Using My.Sys.Forms
 	
 	Type frmMFPMediaPlayerType Extends Form
 		g_pPlayer As IMFPMediaPlayer Ptr
