@@ -11,9 +11,18 @@
 	#include once "mff/TextBox.bi"
 	#include once "mff/CommandButton.bi"
 	
+	' Media Foundation版本
+	#define MF_VERSION &H10000
+	
+	' Media Foundation初始化标志
+	#define MFSTARTUP_FULL &H0
+	#define MFSTARTUP_LITE &H1
+	#define MFSTARTUP_NOSOCKETS &H2
+	#define MFSTARTUP_SERVEROS &H4
+	
 	#include once "mfplay.bi"
 	
-	Using My.Sys.Forms
+#d	Using My.Sys.Forms
 	
 	Type frmMFPMediaPlayerType Extends Form
 		g_pPlayer As IMFPMediaPlayer Ptr
@@ -150,12 +159,16 @@ End Sub
 Private Sub frmMFPMediaPlayerType.CommandButton1_Click(ByRef Sender As Control)
 	Select Case Sender.Text
 	Case "Open"
+		CommandButton1_Click(CommandButton4)
 		
-		If g_pPlayer Then
-			g_pPlayer->lpVtbl->Shutdown(g_pPlayer)
-			g_pPlayer->lpVtbl->Release(g_pPlayer)
-			g_pPlayer = NULL
+		' 初始化Media Foundation
+		Dim hr As HRESULT = MFStartup(MF_VERSION, MFSTARTUP_FULL)
+		If hr <> S_OK Then
+			Print "MFStartup failed with HRESULT: " & Hex(hr)
+			Exit Sub
 		End If
+		
+		Print "Media Foundation initialized successfully"
 		
 		MFPCreateMediaPlayer( _
 		TextBox1.Text, _          ' 文件路径
@@ -170,7 +183,15 @@ Private Sub frmMFPMediaPlayerType.CommandButton1_Click(ByRef Sender As Control)
 	Case "Pause"
 		If g_pPlayer Then g_pPlayer->lpVtbl->Pause(g_pPlayer)
 	Case "Stop"
-		If g_pPlayer Then g_pPlayer->lpVtbl->Stop(g_pPlayer)
+		'关闭
+		If g_pPlayer Then
+			g_pPlayer->lpVtbl->Stop(g_pPlayer)
+			g_pPlayer->lpVtbl->Shutdown(g_pPlayer)
+			g_pPlayer->lpVtbl->Release(g_pPlayer)
+			g_pPlayer = NULL
+			'清理
+			?"MFShutdown", MFShutdown()
+		End If
 	End Select
 End Sub
 
