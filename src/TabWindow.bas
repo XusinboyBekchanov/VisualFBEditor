@@ -5094,7 +5094,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			ParametersList.Add te->Parameters
 			If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
 		End If
-		If (FECLine > 0) AndAlso FECLine->InAsm Then
+		If CBool(FECLine > 0) AndAlso FECLine->InAsm AndAlso ShowKeywordsToolTip Then
 			Index = GlobalAsmFunctionsHelp.IndexOf(sWord)
 			If Index > -1 Then
 				te = GlobalAsmFunctionsHelp.Object(Index)
@@ -5144,7 +5144,10 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			If Index > -1 Then
 				For i As Integer = Index To pGlobalFunctions->Count - 1
 					te = pGlobalFunctions->Object(i)
-					If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure)
+					If CBool(te <> 0) AndAlso CBool(LCase(te->Name) = LCase(sWord)) Then 'AndAlso CBool(Not te->TypeProcedure) Then
+						If Not ShowKeywordsToolTip Then
+							If te->ElementType = E_Keyword Then Continue For
+						End If
 						If CInt(Not ParametersList.Contains(te->Parameters)) Then
 							Dim As WString Ptr res(Any)
 							Split te->Parameters, !"\r", res()
