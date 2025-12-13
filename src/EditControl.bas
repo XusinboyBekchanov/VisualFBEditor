@@ -1800,6 +1800,27 @@ Namespace My.Sys.Forms
 					OldFileEncoding = FileEncoding
 					If FileEncoding = FileEncodings.PlainText Then
 						WLet(wsFileContents, sFileContents)
+					ElseIf FileEncoding = FileEncodings.Utf16BOM Then
+						WLet(wsFileContents, Mid(*Cast(WString Ptr, @sFileContents[0]), 2))
+					ElseIf FileEncoding = FileEncodings.Utf32BOM Then
+						Dim As Integer charCount = dwBytesToRead / 4 - 1
+						Dim As UInteger Ptr dwordPtr = Cast(UInteger Ptr, @sFileContents[4])
+						WReAllocate(wsFileContents, charCount * 2)
+						Dim wi As Integer = 0
+						For i As Integer = 0 To charCount - 1
+							Dim codepoint As UInteger = dwordPtr[i]
+							If codepoint <= &HFFFF Then
+								wsFileContents[wi] = codepoint
+								wi += 1
+							Else
+								' surrogate pair
+								codepoint -= &H10000
+								wsFileContents[wi]     = &HD800 + (codepoint Shr 10)
+								wsFileContents[wi + 1] = &HDC00 + (codepoint And &H3FF)
+								wi += 2
+							End If
+						Next
+						wsFileContents[wi] = 0
 					Else
 						If BOMSymbolsCount Then
 							sFileContents = Mid(sFileContents, BOMSymbolsCount + 1)
@@ -1825,31 +1846,31 @@ Namespace My.Sys.Forms
 							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 							Content.Lines.Add(FECLine)
 							iC = FindCommentIndex(*pBuff, OldiC)
-					FECLine->CommentIndex = iC
-					If FECLine->ConstructionIndex = C_Asm Then
-						InAsm = FECLine->ConstructionPart = 0
-					End If
-					FECLine->InAsm = InAsm
-					OldiC = iC
-					'InContinueStr = Trim(*pBuff, Any !"\t ")
-					'InContinueStrTmp = Right(InContinueStr, 2)
-					'If InContinueStrTmp = " _" Then
-					'	InContinueStr = InContinueStrTmp
-					'Else
-					'	InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
-					'	If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
-					'End If
-					'If InContinueStr = InContinueStrOld Then
-					'	FECLine->ConstructionIndex = -1 ' OldConsIndex 
-					'	FECLine->ConstructionPart = OldConsPart
-					'	FECLine->ConstructionNextCount = OldConsNextCount
-					'Else
-						ChangeCollapsibility i
-						'OldConsIndex = FECLine->ConstructionIndex
-						'OldConsPart = FECLine->ConstructionPart
-						'OldConsNextCount = FECLine->ConstructionNextCount
-						'InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
-					'End If
+							FECLine->CommentIndex = iC
+							If FECLine->ConstructionIndex = C_Asm Then
+								InAsm = FECLine->ConstructionPart = 0
+							End If
+							FECLine->InAsm = InAsm
+							OldiC = iC
+							'InContinueStr = Trim(*pBuff, Any !"\t ")
+							'InContinueStrTmp = Right(InContinueStr, 2)
+							'If InContinueStrTmp = " _" Then
+							'	InContinueStr = InContinueStrTmp
+							'Else
+							'	InContinueStrTmp = LCase(..Left(InContinueStr, 5))
+							'	If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
+							'End If
+							'If InContinueStr = InContinueStrOld Then
+							'	FECLine->ConstructionIndex = -1 ' OldConsIndex
+							'	FECLine->ConstructionPart = OldConsPart
+							'	FECLine->ConstructionNextCount = OldConsNextCount
+							'Else
+							ChangeCollapsibility i
+							'OldConsIndex = FECLine->ConstructionIndex
+							'OldConsPart = FECLine->ConstructionPart
+							'OldConsNextCount = FECLine->ConstructionNextCount
+							'InContinueStrOld = IIf(InContinueStr = "",  Str("  "), InContinueStr)
+							'End If
 							i += 1
 							WLet(FText, "")
 							If (*wsFileContents)[j] = 13 AndAlso (*wsFileContents)[j + 1] = 10 Then j += 1
@@ -1958,11 +1979,11 @@ Namespace My.Sys.Forms
 					If InContinueStrTmp = " _" Then
 						InContinueStr = InContinueStrTmp
 					Else
-						InContinueStrTmp = LCase(..Left(InContinueStr, 5)) 
+						InContinueStrTmp = LCase(..Left(InContinueStr, 5))
 						If InContinueStrTmp = "data " Then InContinueStr = InContinueStrTmp Else InContinueStr = ""
 					End If
 					If InContinueStr = InContinueStrOld Then
-						FECLine->ConstructionIndex = -1 ' OldConsIndex 
+						FECLine->ConstructionIndex = -1 ' OldConsIndex
 						FECLine->ConstructionPart = OldConsPart
 						FECLine->ConstructionNextCount = OldConsNextCount
 					Else
@@ -3212,8 +3233,8 @@ Namespace My.Sys.Forms
 				pRenderTarget->lpVtbl->Release(pRenderTarget): pRenderTarget = 0
 			End If
 			If pD3D11DeviceContext Then
-			    pD3D11DeviceContext->lpVtbl->ClearState(pD3D11DeviceContext)
-			    pD3D11DeviceContext->lpVtbl->Flush(pD3D11DeviceContext)
+				pD3D11DeviceContext->lpVtbl->ClearState(pD3D11DeviceContext)
+				pD3D11DeviceContext->lpVtbl->Flush(pD3D11DeviceContext)
 			End If
 			If pSwapChain Then
 				pSwapChain->lpVtbl->SetFullscreenState(pSwapChain, False, NULL)
