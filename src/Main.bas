@@ -11832,6 +11832,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
+	frmMain.RequestAlign
 End Sub
 
 For i As Integer = 48 To 57
