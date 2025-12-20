@@ -11390,7 +11390,6 @@ Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Objec
 	#ifndef __USE_GTK__
 		stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width 
-		If frmMain.WindowState = WindowStates.wsMaximized Then MainReBar.RequestAlign
 	#endif
 End Sub
 
@@ -12443,3 +12442,4 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
+
