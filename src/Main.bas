@@ -11390,6 +11390,7 @@ Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Objec
 	#ifndef __USE_GTK__
 		stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
 		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width 
+		frmMain.RequestAlign
 	#endif
 End Sub
 
@@ -11831,7 +11832,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
-	frmMain.RequestAlign
+	'frmMain.RequestAlign
 End Sub
 
 For i As Integer = 48 To 57
