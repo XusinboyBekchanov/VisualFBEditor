@@ -5621,8 +5621,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		End If
 		If Not CtlLibrary->Enabled Then Continue For
 		#ifdef __USE_GTK__
-			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources"))
-			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/Resources"))
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources")))
+			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/Resources")))
 		#endif
 		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path))
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
@@ -5665,7 +5665,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		iOld = iNew
 	Next i
 	' HTML STYLE
-	#if 0
+	#if 0 '...'
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
@@ -6295,7 +6295,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	'This is part of the properties of the grid control. It belongs to the .
 	
 	'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
-	#if 1
+	#if 1 '...'
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName, StringToC, tmpDefinition
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}

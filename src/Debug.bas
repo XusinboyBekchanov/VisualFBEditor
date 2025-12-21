@@ -6191,7 +6191,7 @@ End Sub
 Private Sub dbg_epilog(ofset As Integer)
 	proc(procnb).fn=proc(procnb).db+ofset
 	If proc(procnb).fn<>rline(linenb).ad Then
-		If skipline= False And proc(procnb).nm <> "main" And proc(procnb).nm <> "{MODLEVEL}" Then
+		If proc(procnb).nm <> "main" And proc(procnb).nm <> "{MODLEVEL}" Then
 			'' this test is useless as for sub it is ok  .fn = .ad  --> mov rsp, rbp
 			'' for function the last line ('end function' is not given by 224)
 			'' so forcing it except for main
@@ -8817,17 +8817,25 @@ Private Sub load_dat(ByVal ofset As Integer,ByVal size As Integer,ByVal ofstr As
 			dbg_file(strg,value)
 		Case 255 ''not as standard stab freebasic version and maybe other information
 			'dbg_prt2 "compiled with=";strg
-		Case 32,38,40,128,160 'init common/ var / uninit var / local / parameter
-			parse_var(strg,value)',exebase-baseimg) ''todo
+		Case 32, 38, 40 'init common/ var / uninit var / local / parameter
+			parse_var(strg, value) ',exebase-baseimg) ''todo
+		Case 128,160 'init common/ var / uninit var / local / parameter
+			If skipline=False Then
+				parse_var(strg, value) '+baseimg)',exebase-baseimg) ''todo
+			End If
 		Case 132 '' file name
 			'dbg_prt2 "dbg include=";strg
 			dbg_include(strg)
 		Case 36 ''procedure
 			dbg_proc(strg,stab.desc,value)
 		Case 68 ''line
-			dbg_line(stab.desc,value)
+			If skipline=False Then
+				dbg_line(stab.desc, value)
+			End If
 		Case 224 ''address epilog
-			dbg_epilog(value)
+			If skipline=False Then
+				dbg_epilog(value)
+			End If
 		Case 42 ''main entry point
 			'not used
 		Case 0
@@ -9102,7 +9110,9 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					Case 32,38,40 'init common/ var / uninit var / local / parameter
 						parse_var(recup, recupstab.ad + baseimg) ',exebase-baseimg) ''todo
 					Case 128,160 'init common/ var / uninit var / local / parameter
-						parse_var(recup,recupstab.ad)'+baseimg)',exebase-baseimg) ''todo
+						If skipline=False Then
+							parse_var(recup, recupstab.ad) '+baseimg)',exebase-baseimg) ''todo
+						End If
 					Case 132 '' file name
 						dbg_include(recup)
 					Case 36 ''procedure
@@ -9116,7 +9126,9 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 							dbg_line(recupstab.nline, recupstab.ad) ''no need of baseimage as the address is relative to address of proc
 						End If
 					Case 224 ''address epilog
-						dbg_epilog(recupstab.ad)
+						If skipline=False Then
+							dbg_epilog(recupstab.ad)
+						End If
 					Case 42 ''main entry point
 						'not used
 					Case Else
