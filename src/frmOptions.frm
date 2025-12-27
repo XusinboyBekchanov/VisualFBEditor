@@ -5672,7 +5672,7 @@ Sub FindCompilers(ByRef Path As WString)
 				For i As Integer = 0 To .Count - 1
 					If EqualPaths(.Item(i)->Text(1), f1) Then f = Dir(Attr): ThreadsLeave: Continue While
 				Next
-				If StartsWith(f1, FolderName) Then f1 = "." & Slash & Mid(f1, Len(FolderName) + 1)
+				If FolderName <> "" AndAlso StartsWith(f1, FolderName) Then f1 = "." & Slash & Mid(f1, Len(FolderName) + 1)
 				f2 = GetFileName(GetFolderName(f1, False))
 				If f2 = "bin" Then f2 = GetFileName(GetFolderName(GetFolderName(f1, False), False))
 				If EndsWith(f, "32.exe") Then: f2 = f2 & " 32": ElseIf EndsWith(f, "64.exe") Then: f2 = f2 & " 64": End If
