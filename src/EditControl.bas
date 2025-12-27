@@ -1833,6 +1833,19 @@ Namespace My.Sys.Forms
 					WLet(FText, "")
 					InContinueStrOld = " "
 					Dim As Integer j = 0, jCount = Len(*wsFileContents)
+					If InStr(*wsFileContents, Chr(13, 10)) Then
+						NewLineType= NewLineTypes.WindowsCRLF
+						NewLineStr = Chr(10)
+					ElseIf InStr(*wsFileContents, Chr(10)) Then
+						NewLineType= NewLineTypes.LinuxLF
+						NewLineStr = Chr(10)
+					ElseIf InStr(*wsFileContents, Chr(13)) Then
+						NewLineType= NewLineTypes.MacOSCR
+						NewLineStr = Chr(13)
+					Else
+						NewLineType= NewLineTypes.WindowsCRLF
+						NewLineStr = Chr(10)
+					End If
 					Do While j <= jCount
 						WAdd FText, WChr((*wsFileContents)[j])
 						If (*wsFileContents)[j] = 13 OrElse (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
@@ -7562,8 +7575,9 @@ Namespace My.Sys.Forms
 				WLet(FLineLeft, "")
 				WLet(FLineRight, "")
 				WLet(FLineTemp, "")
+				Var c = IIf(FSelEndLine <= 0, 0, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->CommentIndex)
 				Dim j As Integer = 0
-				Dim i As Integer = Content.GetConstruction(RTrim(*FLine, Any !"\t "), j, IIf(FSelEndLine <= 0, 0, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->CommentIndex), Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
+				Dim i As Integer = Content.GetConstruction(RTrim(*FLine, Any !"\t "), j, c, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
 				Var d = Len(*FLine) - Len(LTrim(*FLine, Any !"\t "))
 				WLet(FLineSpace, ..Left(*FLine, d))
 				Var k = 0
@@ -7618,7 +7632,8 @@ Namespace My.Sys.Forms
 							End If
 						End If
 						If i = 0 And (j = 0 Or j = 1) Then
-							If (StartsWith(LTrim(LCase(*FLine), Any !"\t "), "if ") Or StartsWith(LTrim(LCase(*FLine), Any !"\t "), "elseif ")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "then")) And (Not EndsWith(RTrim(LCase(*FLine), Any !"\t "), "_")) Then
+							WLet(FLineTemp,  Trim(LCase(TextWithoutQuotesAndComments(*FLine, c, True, True, True)), Any !"\t "))
+							If (StartsWith(*FLineTemp, "if ") Or StartsWith(*FLineTemp, "elseif ")) And (Not EndsWith(*FLineTemp, "then")) And (Not EndsWith(*FLineTemp, "_")) Then
 								p = Len(RTrim(*FLine, Any !"\t ")) - Len(*FLine)
 								WLet(FLineLeft, GetKeyWordCase(" Then"))
 							End If
