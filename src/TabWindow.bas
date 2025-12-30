@@ -3227,7 +3227,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
 	bNotFunctionChange = True
-	If tb->txtCode.SyntaxEdit Then
+	If tb->txtCode.SyntaxEdit AndAlso Not tb->txtCode.Content.CStyle Then
 		If CurrentLine > -1 AndAlso CurrentLine < tb->txtCode.Content.Lines.Count Then
 			Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[CurrentLine])
 			ecl->OldConstructionIndex = ecl->ConstructionIndex
