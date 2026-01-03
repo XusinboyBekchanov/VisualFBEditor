@@ -345,7 +345,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		DarkMode = Not DarkMode
 		App.DarkMode = DarkMode
 		If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
-			*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
+			WLet(CurrentTheme, IIf(DarkMode, "Dark (Visual Studio)", "Default Theme"))
 			LoadTheme
 			UpdateAllTabWindows
 		End If
@@ -453,18 +453,25 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				If InDebug Then
 					'#ifndef __USE_GTK__
 					ChangeEnabledDebug False, True, True
-					'brk_set(12)
-					'runtype = RTAUTO
-					'#ifdef __FB_WIN32__
-					'	set_cc()
-					'#else
-					'	If ccstate=KCC_NONE Then
-					'		msgdata=1 ''CC everywhere
-					'		exec_order(KPT_CCALL)
-					'	End If
-					'#EndIf
-					'thread_set()
-					fastrun()
+					#ifdef __USE_WINAPI__
+						If 1 = 0 Then
+							brk_set(12)
+							runtype = RTAUTO
+							#ifdef __FB_WIN32__
+								set_cc()
+							#else
+								If ccstate= KCC_NONE Then
+									msgdata = 1 ''CC everywhere
+									exec_order(KPT_CCALL)
+								End If
+							#endif
+							thread_set()
+						Else
+							fastrun()
+						End If
+					#else
+						fastrun()
+					#endif
 					'runtype = RTRUN
 					'thread_resume()
 					'#endif

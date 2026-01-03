@@ -1,4 +1,146 @@
-﻿Version 1.3.6 (January 1, 2025)
+﻿Version 1.3.7 (January 3, 2026)
+- Added: AI Agent in Linux
+- Fixed: Changing C style files
+- Fixed: Find Compilers in Linux
+- Fixed: Determining newline types when opening a file and adding a Then construct when it is missing
+- Fixed: Opening UTF16 and UTF32 files
+- Fixed: Show Keywords Tooltip option
+- Added: MF libs for MediaFoundation example
+- Added: MediaFoundation, IFileDialog, WLan Examples
+- Improved: Debugging 32-bit dlls
+- Changed: Change Identifiers Case option
+- Fixed: Collapsing in Code Editor
+- Fixed: Crash IDE in Linux
+- Added: qedit.bi for ISampleGrabber support
+- Added: CamGrab, PlayerGrab ISampleGrabber examples
+- Fixed: Debugging 32-bit applications when compiling with fbc 1.20
+- Fixed: IDE Crash when search in the same line.
+- Fixed: IDE hangs when pasting multiple controls.
+- Fixed: Debugging
+- Fixed: Code lines ending with '_' are now properly formatted
+- Fixed: Crash IDE
+- Added: Debug ToolBar
+- Added: Format menu and Format ToolBar
+- Fixed: Update the code of forms to new version
+- Fixed: ReBar not resize after frmMain resize
+- Improved: Read source code file speed.
+- Fixed: Loading files with CreateFile API in Windows
+- Fixed: The 132K limitation of received text of AIChat
+- Added: Locate the code when the control in cboClass changed.
+- Fixed: Memory leaks
+- Added: The selection range takes precedence when numbering
+- Fixed: Compiling progress
+- Fixed: Running a compiled file when changing a window tab
+- Fixed: IntelliSense when Numbering
+- Fixed: Crash IDE when get type value
+- Improved: IntelliSense
+- Improved: Use Profiler
+- Improved: Use Profiler with sorting
+- Added: Darkmode and disabled icon png files to MDIForm Example
+- Fixed: Show Waveform in High DPI screen for BassAudio Example
+- Fixed: Unicode decoding error in Qwen3 models.
+- Fixed: IDE crash after changing AI agent following a hang.
+- Added: Block comment button to Main ToolBar
+- Fixed: IME position in Edit Control
+- Fixed: Cursor position is not updated after reloading the AI agent context.
+- Fixed: Compiling with new MFF
+- Fixed: Edit Control in High DPI
+- Improved: Edit Control caret blinking
+- Improved: Edit Control
+- Improved: Markdown-to-rich-text conversion speed.
+- Fixed: IntelliSense
+- Added: AI Agent history management for documentaries.
+- Fixed: Black window displayed while loading a large file.
+- Fixed: Adding find texts to find list
+- Added: Saving session with tabs
+- Fixed: Use Direct 2D on High DPI
+- Added: Use Direct2D option
+- Fixed: Load From File with Win API
+- Added: Default Settings for New Files
+- Fixed: Changing ending type of For ... Next i, j
+- Added: Change Ending Type option
+- Improved: Parameter info with continuation lines
+- Added: Displays Hex and ASCII values of selected character.
+- Added: Split Lines and Combine Lines to Context Menu of Code Editor
+- Added: Clear Start Up to Project Explorer
+- Fixed: Control property issue when font size increased.
+- Fixed: Synchronize cboAIAgentModels updates after adjusting AI settings
+- Added: Renaming files in Explorer
+- Fixed: Property item height now scales with font size.
+- Added: Save the new AI Model Name and Provider
+- Fixed: IDE Crashed when replace the last item in some case
+- Fixed: Displaying the color values in Options in hex format (Thanks to UEZ)
+- Improved: Displaying the color values in Options in hex format (Thanks to UEZ)
+- Added: Syntax highlighting for hexadecimal format values.
+- Fixed: Improved FreeBASIC code highlighting
+- Added: AI Agent Example
+- Updated: MDINotepad Example
+- Fixed: Build Configurations count
+- Improved: FreeBASIC code highlighting
+- Added: Highlight User and AI head title
+- Fixed: Can not reset the AI
+- Fixed: Keywords HighLight
+- Improved: AI code highlighting
+- Fixed: User information missing
+- Added: Format FreeBasic code in AI output windows
+- Fixed: Returning Unicode text from AI Agent
+- Added: AI chat messages are now saved to the AI chat directory.
+- Added: Used control information to AI Knowledge Base.
+- Fixed: Conversation context
+- Fixed: AI Agent
+- Added: Save Chat history
+- Fixed: Change AI Request to TextBox
+- Fixed: Too long AI system prompt
+- Fixed: Fixed Unicode decoding
+- Added: Add new chat
+- Fixed: AI Agent
+- Fixed: Working for DeepSeek
+- Improved: AI prompt
+- Improved: AI Agent with not Stream option
+- Improved: AI Agent
+- Fixed: Opening AI Agent options form
+- Added: AI Agents dropdown list
+- Improved: MyFbFramework GUI Form Interface Guidelines
+- Added: AI promt for MyFbFramework GUI Form Interface Guidelines
+- Fixed: Wrong decodeing Json in some models
+- Added: AI Provider
+- Improved: Edit Functionality
+- Improved: AI Agent
+- Fixed: Use Current Language for AI responses
+- Added: AI Models setting
+- Added: AI Agent options
+- Fixed: Copy from RichTextBox
+- Added: AI prompt for MFF
+- Added: AI Agent
+- Added: Unicode-Hex conversion functions.
+- Improved: UTF-8 without BOM support in LoadFromFile function
+- Added: Create a Markdown-style wiki.
+- Fixed: "As" Intellisense
+- Fixed: Set "mff" as the default Library headers folder.
+- Improved: Split in LoadFunctions
+- Improved: Functions GetFileName, GetFolderName
+- Fixed: Enhanced performance for edit files larger than 3MB.
+- Fixed: UTF8 without BOM file
+- Fixed: About window to display more text in the last line.
+- Fixed: Arrangement of the code editor item of the Options Window to better display long words in different languages.
+- Updated: german.lng
+- Added: Transition from Profiler to function in file
+- Added: Demangling functions on Use Profiler
+- Improved: Fast display Profiler
+- Added: Hover time option to Code Editor
+- Added: Use Profiler menu item to Debug menu
+- Fixed: Opening the last opened file when specifying a file on the command line
+- Fixed: Mouse Wheel on Code Editor in gtk3 wayland
+- Added: Set IDE window to foreground when opening file with "Open With".
+- Improved: When using 'Open with -> Visual FB Editor', the file is added as a new tab in the currently open editor instead of opening a new instance.
+- Fixed: Dark mode
+- Fixed: Convert to Lowercase and Convert to Uppercase
+- Added: Chinese languages file for example USBView.
+- Fixed: WMI Example.
+- Fixed: USBView Example.
+- Fixed: Background color of Numbers in Edit Control.
+- Fixed: Display Frame.png to the right of code windows.
+Version 1.3.6 (January 1, 2025)
 - Fixed: Selecting Controls on Designer
 - Fixed: Multiple selecting controls on Designer in Linux
 - Added: Showing Symbol Tooltips On Mouse Hover in Linux

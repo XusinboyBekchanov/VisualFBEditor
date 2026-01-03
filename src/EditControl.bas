@@ -216,10 +216,11 @@ Namespace My.Sys.Forms
 		Function EditControl.Blink_cb(ByVal user_data As gpointer) As gboolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
 			If ec->InFocus Then
+				ec->CaretPosShowed += 1
 				ec->CaretOn = Not ec->CaretOn
 				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				'gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
-				Return True
+				Return ec->CaretPosShowed < 4
 			Else
 				ec->CaretOn = False
 				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
@@ -588,7 +589,7 @@ Namespace My.Sys.Forms
 		On Error Goto ErrorHandler
 		If Trim(wLine, Any !"\t ") = "" Then Return -1
 		Dim As String sLine = wLine
-		Dim As WString * 2048 sLineTrim
+		Dim As String sLineTrim
 		If InAsm AndAlso CBool(InStr(LCase(wLine), "asm") = 0) Then Return -1
 		If CStyle Then Return -1
 		If Trim(sLine, Any !"\t ") = "" Then Return -1
@@ -908,6 +909,9 @@ Namespace My.Sys.Forms
 			WLet(ecs->Text, *res(ii))
 			ecl->Statements.Add ecs
 			WLet(LineText_, *ecs->Text)
+			If LCase(Trim(*LineText_)) = "private" OrElse LCase(Trim(*LineText_)) = "protected" OrElse LCase(Trim(*LineText_)) = "public" Then
+				WAdd(LineText_, ":")
+			End If
 			iPosSymbol = iPosSymbol + Len(*LineText_) + 1
 			If ii = 0 Then
 				ecsOld_ = 0
@@ -2691,6 +2695,9 @@ Namespace My.Sys.Forms
 		#endif
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
+		#ifdef __USE_GTK__
+			If CaretPosShowed >= 4 Then gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
+		#endif
 		CaretPosShowed = 0
 	End Sub
 	

@@ -5665,7 +5665,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		iOld = iNew
 	Next i
 	' HTML STYLE
-	#if 0 '...'
+	#if 0
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
@@ -5687,11 +5687,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
 				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
-				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+				'Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
 			Else
 				TmpControlName = Comps.Item(i)
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
-				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
+				'Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
 			
 			Print #Fn, ""
@@ -5738,9 +5738,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				
 				If Posi > 0 Then
 					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
 					Else
-						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
 					End If
 				End If
 				
@@ -5797,9 +5797,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					End If
 					If Posi > 0 Then
 						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
 						Else
-							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
 						End If
 					End If
 					
@@ -5875,9 +5875,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						End If
 						If Posi > 0 Then
 							If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-								Print #Fn1,  "``" & TmpControlSubName & "``` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+								Print #Fn1,  "``" & TmpControlSubName & "``` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
 							Else
-								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
+								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
 							End If
 						End If
 						
@@ -6287,15 +6287,14 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, GetTypeLink(tbi->TypeName)
 			CloseFile_(Fn)
 		Next i
-	#endif
-	' Markdown STYLE
-	'This is a component of the MyFbFramework, which is part of the freeBasic framework and belongs to the container control.
-	
-	'This is part of the freeBasic framework MyFbFramework. It belongs to the container control.
-	'This is part of the properties of the grid control. It belongs to the .
-	
-	'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
-	#if 1 '...'
+	#else
+		' Markdown STYLE
+		'This is a component of the MyFbFramework, which is part of the freeBasic framework and belongs to the container control.
+		
+		'This is part of the MyFbFramework FreeBasic framework. It belongs to the container control.
+		'This is part of the properties of the grid control. It belongs to the .
+		
+		'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName, StringToC, tmpDefinition
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
@@ -6316,7 +6315,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
 				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
-				tmpDefinition = "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
+				tmpDefinition = "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
 			Else
 				TmpControlName = Comps.Item(i)
 				tmpDefinition = "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
@@ -6749,6 +6748,7 @@ Sub LoadSettings
 				AIAgentModelName = Info->ModelName
 				AIAgentProvider = Info->Provider
 				AIAgentHost = Info->Host
+				AIAgentPort = Info->Port
 				AIAgentAddress  = Info->Address
 				AIAgentAPIKey = Info->APIKey
 				AIAgentTemperature = Info->Temperature
@@ -6927,7 +6927,7 @@ Sub LoadSettings
 	ProjectAutoSuggestions = False
 	
 	If (*CurrentTheme = "Default Theme" AndAlso DarkMode) OrElse (*CurrentTheme = "Dark (Visual Studio)" AndAlso Not DarkMode) Then
-		*CurrentTheme = IIf(DarkMode, "Dark (Visual Studio)", "Default Theme")
+		WLet(CurrentTheme, IIf(DarkMode, "Dark (Visual Studio)", "Default Theme"))
 	End If
 	#ifdef __USE_WINAPI__
 		If DarkMode AndAlso g_darkModeSupported Then
@@ -6960,7 +6960,9 @@ Sub LoadSettings
 End Sub
 
 Sub LoadLanguageTexts
-	iniSettings.Load SettingsPath
+	If FileExists(SettingsPath) Then
+		iniSettings.Load SettingsPath
+	End If
 	App.CurLanguagePath = ExePath & "/Settings/Languages/"
 	App.CurLanguage = iniSettings.ReadString("Options", "Language", "english")
 	Dim As Boolean StartGeneral = True, StartKeyWords, StartProperty, StartCompiler, StartTemplates
@@ -8130,9 +8132,9 @@ FormSearch->Child = @txtForm
 FormSearch->Expand = True
 tbForm.Buttons.Add tbsSeparator
 
-tabLeftWidth = 150
-tabRightWidth = 150
-tabBottomHeight = 150
+tabLeftWidth = 200
+tabRightWidth = 200
+tabBottomHeight = 200
 
 splLeft.Align = SplitterAlignmentConstants.alLeft
 splRight.Align = SplitterAlignmentConstants.alRight
@@ -8824,6 +8826,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		AIAgentModelName = Info->ModelName
 		AIAgentProvider = Info->Provider
 		AIAgentHost = Info->Host
+		AIAgentPort = Info->Port
 		AIAgentAddress  = Info->Address
 		AIAgentAPIKey = Info->APIKey
 		AIAgentTemperature = Info->Temperature
@@ -8852,12 +8855,12 @@ tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output wi
 tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
 tbAIAgent.Buttons.Add tbsSeparator
 Var tbAIModels = tbAIAgent.Buttons.Add(tbsCustom)
+cboAIAgentModels.Width = 2
 tbAIModels->Child = @cboAIAgentModels
 tbAIModels->Expand = True
 tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
-txtAIAgent.Parent = @pnlAIAgent
 txtAIAgent.MaxLength = 1048576
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
@@ -8868,6 +8871,7 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 txtAIAgent.ContextMenu = @mnuAIChat
+txtAIAgent.Parent = @pnlAIAgent
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As Integer Posi = 0, iLen = Len(iText)
@@ -9285,22 +9289,24 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
 			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 				ShowMessages(*Buff(i))
-				If InStr(*Buff(i), "[DONE]") > 0 Then
-					If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
-						If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
-					ElseIf  AIAssistantsAnswersPtr Then 
-						If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
-					End If
-					WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-					If AIBodyWStringSavePtr <> 0 Then
-						_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-						AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-						If AIBodyWStringPtr <> 0 Then
-							txtAIAgent.TextRTF = *AIBodyWStringPtr
-							txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+				#ifndef __USE_GTK__
+					If InStr(*Buff(i), "[DONE]") > 0 Then
+						If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
+							If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
+						ElseIf  AIAssistantsAnswersPtr Then 
+							If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
+						End If
+						WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+						If AIBodyWStringSavePtr <> 0 Then
+							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+							AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+							If AIBodyWStringPtr <> 0 Then
+								txtAIAgent.TextRTF = *AIBodyWStringPtr
+								txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+							End If
 						End If
 					End If
-				End If
+				#endif
 				txtAIRequest.Enabled = True
 				txtAIRequest.SetFocus
 				cboAIAgentModels.Enabled = True 
@@ -9344,6 +9350,7 @@ Sub AIRequest(Param As Any Ptr)
 		Request.Body = AIPostData
 	#endif
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
+	ThreadsEnter
 	txtAIRequest.Text = ""
 	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
 	WLet(AIAssistantsAnswersPtr, "")
@@ -9354,6 +9361,7 @@ Sub AIRequest(Param As Any Ptr)
 	txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
 	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.ScrollToEnd
+	ThreadsLeave
 	If AIAgentStream Then
 		HTTPAIAgent.OnReceive = @HTTPAIAgent_Receive
 	End If
@@ -9365,6 +9373,7 @@ Sub AIRequest(Param As Any Ptr)
 		Dim As Integer iPos2 = InStrRev(Responce.Body, """}}],""")
 		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14))
 		If BuffPtr = 0 Then Return
+		ThreadsEnter
 		txtAIAgent.SelStart = Len(txtAIAgent.Text)
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
@@ -9377,15 +9386,17 @@ Sub AIRequest(Param As Any Ptr)
 		txtAIAgent.SelText = !"<Think>\r\n" & *BuffPtr & !"</Think>\r\n"
 		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		
+		ThreadsLeave
 		iPos1 = InStrRev(*Temp, ",""content"":""")
 		iPos2 = InStrRev(*Temp, """,""refusal""")
 		_Deallocate((BuffPtr)): BuffPtr = 0
 		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12))
 		If BuffPtr <> 0 Then
+			ThreadsEnter
 			AIPrintAnswer(*BuffPtr)
 			'txtAIRequest.Enabled = True
 			txtAIRequest.SetFocus
+			ThreadsLeave
 		End If
 		WDeAllocate(Temp)
 		WDeAllocate(BuffPtr)
@@ -9393,8 +9404,7 @@ Sub AIRequest(Param As Any Ptr)
 	bInAIThread = False
 End Sub
 
-Sub txtAIRequest_KeyPress(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer)
-	If Key <> 13 Then Return
+Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 	If bInAIThread Then 
 		ShowMessages(ML("Please waiting, AI is working hard......"))
 		Return
@@ -9584,7 +9594,7 @@ txtAIRequest.ScrollBars = ScrollBarsType.Vertical
 txtAIRequest.Multiline= True
 txtAIRequest.WantReturn = False
 txtAIRequest.WordWraps = True
-txtAIRequest.OnKeyPress = @txtAIRequest_KeyPress
+txtAIRequest.OnActivate = @txtAIRequest_Activate
 ptxtAIRequest = @txtAIRequest
 AIPostDataFirstTime = True
 splAIAgent.Parent = @pnlAIAgent
@@ -11714,14 +11724,14 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		#endif
 		Kill ExePath & "/DebugInfo.log"
 	End If
-	frmMain.Width = iniSettings.ReadInteger("MainWindow", "Width", 600)
-	frmMain.Height = iniSettings.ReadInteger("MainWindow", "Height", 400)
+	frmMain.Width = iniSettings.ReadInteger("MainWindow", "Width", 800)
+	frmMain.Height = iniSettings.ReadInteger("MainWindow", "Height", 600)
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
-	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", True)
+	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", False)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
-	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", True)
+	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", False)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", tabBottomHeight)
-	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", True)
+	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", False)
 	ShowProjectFolders = iniSettings.ReadBool("MainWindow", "ProjectFolders", True)
 	If ShowProjectFolders Then
 		miShowWithFolders->RadioItem = True
@@ -12443,4 +12453,3 @@ Sub OnProgramQuit() Destructor
 		'pGlobalArgs->Remove i
 	Next
 End Sub
-

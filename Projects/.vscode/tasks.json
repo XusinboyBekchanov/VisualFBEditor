@@ -7,7 +7,7 @@
             "label": "FreeBASIC Build",
             "type": "shell",
             "windows": {
-                "command": "F:/Install/Install2/FreeBASIC-1.07.1-win32/fbc.exe",
+                "command": "D:\\FreeBasic\\Compilers\\fbc_win32_mingw_0870_2025-10-18\\fbc_win32_mingw\\fbc.exe",
                 "args": [
                     "-g",
                     "${fileBasenameNoExtension}.bas",

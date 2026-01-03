@@ -15141,6 +15141,9 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	'#endif
 		Dim As Integer Fn = FreeFile_
 		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
+		'If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then
+		'	Print #Fn, "set environment " & Replace(*EnvironmentVariables, "=", " ")
+		'End If
 		Print #Fn, "file """ & Replace(exename, "\", "/") & """"
 		Dim As TabWindow Ptr tb
 		For jj As Integer = 0 To TabPanels.Count - 1
@@ -15289,7 +15292,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 			exename = GetFullPath(WGet(DebuggerPath))
 			pClass = CREATE_UNICODE_ENVIRONMENT Or CREATE_NEW_CONSOLE
 			Dim As WString Ptr pEnv = NULL
-			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then pEnv = EnvironmentVariables
+			If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then WLet(pEnv, *EnvironmentVariables & Chr(0))
 			If CreateProcessW(@exename, CmdL, ByVal NULL, ByVal NULL, False, pClass, pEnv, Workdir, @SInfo, @pinfo) Then
 				WaitForSingleObject pinfo.hProcess, INFINITE
 				GetExitCodeProcess(pinfo.hProcess, @ExitCode)

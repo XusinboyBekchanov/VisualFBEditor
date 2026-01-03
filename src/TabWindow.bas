@@ -9678,7 +9678,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If Pos2 > 0 AndAlso Pos5 > 0 Then
 							SplitParameters bTrim, Pos5, Mid(bTrim, Pos5 + 1, Pos2 - Pos5 - 1), sFileName, te, i, ECLine, ECLines, CurrentCondition, True, ptxtCode = @txtCode, tb
 						End If
-					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso Not txtCode.Content.Functions.Contains(bTrim) Then
+					ElseIf EndsWith(Trim(b1), ":") AndAlso IsArg2(bTrim) AndAlso (Not txtCode.Content.Functions.Contains(bTrim)) Then
 						Var te = _New(TypeElement)
 						te->Name = bTrim
 						te->DisplayName = Trim(b1)

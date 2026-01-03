@@ -223,6 +223,8 @@ Private Sub frmTipOfDayType.Form_Close(ByRef Sender As Form, ByRef Action As Int
 		_Deallocate(BuffTips(i))
 	Next
 	Erase BuffTips
-	ShowTipoftheDay = Not chkDoNotShow.Checked
-	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
+	If ShowTipoftheDay <> Not chkDoNotShow.Checked Then
+		ShowTipoftheDay = Not chkDoNotShow.Checked
+		iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
+	End If
 End Sub

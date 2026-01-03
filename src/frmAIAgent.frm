@@ -13,6 +13,8 @@
 	#include once "mff/CheckBox.bi"
 	#include once "mff/CommandButton.bi"
 	#include once "mff/ComboBoxEdit.bi"
+	#include once "mff/VerticalBox.bi"
+	#include once "mff/HorizontalBox.bi"
 	
 	Using My.Sys.Forms
 	
@@ -32,6 +34,8 @@
 		Dim As NumericUpDown updnAIAgentTemperature
 		Dim As CheckBox chkAIAgentStream, chkAIAgentAuto
 		Dim As CommandButton cmdOK, cmdCancel
+		Dim As VerticalBox VerticalBox1
+		Dim As HorizontalBox HorizontalBox1, HorizontalBox2, HorizontalBox3, HorizontalBox4, HorizontalBox5, HorizontalBox6, HorizontalBox7
 	End Type
 	
 	Constructor frmAIAgentType
@@ -51,7 +55,8 @@
 			.WindowState = WindowStates.wsNormal
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedSingle
-			.SetBounds 0, 0, 528, 259
+			.AutoSize = true
+			.SetBounds 0, 0, 528, 269
 		End With
 		' lblAIAgentName
 		With lblAIAgentName
@@ -60,20 +65,28 @@
 			.TabIndex = 0
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 0
-			.SetBounds 13, 15, 80, 20
+			.Align = DockStyle.alLeft
+			.CenterImage = true
+			.ID = 1887
+			.WordWraps = true
+			.SetBounds 0, 0, 80, 20
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox1
 		End With
 		' lblAIAgentModelName
 		With lblAIAgentModelName
 			.Name = "lblAIAgentModelName"
-			.Text = ML("Model Name")
+			.Text = ML("Model Name") & ":"
 			.TabIndex = 1
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
-			.SetBounds 13, 75, 80, 20
+			.Align = DockStyle.alLeft
+			.CenterImage = true
+			.ID = 1918
+			.Caption = ML("Model Name") & ":"
+			.SetBounds 0, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox3
 		End With
 		' lblAIAgentHost
 		With lblAIAgentHost
@@ -82,9 +95,12 @@
 			.TabIndex = 2
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 2
-			.SetBounds 13, 102, 80, 20
+			.Align = DockStyle.alLeft
+			.CenterImage = true
+			.ID = 1919
+			.SetBounds 0, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox4
 		End With
 		' lblAIAgentPort
 		With lblAIAgentPort
@@ -93,9 +109,12 @@
 			.TabIndex = 3
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 3
-			.SetBounds 13, 131, 80, 20
+			.Align = DockStyle.alLeft
+			.CenterImage = true
+			.ID = 1920
+			.SetBounds 0, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox5
 		End With
 		' lblAIAgentAPIKey
 		With lblAIAgentAPIKey
@@ -104,18 +123,20 @@
 			.TabIndex = 4
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 4
-			.SetBounds 13, 158, 80, 20
+			.CenterImage = true
+			.ID = 1923
+			.SetBounds 0, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox6
 		End With
 		' txtAIAgentAPIKey
 		With txtAIAgentAPIKey
 			.Name = "txtAIAgentAPIKey"
 			.TabIndex = 5
 			.ControlIndex = 5
-			.SetBounds 100, 155, 411, 20
+			.SetBounds 90, 0, 411, 10
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox6
 		End With
 		' cboAIAgentPort
 		With cboAIAgentPort
@@ -124,9 +145,9 @@
 			.TabIndex = 6
 			.ControlIndex = 5
 			.Text = "443"
-			.SetBounds 100, 127, 54, 21
+			.SetBounds 80, 0, 54, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox5
 		End With
 		' lblAIAgentTemperature
 		With lblAIAgentTemperature
@@ -135,10 +156,11 @@
 			.TabIndex = 7
 			.ControlIndex = 7
 			.Alignment = AlignmentConstants.taRight
-			.ID = 1021
-			.SetBounds 163, 130, 80, 20
+			.ID = 1922
+			.CenterImage = true
+			.SetBounds 154, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox5
 		End With
 		' updnAIAgentTemperature
 		With updnAIAgentTemperature
@@ -148,9 +170,9 @@
 			.ControlIndex = 8
 			.DecimalPlaces = 1
 			.MaxValue = 0
-			.SetBounds 252, 127, 49, 21
+			.SetBounds 134, 0, 49, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox5
 		End With
 		' chkAIAgentStream
 		With chkAIAgentStream
@@ -159,9 +181,9 @@
 			.TabIndex = 10
 			.Checked = True
 			.ControlIndex = 9
-			.SetBounds 319, 127, 58, 21
+			.SetBounds 263, 0, 58, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox5
 		End With
 		' cboAIAgentAddress
 		With cboAIAgentAddress
@@ -170,9 +192,9 @@
 			.Style = cbDropDown
 			.TabIndex = 11
 			.ControlIndex = 9
-			.SetBounds 320, 100, 191, 21
+			.SetBounds 283, 0, 191, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox4
 		End With
 		' lblAIAgentAddress
 		With lblAIAgentAddress
@@ -181,10 +203,11 @@
 			.TabIndex = 12
 			.ControlIndex = 8
 			.Alignment = AlignmentConstants.taRight
-			.ID = 4129
-			.SetBounds 243, 102, 71, 20
+			.ID = 1921
+			.CenterImage = true
+			.SetBounds 291, 0, 71, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox4
 		End With
 		' cboAIAgentHost
 		With cboAIAgentHost
@@ -193,9 +216,9 @@
 			.Style = cbDropDown
 			.TabIndex = 13
 			.ControlIndex = 12
-			.SetBounds 100, 99, 132, 21
+			.SetBounds 372, 0, 129, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox4
 		End With
 		' txtAIAgentName
 		With txtAIAgentName
@@ -203,20 +226,10 @@
 			.TabIndex = 15
 			.ControlIndex = 3
 			.Enabled = False
-			.SetBounds 100, 15, 346, 20
+			.Align = DockStyle.alLeft
+			.SetBounds 90, 0, 356, 20
 			.Designer = @This
-			.Parent = @This
-		End With
-		' cmdOK
-		With cmdOK
-			.Name = "cmdOK"
-			.Text = ML("OK")
-			.TabIndex = 16
-			.ControlIndex = 6
-			.SetBounds 269, 195, 112, 24
-			.Designer = @This
-			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
-			.Parent = @This
+			.Parent = @HorizontalBox1
 		End With
 		' cmdCancel
 		With cmdCancel
@@ -224,21 +237,42 @@
 			.Text = ML("Cancel")
 			.TabIndex = 17
 			.ControlIndex = 0
-			.SetBounds 399, 195, 112, 24
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Align = DockStyle.alRight
+			.SetBounds 112, 0, 112, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdCancel_Click)
-			.Parent = @This
+			.Parent = @HorizontalBox7
+		End With
+		' cmdOK
+		With cmdOK
+			.Name = "cmdOK"
+			.Text = ML("OK")
+			.TabIndex = 16
+			.ControlIndex = 1
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Align = DockStyle.alRight
+			.SetBounds 112, 0, 112, 20
+			.Designer = @This
+			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
+			.Parent = @HorizontalBox7
 		End With
 		' lblAIAgentprovider
 		With lblAIAgentprovider
 			.Name = "lblAIAgentprovider"
-			.Text = ML("Provider")
+			.Text = ML("Provider") & ":"
 			.TabIndex = 18
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
-			.SetBounds 13, 44, 80, 20
+			.Align = DockStyle.alLeft
+			.CenterImage = true
+			.ID = 1917
+			.Caption = ML("Provider") & ":"
+			.SetBounds 0, 0, 80, 21
 			.Designer = @This
-			.Parent = @This
+			.Parent = @HorizontalBox2
 		End With
 		' cboAIAgentModelName
 		With cboAIAgentModelName
@@ -247,11 +281,11 @@
 			.Style = cbDropDown
 			.TabIndex = 21
 			'.ImagesList = pimgListAIModels32
-			.ControlIndex = 15
-			.SetBounds 100, 72, 411, 21
+			.ControlIndex = 0
+			.SetBounds 0, 0, 411, 21
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cboAIAgentModelName_Change)
-			.Parent = @This
+			.Parent = @HorizontalBox3
 		End With
 		' cboAIAgentProvider
 		With cboAIAgentProvider
@@ -260,10 +294,10 @@
 			.Style = cbDropDown
 			'.ImagesList = pimgListAIProviders32
 			.TabIndex = 19
-			.SetBounds 100, 44, 411, 21
+			.SetBounds 90, 0, 411, 21
 			.Designer = @This
 			.OnChange = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdit), @cboAIAgentProvider_Change)
-			.Parent = @This
+			.Parent = @HorizontalBox2
 		End With
 		
 		'Dim As FileListBox imgAIAgentFile
@@ -299,10 +333,103 @@
 			.Checked = True
 			.ControlIndex = 9
 			.Caption = "Auto"
-			.SetBounds 456, 15, 53, 20
+			.Align = DockStyle.alLeft
+			.SetBounds 456, 0, 53, 20
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @chkAIAgentAuto_Click)
+			.Parent = @HorizontalBox1
+		End With
+		' VerticalBox1
+		With VerticalBox1
+			.Name = "VerticalBox1"
+			.Text = "VerticalBox1"
+			.TabIndex = 21
+			.Spacing = 10
+			.Align = DockStyle.alClient
+			.Margins.Bottom = 10
+			.Margins.Left = 10
+			.Margins.Right = 10
+			.Margins.Top = 10
+			.SetBounds 0, 0, 529, 225
+			.Designer = @This
 			.Parent = @This
+		End With
+		' HorizontalBox1
+		With HorizontalBox1
+			.Name = "HorizontalBox1"
+			.Text = "HorizontalBox1"
+			.TabIndex = 22
+			.Align = DockStyle.alTop
+			.Spacing = 10
+			.SetBounds 0, 0, 499, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox2
+		With HorizontalBox2
+			.Name = "HorizontalBox2"
+			.Text = "HorizontalBox2"
+			.TabIndex = 26
+			.Align = DockStyle.alTop
+			.Spacing = 10
+			.SetBounds 0, 30, 501, 21
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox3
+		With HorizontalBox3
+			.Name = "HorizontalBox3"
+			.Text = "HorizontalBox3"
+			.TabIndex = 24
+			.Align = DockStyle.alTop
+			.Spacing = 10
+			.SetBounds 0, 61, 501, 21
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox4
+		With HorizontalBox4
+			.Name = "HorizontalBox4"
+			.Text = "HorizontalBox4"
+			.TabIndex = 25
+			.Spacing = 10
+			.Align = DockStyle.alTop
+			.SetBounds 10, 102, 501, 21
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox5
+		With HorizontalBox5
+			.Name = "HorizontalBox5"
+			.Text = "HorizontalBox5"
+			.TabIndex = 26
+			.Spacing = 10
+			.Align = DockStyle.alTop
+			.SetBounds 10, 133, 361, 21
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox6
+		With HorizontalBox6
+			.Name = "HorizontalBox6"
+			.Text = "HorizontalBox6"
+			.TabIndex = 27
+			.Spacing = 10
+			.Align = DockStyle.alTop
+			.SetBounds 10, 164, 501, 21
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' HorizontalBox7
+		With HorizontalBox7
+			.Name = "HorizontalBox7"
+			.Text = "HorizontalBox7"
+			.TabIndex = 28
+			.Align = DockStyle.alBottom
+			.Margins.Bottom = 0
+			.SetBounds 0, 134, 501, 30
+			.Designer = @This
+			.Parent = @VerticalBox1
 		End With
 	End Constructor
 	
@@ -391,9 +518,9 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	txtAIAgentName.Enabled = chkAIAgentAuto.Checked
 	Dim As UString Temp = cboAIAgentPort.Text
 	cboAIAgentPort.Clear
-	cboAIAgentPort.Text = Temp
 	cboAIAgentPort.AddItem "80"
 	cboAIAgentPort.AddItem "443"
+	cboAIAgentPort.Text = Temp
 	Temp = cboAIAgentModelName.Text
 	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
 	If Dir(tmpName) = "" Then MkDir tmpName

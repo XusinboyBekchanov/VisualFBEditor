@@ -4079,6 +4079,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			piniSettings->WriteString "AIAgents", "ModelName_" & WStr(i), Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
 			piniSettings->WriteString "AIAgents", "Provider_" & WStr(i), Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Provider
 			piniSettings->WriteString "AIAgents", "Host_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Host
+			piniSettings->WriteInteger "AIAgents", "Port_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Port
 			piniSettings->WriteString "AIAgents", "Address_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Address
 			piniSettings->WriteString "AIAgents", "APIKey_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
 			piniSettings->WriteString "AIAgents", "Response_Format_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Response_Format
@@ -4089,6 +4090,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 				AIAgentModelName = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
 				AIAgentProvider = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Provider
 				AIAgentHost = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Host
+				AIAgentPort = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Port
 				AIAgentAddress  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Address 
 				AIAgentAPIKey = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
 				AIAgentTemperature = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature
@@ -4100,6 +4102,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			piniSettings->KeyRemove "AIAgents", "Version_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "ModelName_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "Host_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "Port_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "Address_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "APIKey_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "Response_Format_" & WStr(i)
