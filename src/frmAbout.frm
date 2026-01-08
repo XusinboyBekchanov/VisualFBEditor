@@ -61,7 +61,8 @@
 		!"Liu XiaLin (Chinese)\r" & _
 		!"Thomas Frank Ludewig (Deutsch)\r" & _
 		!"Juan Sánchez (Spanish)\r" & _
-		!"Dariusz Prochotta (Polish)\r"
+		!"Dariusz Prochotta (Polish)\r" & _
+		!"Xonic (French)\r"
 		Label2.BorderStyle = BorderStyles.bsNone
 		Label2.SetBounds 10, 58, 472, 413
 		Label2.Parent = @This

@@ -1,0 +1,5 @@
+﻿Définissez le chemin d'accès du compilateur avant de compiler votre projet <br> et définissez également le chemin d'accès de MyFbFramework.
+Double-cliquez en haut des onglets pour modifier leur position.
+Dans la fenêtre d'édition de code, déplacez la souris sur le nom du fichier, par exemple "#include once xxx.bi", maintenez la touche Ctrl enfoncée et cliquez avec le bouton gauche de la souris.<br>Le fichier d'en-tête s'ouvrira dans une nouvelle fenêtre de code.
+Dans la fenêtre de code, placez le curseur sur le nom de la variable ou de la fonction,<br>puis appuyez sur la touche F2 du clavier pour accéder à la définition ou au corps du programme de la variable.
+Après avoir cliqué avec le bouton droit de la souris dans la barre d'onglets de la fenêtre d'édition de code, vous pouvez définir le fichier principal,<br>rouvrir le fichier de sauvegarde historique enregistré dans le répertoire "Temp" à partir de la barre de menu.<br>La durée de conservation des fichiers de sauvegarde historiques peut être modifiée dans "Service\Options".
