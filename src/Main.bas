@@ -8491,7 +8491,7 @@ Sub tvExplorer_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeVi
 					mLoadLog = True
 				End If
 				If tpToDo->IsSelected AndAlso Not mLoadToDo Then
-					WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
+					WLet(gSearchSave, WChr(84) + "ODO")
 					ThreadCounter(ThreadCreate_(@FindSubProj, ptn))
 					mLoadToDo = True
 				End If
@@ -11072,7 +11072,7 @@ Sub tabBottom_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control
 			End If
 			mLoadLog = True
 		ElseIf ptabBottom->SelectedTab = tpToDo AndAlso Not mLoadToDo Then
-			WLet(gSearchSave, WChr(39) + WChr(84) + "ODO")
+			WLet(gSearchSave, WChr(84) + "ODO")
 			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True
 		End If

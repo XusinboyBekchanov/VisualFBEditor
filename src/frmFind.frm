@@ -619,7 +619,7 @@ Sub FindSubProj(Param As Any Ptr)
 		.btnReplace.Enabled = False
 		.btnReplaceAll.Enabled = False
 		ThreadsLeave
-		If *gSearchSave = WChr(39) + WChr(84) + "ODO" Then
+		If *gSearchSave = WChr(84) + "ODO" Then
 			ThreadsEnter
 			plvToDo->ListItems.Clear
 			ThreadsLeave
@@ -636,7 +636,7 @@ Sub FindSubProj(Param As Any Ptr)
 		.btnReplace.Enabled = True
 		.btnReplaceAll.Enabled = True
 		StopProgress
-		If *gSearchSave = WChr(39)+ WChr(84)+"ODO" Then
+		If *gSearchSave = WChr(84)+"ODO" Then
 			tpToDo->Caption = ML("ToDo") & " (" & plvToDo->ListItems.Count & " " & ML("Pos") & ")"
 			WLet(gSearchSave, "")
 			.cboFindRange.ItemIndex = 2
