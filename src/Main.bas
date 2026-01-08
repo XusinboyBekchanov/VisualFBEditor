@@ -2098,6 +2098,7 @@ Sub OpenSession()
 	AddSession OpenD.FileName
 	WLet(RecentSession, OpenD.FileName)
 	tpProject->SelectTab
+	tpProject->Repaint
 End Sub
 
 Sub AddMRU(ByRef FileFolderName As WString, ByRef MRUFilesFolders As WStringList, miRecentFilesFolders As MenuItem Ptr, ByRef MRUType As String)
