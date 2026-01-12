@@ -1840,7 +1840,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 				ElseIf Parameter = "BuildVersion" Then
 					ppe->BuildVersion = Val(Mid(Buff, Pos1 + 1))
 				ElseIf Parameter = "AutoIncrementVersion" Then
-					ppe->AutoIncrementVersion = CBool(Mid(Buff, Pos1 + 1))
+					ppe->AutoIncrementVersion = IIf(bNew, AutoIncrement, CBool(Mid(Buff, Pos1 + 1)))
 				ElseIf Parameter = "ApplicationTitle" Then
 					WLet(ppe->ApplicationTitle, Mid(Buff, Pos1 + 2, Len(Buff) - Pos1 - 2))
 				ElseIf Parameter = "ApplicationIcon" Then

@@ -11852,7 +11852,12 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	'If StartsWith(LTrim(LCase(sFirstLine), Any !"\t "), "'#compile ") Then
 	Dim As WString Ptr Buff, File, sLines
 	Dim As WString * 1024 sLine
-	Var bAutoIncrement = CInt(AutoIncrement) OrElse CInt(Project AndAlso CInt(Project->AutoIncrementVersion))
+	Dim bAutoIncrement As Boolean
+	If Project Then
+		bAutoIncrement =  Project->AutoIncrementVersion
+	Else
+		bAutoIncrement =  AutoIncrement
+	End If
 	If Project <> 0 AndAlso bAutoIncrement Then
 		Project->BuildVersion += 1
 		If AutoSaveBeforeCompiling AndAlso ProjectNode <> 0 Then
