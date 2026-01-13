@@ -11894,7 +11894,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 				Line Input #Fn, sLine
 				n += 1
 				bChanged = False
-				If CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion ")) Then
+				If CInt(StartsWith(LCase(sLine), "#define ver_fileversion ")) Then
 					If Project Then
 						Var Pos3 = InStrRev(sLine, " ")
 						If Pos3 > 0 Then
@@ -11904,21 +11904,21 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
 							'									ThreadsLeave()
 						End If
-					Else
+					ElseIf bAutoIncrement Then
 						Var Pos3 = InStrRev(sLine, ",")
 						If Pos3 > 0 Then
 							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
 							bChanged = True
 						End If
 					End If
-				ElseIf CInt(bAutoIncrement) AndAlso CInt(StartsWith(LCase(sLine), "#define ver_fileversion_str ")) Then
+				ElseIf CInt(StartsWith(LCase(sLine), "#define ver_fileversion_str ")) Then
 					If Project Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
 							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
 							bChanged = True
 						End If
-					Else
+					ElseIf bAutoIncrement Then
 						Var Pos3 = InStrRev(sLine, ".")
 						If Pos3 > 0 Then
 							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
