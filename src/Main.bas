@@ -8133,9 +8133,9 @@ FormSearch->Child = @txtForm
 FormSearch->Expand = True
 tbForm.Buttons.Add tbsSeparator
 
-tabLeftWidth = 200
-tabRightWidth = 200
-tabBottomHeight = 200
+tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 200)
+tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 200)
+tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 200)
 
 splLeft.Align = SplitterAlignmentConstants.alLeft
 splRight.Align = SplitterAlignmentConstants.alRight
@@ -8672,11 +8672,15 @@ Sub tabLeft_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 End Sub
 
 Sub pnlLeft_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
-	#ifdef __USE_GTK__
-		If pnlLeft.Width <> 30 Then tabLeftWidth = NewWidth ': tabLeft.Width = pnlLeft.Width
-	#else
-		If tabLeft.SelectedTabIndex <> -1 Then tabLeftWidth = pnlLeft.Width
-	#endif
+	If tabLeft.TabCount = 0 Then
+		tabLeftWidth = NewWidth
+	Else
+		#ifdef __USE_GTK__
+			If pnlLeft.Width <> 30 Then tabLeftWidth = NewWidth ': tabLeft.Width = pnlLeft.Width
+		#else
+			If tabLeft.SelectedTabIndex <> -1 Then tabLeftWidth = pnlLeft.Width
+		#endif
+	End If
 End Sub
 
 pnlLeft.Name = "pnlLeft"
@@ -8696,11 +8700,24 @@ tabLeft.OnSelChange = @tabLeft_SelChange
 pnlLeft.Add @tabLeft
 'tabLeft.TabPosition = tpLeft
 
-tpProject = tabLeft.AddTab(ML("Project"))
+Function AddToTabControl(ByRef Caption As WString, ByRef NameOfTabPage As WString, ByRef DefaultParent As WString = "", DefaultIndex As Integer = 0) As TabPage Ptr
+	Dim As String Parent = iniSettings.ReadString("MainWindow", NameOfTabPage & "Parent", DefaultParent)
+	Dim As Integer Index = iniSettings.ReadInteger("MainWindow", NameOfTabPage & "Index", DefaultIndex)
+	If Parent <> "tabLeft" AndAlso Parent <> "tabRight" AndAlso Parent <> "tabBottom" Then Parent = DefaultParent
+	Select Case Parent
+	Case "tabLeft": Return tabLeft.InsertTab(Index, Caption)
+	Case "tabRight": Return tabRight.InsertTab(Index, Caption)
+	Case "tabBottom": Return tabBottom.InsertTab(Index, Caption)
+	End Select
+	Return 0
+End Function
 
-tpToolbox = tabLeft.AddTab(ML("Toolbox")) ' ToolBox is better than "Form"
+
+tpProject = AddToTabControl(ML("Project"), "Project", "tabLeft", 0)
+
+tpToolbox = AddToTabControl(ML("Toolbox"), "Toolbox", "tabLeft", 1) ' ToolBox is better than "Form"
 tpToolbox->Name = "Toolbox"
-tpAIAgent = tabLeft.AddTab(ML("AI Agent")) ' ToolBox is better than "Form"
+tpAIAgent = AddToTabControl(ML("AI Agent"), "AIAgent", "tabLeft", 2) ' ToolBox is better than "Form"
 tpAIAgent->Name = "AIAgent"
 tpAIAgent->Add @tbAIAgent
 tpAIAgent->Add @pnlAIAgent
@@ -10503,17 +10520,22 @@ Sub tabRight_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 End Sub
 
 Sub pnlRight_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
-	#ifdef __USE_GTK__
-		If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
-	#else
-		If tabRight.SelectedTabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - tabItemHeight
-	#endif
+	If tabRight.TabCount = 0 Then
+		tabRightWidth = NewWidth
+	Else
+		#ifdef __USE_GTK__
+			If pnlRight.Width <> 30 Then tabRightWidth = NewWidth: tabRight.SetBounds(0, 0, tabRightWidth, NewHeight)
+		#else
+			If tabRight.SelectedTabIndex <> -1 Then tabRightWidth = tabRight.Width: If GetRightClosedStyle Then pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - tabItemHeight
+		#endif
+	End If
 End Sub
 
 pnlRight.Align = DockStyle.alRight
 pnlRight.Width = tabRightWidth
 pnlRight.OnResize = @pnlRight_Resize
 
+tabRight.Name = "tabRight"
 tabRight.GroupName = "ToolWindow"
 tabRight.Width = tabRightWidth
 #ifdef __USE_GTK__
@@ -10527,12 +10549,12 @@ tabRight.OnSelChange = @tabRight_SelChange
 tabRight.Detachable = True
 tabRight.Reorderable = True
 'tabRight.TabPosition = tpRight
-tpProperties = tabRight.AddTab(ML("Properties"))
+tpProperties = AddToTabControl(ML("Properties"), "Properties", "tabRight", 0)
 tpProperties->Add @tbProperties
 tpProperties->Add @txtLabelProperty
 tpProperties->Add @splProperties
 tpProperties->Add @lvProperties
-tpEvents = tabRight.AddTab(ML("Events"))
+tpEvents = AddToTabControl(ML("Events"), "Events", "tabRight", 1)
 tpEvents->Add @tbEvents
 tpEvents->Add @txtLabelEvent
 tpEvents->Add @splEvents
@@ -11117,11 +11139,15 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 End Sub
 
 Sub pnlBottom_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
-	#ifdef __USE_GTK__
-		If pnlBottom.Height <> 25 Then tabBottomHeight = NewHeight: ptabBottom->SetBounds 0, 0, NewWidth, tabBottomHeight
-	#else
-		If ptabBottom->SelectedTabIndex <> -1 Then tabBottomHeight = ptabBottom->Height
-	#endif
+	If tabBottom.TabCount = 0 Then
+		tabBottomHeight = NewHeight
+	Else
+		#ifdef __USE_GTK__
+			If pnlBottom.Height <> 25 Then tabBottomHeight = NewHeight: ptabBottom->SetBounds 0, 0, NewWidth, tabBottomHeight
+		#else
+			If ptabBottom->SelectedTabIndex <> -1 Then tabBottomHeight = ptabBottom->Height
+		#endif
+	End If
 End Sub
 
 pnlBottom.Name = "pnlBottom"
@@ -11163,20 +11189,20 @@ ptabBottom->Height = tabBottomHeight
 'ptabBottom->TabPosition = tpBottom
 ptabBottom->Detachable = True
 ptabBottom->Reorderable = True
-tpOutput = ptabBottom->AddTab(ML("Output"))
-tpProblems = ptabBottom->AddTab(ML("Problems"))
-tpSuggestions = ptabBottom->AddTab(ML("Suggestions"))
-tpFind = ptabBottom->AddTab(ML("Find"))
-tpToDo = ptabBottom->AddTab(ML("ToDo"))
-tpChangeLog = ptabBottom->AddTab(ML("Change Log"))
-tpImmediate = ptabBottom->AddTab(ML("Immediate"))
-tpLocals = ptabBottom->AddTab(ML("Locals"))
-tpGlobals = ptabBottom->AddTab(ML("Globals"))
-tpProcedures = ptabBottom->AddTab(ML("Procedures"))
-tpThreads = ptabBottom->AddTab(ML("Threads"))
-tpWatches = ptabBottom->AddTab(ML("Watches"))
-tpMemory = ptabBottom->AddTab(ML("Memory"))
-tpProfiler = ptabBottom->AddTab(ML("Profiler"))
+tpOutput = AddToTabControl(ML("Output"), "Output", "tabBottom", 0)
+tpProblems = AddToTabControl(ML("Problems"), "Problems", "tabBottom", 1)
+tpSuggestions = AddToTabControl(ML("Suggestions"), "Suggestions", "tabBottom", 2)
+tpFind = AddToTabControl(ML("Find"), "Find", "tabBottom", 3)
+tpToDo = AddToTabControl(ML("ToDo"), "ToDo", "tabBottom", 4)
+tpChangeLog = AddToTabControl(ML("Change Log"), "ChangeLog", "tabBottom", 5)
+tpImmediate = AddToTabControl(ML("Immediate"), "Immediate", "tabBottom", 6)
+tpLocals = AddToTabControl(ML("Locals"), "Locals", "tabBottom", 7)
+tpGlobals = AddToTabControl(ML("Globals"), "Globals", "tabBottom", 8)
+tpProcedures = AddToTabControl(ML("Procedures"), "Procedures", "tabBottom", 9)
+tpThreads = AddToTabControl(ML("Threads"), "Threads", "tabBottom", 10)
+tpWatches = AddToTabControl(ML("Watches"), "Watches", "tabBottom", 11)
+tpMemory = AddToTabControl(ML("Memory"), "Memory", "tabBottom", 12)
+tpProfiler = AddToTabControl(ML("Profiler"), "Profiler", "tabBottom", 13)
 tpOutput->Add @txtOutput
 tpProblems->Add @lvProblems
 tpSuggestions->Add @lvSuggestions
@@ -12115,7 +12141,45 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	iniSettings.WriteInteger("MainWindow", "MainHeight", frmMain.Height)
 	iniSettings.WriteInteger("MainWindow", "ShowTipoftheDayIndex", ShowTipoftheDayIndex)
 	iniSettings.WriteBool("MainWindow", "ShowTipoftheDay", ShowTipoftheDay)
-	iniSettings.WriteInteger "Options", "HistoryCodeCleanDay", HistoryCodeCleanDay
+	iniSettings.WriteString("MainWindow", "ProjectParent", tpProject->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ProjectIndex", tpProject->Parent->IndexOfTab(tpProject))
+	iniSettings.WriteString("MainWindow", "ToolBoxParent", tpToolbox->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ToolBoxIndex", tpToolbox->Parent->IndexOfTab(tpToolbox))
+	iniSettings.WriteString("MainWindow", "AIAgentParent", tpAIAgent->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "AIAgentIndex", tpAIAgent->Parent->IndexOfTab(tpAIAgent))
+	iniSettings.WriteString("MainWindow", "PropertiesParent", tpProperties->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "PropertiesIndex", tpProperties->Parent->IndexOfTab(tpProperties))
+	iniSettings.WriteString("MainWindow", "EventsParent", tpEvents->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "EventsIndex", tpEvents->Parent->IndexOfTab(tpEvents))
+	iniSettings.WriteString("MainWindow", "OutputParent", tpOutput->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "OutputIndex", tpOutput->Parent->IndexOfTab(tpOutput))
+	iniSettings.WriteString("MainWindow", "ProblemsParent", tpProblems->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ProblemsIndex", tpProblems->Parent->IndexOfTab(tpProblems))
+	iniSettings.WriteString("MainWindow", "SuggestionsParent", tpSuggestions->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "SuggestionsIndex", tpSuggestions->Parent->IndexOfTab(tpSuggestions))
+	iniSettings.WriteString("MainWindow", "FindParent", tpFind->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "FindIndex", tpFind->Parent->IndexOfTab(tpFind))
+	iniSettings.WriteString("MainWindow", "ToDoParent", tpToDo->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ToDoIndex", tpToDo->Parent->IndexOfTab(tpToDo))
+	iniSettings.WriteString("MainWindow", "ChangeLogParent", tpChangeLog->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ChangeLogIndex", tpChangeLog->Parent->IndexOfTab(tpChangeLog))
+	iniSettings.WriteString("MainWindow", "ImmediateParent", tpImmediate->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ImmediateIndex", tpImmediate->Parent->IndexOfTab(tpImmediate))
+	iniSettings.WriteString("MainWindow", "LocalsParent", tpLocals->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "LocalsIndex", tpLocals->Parent->IndexOfTab(tpLocals))
+	iniSettings.WriteString("MainWindow", "GlobalsParent", tpGlobals->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "GlobalsIndex", tpGlobals->Parent->IndexOfTab(tpGlobals))
+	iniSettings.WriteString("MainWindow", "ProceduresParent", tpProcedures->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ProceduresIndex", tpProcedures->Parent->IndexOfTab(tpProcedures))
+	iniSettings.WriteString("MainWindow", "ThreadsParent", tpThreads->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ThreadsIndex", tpThreads->Parent->IndexOfTab(tpThreads))
+	iniSettings.WriteString("MainWindow", "WatchesParent", tpWatches->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "WatchesIndex", tpWatches->Parent->IndexOfTab(tpWatches))
+	iniSettings.WriteString("MainWindow", "MemoryParent", tpMemory->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "MemoryIndex", tpMemory->Parent->IndexOfTab(tpMemory))
+	iniSettings.WriteString("MainWindow", "ProfilerParent", tpProfiler->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "ProfilerIndex", tpProfiler->Parent->IndexOfTab(tpProfiler))
+	iniSettings.WriteInteger("Options", "HistoryCodeCleanDay", HistoryCodeCleanDay)
 	
 	SaveMRU
 	
