@@ -1879,7 +1879,10 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 		tb->cboClass.ItemIndex = tb->cboClass.Items.IndexOf(SelControlName)
 		For i As Integer = 0 To SelectedCount - 1
 			If Sender.SelectedControls.Item(i) = Sender.SelectedControl Then Continue For
-			SelControlNames = SelControlNames & ", " & WGet(tb->Des->Symbols(Sender.SelectedControls.Item(i))->ReadPropertyFunc(Sender.SelectedControls.Item(i), "Name"))
+			Dim As SymbolsType Ptr st = tb->Des->Symbols(Sender.SelectedControls.Item(i))
+			If st <> 0 Then
+				SelControlNames = SelControlNames & ", " & WGet(tb->Des->Symbols(Sender.SelectedControls.Item(i))->ReadPropertyFunc(Sender.SelectedControls.Item(i), "Name"))
+			End If
 		Next
 		tbProperties.Buttons.Item("SelControlName")->Caption = SelControlNames
 		tbEvents.Buttons.Item("SelControlName")->Caption = SelControlNames
@@ -3789,15 +3792,16 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 		pfImageListEditor->Show *pfrmMain
 	Case Else
 		If tb->cboFunction.Items.Count > 1 Then
+			Var iItem = tb->cboClass.Items.Item(tb->cboClass.ItemIndex)
 			Select Case tClassName
 			Case "TimerComponent"
-				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnTimer"
+				If iItem <> 0 Then FindEvent tb, iItem->Object, "OnTimer"
 			Case "HTTPServer", "HTTPConnection"
-				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnReceive"
+				If iItem <> 0 Then FindEvent tb, iItem->Object, "OnReceive"
 			Case "PrintDocument"
-				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnPrintPage"
+				If iItem <> 0 Then FindEvent tb, iItem->Object, "OnPrintPage"
 			Case Else
-				FindEvent tb, tb->cboClass.Items.Item(tb->cboClass.ItemIndex)->Object, "OnClick"
+				If iItem <> 0 Then FindEvent tb, iItem->Object, "OnClick"
 			End Select
 			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
 				tb->tbrTop.Buttons.Item("Code")->Checked = True
@@ -3805,7 +3809,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 				If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
 					If tb->cboFunction.ItemIndex > -1 Then
 						Dim te As TypeElement Ptr = tb->cboFunction.ItemData(tb->cboFunction.ItemIndex)
-						If te->Tag2 <> 0 Then
+						If te <> 0 AndAlso te->Tag2 <> 0 Then
 							Cast(TreeNode Ptr, te->Tag2)->SelectItem
 						End If
 					End If
@@ -9014,15 +9018,15 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							If LastFileList = 0 Then
 								UpdateIncludedFilesList txtCode.Content, *FileList, *FileListLines, j
 							Else
-								For i As Integer = 0 To LastFileList->Count - 1
-									FileList->Add LastFileList->Item(i)
-									FileListLines->Add LastFileListLines->Item(i)
+								For jj As Integer = 0 To LastFileList->Count - 1
+									FileList->Add LastFileList->Item(jj)
+									FileListLines->Add LastFileListLines->Item(jj)
 								Next
-								For i As Integer = 0 To Includes.Count - 1
-									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(i)
-									txtCode.Content.OldIncludes.Add Includes.Item(i)
+								For jj As Integer = 0 To Includes.Count - 1
+									AddAllIncludedFiles *FileList, *FileListLines, Includes.Item(jj)
+									txtCode.Content.OldIncludes.Add Includes.Item(jj)
 									txtCode.Content.OldIncludeLines.Add OldIncludeLine
-								Next i
+								Next
 							End If
 							Includes.Clear
 						Else
