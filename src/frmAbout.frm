@@ -62,7 +62,8 @@
 		!"Thomas Frank Ludewig (Deutsch)\r" & _
 		!"Juan Sánchez (Spanish)\r" & _
 		!"Dariusz Prochotta (Polish)\r" & _
-		!"Xonic (French)\r"
+		!"Xonic (French)\r" & _
+		!"Massimiliano Argenti (Italian)"
 		Label2.BorderStyle = BorderStyles.bsNone
 		Label2.SetBounds 10, 58, 472, 413
 		Label2.Parent = @This

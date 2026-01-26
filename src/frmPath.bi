@@ -10,6 +10,8 @@
 #include once "mff/Label.bi"
 #include once "mff/ComboBoxEdit.bi"
 #include once "Main.bi"
+#include once "mff/HorizontalBox.bi"
+#include once "mff/VerticalBox.bi"
 
 Using My.Sys.Forms
 
@@ -38,6 +40,8 @@ Using My.Sys.Forms
 		Dim As UString ExeFileName
 		Dim As ComboBoxEdit cboType
 		Dim As UString cboTypeText, txtCommandLineText, txtExtensionsText
+		Dim As Panel hbxPath, hbxVersion, hbxCommandLine, hbxCommands
+		Dim As Panel VerticalBox1
 	End Type
 	
 	Common Shared pfPath As frmPath Ptr

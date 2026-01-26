@@ -158,7 +158,8 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Label lblBlack, lblCompiler32, lblCompiler64, lblTabSize, lblHistoryLimit, lblGridSize, lblFont, lblProjectsPath, lblForeground, lblBackground, lblIndicator, lblOthers, lblShortcut, lblDefaultFileFormat
 		Dim As ScrollControl pnlGeneral, pnlCodeEditor, pnlDesigner, sccColors
 		Dim As Panel pnlLocalization, pnlThemes, pnlShortcuts, pnlColorsAndFonts, pnlCompiler, pnlMake, pnlDebugger, pnlTerminal, pnlHelp, pnlIncludes, pnlIncludeMFFPath, pnlInterfaceFont, pnlGrid, pnlOtherEditors, pnlLine, pnlLanguage, pnlProjectsPath, pnlSelectShortcut, pnlAutoSaveCharMax, pnlBuildConfigurations, pnlAIAgent, pnlDefaults
-		Dim As HorizontalBox pnlChangeKeywordsCase, pnlChangeIdentifiersCase, pnlTreatTabAsSpaces, pnlTabSize, pnlHistoryLimit, pnlIntellisenseLimit, pnlHistoryFileSavingDays, hbxEditors, hbxCompilers, hbxHelp, hbxTerminal, hbxDebugger, hbxMakeTool, hbxColors, hbxThemeCommands, hbxForeground, hbxBackground, hbxFrame, hbxIndicator, pnlCommands, hbxConfigurations, pnlCodeEditorHoverTime, hbxAIAgent, pnlChangeEndingType, hbxDefaultFileFormat, hbxDefaultNewLineFormat
+		Dim As HorizontalBox hbxEditors, hbxCompilers, hbxHelp, hbxTerminal, hbxDebugger, hbxMakeTool, hbxColors, hbxThemeCommands, hbxForeground, hbxBackground, hbxFrame, hbxIndicator, pnlCommands, hbxConfigurations, hbxAIAgent, hbxIncludePaths, hbxLibraryPaths
+		Dim As Panel pnlChangeKeywordsCase, pnlChangeIdentifiersCase, pnlTreatTabAsSpaces, pnlTabSize, pnlHistoryLimit, pnlIntellisenseLimit, pnlHistoryFileSavingDays, hbxDefaultFileFormat, hbxDefaultNewLineFormat, pnlChangeEndingType, pnlCodeEditorHoverTime
 		Dim As TextBox txtColorForeground, txtColorBackground, txtColorIndicator, txtColorFrame
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath, txtInFolder, txtIntellisenseLimit, txtEnvironmentVariables, txtHistoryCodeDays,  txtFoldsHtml(0), txtFoldsLng, txtAutoSaveCharMax, txtCodeEditorHoverTime
 		Dim As ComboBoxEdit cboLanguage, cboIdentifiersCase, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64, cboDefaultProjectFile, cboDefaultFileFormat, cboDefaultNewLineFormat, cboOpenedFile, cboGDBDebugger32, cboGDBDebugger64, cboConfiguration, cboAIAgent, cboConstructions
@@ -193,7 +194,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Boolean oldDisplayMenuIcons
 		Dim As RadioButton optSaveCurrentFile, optDoNotSave, optSaveAllFiles, optPromptForProjectAndFile, optCreateProjectFile, optOpenLastSession, optDoNotNothing, optPromptToSave, optMainFileFolder, optInFolder
 		Dim As VerticalBox vbxCodeEditor, vbxGeneral, vbxColors
-		Dim As VerticalBox vbxTheme, vbxDefaults
+		Dim As VerticalBox vbxTheme, vbxDefaults, vbxIncludePaths, vbxLibraryPaths
 		Dim As PagePanel pplGeneral
 	End Type
 '#End Region

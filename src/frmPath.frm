@@ -22,6 +22,10 @@
 			.OnShow = @Form_Show_
 			.OnClose = @Form_Close_
 			.OnCreate = @_Form_Create
+			.Margins.Bottom = 10
+			.Margins.Left = 10
+			.Margins.Right = 10
+			.Margins.Top = 10
 			.SetBounds 0, 0, 462, 177
 		End With
 		' cmdCancel
@@ -29,96 +33,107 @@
 			.Name = "cmdCancel"
 			.Text = ML("Cancel")
 			.TabIndex = 10
-			.SetBounds 336, 116, 112, 24
+			.Align = DockStyle.alRight
+			.SetBounds 112, 0, 112, 30
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
-			.Parent = @This
-		End With
-		' txtVersion
-		With txtVersion
-			.Name = "txtVersion"
-			.Text = ""
-			.TabIndex = 4
-			.SetBounds 100, 48, 348, 24
-			.Parent = @This
+			.Parent = @hbxCommands
 		End With
 		' lblVersion
 		With lblVersion
 			.Name = "lblVersion"
 			.Text = ML("Version") & ":"
 			.TabIndex = 3
-			.SetBounds 8, 50, 84, 24
-			.Parent = @This
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 84, 20
+			.Parent = @hbxVersion
+		End With
+		' txtVersion
+		With txtVersion
+			.Name = "txtVersion"
+			.Text = ""
+			.TabIndex = 4
+			.Align = DockStyle.alClient
+			.SetBounds 84, 0, 348, 20
+			.Parent = @hbxVersion
 		End With
 		' lblPath
 		With lblPath
 			.Name = "lblPath"
 			.Text = ML("Path") & ":"
 			.TabIndex = 0
-			.SetBounds 8, 18, 84, 24
-			.Parent = @This
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 84, 20
+			.Parent = @hbxPath
 		End With
 		' txtPath
 		With txtPath
 			.Name = "txtPath"
 			.Text = ""
 			.TabIndex = 1
-			.SetBounds 100, 16, 316, 24
-			.Parent = @This
+			.Align = DockStyle.alClient
+			.SetBounds 84, 0, 316, 20
+			.Parent = @hbxPath
 		End With
 		' cmdPath
 		With cmdPath
 			.Name = "cmdPath"
 			.Text = "..."
 			.TabIndex = 2
-			.SetBounds 416, 16, 32, 24
+			.Align = DockStyle.alRight
+			.SetBounds 400, 0, 32, 20
 			.Caption = "..."
 			.Designer = @This
 			.OnClick = @cmdPath_Click_
-			.Parent = @This
+			.Parent = @hbxPath
 		End With
 		' cmdOK
 		With cmdOK
 			.Name = "cmdOK"
 			.Text = ML("OK")
 			.TabIndex = 9
-			.SetBounds 216, 116, 112, 24
+			.Align = DockStyle.alRight
+			.SetBounds 112, 0, 112, 30
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
-			.Parent = @This
+			.Parent = @hbxCommands
 		End With
 		' lblCommandLine
 		With lblCommandLine
 			.Name = "lblCommandLine"
 			.Text = ML("Command line") & ":"
 			.TabIndex = 5
-			.SetBounds 8, 82, 88, 24
-			.Parent = @This
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 84, 20
+			.Parent = @hbxCommandLine
 		End With
 		' txtCommandLine
 		With txtCommandLine
 			.Name = "txtCommandLine"
 			.TabIndex = 11
-			.SetBounds 100, 80, 128, 24
+			.Align = DockStyle.alClient
+			.SetBounds 84, 0, 156, 20
 			.Text = ""
-			.Parent = @This
+			.Parent = @hbxCommandLine
+		End With
+		' txtExtensions
+		With txtExtensions
+			.Name = "txtExtensions"
+			.TabIndex = 8
+			.Align = DockStyle.alRight
+			.SetBounds 304, 0, 128, 20
+			.Text = ""
+			.Parent = @hbxCommandLine
 		End With
 		' lblExtensions
 		With lblExtensions
 			.Name = "lblExtensions"
 			.Text = ML("Extensions") & ":"
 			.TabIndex = 7
-			.SetBounds 238, 82, 88, 24
+			.Align = DockStyle.alRight
+			.SetBounds 344, 0, 88, 20
 			.Caption = ML("Extensions") & ":"
-			.Parent = @This
-		End With
-		' txtExtensions
-		With txtExtensions
-			.Name = "txtExtensions"
-			.TabIndex = 8
-			.SetBounds 320, 80, 128, 24
-			.Text = ""
-			.Parent = @This
+			.Parent = @hbxCommandLine
 		End With
 		' cboType
 		With cboType
@@ -142,6 +157,66 @@
 			.SetBounds 0, 0, 16, 16
 			.Designer = @This
 			.Parent = @This
+		End With
+		' hbxPath
+		With hbxPath
+			.Name = "hbxPath"
+			.Text = "HorizontalBox1"
+			.AutoSize = True
+			.TabIndex = 12
+			.ControlIndex = 0
+			.Align = DockStyle.alTop
+			.SetBounds 0, 0, 436, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' VerticalBox1
+		With VerticalBox1
+			.Name = "VerticalBox1"
+			.Text = "VerticalBox1"
+			.TabIndex = 16
+			.Align = DockStyle.alClient
+			.SetBounds 10, 10, 436, 128
+			.Designer = @This
+			.Parent = @This
+		End With
+		' hbxVersion
+		With hbxVersion
+			.Name = "hbxVersion"
+			.Text = "HorizontalBox1"
+			.AutoSize = True
+			.TabIndex = 21
+			.ControlIndex = 1
+			.ExtraMargins.Top = 10
+			.Align = DockStyle.alTop
+			.SetBounds 0, 10, 436, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' hbxCommandLine
+		With hbxCommandLine
+			.Name = "hbxCommandLine"
+			.Text = "HorizontalBox1"
+			.AutoSize = True
+			.TabIndex = 18
+			.ControlIndex = 2
+			.ExtraMargins.Top = 10
+			.Align = DockStyle.alTop
+			.SetBounds 0, 60, 436, 20
+			.Designer = @This
+			.Parent = @VerticalBox1
+		End With
+		' hbxCommands
+		With hbxCommands
+			.Name = "hbxCommands"
+			.Text = "HorizontalBox1"
+			.AutoSize = True
+			.TabIndex = 16
+			.ControlIndex = 3
+			.Align = DockStyle.alBottom
+			.SetBounds 0, 98, 436, 30
+			.Designer = @This
+			.Parent = @VerticalBox1
 		End With
 	End Constructor
 	

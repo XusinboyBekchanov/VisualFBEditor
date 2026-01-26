@@ -38,7 +38,7 @@ pfOptions = @fOptions
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
 		This.BorderStyle = FormBorderStyle.FixedDialog
-		' pplGeneral
+		' pplGeneralr
 		pplGeneral.Name = "pplGeneral"
 		pplGeneral.Text = ""
 		pplGeneral.Align = DockStyle.alClient
@@ -737,6 +737,7 @@ pfOptions = @fOptions
 			.Text = ""
 			.Align = DockStyle.alTop
 			.TabIndex = 106
+			.AutoSize = true
 			.SetBounds 15, 23, 387, 16
 			.Parent = @grbIncludePaths
 		End With
@@ -744,27 +745,28 @@ pfOptions = @fOptions
 		With chkIncludeMFFPath
 			.Name = "chkIncludeMFFPath"
 			.Text = ML("Include MFF Path") & ":"
-			.Align = DockStyle.alNone
+			.Align = DockStyle.alLeft
 			.TabIndex = 107
-			.SetBounds 0, -2, 152, 18
+			.SetBounds 0, 0, 132, 16
 			.Parent = @pnlIncludeMFFPath
 		End With
 		' txtMFFpath
 		txtMFFpath.Name = "txtMFFpath"
-		txtMFFpath.Align = DockStyle.alTop
-		txtMFFpath.ExtraMargins.Left = 150
-		txtMFFpath.ExtraMargins.Right = 24
-		txtMFFpath.ExtraMargins.Top = -18
+		txtMFFpath.Align = DockStyle.alClient
+		txtMFFpath.ExtraMargins.Left = 0
+		txtMFFpath.ExtraMargins.Right = 0
+		txtMFFpath.ExtraMargins.Top = 0
 		txtMFFpath.TabIndex = 108
-		txtMFFpath.SetBounds 165, 21, 213, 20
-		txtMFFpath.Parent = @grbIncludePaths
+		txtMFFpath.SetBounds 282, -18, 57, 34
+		txtMFFpath.Parent = @pnlIncludeMFFPath
 		' cmdMFFPath
 		cmdMFFPath.Name = "cmdMFFPath"
 		cmdMFFPath.Text = "..."
 		cmdMFFPath.TabIndex = 109
-		cmdMFFPath.SetBounds 377, 20, 24, 22
+		cmdMFFPath.Align = DockStyle.alRight
+		cmdMFFPath.SetBounds 363, 0, 24, 16
 		cmdMFFPath.OnClick = @cmdMFFPath_Click
-		cmdMFFPath.Parent = @grbIncludePaths
+		cmdMFFPath.Parent = @pnlIncludeMFFPath
 		' vbxCodeEditor
 		With vbxCodeEditor
 			.Name = "vbxCodeEditor"
@@ -981,6 +983,7 @@ pfOptions = @fOptions
 		With pnlChangeIdentifiersCase
 			.Name = "pnlChangeIdentifiersCase"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 206
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -1082,19 +1085,20 @@ pfOptions = @fOptions
 		lstIncludePaths.Name = "lstIncludePaths"
 		lstIncludePaths.Text = "ListControl1"
 		lstIncludePaths.Align = DockStyle.alClient
-		lstIncludePaths.ExtraMargins.Right = 25
+		lstIncludePaths.ExtraMargins.Right = 0
 		lstIncludePaths.TabIndex = 122
-		lstIncludePaths.SetBounds 15, 68, 362, 121
-		lstIncludePaths.Parent = @grbIncludePaths
+		lstIncludePaths.ControlIndex = 0
+		lstIncludePaths.SetBounds 0, 0, 342, 121
+		lstIncludePaths.Parent = @hbxIncludePaths
 		' lstLibraryPaths
 		lstLibraryPaths.Name = "lstLibraryPaths"
 		lstLibraryPaths.Text = "ListControl11"
 		lstLibraryPaths.Align = DockStyle.alClient
-		lstLibraryPaths.ExtraMargins.Right = 25
-		lstLibraryPaths.ExtraMargins.Top = 2
+		lstLibraryPaths.ExtraMargins.Right = 0
+		lstLibraryPaths.ExtraMargins.Top = 0
 		lstLibraryPaths.TabIndex = 123
-		lstLibraryPaths.SetBounds 15, 22, 362, 134
-		lstLibraryPaths.Parent = @grbLibraryPaths
+		lstLibraryPaths.SetBounds 0, 2, 314, 134
+		lstLibraryPaths.Parent = @hbxLibraryPaths
 		' lblOthers
 		lblOthers.Name = "lblOthers"
 		lblOthers.Text = ML("Others") & ":"
@@ -1108,30 +1112,34 @@ pfOptions = @fOptions
 		cmdAddInclude.Name = "cmdAddInclude"
 		cmdAddInclude.Text = "+"
 		cmdAddInclude.TabIndex = 125
-		cmdAddInclude.SetBounds 376, 67, 24, 22
+		cmdAddInclude.ControlIndex = 0
+		cmdAddInclude.SetBounds 0, 0, 20, 22
 		cmdAddInclude.OnClick = @cmdAddInclude_Click
-		cmdAddInclude.Parent = @grbIncludePaths
+		cmdAddInclude.Parent = @vbxIncludePaths
 		' cmdRemoveInclude
 		cmdRemoveInclude.Name = "cmdRemoveInclude"
 		cmdRemoveInclude.Text = "-"
 		cmdRemoveInclude.TabIndex = 126
-		cmdRemoveInclude.SetBounds 376, 88, 24, 22
+		cmdRemoveInclude.ControlIndex = 1
+		cmdRemoveInclude.SetBounds 0, 22, 20, 22
 		cmdRemoveInclude.OnClick = @cmdRemoveInclude_Click
-		cmdRemoveInclude.Parent = @grbIncludePaths
+		cmdRemoveInclude.Parent = @vbxIncludePaths
 		' cmdAddLibrary
 		cmdAddLibrary.Name = "cmdAddLibrary"
 		cmdAddLibrary.Text = "+"
 		cmdAddLibrary.TabIndex = 127
-		cmdAddLibrary.SetBounds 376, 21, 24, 22
+		cmdAddLibrary.ControlIndex = 0
+		cmdAddLibrary.SetBounds 0, 0, 24, 22
 		cmdAddLibrary.OnClick = @cmdAddLibrary_Click
-		cmdAddLibrary.Parent = @grbLibraryPaths
+		cmdAddLibrary.Parent = @vbxLibraryPaths
 		' cmdRemoveLibrary
 		cmdRemoveLibrary.Name = "cmdRemoveLibrary"
 		cmdRemoveLibrary.Text = "-"
 		cmdRemoveLibrary.TabIndex = 128
-		cmdRemoveLibrary.SetBounds 376, 42, 24, 22
+		cmdRemoveLibrary.ControlIndex = 1
+		cmdRemoveLibrary.SetBounds 0, 22, 24, 22
 		cmdRemoveLibrary.OnClick = @cmdRemoveLibrary_Click
-		cmdRemoveLibrary.Parent = @grbLibraryPaths
+		cmdRemoveLibrary.Parent = @vbxLibraryPaths
 		' lblHistoryLimit
 		lblHistoryLimit.Name = "lblHistoryLimit"
 		lblHistoryLimit.Text = ML("History limit") & ":"
@@ -2246,23 +2254,49 @@ pfOptions = @fOptions
 			.SetBounds 222, 41, 175, 21
 			.Parent = @grbWhenVFBEStarts
 		End With
+		' lblDefaultFileFormat
+		With lblDefaultFileFormat
+			.Name = "lblDefaultFileFormat"
+			.Text = ML("File format") & ":"
+			.TabIndex = 276
+			.Parent = @hbxDefaultFileFormat
+			.ControlIndex = 0
+			.ID = 13557
+			.Align = DockStyle.alLeft
+			.Caption = ML("File format") & ":"
+			.SetBounds 0, 0, 130, 21
+			.Designer = @This
+			.Parent = @hbxDefaultFileFormat
+		End With
 		' cboDefaultFileFormat
 		With cboDefaultFileFormat
 			.Name = "cboDefaultFileFormat"
 			.Text = "cboDefaultFileFormat"
 			.TabIndex = 175
 			.Align = DockStyle.alClient
-			.SetBounds 50, 0, 217, 21
+			.SetBounds 100, 0, 287, 21
 			.Parent = @hbxDefaultFileFormat
 		End With
-		' cboDefaultFileFormat
+		' lblDefaultNewLineFormat
+		With lblDefaultNewLineFormat
+			.Name = "lblDefaultNewLineFormat"
+			.Text = ML("New line format") & ":"
+			.TabIndex = 277
+			.Caption = ML("New line format") & ":"
+			.ControlIndex = 0
+			.Align = DockStyle.alLeft
+			.SetBounds 0, 0, 130, 21
+			.Designer = @This
+			.Parent = @hbxDefaultNewLineFormat
+		End With
+		' cboDefaultNewLineFormat
 		With cboDefaultNewLineFormat
 			.Name = "cboDefaultNewLineFormat"
 			.Text = "cboDefaultNewLineFormat"
 			.TabIndex = 175
-			.ControlIndex = 0
+			.ControlIndex = 1
 			.Align = DockStyle.alClient
-			.SetBounds 70, 0, 217, 21
+			.SetBounds 100, 0, 287, 21
 			.Parent = @hbxDefaultNewLineFormat
 		End With
 		' cmdFindCompilers
@@ -2621,6 +2655,7 @@ pfOptions = @fOptions
 		With pnlChangeEndingType
 			.Name = "pnlChangeEndingType"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 266
 			.Align = DockStyle.alTop
 			.ControlIndex = 17
@@ -2632,6 +2667,7 @@ pfOptions = @fOptions
 		With pnlTreatTabAsSpaces
 			.Name = "pnlTreatTabAsSpaces"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 207
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -2643,6 +2679,7 @@ pfOptions = @fOptions
 		With pnlTabSize
 			.Name = "pnlTabSize"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 208
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -2654,6 +2691,7 @@ pfOptions = @fOptions
 		With pnlHistoryLimit
 			.Name = "pnlHistoryLimit"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 211
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -2665,6 +2703,7 @@ pfOptions = @fOptions
 		With pnlIntellisenseLimit
 			.Name = "pnlIntellisenseLimit"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 215
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -2676,6 +2715,7 @@ pfOptions = @fOptions
 		With pnlHistoryFileSavingDays
 			.Name = "pnlHistoryFileSavingDays"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 218
 			.Align = DockStyle.alTop
 			.AutoSize = True
@@ -2830,6 +2870,7 @@ pfOptions = @fOptions
 			.Text = "Panel1"
 			.TabIndex = 230
 			.Align = DockStyle.alTop
+			.AutoSize = True
 			.ControlIndex = 18
 			.SetBounds 0, 337, 420, 20
 			.Designer = @This
@@ -2987,6 +3028,7 @@ pfOptions = @fOptions
 		With pnlCodeEditorHoverTime
 			.Name = "pnlCodeEditorHoverTime"
 			.Text = "Panel1"
+			.AutoSize = True
 			.TabIndex = 254
 			.Align = DockStyle.alTop
 			.ControlIndex = 18
@@ -3119,6 +3161,7 @@ pfOptions = @fOptions
 		With hbxDefaultFileFormat
 			.Name = "hbxDefaultFileFormat"
 			.Text = "HorizontalBox1"
+			.AutoSize = True
 			.TabIndex = 276
 			.Align = DockStyle.alTop
 			.ControlIndex = 2
@@ -3130,6 +3173,7 @@ pfOptions = @fOptions
 		With hbxDefaultNewLineFormat
 			.Name = "hbxDefaultNewLineFormat"
 			.Text = "HorizontalBox1"
+			.AutoSize = True
 			.TabIndex = 278
 			.Align = DockStyle.alTop
 			.ControlIndex = 3
@@ -3137,27 +3181,55 @@ pfOptions = @fOptions
 			.Designer = @This
 			.Parent = @vbxDefaults
 		End With
-		' lblDefaultFileFormat
-		With lblDefaultFileFormat
-			.Name = "lblDefaultFileFormat"
-			.Text = ML("File format") & ":"
-			.TabIndex = 276
-			.Parent = @hbxDefaultFileFormat
+		' vbxIncludePaths
+		With vbxIncludePaths
+			.Name = "vbxIncludePaths"
+			.Text = "VerticalBox1"
+			.TabIndex = 281
 			.ControlIndex = 1
-			.ID = 13557
-			.Align = DockStyle.alLeft
-			.Caption = ML("File format") & ":"
-			.SetBounds 0, 0, 100, 21
+			.Align = DockStyle.alRight
+			.SetBounds 367, 0, 24, 44
 			.Designer = @This
-			.Parent = @hbxDefaultFileFormat
+			.Parent = @hbxIncludePaths
 		End With
-		' lblDefaultNewLineFormat
-		With lblDefaultNewLineFormat
-			.Name = "lblDefaultNewLineFormat"
-			.Text = ML("New line format") & ":"
-			.TabIndex = 277
-			.Caption = ML("New line format") & ":"
-			.SetBounds 0, 0, 100, 21
+		' hbxIncludePaths
+		With hbxIncludePaths
+			.Name = "hbxIncludePaths"
+			.Text = "HorizontalBox1"
+			.TabIndex = 286
+			.Align = DockStyle.alClient
+			.SetBounds 15, 66, 387, 121
+			.Designer = @This
+			.Parent = @grbIncludePaths
+		End With
+		' vbxLibraryPaths
+		With vbxLibraryPaths
+			.Name = "vbxLibraryPaths"
+			.Text = "VerticalBox1"
+			.TabIndex = 283
+			.ControlIndex = 1
+			.Align = DockStyle.alRight
+			.SetBounds 25, 0, 24, 44
+			.Designer = @This
+			.Parent = @hbxLibraryPaths
+		End With
+		' hbxLibraryPaths
+		With hbxLibraryPaths
+			.Name = "hbxLibraryPaths"
+			.Text = "HorizontalBox1"
+			.TabIndex = 286
+			.Align = DockStyle.alClient
+			.SetBounds 15, 20, 383, 136
+			.Designer = @This
+			.Parent = @grbLibraryPaths
+		End With
+		' cboDefaultNewLineFormat
+		With cboDefaultNewLineFormat
+			.Name = "cboDefaultNewLineFormat"
+			.Text = "cboDefaultNewLineFormat"
+			.TabIndex = 175
+			.ControlIndex = 1
+			.SetBounds 100, 0, 287, 21
 			.Designer = @This
 			.Parent = @hbxDefaultNewLineFormat
 		End With
