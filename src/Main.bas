@@ -86,7 +86,7 @@ pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
 Dim Shared As ComboBoxEdit cboBuildConfiguration, cboAIAgentModels
-Dim Shared As IniFile iniSettings, iniTheme
+Dim Shared As IniFile iniSettings, iniTheme, iniInterfaceTheme
 Dim Shared As SearchBox txtExplorer, txtForm, txtProperties, txtEvents
 Dim Shared As ToolBar tbStandard, tbEdit, tbBuild, tbDebug, tbRun, tbProject, tbExplorer, tbForm, tbAIAgent, tbProperties, tbEvents, tbBottom, tbLeft, tbRight, tbFormat
 Dim Shared As StatusBar stBar
@@ -6459,6 +6459,13 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Next i
 End Sub
 
+Sub LoadInterfaceTheme
+	iniInterfaceTheme.Load ExePath & "/Settings/Themes/Interface/Dark.ini"
+	darkBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackground", darkBkColor)
+	darkHlBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor)
+	darkTextColor = iniInterfaceTheme.ReadInteger("Colors", "Text", darkTextColor)
+End Sub
+
 Sub LoadTheme
 	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
 	#ifdef __USE_GTK__
@@ -6953,6 +6960,7 @@ Sub LoadSettings
 	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")
 	LoadKeyWords
+	LoadInterfaceTheme
 	LoadTheme
 	#ifdef __USE_WINAPI__
 		LoadD2D1
