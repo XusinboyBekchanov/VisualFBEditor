@@ -6464,6 +6464,10 @@ Sub LoadInterfaceTheme
 	darkBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackground", darkBkColor)
 	darkHlBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor)
 	darkTextColor = iniInterfaceTheme.ReadInteger("Colors", "Text", darkTextColor)
+	DeleteObject(hbrBkgnd)
+	DeleteObject(hbrHlBkgnd)
+	hbrBkgnd = CreateSolidBrush(darkBkColor)
+	hbrHlBkgnd = CreateSolidBrush(darkHlBkColor)
 End Sub
 
 Sub LoadTheme
