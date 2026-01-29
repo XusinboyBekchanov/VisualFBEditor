@@ -11684,7 +11684,9 @@ tbToolBox.ImagesList = @imgListTools
 tbToolBox.HotImagesList = @imgListTools
 tbToolBox.OnButtonActivate = @tbToolBox_ButtonActivate
 
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Help")
 LoadHelp
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Snippets")
 LoadSnippets
 
 Dim As String it = "Cursor"
@@ -11751,6 +11753,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		SetProp(frmMain.Handle, "VisualFBEditorApp", @VisualFBEditorApp)
 	#endif
 	
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox")
 	LoadToolBox
 	
 	pfTemplates->Visible = False: pfTemplates->Parent = @frmMain: pfTemplates->CreateWnd
