@@ -6891,7 +6891,11 @@ Sub LoadSettings
 	#endif
 	LastOpenedFileType = iniSettings.ReadInteger("Options", "LastOpenedFileType", 0)
 	AutoComplete = iniSettings.ReadBool("Options", "AutoComplete", True)
-	AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
+	#ifdef __USE_GTK__
+		AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", False)
+	#else
+		AutoSuggestions = iniSettings.ReadBool("Options", "AutoSuggestions", True)
+	#endif
 	AutoIndentation = iniSettings.ReadBool("Options", "AutoIndentation", True)
 	ShowSpaces = iniSettings.ReadBool("Options", "ShowSpaces", True)
 	ShowKeywordsToolTip = iniSettings.ReadBool("Options", "ShowKeywordsTooltip", True)
