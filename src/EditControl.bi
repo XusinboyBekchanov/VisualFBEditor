@@ -67,6 +67,7 @@ Common Shared As ECColorScheme Bookmarks, Breakpoints, Comments, CurrentBrackets
 Common Shared As ECColorScheme ColorOperators, ColorProperties, ColorComps, ColorGlobalNamespaces, ColorGlobalTypes, ColorGlobalEnums, ColorEnumMembers, ColorConstants, ColorGlobalFunctions, ColorLineLabels, ColorLocalVariables, ColorSharedVariables, ColorCommonVariables, ColorByRefParameters, ColorByValParameters, ColorFields, ColorDefines, ColorMacros, ColorSubs
 Common Shared As Integer EditorFontSize
 Common Shared As WString Ptr EditorFontName
+Common Shared As WString Ptr CurrentInterfaceTheme
 Common Shared As WString Ptr CurrentTheme
 
 Enum
