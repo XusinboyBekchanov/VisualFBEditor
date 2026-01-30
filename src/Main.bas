@@ -5424,7 +5424,7 @@ End Sub
 
 Sub LoadSnippets
 	Dim As UString f
-	f = Dir("./Settings/Snippets/*.ini")
+	f = Dir(ExePath & "/Settings/Snippets/*.ini")
 	While f <> ""
 		Dim As Integer i, Pos1, Pos2, Pos3
 		Dim As Integer Fn = FreeFile_, Result
@@ -11689,6 +11689,7 @@ LoadHelp
 pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Snippets")
 LoadSnippets
 
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox")
 Dim As String it = "Cursor"
 tbToolBox.Groups.Add ML("Controls")
 tbToolBox.Groups.Add ML("Containers")
@@ -12238,6 +12239,7 @@ Sub ToolBar_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Mo
 	Sender.ContextMenu = miToolBars->SubMenu
 End Sub
 
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Command bars")
 tbStandard.OnMouseUp = @ToolBar_MouseUp
 tbEdit.OnMouseUp = @ToolBar_MouseUp
 tbProject.OnMouseUp = @ToolBar_MouseUp
@@ -12299,6 +12301,7 @@ frmMain.Add @MainReBar
 '	tbStandard.Align = DockStyle.alTop
 '	frmMain.Add @tbStandard
 '#endif
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Main Form")
 frmMain.Add @stBar
 'frmMain.Add @rbBottom
 frmMain.Add @pnlLeft
