@@ -10937,7 +10937,8 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 			If tn <> 0 Then Exit For
 		Next i
 		If tn = 0 Then
-			tn = ptvExplorer->Nodes.Add(This.Caption, , , "File", "File")
+			Dim As String IconName = GetIconName(FileName)
+			tn = ptvExplorer->Nodes.Add(This.Caption, , , IconName, IconName)
 		End If
 	End If
 	ptn = GetParentNode(tn)

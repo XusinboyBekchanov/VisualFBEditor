@@ -2271,7 +2271,7 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 						tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 						If tb AndAlso tb->tn = tn1 Then
 							If tb->Modified Then
-								If (Not tb->Save) AndAlso CBool(tb->FileName = "" OrElse tb->FileName = ML("Untitled")) Then
+								If (Not tb->Save) AndAlso Not FileExists(tb->FileName) Then
 									Continue For
 								End If
 							End If
@@ -2299,6 +2299,9 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 			For i As Integer = 0 To ptabCode->TabCount - 1
 				tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 				If tb Then
+					If Not FileExists(tb->FileName) Then
+						Continue For
+					End If
 					Zv = IIf(tb->IsSelected, "*", "")
 					If StartsWith(tb->FileName & Slash, GetFolderName(SaveD.FileName)) Then
 						Print #Fn, Zv & "File=" & Replace(Mid(tb->FileName, Len(GetFolderName(SaveD.FileName)) + 1), "\", "/")
@@ -2959,6 +2962,16 @@ Sub RemoveFileFromProject
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 			If tb->ptn = ptn Then
+				If Not CloseTab(tb) Then Exit Sub
+				Exit For
+			End If
+		Next i
+	Next j
+	For j As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb->tn = tn Then
 				If Not CloseTab(tb) Then Exit Sub
 				Exit For
 			End If
@@ -8631,6 +8644,9 @@ Sub tvExplorer_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As T
 				End If
 			End If
 			WLet(ee->FileName, bFileName)
+			If tb Then
+				tb->FileName = bFileName
+			End If
 		End If
 		If tb Then
 			bModified = EndsWith(tb->Caption, "*")
