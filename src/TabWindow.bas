@@ -8954,7 +8954,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	End If
 	IncludesCount = 0
 	OldECStatement = 0
-	bSearchToDo = True
+	bSearchToDo = False
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If (Not bFind) AndAlso (NotForms = False) AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1

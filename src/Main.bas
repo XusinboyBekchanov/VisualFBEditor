@@ -11890,16 +11890,16 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
-	'Select Case WhenVisualFBEditorStarts
-	'Case 3:
-	'	Select Case LastOpenedFileType
-	'	Case 0: OpenFiles GetFullPath(*RecentFiles)
-	'	Case 1: OpenFiles GetFullPath(*RecentSession)
-	'	Case 2: OpenFiles GetFullPath(*RecentFolder)
-	'	Case 3: OpenFiles GetFullPath(*RecentProject)
-	'	Case 4: OpenFiles GetFullPath(*RecentFile)
-	'	End Select
-	'End Select
+	Select Case WhenVisualFBEditorStarts
+	Case 3:
+		Select Case LastOpenedFileType
+		Case 0: OpenFiles GetFullPath(*RecentFiles)
+		Case 1: OpenFiles GetFullPath(*RecentSession)
+		Case 2: OpenFiles GetFullPath(*RecentFolder)
+		Case 3: OpenFiles GetFullPath(*RecentProject)
+		Case 4: OpenFiles GetFullPath(*RecentFile)
+		End Select
+	End Select
 	'frmMain.RequestAlign
 End Sub
 
@@ -12021,13 +12021,13 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Case 1: If Not bFileOpening Then NewProject 'pfTemplates->ShowModal
 		Case 2: If Not bFileOpening Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
-			Select Case LastOpenedFileType
-			Case 0: OpenFiles GetFullPath(*RecentFiles)
-			Case 1: OpenFiles GetFullPath(*RecentSession)
-			Case 2: OpenFiles GetFullPath(*RecentFolder)
-			Case 3: OpenFiles GetFullPath(*RecentProject)
-			Case 4: OpenFiles GetFullPath(*RecentFile)
-			End Select
+			'Select Case LastOpenedFileType
+			'Case 0: OpenFiles GetFullPath(*RecentFiles)
+			'Case 1: OpenFiles GetFullPath(*RecentSession)
+			'Case 2: OpenFiles GetFullPath(*RecentFolder)
+			'Case 3: OpenFiles GetFullPath(*RecentProject)
+			'Case 4: OpenFiles GetFullPath(*RecentFile)
+			'End Select
 		End Select
 	End If
 	If bFileOpening Then
