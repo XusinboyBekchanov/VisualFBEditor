@@ -8899,6 +8899,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim As IntegerList Ptr LastFileListLines
 	Dim As Integer IncludesCount
 	Dim As Boolean IncludesChanged
+	Dim As Boolean bSearchToDo
 	Dim As WStringList ToDos
 	If SyntaxHighlightingIdentifiers OrElse ChangeIdentifiersCase OrElse AutoSuggestions Then
 		If txtCode.Content.ExternalIncludesLoaded Then
@@ -8953,6 +8954,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	End If
 	IncludesCount = 0
 	OldECStatement = 0
+	bSearchToDo = True
 	For j As Integer = 0 To txtCode.LinesCount - 1
 		If (Not bFind) AndAlso (NotForms = False) AndAlso IsBas AndAlso StartsWith(LTrim(LCase(txtCode.Lines(j)), Any !"\t "), "#include once """ & LCase(*FLine2) & """") Then
 			sFileName = *FLine1
@@ -8979,24 +8981,26 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			iStart = j
 			iEnd = j
 		End If
-		ECLine = txtCode.Content.Lines.Items[j]
-		Pos1 = InStr(LCase(*ECLine->Text), "todo")
-		If Pos1 > 0 Then
-			te = _New(TypeElement)
-			te->Name = "Bookmark"
-			te->StartChar = Pos1
-			te->StartLine = j + 1
-			te->FileName = WGet(FFileName)
-			ToDos.Add *ECLine->Text, te
-		End If
-		Pos1 = InStr(LCase(*ECLine->Text), "fixme")
-		If Pos1 > 0 Then
-			te = _New(TypeElement)
-			te->Name = "Fixme"
-			te->StartChar = Pos1
-			te->StartLine = j + 1
-			te->FileName = WGet(FFileName)
-			ToDos.Add *ECLine->Text, te
+		If bSearchToDo Then
+			ECLine = txtCode.Content.Lines.Items[j]
+			Pos1 = InStr(LCase(*ECLine->Text), "todo")
+			If Pos1 > 0 Then
+				te = _New(TypeElement)
+				te->Name = "Bookmark"
+				te->StartChar = Pos1
+				te->StartLine = j + 1
+				te->FileName = WGet(FFileName)
+				ToDos.Add *ECLine->Text, te
+			End If
+			Pos1 = InStr(LCase(*ECLine->Text), "fixme")
+			If Pos1 > 0 Then
+				te = _New(TypeElement)
+				te->Name = "Fixme"
+				te->StartChar = Pos1
+				te->StartLine = j + 1
+				te->FileName = WGet(FFileName)
+				ToDos.Add *ECLine->Text, te
+			End If
 		End If
 		For i As Integer = iStart To iEnd
 			ECLine = ptxtCode->Content.Lines.Items[i]
@@ -10210,52 +10214,54 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 			Next
 		Next
 	Next
-	Dim As Integer iPos
-	Dim As UString TabWindowFileName = WGet(FFileName)
-	For i As Integer = 0 To ToDos.Count - 1
-		te = ToDos.Object(i)
-		Dim As Boolean bFind
-		For j As Integer = iPos To lvToDo.ListItems.Count - 1
-			Var item = lvToDo.ListItems.Item(j)
-			Dim As UString TabFileName = item->Text(3)
-			If TabFileName <> "" AndAlso TabFileName = TabWindowFileName OrElse item->Tag = @This Then
-				item->ImageKey = te->Name
+	If bSearchToDo Then
+		Dim As Integer iPos
+		Dim As UString TabWindowFileName = WGet(FFileName)
+		For i As Integer = 0 To ToDos.Count - 1
+			te = ToDos.Object(i)
+			Dim As Boolean bFind
+			For j As Integer = iPos To lvToDo.ListItems.Count - 1
+				Var item = lvToDo.ListItems.Item(j)
+				Dim As UString TabFileName = item->Text(3)
+				If TabFileName <> "" AndAlso TabFileName = TabWindowFileName OrElse item->Tag = @This Then
+					item->ImageKey = te->Name
+					item->Text(0) = ToDos.Item(i)
+					item->Text(1) = Str(te->StartLine)
+					item->Text(2) = Str(te->StartChar)
+					iPos = j + 1
+					bFind = True
+					Exit For
+				End If
+			Next j
+			If Not bFind Then
+				Var item = lvToDo.ListItems.Add(ToDos.Item(i), te->Name)
 				item->Text(0) = ToDos.Item(i)
 				item->Text(1) = Str(te->StartLine)
 				item->Text(2) = Str(te->StartChar)
-				iPos = j + 1
-				bFind = True
-				Exit For
+				item->Text(3) = te->FileName
+				item->Tag = @This
+				iPos = lvToDo.ListItems.Count
 			End If
-		Next j
-		If Not bFind Then
-			Var item = lvToDo.ListItems.Add(ToDos.Item(i), te->Name)
-			item->Text(0) = ToDos.Item(i)
-			item->Text(1) = Str(te->StartLine)
-			item->Text(2) = Str(te->StartChar)
-			item->Text(3) = te->FileName
-			item->Tag = @This
-			iPos = lvToDo.ListItems.Count
+		Next i
+		For i As Integer = lvToDo.ListItems.Count - 1 To iPos Step -1
+			Var item = lvToDo.ListItems.Item(i)
+			Dim As UString TabFileName = item->Text(3)
+			If TabFileName <> "" AndAlso TabFileName = TabWindowFileName OrElse item->Tag = @This Then
+				lvToDo.ListItems.Remove i
+			End If
+		Next
+		For i As Integer = ToDos.Count - 1 To 0 Step -1
+			_Delete(Cast(TypeElement Ptr, ToDos.Object(i)))
+		Next
+		Dim FLineNew As WString Ptr
+		If lvToDo.ListItems.Count = 0 Then
+			WLet(FLineNew, ML("ToDo"))
+		Else
+			WLet(FLineNew, ML("ToDo") & " (" & Str(lvToDo.ListItems.Count) & ")")
 		End If
-	Next i
-	For i As Integer = lvToDo.ListItems.Count - 1 To iPos Step -1
-		Var item = lvToDo.ListItems.Item(i)
-		Dim As UString TabFileName = item->Text(3)
-		If TabFileName <> "" AndAlso TabFileName = TabWindowFileName OrElse item->Tag = @This Then
-			lvToDo.ListItems.Remove i
-		End If
-	Next
-	For i As Integer = ToDos.Count - 1 To 0 Step -1
-		_Delete(Cast(TypeElement Ptr, ToDos.Object(i)))
-	Next
-	Dim FLineNew As WString Ptr
-	If lvToDo.ListItems.Count = 0 Then
-		WLet(FLineNew, ML("ToDo"))
-	Else
-		WLet(FLineNew, ML("ToDo") & " (" & Str(lvToDo.ListItems.Count) & ")")
+		If tpToDo->Caption <> *FLineNew Then tpToDo->Caption = *FLineNew
+		WDeAllocate(FLineNew)
 	End If
-	If tpToDo->Caption <> *FLineNew Then tpToDo->Caption = *FLineNew
-	WDeAllocate(FLineNew)
 	If Des <> 0 Then Des->CheckTopMenuVisible False, True
 	If CInt(NotForms = False) AndAlso CInt(Des) AndAlso CInt(Des->DesignControl) Then
 		If Not bSelControlFind Then
