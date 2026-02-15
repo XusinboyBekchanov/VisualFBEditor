@@ -11885,13 +11885,21 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 	mStartLoadSession = False
 	
-	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
-	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_WINAPI__
 		For i As Integer = 0 To 5
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
+	'Select Case WhenVisualFBEditorStarts
+	'Case 3:
+	'	Select Case LastOpenedFileType
+	'	Case 0: OpenFiles GetFullPath(*RecentFiles)
+	'	Case 1: OpenFiles GetFullPath(*RecentSession)
+	'	Case 2: OpenFiles GetFullPath(*RecentFolder)
+	'	Case 3: OpenFiles GetFullPath(*RecentProject)
+	'	Case 4: OpenFiles GetFullPath(*RecentFile)
+	'	End Select
+	'End Select
 	'frmMain.RequestAlign
 End Sub
 
@@ -11983,6 +11991,8 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 End Function
 
 Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
+	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_GTK__
 		tabItemHeight = tabLeft.ItemHeight(0) + 4 + 5
 		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
