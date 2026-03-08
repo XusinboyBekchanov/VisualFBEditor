@@ -700,9 +700,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Project Then
 			For i As Integer = 0 To Project->Components.Count - 1
 				If EndsWith(Project->Components.Item(i), Slash) Then
-					WAdd CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """"
+					WAdd(CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """")
 				Else
-					WAdd CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """"
+					WAdd(CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """")
 				End If
 			Next
 		End If
@@ -711,9 +711,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CtlLibrary = ControlLibraries.Item(i)
 			If CtlLibrary <> 0 AndAlso CtlLibrary->Enabled Then
 				If EndsWith(CtlLibrary->IncludeFolder, Slash) Then
-					WAdd CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """"
+					WAdd(CompileWith, " -i """ & Left(CtlLibrary->IncludeFolder, Len(CtlLibrary->IncludeFolder) - 1) & """")
 				Else
-					WAdd CompileWith, " -i """ & CtlLibrary->IncludeFolder & """"
+					WAdd(CompileWith, " -i """ & CtlLibrary->IncludeFolder & """")
 				End If
 				Dim As UString LibFolder
 				#ifdef __FB_WIN32__
@@ -735,21 +735,21 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				#endif
 				If LibFolder <> "" Then
 					If EndsWith(LibFolder, Slash) Then
-						WAdd CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """"
+						WAdd(CompileWith, " -p """ & Left(LibFolder, Len(LibFolder) - 1) & """")
 					Else
-						WAdd CompileWith, " -p """ & LibFolder & """"
+						WAdd(CompileWith, " -p """ & LibFolder & """")
 					End If
 				End If
 			End If
 		Next
 		
 		For i As Integer = 0 To pIncludePaths->Count - 1
-			WAdd CompileWith, " -i """ & pIncludePaths->Item(i) & """"
+			WAdd(CompileWith, " -i """ & pIncludePaths->Item(i) & """")
 		Next
 		For i As Integer = 0 To pLibraryPaths->Count - 1
-			WAdd CompileWith, " -p """ & pLibraryPaths->Item(i) & """"
+			WAdd(CompileWith, " -p """ & pLibraryPaths->Item(i) & """")
 		Next
-		WAdd CompileWith, " -d _DebugWindow_=" & Str(txtImmediate.Handle)
+		WAdd(CompileWith, " -d _DebugWindow_=" & Str(txtImmediate.Handle))
 		'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
 		WLet(LogFileName2, ExePath & "/Temp/Compile.log")
 		Dim As UString OtherModuleFiles
@@ -776,7 +776,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			WLet(fbcCommand, """" & *MainFileNameOnly & """" & OtherModuleFiles & " " & *CompileWith)
 		End If
 		If Parameter <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
-			If Parameter = "Check" Then WAdd fbcCommand, " -x """ & *ExeName & """"
+			If Parameter = "Check" Then WAdd(fbcCommand, " -x """ & *ExeName & """")
 		End If
 		If CInt(Parameter = "Make") OrElse CInt(CInt(Parameter = "Run" OrElse Parameter = "RunWithDebug") AndAlso CInt(UseMakeOnStartWithCompile) AndAlso CInt(FileExists(GetFolderName(*MainFile) & "/makefile") OrElse FileExists(*ProjectPath & "/makefile"))) Then
 			Dim As String Colon = ""
@@ -9329,7 +9329,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
 							If AIBodyWStringPtr <> 0 Then
-								WAdd AIAssistantsAnswersPtr, *AIBodyWStringPtr
+								WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr)
 								AIPrintAnswer(*AIBodyWStringPtr)
 							End If
 							Exit For
@@ -10819,7 +10819,7 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
 					SplitError(Trim(Buff), ErrFileName, ErrTitle, iLine)
-					WAdd LogText, *ErrTitle & !"\r"
+					WAdd(LogText, *ErrTitle & !"\r")
 				Wend
 			Else
 				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/Compile1.log"
@@ -10835,7 +10835,7 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
 					SplitError(Trim(Buff), ErrFileName, ErrTitle, iLine)
-					WAdd LogText, Trim(Buff) & !"\r"
+					WAdd(LogText, Trim(Buff) & !"\r")
 				Wend
 			Else
 				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/debug_compil2.log"
@@ -10906,7 +10906,7 @@ Sub txtChangeLog_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 		If tb <> 0 Then
 			Dim As WString Ptr sTmp
 			WLet(sTmp, " {" & Replace(tb->Caption, "*", ""))
-			WAdd sTmp, "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption,ML("Row"),""))) & "}"
+			WAdd(sTmp, "|" & tb->cboFunction.Text & " Ln" & Val(Trim(Replace(pstBar->Panels[1]->Caption, ML("Row"), ""))) & "}")
 			txtChangeLog.SelText = *sTmp
 			WDeAllocate(sTmp)
 			mChangeLogEdited = True

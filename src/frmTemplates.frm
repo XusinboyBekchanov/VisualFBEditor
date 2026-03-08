@@ -240,12 +240,13 @@
 		' cmdAdd
 		With cmdAdd
 			.Name = "cmdAdd"
-			.Text = ML("&Add")
+			.Text = ML("Add")
 			.TabIndex = 11
 			.Align = DockStyle.alLeft
 			.ExtraMargins.Right = 10
 			.ExtraMargins.Bottom = 10
-			.SetBounds 2, 0, 88, 20
+			.Caption = ML("Add")
+			.SetBounds 0, 0, 88, 20
 			.Designer = @This
 			.OnClick = @cmdAdd_Click_
 			.Parent = @pnlRecent

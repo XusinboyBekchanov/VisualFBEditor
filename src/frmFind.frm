@@ -552,8 +552,8 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 									Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
 									For i As Integer =0 To NumS-1
 										If InStr(*BuffOut, Chr(13,10) & *SubStr(i))<=0 Then
-											WAdd BuffOut, Chr(13,10) & *SubStr(i)
-											If InStr(*SubStr(i), "&")>0 Then WAdd BuffOut, Chr(13,10) & Replace(*SubStr(i),"&","")
+											WAdd(BuffOut, Chr(13, 10) & *SubStr(i))
+											If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, Chr(13, 10) & Replace(*SubStr(i), "&", ""))
 										End If
 										_Deallocate(SubStr(i)): SubStr(i) = 0
 									Next
@@ -562,14 +562,14 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 									If *BuffOut="" Then
 										WLet(BuffOut, Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
 									Else
-										WAdd BuffOut, Chr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
+										WAdd(BuffOut, Chr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
 									End If
 								End If
 							ElseIf LCase(tSearch) <> LCase(tReplace) Then
 								If *BuffOut="" Then
 									WLet(BuffOut, Buff)
 								Else
-									WAdd BuffOut, Chr(13,10) & Buff
+									WAdd(BuffOut, Chr(13,10) & Buff)
 								End If
 							End If
 							While Pos1 > 0

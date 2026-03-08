@@ -1791,12 +1791,12 @@ Namespace My.Sys.Forms
 		FText = ""
 		For i As Integer = 0 To Content.Lines.Count - 1
 			If i <> Content.Lines.Count - 1 Then
-				WAdd FText.vptr, Lines(i) + Chr(13) + Chr(10)
+				WAdd(FText.m_Data, Lines(i) + Chr(13) + Chr(10))
 			Else
-				WAdd FText.vptr, Lines(i)
+				WAdd(FText.m_Data, Lines(i))
 			End If
 		Next i
-		Return *FText.vptr
+		Return *FText.m_Data
 	End Property
 	
 	Property EditControl.Text(ByRef Value As WString)
@@ -1807,7 +1807,7 @@ Namespace My.Sys.Forms
 		Content.Lines.Clear
 		Dim j As Integer
 		For i As Integer = 0 To Len(Value)
-			WAdd FText.vptr, WChr(Value[i])
+			WAdd(FText.m_Data, WChr(Value[i]))
 			If Value[i] = 10 Or Value[i] = 0 Then
 				InsertLine(j, Trim(Mid(*FText.vptr, 1, Len(*FText.vptr) - 1), Any WChr(13)))
 				j = j + 1
@@ -1850,9 +1850,9 @@ Namespace My.Sys.Forms
 			ElseIf i = iSelStartLine Then
 				WLet(FLine, Mid(Lines(i), iSelStartChar + 1))
 			ElseIf i = iSelEndLine Then
-				WAdd FLine, Chr(13) & Chr(10) & .Left(Lines(i), iSelEndChar)
+				WAdd(FLine, Chr(13) & Chr(10) & .Left(Lines(i), iSelEndChar))
 			Else
-				WAdd FLine, Chr(13) & Chr(10) & Lines(i)
+				WAdd(FLine, Chr(13) & Chr(10) & Lines(i))
 			End If
 		Next i
 		Return *FLine
@@ -1998,7 +1998,7 @@ Namespace My.Sys.Forms
 						NewLineStr = Chr(10)
 					End If
 					Do While j <= jCount
-						WAdd FText, WChr((*wsFileContents)[j])
+						WAdd(FText, WChr((*wsFileContents)[j]))
 						If (*wsFileContents)[j] = 13 OrElse (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
 							FECLine = _New(EditControlLine)
 							OlddwClientX = 0
@@ -2441,7 +2441,7 @@ Namespace My.Sys.Forms
 					Split(*FECLine->Text, """", LineQuotes())
 					WLet(FLine, "")
 					For k As Integer = 0 To UBound(LineQuotes) Step 2
-						WAdd FLine, *LineQuotes(k)
+						WAdd(FLine, *LineQuotes(k))
 						_Deallocate(LineQuotes(k))
 					Next
 					Erase LineQuotes
@@ -7795,9 +7795,9 @@ Namespace My.Sys.Forms
 					End If
 				End If
 				If CInt(TabAsSpaces AndAlso ChoosedTabStyle = 0) OrElse CInt(k = 0) Then
-					WAdd FLineSpace, WSpace(k)
+					WAdd(FLineSpace, WSpace(k))
 				Else
-					WAdd FLineSpace, !"\t"
+					WAdd(FLineSpace, !"\t")
 				End If
 				ModifiedLine = True
 				ChangeText *FLineLeft & WChr(13) & *FLineSpace & *FLineRight, p, "Enter bosildi", Min(FSelStartLine, FSelEndLine) + 1, d + k

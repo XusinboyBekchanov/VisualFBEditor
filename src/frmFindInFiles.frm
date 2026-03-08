@@ -428,8 +428,8 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 							Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
 							For i As Integer =0 To NumS-1
 								If InStr(*BuffOut, WChr(13,10) & *SubStr(i))<=0 Then
-									WAdd BuffOut, WChr(13,10) & *SubStr(i)
-									If InStr(*SubStr(i), "&")>0 Then WAdd BuffOut, WChr(13,10) & Replace(*SubStr(i),"&","")
+									WAdd(BuffOut, WChr(13, 10) & *SubStr(i))
+									If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, WChr(13, 10) & Replace(*SubStr(i), "&", ""))
 								End If
 							Next
 							#ifndef __USE_MAKE__
@@ -439,14 +439,14 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 							If *BuffOut="" Then
 								WLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
 							Else
-								WAdd BuffOut, WChr(13,10) & Replace(Buff, tSearch, tReplace,,, chkMatchCase.Checked)
+								WAdd(BuffOut, WChr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
 							End If
 						End If
 					ElseIf LCase(tSearch) <> LCase(tReplace) Then
 						If *BuffOut="" Then
 							WLet(BuffOut, Buff)
 						Else
-							WAdd BuffOut, WChr(13,10) & Buff
+							WAdd(BuffOut, WChr(13,10) & Buff)
 						End If
 					End If
 					While Pos1 > 0
