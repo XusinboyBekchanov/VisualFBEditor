@@ -5204,7 +5204,7 @@ Sub LoadHelp
 				If bStart Then
 					If te <> 0 Then
 						If bDescriptionEnd = False Then  ' the last one not add ending
-							te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
+							te->Comment &= " " & " <a href=""" & *KeywordsHelpPath & "|" & Str(LineNumber) & "|" & MLMoreDetails & "|" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 							bDescriptionEnd = True
 						End If
 						If te->Name = "Print" Then
@@ -5252,7 +5252,7 @@ Sub LoadHelp
 					pFunctions->Add te->Name, te
 					bStartEnd = False
 					bDescriptionEnd = False
-					te->Comment = "<a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & IIf(Pos2 = 0, Trim(Buff), Left(Trim(Buff), Pos2)) & !"</a>\r   " & IIf(Pos2 = 0, "", LTrim(Mid(Trim(Buff), Pos2)))
+					te->Comment = "<a href=""" & *KeywordsHelpPath & "|" & Str(LineNumber) & "|" & MLMoreDetails & "|" & StartBuff & """>" & IIf(Pos2 = 0, Trim(Buff), Left(Trim(Buff), Pos2)) & !"</a>\r   " & IIf(Pos2 = 0, "", LTrim(Mid(Trim(Buff), Pos2)))
 					'DebugPrint  "te->Name " & te->Name, , False, False
 					'Print te->Name
 				ElseIf Parag = parStart Then
@@ -5310,7 +5310,7 @@ Sub LoadHelp
 						If Pos1 = InStr(Buff, "...") Then Pos1 = InStr(Pos1 + 3, Buff, MLDot)
 						'If Pos1 < 100 Then Pos1 = 100
 						If Pos1 > 0 Then
-							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
+							Buff = Left(Buff, Pos1) & " <a href=""" & *KeywordsHelpPath & "|" & Str(LineNumber) & "|" & MLMoreDetails & "|" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 							bDescriptionEnd = True
 						End If
 						If Buff <> "" AndAlso te <> 0 Then
@@ -5329,7 +5329,7 @@ Sub LoadHelp
 				ElseIf Parag = parSeeAlso Then
 					If te <> 0 AndAlso EndsWith(te->Parameters, !"\r") Then te->Parameters = Left(te->Parameters, Len(te->Parameters) - 1)
 					If bDescriptionEnd = False Then
-						te->Comment &= " <a href=""" & *KeywordsHelpPath & "~" & Str(LineNumber) & "~" & MLMoreDetails & "~" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
+						te->Comment &= " <a href=""" & *KeywordsHelpPath & "|" & Str(LineNumber) & "|" & MLMoreDetails & "|" & StartBuff & """>" & MLMoreDetails & !"</a>\r"
 						bDescriptionEnd = True
 					End If
 				End If
@@ -5386,7 +5386,7 @@ Sub LoadHelp
 					te->DisplayName = Trim(res(i))
 					te->ElementType = E_Keyword
 					te->FileName = *AsmKeywordsHelpPath
-					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "~" & Str(LineNumber - 1) & "~" & te->Name & "~" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
+					te->Comment = "<a href=""" & *AsmKeywordsHelpPath & "|" & Str(LineNumber - 1) & "|" & te->Name & "|" & te->Name & """>" & te->Name & !"</a>\r   " & Mid(Buff, Pos1 + 3) & !"\r"
 					pFunctions->Add te->Name, te
 					Commands.Add te
 				Next
