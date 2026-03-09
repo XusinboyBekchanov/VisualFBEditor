@@ -662,17 +662,16 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End If
 		Next
 		ChDir(GetFolderName(*MainFile))
-		If Parameter = "Check" Then
-			WLet(ExeName, "chk.dll")
-		End If
-		If Dir(*ExeName) <> "" Then 'delete exe if exist
-			If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
-				ThreadsEnter()
-				ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
-				ThreadsLeave()
-				Band = True
-				CompileResult = 0
-				Continue For
+		If Parameter <> "Check" Then
+			If Dir(*ExeName) <> "" Then 'delete exe if exist
+				If *ExeName = ExePath OrElse Kill(*ExeName) <> 0 Then
+					ThreadsEnter()
+					ShowMessages(Str(Time) & ": " &  ML("Cannot compile - the program is now running") & " " & *ExeName) '
+					ThreadsLeave()
+					Band = True
+					CompileResult = 0
+					Continue For
+				End If
 			End If
 		End If
 		Dim As Integer Idx
@@ -690,6 +689,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If CompilerTool <> 0 Then
 			WLet(CompileWith, CompilerTool->GetCommand(, True))
 		End If
+		If Parameter = "Check" Then WAdd(CompileWith, " -c")
 		WAdd(CompileWith, " " & *FirstLine)
 		WLet(MainFileNameOnly, GetFileName(*MainFile))
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
@@ -879,11 +879,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		#else
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		#endif
-		If Parameter <> "Check" Then
+		'If Parameter <> "Check" Then
 			ThreadsEnter()
 			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
 			ThreadsLeave()
-		End If
+		'End If
 		Dim As Dictionary CompileCommands
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
