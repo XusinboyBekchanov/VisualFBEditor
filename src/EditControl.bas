@@ -5036,6 +5036,29 @@ Namespace My.Sys.Forms
 																End If
 															End If
 															
+															If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
+																tIndex = Content.IndexOfInListFiles(pGlobalArgs, MatnLCase, pFiles, pFileLines)
+																If tIndex <> -1 Then
+																	te = pGlobalArgs->Object(tIndex)
+																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
+																	pkeywords = pGlobalArgs
+																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
+																		Select Case te->ElementType
+																		Case E_EnumItem
+																			sc = @ColorEnumMembers
+																		Case E_CommonVariable
+																			sc = @ColorCommonVariables
+																		Case E_Constant
+																			sc = @ColorConstants
+																		Case E_SharedVariable
+																			sc = @ColorSharedVariables
+																		Case Else
+																			sc = @ColorLocalVariables
+																		End Select
+																	End If
+																End If
+															End If
+															
 															If Not bInAsm Then
 																If tIndex = -1 Then
 																	tIndex = Content.Procedures.IndexOf(MatnLCase)
@@ -5142,29 +5165,6 @@ Namespace My.Sys.Forms
 																		If SyntaxHighlightingIdentifiers Then sc = @ColorGlobalEnums
 																		OriginalCaseWord = pGlobalEnums->Item(tIndex)
 																		pkeywords = pGlobalEnums
-																	End If
-																End If
-															End If
-															
-															If tIndex = -1 AndAlso OldMatnLCase <> "as" Then
-																tIndex = Content.IndexOfInListFiles(pGlobalArgs, MatnLCase, pFiles, pFileLines)
-																If tIndex <> -1 Then
-																	te = pGlobalArgs->Object(tIndex)
-																	OriginalCaseWord = pGlobalArgs->Item(tIndex)
-																	pkeywords = pGlobalArgs
-																	If te > 0 AndAlso SyntaxHighlightingIdentifiers Then
-																		Select Case te->ElementType
-																		Case E_EnumItem
-																			sc = @ColorEnumMembers
-																		Case E_CommonVariable
-																			sc = @ColorCommonVariables
-																		Case E_Constant
-																			sc = @ColorConstants
-																		Case E_SharedVariable
-																			sc = @ColorSharedVariables
-																		Case Else
-																			sc = @ColorLocalVariables
-																		End Select
 																	End If
 																End If
 															End If
