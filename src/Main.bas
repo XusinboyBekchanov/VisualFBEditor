@@ -620,12 +620,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 			CompileResult = 0
 			Continue For
-		ElseIf InStr(GetFolderName(GetFullPathInSystem(*FbcExe)), " ") > 0 Then
-			ThreadsEnter()
-			ShowMessages ML("It is impossible to use a compiler that has a space in the paths.")
-			ThreadsLeave()
-			CompileResult = 0
-			Continue For
+		'ElseIf InStr(GetFolderName(GetFullPathInSystem(*FbcExe)), " ") > 0 Then
+		'	ThreadsEnter()
+		'	ShowMessages ML("It is impossible to use a compiler that has a space in the paths.")
+		'	ThreadsLeave()
+		'	CompileResult = 0
+		'	Continue For
 		Else
 			ChDir(ExePath)
 			#ifdef __USE_GTK__
