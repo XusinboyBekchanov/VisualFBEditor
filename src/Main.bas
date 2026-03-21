@@ -7458,7 +7458,7 @@ Sub CreateMenusAndToolBars
 	mnuAIChat.Add("-")
 	mnuAIChat.Add(ML("&Open") & "..." , "Open", "AIChatOpen", @mClickAIChat, , , True)
 	mnuAIChat.Add(ML("&Paste"), "Paste", "AIChatPaste", @mClickAIChat, , , True)
-	mnuAIChat.Add(ML("&Paste") & " Code"), "Paste", "AIChatPasteCode", @mClickAIChat, , , True)
+	mnuAIChat.Add(ML("&Paste") & " Code", "Paste", "AIChatPasteCode", @mClickAIChat, , , True)
 	mnuAIChat.Add("-")
 	mnuAIChat.Add(ML("&Save") , "Save", "AIChatSave", @mClickAIChat, , , True)
 	mnuAIChat.Add(ML("Save &As") & "...", "", "AIChatSaveAs", @mClickAIChat, , , True)
