@@ -7457,6 +7457,8 @@ Sub CreateMenusAndToolBars
 	mnuAIChat.Add(ML("&Edit"), "Edit", "AIChatEdit", @mClickAIChat, , , True)
 	mnuAIChat.Add("-")
 	mnuAIChat.Add(ML("&Open") & "..." , "Open", "AIChatOpen", @mClickAIChat, , , True)
+	mnuAIChat.Add(ML("&Paste"), "Paste", "AIChatPaste", @mClickAIChat, , , True)
+	mnuAIChat.Add(ML("&Paste") & " Code", "Paste", "AIChatPasteCode", @mClickAIChat, , , True)
 	mnuAIChat.Add("-")
 	mnuAIChat.Add(ML("&Save") , "Save", "AIChatSave", @mClickAIChat, , , True)
 	mnuAIChat.Add(ML("Save &As") & "...", "", "AIChatSaveAs", @mClickAIChat, , , True)
@@ -8914,7 +8916,7 @@ tbAIModels->Expand = True
 tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
-txtAIAgent.MaxLength = 1048576
+txtAIAgent.MaxLength = 0
 txtAIAgent.Multiline = True
 txtAIAgent.Font.Name = *EditorFontName
 txtAIAgent.Font.Size = EditorFontSize
@@ -9587,6 +9589,42 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	AIThread = ThreadCreate(@AIRequest)
 End Sub
 
+Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
+	Dim As WString Ptr res(Any), tmpWStrPtr
+	pstBar->Panels[0]->Caption = ML("Wait until tool quits")
+	If IsFBCode Then
+		WLet(tmpWStrPtr, Replace(Clipboard.GetAsText, Chr(9), "    "))
+		AIMessages.Add "```FreeBasic " & Chr(10) & *tmpWStrPtr & Chr(10) & "```", " "
+		WAdd(AIBodyWStringPtr, "```FreeBasic " & Chr(10) & *tmpWStrPtr & Chr(10) & "```")
+		_Deallocate(tmpWStrPtr)
+	Else
+		Split(Clipboard.GetAsText, Chr(9), res())
+		If UBound(res) < 1 Then Exit Sub
+		For j As Integer = 0 To UBound(res) - 1 Step 2
+			If Trim(*res(j)) <> "" Then
+				AIMessages.Add *res(j), *res(j + 1)
+				WAdd(AIBodyWStringPtr, *res(j) & Chr(10) & *res(j + 1) & Chr(10))
+			End If
+			_Deallocate(res(j))
+			_Deallocate(res(j + 1))
+		Next
+		Erase res
+	End If
+	Print  "AIMessages.Count=" & AIMessages.Count
+	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+	If AIBodyWStringSavePtr Then AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+	If AIBodyWStringPtr Then
+		txtAIAgent.TextRTF = *AIBodyWStringPtr
+		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+		txtAIAgent.ScrollToCaret
+		txtAIRequest.Enabled = True
+		txtAIRequest.SetFocus
+	End If
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+	frmMain.Cursor = 0
+	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
+End Sub
 Public Sub AIRelease()
 	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True

@@ -415,6 +415,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	Dim As UString FileNameNew
 	Dim As TabWindow Ptr tb
 	FileNameNew = FileName
+	Dim As Double timeElapse = Timer
 	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
 	If FileName <> "" Then
 		Dim As TabControl Ptr ptabCode
@@ -477,7 +478,11 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			If FileName <> "" Then
 				pApp = @VisualFBEditorApp
 				pApp->MainForm = @frmMain
+				pstBar->Panels[1]->Caption = ML("Elapsed time") & ": Loading " & Format((Timer - timeElapse), "0.000s")
+				timeElapse = Timer
 				.txtCode.LoadFromFile(FileNameNew, tb->FileEncoding, tb->NewLineType, True)
+				pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption & " / " & Format((Timer - timeElapse), "0.000s")
+				timeElapse = Timer
 				If bNew Then
 					Dim As String NewFormName, LeftSpace
 					Dim As UString LineTrim
@@ -554,7 +559,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
+			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption &  " FormDesign: " & Format((Timer - timeElapse), "0.000s") ' Not working fine?
+			timeElapse = Timer
 			.FormDesign '(bNoActivate)
+			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption &  " / " & Format((Timer - timeElapse), "0.000s") ' Not working fine?
 			If CBool(FileName <> "") AndAlso CBool(tb->Project <> 0) AndAlso (EndsWith(FileName, "Form.frm") OrElse EndsWith(FileName, "UserControl.bas")) Then
 				If Not tb->Project->Components.Contains("Controls/MyFbFramework") Then tb->Project->Components.Add "Controls/MyFbFramework"
 			End If
