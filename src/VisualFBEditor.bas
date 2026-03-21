@@ -162,6 +162,10 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		FileName= GetFullPath(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas")
 		SaveToFile(FileName, txtAIAgent.SelText)
 		AddTab FileName, True
+	Case "AIChatPaste"
+		AIChatPaste
+	Case "AIChatPasteCode"
+		AIChatPaste(True)
 	Case "AIChatOpen"
 		Dim As OpenFileDialog OpenD
 		OpenD.InitialDir = ExePath & Slash & "AIChat"
