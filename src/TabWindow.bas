@@ -5338,7 +5338,7 @@ Sub OnSelChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 			Erase LinkParse
 			Continue For
 		End If
-		*Lines(i) = ..Left(*Lines(i), iPos - 1) & *LinkParse(2) & Mid(*Lines(i), iPos2 + 4)
+		WLet(Lines(i), ..Left(*Lines(i), iPos - 1) & *LinkParse(2) & Mid(*Lines(i), iPos2 + 4))
 		Split GetChangedCommas(Replace(*Lines(i), """", "”"), True), ",", Params()
 		For j As Integer = 0 To UBound(Params)
 			WLet(Params(j), Replace(Replace(*Params(j), ";", ","), "`", "="))
