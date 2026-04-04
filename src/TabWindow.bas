@@ -12937,7 +12937,8 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 				Dim sa As SECURITY_ATTRIBUTES
 				Dim hReadPipe As HANDLE
 				Dim hWritePipe As HANDLE
-				Dim sBuffer As ZString * BufferSize
+				Dim zBuffer As ZString * BufferSize
+				Dim wBuffer As WString * BufferSize
 				Dim sOutput As WString * BufferSize
 				Dim bytesRead As DWORD
 				Dim As Integer result1, nPos, nPos1
@@ -12969,12 +12970,34 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 				End If
 				CloseHandle hWritePipe
 				Do
-					result1 = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
-					sBuffer = Left(sBuffer, bytesRead)
-					Var Pos1 = InStrRev(sBuffer, Chr(10))
+					result1 = ReadFile(hReadPipe, @zBuffer, BufferSize, @bytesRead, ByVal 0)
+					Var bExistsNull = False
+					For i As Integer = 0 To bytesRead - 1
+						If zBuffer[i] = 0 Then
+							bExistsNull = True
+							Exit For
+						End If
+					Next
+					wBuffer = ""
+					If bExistsNull Then
+						Var i = 0
+						Do While i < bytesRead
+							If zBuffer[i] = 0 Then
+							ElseIf zBuffer[i] >= 48 /'0'/ AndAlso zBuffer[i] <= 57 /'9'/ OrElse zBuffer[i] = 32 /' '/ OrElse zBuffer[i] = 10 OrElse zBuffer[i] = 13 Then
+								wBuffer &= Chr(zBuffer[i])
+							Else
+								wBuffer &= Left(*Cast(WString Ptr, @zBuffer[i]), 1)
+								i += 1
+							End If
+							i += 1
+						Loop
+					Else
+						wBuffer = Left(zBuffer, bytesRead)
+					End If
+					Var Pos1 = InStrRev(wBuffer, Chr(10))
 					If Pos1 > 0 Then
 						Dim res() As WString Ptr
-						sOutput += Left(sBuffer, Pos1 - 1)
+						sOutput += Left(wBuffer, Pos1 - 1)
 						Split sOutput, WChr(10), res()
 						For i As Integer = 0 To UBound(res)
 							ShowMessages *res(i)
@@ -12986,10 +13009,12 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 						Erase res
 						sOutput = ""
 					Else
-						sOutput += sBuffer
+						sOutput += wBuffer
 					End If
 				Loop While result1
-				
+				If sOutput <> "" Then
+					ShowMessages sOutput
+				End If
 				CloseHandle pi.hProcess
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
