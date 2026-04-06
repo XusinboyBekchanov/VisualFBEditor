@@ -433,7 +433,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 								End If
 							Next
 							#ifndef __USE_MAKE__
-								WDeAllocateEx(SubStr())
+								WDeAllocate(SubStr())
 							#endif
 						Else
 							If *BuffOut="" Then

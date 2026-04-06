@@ -5662,6 +5662,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As TypeElement Ptr tbi, tbi1, te, te1
 	For i = 0 To Comps.Count - 1
 		tbi = Cast(TypeElement Ptr, Comps.Object(i))
+		If tbi=0 Then Continue For
 		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
 		If tbi->ElementType = E_TypeCopy Then Continue For
 		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
@@ -5701,11 +5702,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
 				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
-				'Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
+				Print #Fn,  "```" & Comps.Item(i) & "``` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
 				Print #Fn,  "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
-				'Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
+				Print #Fn, "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
 			
 			Print #Fn, ""
@@ -5752,9 +5753,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				
 				If Posi > 0 Then
 					If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 					Else
-						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
+						Print #Fn1,  "```" & TmpControlSubName & "``` is property of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 					End If
 				End If
 				
@@ -5811,9 +5812,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					End If
 					If Posi > 0 Then
 						If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 						Else
-							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
+							Print #Fn1,  "```" & TmpControlSubName & "``` is method of the " & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 						End If
 					End If
 					
@@ -5889,9 +5890,9 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						End If
 						If Posi > 0 Then
 							If TmpControlName <> "" AndAlso TmpControlName <> TmpControlChildName Then
-								Print #Fn1,  "``" & TmpControlSubName & "``` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
+								Print #Fn1,  "``" & TmpControlSubName & "``` is event of the " & TmpControlChildName & " within the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 							Else
-								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the MyFbFramework FreeBasic framework."
+								Print #Fn1,  "```" & TmpControlSubName & "``` is event of the "  & TmpControlChildName & " control, part of the freeBasic framework MyFbFramework."
 							End If
 						End If
 						
@@ -5939,7 +5940,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		For i = 0 To Globals.Enums.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & Globals.Enums.Item(i) & ".mediawiki" For Output As #Fn
 			Print #Fn, "<h2>" & Globals.Enums.Item(i) & " Enum</h2>"
@@ -5954,6 +5955,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Print #Fn, "<tbody>"
 			For j As Integer = 0 To tbi->Elements.Count - 1
 				te = tbi->Elements.Object(j)
+				If te = 0 Then Continue For
 				Print #Fn, "<tr class=""property"">"
 				Print #Fn, "<td>" & tbi->Elements.Item(j) & "</td>"
 				Print #Fn, "<td>" & te->Value & "</td>"
@@ -5970,7 +5972,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		For i = 0 To Globals.Namespaces.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Namespaces.Object(i))
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If Not teList.Contains(tbi) Then
 				teList.Add tbi
 				Dim As Boolean bNamespaces, bTypes, bEnums, bDefines, bMacros, bMethods, bConstants, bVariables
@@ -5980,6 +5982,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					If tbi1->Name <> tbi->Name Then Continue For
 					For j As Integer = 0 To tbi1->Elements.Count - 1
 						te = tbi1->Elements.Object(j)
+						If te = 0 Then Continue For
 						Select Case te->ElementType
 						Case E_Namespace: bNamespaces = True
 						Case E_Type, E_TypeCopy, E_Class, E_Union: bTypes = True
@@ -6004,10 +6007,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Namespace Then Continue For
+							If te = 0 OrElse te->ElementType <> E_Namespace Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							If Not Namespaces.Contains(te->Name) Then
 								Namespaces.Add te->Name
@@ -6028,10 +6031,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class Then Continue For
+							 If te = 0 OrElse (te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""type"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6049,10 +6052,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						 If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Enum Then Continue For
+							 If te = 0 OrElse te->ElementType <> E_Enum Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""enum"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6070,10 +6073,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						 If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
+							 If te = 0 OrElse (te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""define"">"
 							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
@@ -6091,10 +6094,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro Then Continue For
+							If te = 0 OrElse (te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""macro"">"
 							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
@@ -6112,10 +6115,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub Then Continue For
+							If te = 0 OrElse (te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							If te->Declaration Then Continue For
 							Print #Fn, "<tr class=""method"">"
@@ -6134,10 +6137,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_Constant Then Continue For
+							If te = 0 OrElse te->ElementType <> ElementTypes.E_Constant Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""constant"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6155,10 +6158,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						If tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							If te->ElementType <> ElementTypes.E_CommonVariable AndAlso te->ElementType <> ElementTypes.E_LocalVariable AndAlso te->ElementType <> ElementTypes.E_ExternVariable AndAlso te->ElementType <> ElementTypes.E_SharedVariable Then Continue For
+							If te = 0 OrElse (te->ElementType <> ElementTypes.E_CommonVariable AndAlso te->ElementType <> ElementTypes.E_LocalVariable AndAlso te->ElementType <> ElementTypes.E_ExternVariable AndAlso te->ElementType <> ElementTypes.E_SharedVariable) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""variable"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6175,25 +6178,25 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Next i
 		For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
+			If tbi = 0 OrElse tbi->Declaration Then Continue For
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
 			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			If tbi->Declaration Then Continue For
 			Dim As Integer Fn1 = FreeFile_
 			Open wikiFolder & tbi->FullName & ".mediawiki" For Output As #Fn1
 			Print #Fn1, "<h2>" & tbi->FullName & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "</h2>"
-			Dim As UString Lines()
+			Dim As WString Ptr Lines()
 			Split(tbi->Comment, Chr(13) & Chr(10), Lines())
-			Dim iLine As Integer
-			Do While iLine <= UBound(Lines) AndAlso Trim(Lines(iLine), Any !"\t ") <> "Parameters" AndAlso Trim(Lines(iLine), Any !"\t ") <> "Return Value" AndAlso Trim(Lines(iLine), Any !"\t ") <> "See also"
-				Print #Fn1, LTrim(Lines(iLine), Any !"\t ")
-				iLine += 1
-			Loop
+			For iLine As Integer = 0 To UBound(Lines)
+				If Trim(*Lines(iLine), Any !"\t ") <> "Parameters" AndAlso Trim(*Lines(iLine), Any !"\t ") <> "Return Value" AndAlso Trim(*Lines(iLine), Any !"\t ") <> "See also" Then
+					Print #Fn1, LTrim(*Lines(iLine), Any !"\t ")
+				End If
+			Next
 			'Print #Fn1, tbi->Comment
 			If tbi->OwnerNamespace <> "" Then
 				Print #Fn1, "<h2>Definition</h2>"
 				Print #Fn1, "Namespace: [[" & tbi->OwnerNamespace & "]]"
 			End If
-			Print #Fn1, "`" & tbi->FullName & "` Is a global " & IIf(tbi->ElementType = ElementTypes.E_Function, "function", IIf(tbi->ElementType = ElementTypes.E_Sub, "sub", IIf(tbi->ElementType = ElementTypes.E_Define, "definition", IIf(tbi->ElementType = ElementTypes.E_Macro, "macro", "")))) & " within the MyFbFramework, part of the freeBasic framework."
+			Print #Fn1, "`" & tbi->FullName & "` Is a global " & IIf(tbi->ElementType = ElementTypes.E_Function, "function", IIf(tbi->ElementType = ElementTypes.E_Sub, "sub", IIf(tbi->ElementType = ElementTypes.E_Define, "definition", IIf(tbi->ElementType = ElementTypes.E_Macro, "macro", "")))) & " within the MyFbFramework."
 			Print #Fn1, "<h2>Syntax</h2>"
 			Print #Fn1, ""
 			Print #Fn1, "```fb"
@@ -6208,17 +6211,18 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, "|'''Part'''||'''Type'''||'''Description'''"
 				For k As Integer = 0 To tbi->Elements.Count - 1
 					te1 = tbi->Elements.Object(k)
+					If te1 = 0 Then Continue For
 					Dim As UString Comment = IIf(te1->Value = "", "Required. ", "Optional. ")
 					Dim As Boolean bFinded
 					For kk As Integer = iLine To UBound(Lines)
-						If LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k)) Then
+						If LCase(Trim(*Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k)) Then
 							bFinded = True
 						ElseIf bFinded Then
-							If Trim(Lines(kk), Any !"\t ") = "Return Value" OrElse Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" OrElse (k < tbi->Elements.Count - 1 AndAlso LCase(Trim(Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k + 1))) Then
+							If Trim(*Lines(kk), Any !"\t ") = "Return Value" OrElse Trim(*Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(*Lines(kk), Any !"\t ") = "Example" OrElse Trim(*Lines(kk), Any !"\t ") = "See also" OrElse (k < tbi->Elements.Count - 1 AndAlso LCase(Trim(*Lines(kk), Any !"\t ")) = LCase(tbi->Elements.Item(k + 1))) Then
 								iLine = kk
 								Exit For
 							Else
-								Comment = Comment & IIf(Comment = "", "", !"\r") & Trim(Lines(kk), Any !"\t ")
+								Comment = Comment & IIf(Comment = "", "", !"\r") & Trim(*Lines(kk), Any !"\t ")
 							End If
 						End If
 					Next
@@ -6235,44 +6239,44 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, ""
 				Dim bFinded As Boolean
 				For kk As Integer = iLine To UBound(Lines)
-					If Trim(Lines(kk), Any !"\t ") = "Return Value" Then
+					If Trim(*Lines(kk), Any !"\t ") = "Return Value" Then
 						bFinded = True
 					ElseIf bFinded Then
-						If Trim(Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(Lines(kk), Any !"\t ") = "Example" OrElse Trim(Lines(kk), Any !"\t ") = "See also" Then
+						If Trim(*Lines(kk), Any !"\t ") = "Remarks" OrElse Trim(*Lines(kk), Any !"\t ") = "Example" OrElse Trim(*Lines(kk), Any !"\t ") = "See also" Then
 							iLine = kk
 							Exit For
 						Else
-							Print #Fn1, Trim(Lines(kk), Any !"\t ")
+							Print #Fn1, Trim(*Lines(kk), Any !"\t ")
 						End If
 					End If
 				Next
 			End If
 			Dim As Boolean bSeeAlso, bExample
 			For kk As Integer = iLine To UBound(Lines)
-				If LTrim(Lines(kk), Any !"\t ") = "Remarks" Then
+				If LTrim(*Lines(kk), Any !"\t ") = "Remarks" Then
 					If bExample Then
 						Print #Fn1, "```"
 						bExample = False
 					End If
-					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
-				ElseIf LTrim(Lines(kk), Any !"\t ") = "Example" Then
+					Print #Fn1, "<h2>" & LTrim(*Lines(kk), Any !"\t ") & "</h2>"
+				ElseIf LTrim(*Lines(kk), Any !"\t ") = "Example" Then
 					bExample = True
-					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
+					Print #Fn1, "<h2>" & LTrim(*Lines(kk), Any !"\t ") & "</h2>"
 					Print #Fn1, "```fb"
-				ElseIf LTrim(Lines(kk), Any !"\t ") = "See also" Then
+				ElseIf LTrim(*Lines(kk), Any !"\t ") = "See also" Then
 					If bExample Then
 						Print #Fn1, "```"
 						bExample = False
 					End If
 					bSeeAlso = True
-					Print #Fn1, "<h2>" & LTrim(Lines(kk), Any !"\t ") & "</h2>"
+					Print #Fn1, "<h2>" & LTrim(*Lines(kk), Any !"\t ") & "</h2>"
 				ElseIf bSeeAlso Then
-					If Trim(Lines(kk), Any !"\t ") = "" Then Continue For
-					Print #Fn1, "* [[" & LTrim(Lines(kk), Any !"\t ") & "]]"
+					If Trim(*Lines(kk), Any !"\t ") = "" Then Continue For
+					Print #Fn1, "* [[" & LTrim(*Lines(kk), Any !"\t ") & "]]"
 				ElseIf bExample Then
 					Print #Fn1, Lines(kk)
 				Else
-					Print #Fn1, LTrim(Lines(kk), Any !"\t ")
+					Print #Fn1, LTrim(*Lines(kk), Any !"\t ")
 				End If
 			Next
 			If tbi->OwnerNamespace <> "" AndAlso Not bSeeAlso Then
@@ -6280,16 +6284,21 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Print #Fn1, "* [[" & te->OwnerNamespace & "]]"
 			End If
 			CloseFile_(Fn1)
+			For kk As Integer = 0 To UBound(Lines)
+				if Lines(kk) Then _Deallocate(*Lines(kk))
+			Next
+			Erase Lines
 		Next i
+		
 		For i = 0 To Globals.Args.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->Name <> "App" AndAlso tbi->Name <> "Clipboard" AndAlso tbi->Name <> "DebugWindowHandle" AndAlso tbi->Name <> "DefaultFont" Then Continue For
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			Dim As Integer Fn = FreeFile_
 			Open wikiFolder & tbi->Name & ".mediawiki" For Output As #Fn
 			Print #Fn, "== Definition =="
 			If Trim(tbi->OwnerNamespace) <> "" Then Print #Fn, "Namespace: " & tbi->OwnerNamespace
-			Print #Fn,  "`" & tbi->Name & "` is a global variable in MyFbFramework, part of the freeBasic framework."
+			Print #Fn,  "`" & tbi->Name & "` is a global variable in MyFbFramework."
 			Print #Fn, ""
 			Print #Fn, "'''" & tbi->Name & "''' - " & tbi->Comment
 			Print #Fn, ""
@@ -6329,7 +6338,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			If tbi->ControlType = 0 Then
 				Posi = ControlParentDict.IndexOfKey(Comps.Item(i))
 				If Posi <> -1 Then TmpControlName = ControlParentDict.Item(Posi)->Text Else TmpControlName= ""
-				tmpDefinition = "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the MyFbFramework FreeBasic framework."
+				tmpDefinition = "`" & Comps.Item(i) & "` is a type or collection of the " & TmpControlName & " control, part of the freeBasic framework MyFbFramework."
 			Else
 				TmpControlName = Comps.Item(i)
 				tmpDefinition = "```" & Comps.Item(i) & "``` is a " & ControlTypArr(tbi->ControlType) & " within the MyFbFramework."
@@ -6408,7 +6417,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		WLet(FileContentPtr, "## " & "Globals Enums")
 		For i = 0 To Globals.Enums.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			WAdd(FileContentPtr, Chr(13, 10) & "### " & Globals.Enums.Item(i) & " Enum")
 			WAdd(FileContentPtr, Chr(13, 10) &  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework.")
 			WAdd(FileContentPtr, Chr(13, 10) & tbi->Comment)
@@ -6421,20 +6430,21 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			WAdd(FileContentPtr, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To tbi->Elements.Count - 1
 				te = tbi->Elements.Object(j)
+				If te = 0 Then Continue For
 				WAdd(FileContentPtr, Chr(13, 10) & "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|`" & te->Comment & "`|")
 			Next
 		Next i
 		'SaveToFile(wikiFolder & "Globals Enums.md", *FileContentPtr, FileEncoding, NewLineType)
 		AIContext.Add("Globals Enums", *FileContentPtr)
 		_Deallocate(FileContentPtr ): FileContentPtr = 0
-		_Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
+		If FileContentPtr1 Then Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
 		WLet(FileContentPtr1, "## Globals Procedures")
 		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|")
 		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |")
-		For i = 0 To Globals.Functions.Count - 1
+For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
+			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
-			If tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->Declaration Then Continue For
 			WAdd(FileContentPtr1, Chr(13, 10) & "|" & Replace(tbi->FullName, "My.Sys.Forms.", "") & "|" & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "|" )
 			WAdd(FileContentPtr1, "|`" & IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters & "`|")
@@ -6467,9 +6477,15 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
-		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
+		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
 		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
 	Next i
+	Exit Sub
+	ErrorHandler:
+	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 End Sub
 
 Sub LoadInterfaceTheme
@@ -9277,25 +9293,26 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
 	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
 	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
-	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then 
+	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then
 		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate((tmpBodyWStrPtr) ): Return
 	End If
 	If AIBodyWStringPtr = 0 Then _Deallocate((tmpBodyWStrPtr) ): Return
-	'                                             OpenRouter         'Silicon                         NO Thinking                          'Nvidia
-	Dim As String ContentStart(0 To 3) = {"""content"":""",        """content"":""",               """content"":""",                ",""content"":"""}
-	Dim As String ContentEnd(0 To 3) = {""",""reasoning"":null",   """,""reasoning_content"":null", """},""finish_reason""",       """,""tool_calls"":"  }
-	Dim As String ReasoningStart(0 To 2) = {",""reasoning"":""",     ",""reasoning_content"":""",       ",""reasoning_content"":"""}
-	Dim As String ReasoningEnd(0 To 2) = {"""},""finish_reason""", """,""role"":""" ,               """},"""}
-	
+	'                                      'qwen/qwen3.6-plus:free|OpenRouter    OpenRouter              'Silicon                           NO Thinking                                      'Nvidia
+	Dim As String ContentStart(0 To 5) = {  """content"":"""    ,           """content"":""",          """content"":""",              """content"":""",             """content"":""",                ",""content"":"""   }
+	Dim As String ContentEnd(0 To 5) = {   """,""role"":""assistant",        """,""reasoning"":null",   """,""reasoning_content"":null", """},""logprobs"":null",    """},""finish_reason""",       """,""tool_calls"":"   }
+	Dim As String ReasoningStart(0 To 3) = {",""reasoning"":"""       ,      ",""reasoning"":""",       ",""reasoning_content"":""",        ",""reasoning_content"":"""                    }
+	Dim As String ReasoningEnd(0 To 3) = {  """,""reasoning_details"":" ,   """},""finish_reason""",     """,""role"":""",                  """},"""                                          }
+	'","role":"assistant   ,"reasoning":"  ","role":"assistant"
 	Dim As WString Ptr Buff()
-	Dim As Integer k, iPos1, iPos2, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
+	Dim As Integer k, iPos1, iPos2, iPos3, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
 	ThreadsEnter
 	For i As Integer = 0 To BuffCount - 1
 		If Buff(i) = 0 OrElse Len(*Buff(i)) < 2 Then Continue For
 		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
-			If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") Then Continue For
+			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
+			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
 			binReason = False
 			For k = 0 To UBound(ReasoningStart)
 				iPos1 = InStr(LCase(*Buff(i)), ReasoningStart(k))
@@ -9308,10 +9325,14 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							txtAIAgent.SelEnd = txtAIAgent.SelStart
 							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
-						binReason = True
-						_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-						AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos2 - iPos1 - Len(ReasoningStart(k))))
-						If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
+						'Print "REASON:" & (iPos2 - iPos1 - Len(ReasoningStart(k)))
+						iPos3 = iPos2 - iPos1 - Len(ReasoningStart(k))
+						If iPos3 > 0 Then
+							binReason = True
+							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos3))
+							If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
+						End If
 						Exit For
 					End If
 				End If
@@ -9319,6 +9340,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			If Not binReason Then
 				For k = 0 To UBound(ContentStart)
 					iPos1 = InStr(LCase(*Buff(i)), ContentStart(k))
+					'"finish_reason":"stop"
 					If iPos1 > 0 Then
 						iPos2 = InStr(iPos1, LCase(*Buff(i)), ContentEnd(k))
 						If iPos2 > 0 Then
@@ -9328,46 +9350,60 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 								txtAIAgent.SelEnd = txtAIAgent.SelStart
 								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos2 - iPos1 - Len(ContentStart(k))))
-							If AIBodyWStringPtr <> 0 Then
-								WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr)
-								AIPrintAnswer(*AIBodyWStringPtr)
+							'Print "CONT:" & (iPos2 - iPos1 - Len(ContentStart(k)))
+							iPos3 = iPos2 - iPos1 - Len(ContentStart(k))
+							If iPos3 > 0 Then
+								_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+								AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos3))
+								If AIBodyWStringPtr <> 0 Then
+									WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr)
+									AIPrintAnswer(*AIBodyWStringPtr)
+								End If
 							End If
 							Exit For
 						End If
 					End If
 				Next
+				iPos2 = InStr(*Buff(i), ",""usage"":")
+				If iPos2 Then
+					k = InStr(*Buff(i), """total_tokens"":")  '15
+					If k < 1 Then iPos3 = Len(*Buff(i)) Else iPos3 = InStr(k, *Buff(i), ",")
+					If iPos3 < 1 Then iPos3 = Len(*Buff(i))
+					*Buff(i) = Mid(*Buff(i), iPos2 + 10, iPos3 - iPos2 - 10)
+					ShowMessages(*Buff(i))
+				End If
 			End If
 			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 		Else
-			'If CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(*Buff(i), "{""code""") Then Debug.Print(WStr(AIPostData), True)
-			If CBool(Buff(i) <> 0) AndAlso CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
-				ShowMessages(*Buff(i))
-				#ifndef __USE_GTK__
-					If InStr(*Buff(i), "[DONE]") > 0 Then
-						If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
-							If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
-						ElseIf  AIAssistantsAnswersPtr Then 
-							If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
-						End If
-						WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-						If AIBodyWStringSavePtr <> 0 Then
-							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-							AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-							If AIBodyWStringPtr <> 0 Then
-								txtAIAgent.TextRTF = *AIBodyWStringPtr
-								txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+			',"usage":{"prompt_tokens":2939,"completion_tokens":420,"total_tokens":3359,
+			If Buff(i) <> 0 Then
+				If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
+					ShowMessages(*Buff(i))
+					#ifndef __USE_GTK__
+						If iPos1  > 0 Then
+							If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
+								If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
+							ElseIf  AIAssistantsAnswersPtr Then
+								If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
+							End If
+							WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+							If AIBodyWStringSavePtr <> 0 Then
+								_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+								AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+								If AIBodyWStringPtr <> 0 Then
+									txtAIAgent.TextRTF = *AIBodyWStringPtr
+									txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+								End If
 							End If
 						End If
-					End If
-				#endif
-				txtAIRequest.Enabled = True
-				txtAIRequest.SetFocus
-				cboAIAgentModels.Enabled = True 
-				If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
-			Else
-				WLet(AIBodyWStringPtr, *Buff(i))
+					#endif
+					txtAIRequest.Enabled = True
+					txtAIRequest.SetFocus
+					cboAIAgentModels.Enabled = True
+					If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+				Else
+					WLet(AIBodyWStringPtr, *Buff(i))
+				End If
 			End If
 		End If
 		_Deallocate(Buff(i))
@@ -9610,10 +9646,8 @@ Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
 		Next
 		Erase res
 	End If
-	Print  "AIMessages.Count=" & AIMessages.Count
 	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
-	If AIBodyWStringSavePtr Then AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+	If (Not IsFBCode) AndAlso (AIBodyWStringSavePtr <> 0) Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0 : AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
 	If AIBodyWStringPtr Then
 		txtAIAgent.TextRTF = *AIBodyWStringPtr
 		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
@@ -9635,6 +9669,7 @@ Public Sub AIRelease()
 	bInAIThread = False
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
+	cboAIAgentModels.Enabled = True
 End Sub
 
 Public Sub AIResetContext()
@@ -9669,7 +9704,9 @@ Public Sub AIResetContext()
 	AIPostDataFirstTime= True
 	txtAIRequest.Enabled = True
 	WLet(AIAssistantsAnswersPtr, "")
+	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
+	cboAIAgentModels.Enabled = True
 	Sleep(500)
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
