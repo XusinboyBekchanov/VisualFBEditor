@@ -452,7 +452,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Return 0
 		End If
 		With *tb
-			tb->txtCode.Visible = False
+			'tb->txtCode.Visible = False
 			frmMain.Cursor = crWait
 			If FileName <> "" Then
 				#ifndef __USE_GTK__
@@ -3198,7 +3198,7 @@ Sub OnToolTipLinkClickedEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Co
 			SelectSearchResult *res(0), Val(*res(1)) + 1, , , , *res(2)
 		End If
 	End If
- 	WDeAllocate(res())
+ 	WDeAllocateEx(res())
 End Sub
 
 Function GetCorrectParam(ByVal Param As String) As String
