@@ -15165,7 +15165,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		Else
 			WAdd(CmdL, " " & *RunArguments)
 		End If
-		If ProjectCommandLineArguments <> "" Then WLetEx(CmdL, *CmdL & " " & WGet(ProjectCommandLineArguments), True)
+		If ProjectCommandLineArguments <> "" Then WAdd(CmdL, " " & ProjectCommandLineArguments)
 	End If
 	#ifndef __USE_GTK__
 		exename = Replace(exename, BackSlash, Slash)
@@ -15200,7 +15200,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		'    	End If
 		Dim As WString Ptr Arguments
 		WLet(Arguments, *RunArguments)
-		If ProjectCommandLineArguments <> "" Then WLetEx(Arguments, *Arguments & " " & WGet(ProjectCommandLineArguments), True)
+		If ProjectCommandLineArguments <> "" Then WAdd(Arguments, " " & ProjectCommandLineArguments)
 		If 0 Then
 			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
