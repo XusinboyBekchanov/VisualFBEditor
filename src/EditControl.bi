@@ -328,7 +328,7 @@ Namespace My.Sys.Forms
 		Declare Function GetTypeFromValue(Value As String, iSelEndLine As Integer, ByRef teCur As TypeElement Ptr = 0, ByRef Oldte As TypeElement Ptr = 0) As String
 		Declare Function GetLeftArgTypeName(iSelEndLine As Integer, iSelEndChar As Integer, ByRef teEnum As TypeElement Ptr = 0, ByRef teEnumOld As TypeElement Ptr = 0, ByRef teTypeOld As TypeElement Ptr = 0, ByRef OldTypeName As String = "", ByRef bTypes As Boolean = False, ByRef bWithoutWith As Boolean = False) As String
 		Declare Function GetConstruction(ByRef sLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False, TextIsWithoutQuotesAndComments As Boolean = False) As Integer
-		Declare Sub ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "", EC As Any Ptr = 0)
+		Declare Sub ChangeCollapsibility(LineIndex As Integer, ByRef LineText As WString = "", EC As Any Ptr = 0)
 		Declare Constructor
 	End Type
 	
@@ -702,7 +702,7 @@ Namespace My.Sys.Forms
 		Declare Sub ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1, WithoutShow As Boolean = False)
 		Declare Sub Changing(ByRef Comment As WString = "")
 		Declare Sub Changed(ByRef Comment As WString = "")
-		Declare Sub ChangeCollapsibility(LineIndex As Integer, ByRef LineText As UString = "")
+		Declare Sub ChangeCollapsibility(LineIndex As Integer, ByRef LineText As WString = "")
 		Declare Sub ChangeCollapseState(LineIndex As Integer, Value As Boolean)
 		Declare Sub ChangeInConstruction(LineIndex As Integer, OldConstructionIndex As Integer, OldConstructionPart As Integer)
 		Declare Function GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
