@@ -452,7 +452,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			Return 0
 		End If
 		With *tb
-			'tb->txtCode.Visible = False
+			tb->txtCode.Visible = False
 			frmMain.Cursor = crWait
 			If FileName <> "" Then
 				#ifndef __USE_GTK__
