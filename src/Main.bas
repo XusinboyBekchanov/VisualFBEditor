@@ -1460,7 +1460,7 @@ Sub txtOutput_DblClick(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Dim As WString Ptr Temp
 	SplitError(*Buff, ErrFileName, ErrTitle, iLine)
 	Dim MainFile As WString Ptr: WLet(MainFile, GetMainFile(False, Project, ProjectNode))
-	If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+	If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLetEx(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 	WDeAllocate(Temp)
 	WDeAllocate(MainFile)
 	SelectError(*ErrFileName, iLine)
@@ -2031,8 +2031,8 @@ Function AddSession(ByRef FileName As WString) As Boolean
 					bMain = StartsWith(Buff, "*")
 					WLet(filn, Replace(Mid(Buff, Pos1 + 1), BackSlash, Slash))
 					If CInt(InStr(*filn, ":") = 0) OrElse CInt(StartsWith(*filn, Slash)) Then
-						WLet(filn, CurrentPath & *filn)
-						If EndsWith(*filn, Slash) Then WLetEx filn, Left(*filn, Len(*filn) - 1), True
+						WLetEx(filn, CurrentPath & *filn)
+						If EndsWith(*filn, Slash) Then WLetEx(filn, Left(*filn, Len(*filn) - 1))
 					End If
 					Dim tn As TreeNode Ptr
 					If bTabs Then
@@ -3497,7 +3497,7 @@ Sub ChangeFolderType(Value As ProjectFolderTypes)
 		End If
 		If ppe->ProjectFolderType = ProjectFolderTypes.ShowAsFolder Then
 			tn->Text = tn->Text & ".vfp"
-			WLet(ppe->FileName, *ppe->FileName & Slash & GetFileName(*ppe->FileName) & ".vfp")
+			WLetEx(ppe->FileName, *ppe->FileName & Slash & GetFileName(*ppe->FileName) & ".vfp")
 			Dim As String IconName
 			For j As Integer = 0 To ppe->Files.Count - 1
 				ee = _New(ExplorerElement)
@@ -5978,7 +5978,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Dim As Boolean bNamespaces, bTypes, bEnums, bDefines, bMacros, bMethods, bConstants, bVariables
 				For ii As Integer = 0 To Globals.Namespaces.Count - 1
 					tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-					If tbi1->CtlLibrary <> MFFCtlLibrary Then Continue For
+					If tbi1 = 0 OrElse tbi1->CtlLibrary <> MFFCtlLibrary Then Continue For
 					If tbi1->Name <> tbi->Name Then Continue For
 					For j As Integer = 0 To tbi1->Elements.Count - 1
 						te = tbi1->Elements.Object(j)
@@ -7028,7 +7028,7 @@ Sub LoadLanguageTexts
 		Dim As Integer i, Pos1, Pos2
 		Dim As Integer Fn = FreeFile_, Result
 		Dim As WString * 2048 Buff, tKey
-		Dim As UString FileName = ExePath & "/Settings/Languages/" & App.CurLanguage & ".lng"
+		Dim As WString * MAX_PATH Filename = ExePath & "/Settings/Languages/" & App.CurLanguage & ".lng"
 		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
 		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)

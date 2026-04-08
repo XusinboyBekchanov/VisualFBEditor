@@ -544,7 +544,7 @@ Type tprocr
 	vr   As Integer  'lower index running variable upper (next proc) -1
 End Type
 ''======================== Arrays =========================================
-Const ARRMAX=1500
+Const ARRMAX = 5500
 #define KMAXDIM 5
 Type tnlu
 	lb As UInteger
@@ -556,8 +556,8 @@ Type tarr 'five dimensions max
 End Type
 
 ''====================== Variables gloables/common/locales/parameters ============================
-Const VARMAX = 50000 'CAUTION 3000 elements taken for globals
-Const VGBLMAX=3000 'max globals
+Const VARMAX = 100000 'CAUTION 3000 elements taken for globals
+Const VGBLMAX = 8000 'max globals
 
 Type tvrb
 	nm As String    'name
@@ -570,7 +570,7 @@ Type tvrb
 End Type
 
 ''========================== Running variables ============================
-Const VRRMAX = 400000
+Const VRRMAX = 800000
 Type tvrr
 	ad    As UInteger 'address
 	tv    As Any Ptr  'tview handle
