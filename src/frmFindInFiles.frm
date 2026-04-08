@@ -126,7 +126,7 @@ pfFindFile = @fFindFile
 		With btnCancel
 			.Name="btnCancel"
 			.Caption = ML("&Cancel")
-		btnCancel.TabIndex = 12
+			btnCancel.TabIndex = 12
 			.SetBounds 308, 92, 104, 30
 			.Anchor.Right = asAnchor
 			.Parent = @Panel1
@@ -431,10 +431,9 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 									WAdd(BuffOut, WChr(13, 10) & *SubStr(i))
 									If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, WChr(13, 10) & Replace(*SubStr(i), "&", ""))
 								End If
+								_Deallocate(SubStr(i))
 							Next
-							#ifndef __USE_MAKE__
-								WDeAllocate(SubStr())
-							#endif
+							Erase SubStr
 						Else
 							If *BuffOut="" Then
 								WLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
