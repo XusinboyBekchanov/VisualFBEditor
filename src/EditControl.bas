@@ -829,7 +829,7 @@ Namespace My.Sys.Forms
 		If FECLine->Collapsed Then
 			FECLine->CollapsedFully = True
 			If Not EndsWith(*FECLine->Text, "'...'") Then
-				WLetEx(FECLine->Text, *FECLine->Text & " '...'", True)
+				WAdd(FECLine->Text, " '...'")
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
 			End If
@@ -865,7 +865,7 @@ Namespace My.Sys.Forms
 		Else
 			If EndsWith(*FECLine->Text, "'...'") Then
 				FECLine->CollapsedFully = False
-				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)), True)
+				WLetEx(FECLine->Text, RTrim(.Left(*FECLine->Text, Len(*FECLine->Text) - 5)))
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
 			End If
@@ -1074,7 +1074,7 @@ Namespace My.Sys.Forms
 							If Not EndsWith(Trim(*ecs_->Text), " _") Then
 								Exit For, For
 							End If
-							WLetEx(LineText_, ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & *LineText_, True)
+							WLetEx(LineText_, ..Left(Trim(*ecs_->Text), Len(Trim(*ecs_->Text)) - 1) & *LineText_)
 							ecsOld_ = ecs_
 						Next iiii
 					Next
@@ -1542,6 +1542,7 @@ Namespace My.Sys.Forms
 		If WithHistory Then
 			If Comment <> "" Then
 				Var item = _New( EditControlHistory)
+				If item = 0 Then Return
 				_FillHistory item, Comment
 				item->OldSelStartLine = FOldSelStartLine
 				item->OldSelEndLine = FOldSelEndLine
@@ -1586,6 +1587,7 @@ Namespace My.Sys.Forms
 			Dim bFind As Boolean
 			For i As Integer = 0 To Carets.Count - 1
 				teCurrent = Carets.Object(i)
+				If teCurrent = 0 Then Continue For
 				If iSelStartLine >= teCurrent->StartLine AndAlso iSelStartLine <= teCurrent->EndLine AndAlso iSelEndLine >= teCurrent->StartLine AndAlso iSelEndLine <= teCurrent->EndLine AndAlso _
 					IIf(CharTo < 0, iSelStartChar > teCurrent->StartChar, iSelStartChar >= teCurrent->StartChar) AndAlso iSelStartChar <= teCurrent->EndChar AndAlso iSelEndChar >= teCurrent->StartChar AndAlso iSelEndChar <= teCurrent->EndChar Then
 					Var OldStartChar = teCurrent->StartChar
@@ -1603,6 +1605,7 @@ Namespace My.Sys.Forms
 					bFind = True
 					For j As Integer = 0 To Carets.Count - 1
 						te = Carets.Object(j)
+						If te= 0 Then Continue For
 						If te->StartLine > OldStartLine OrElse (te->StartLine = OldStartLine AndAlso te->StartChar > OldStartChar) Then
 							If te->Name = teCurrent->Name Then
 								Var OldFSelStartChar = FSelStartChar
@@ -1697,6 +1700,7 @@ Namespace My.Sys.Forms
 			iC = OldPreviC
 			For i As Integer = iSelStartLine To Content.Lines.Count - 1 ' + 1
 				FECLine = Cast(EditControlLine Ptr, Content.Lines.Item(i))
+				If FECLine= 0 Then Continue For
 				'Item->CharIndex = p - 1
 				'Item->LineIndex = i
 				iC = FindCommentIndex(*FECLine->Text, iC)
@@ -1707,6 +1711,7 @@ Namespace My.Sys.Forms
 		If OldInAsm <> InAsm Then
 			For i As Integer = iSelStartLine To Content.Lines.Count - 1
 				FECLine = Cast(EditControlLine Ptr, Content.Lines.Item(i))
+				If FECLine= 0 Then Continue For
 				If FECLine->ConstructionIndex = C_Asm Then
 					InAsm = FECLine->ConstructionPart = 0
 				End If
@@ -1754,7 +1759,7 @@ Namespace My.Sys.Forms
 		Dim Value As WString Ptr
 		WLet(Value, Clipboard.GetAsText)
 		If Value Then
-			'WLetEx(Value, Replace(*Value, Chr(13, 10), Chr(13)))
+			WLetEx(Value, Replace(*Value, Chr(13, 10), Chr(13)))
 			'WLetEx(Value, Replace(*Value, Chr(10), Chr(13)))
 			ChangeText *Value, 0, "Xotiradan qo`yildi"
 			WDeAllocate(Value)
@@ -1762,7 +1767,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.ClearUndo
-		On Error Goto A
+		On Error Goto ErrL
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
 				_Delete( Cast(EditControlHistory Ptr, FHistory.Items[i]))
@@ -1780,7 +1785,7 @@ Namespace My.Sys.Forms
 		End If
 		ChangeText "", 0, "Matn almashtirildi"
 		Exit Sub
-		A:
+		ErrL:
 		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
 		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
 		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
@@ -5442,7 +5447,7 @@ Namespace My.Sys.Forms
 								pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @Type<D2D1_COLOR_F>(SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue, 1.0), 0, @pBrushForeground)
 							End If
 						#endif
-						'WLet FLineLeft, GetTabbedText(*s, 0, True)
+						'WLet FLineLeft, GetTabbedText(*s, 0)
 						jj = 1
 						jPos = 0
 						lLen = Len(*s)
@@ -7773,11 +7778,11 @@ Namespace My.Sys.Forms
 							k = 1
 						End If
 						If j = 0 Then
-							If FSelEndLine < Content.Lines.Count - 1 Then WLetEx(FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine + 1])->Text), True)
+							If FSelEndLine < Content.Lines.Count - 1 Then WLetEx(FLineTemp, GetTabbedText(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine + 1])->Text))
 							Dim n As Integer
 							Dim m As Integer = Content.GetConstruction(*FLineTemp, n, IIf(FSelEndLine <= 0, 0, Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine - 1])->CommentIndex), Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->InAsm)
 							Var e = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
-							WLetEx(FLineTemp, GetTabbedText(*FLine), True)
+							WLetEx(FLineTemp, GetTabbedText(*FLine))
 							Var r = Len(*FLineTemp) - Len(LTrim(*FLineTemp, Any !"\t "))
 							If e > r OrElse (e = r And m = i And n > 0) Then
 							Else

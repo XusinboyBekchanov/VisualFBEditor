@@ -1472,20 +1472,20 @@ Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef Propert
 			Case "wstring", "string", "zstring", "wstringlist", "dictionary"
 				WLet(FLine, QWString(pTemp))
 				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then
-					WLetEx FLine, Mid(*FLine, 2), True
+					WLetEx(FLine, Mid(*FLine, 2))
 				Else
-					WLetEx FLine, """" & Replace(*FLine, """", """""") & """", True
+					WLetEx(FLine, """" & Replace(*FLine, """", """""") & """")
 				End If
 			Case "point"
-				WLetEx FLine, "Type<My.Sys.Drawing.Point>(" & QWString(pTemp) & ")", True
+				WLet(FLine, "Type<My.Sys.Drawing.Point>(" & QWString(pTemp) & ")")
 			Case "size"
-				WLetEx FLine, "Type<My.Sys.Drawing.Size>(" & QWString(pTemp) & ")", True
+				WLet(FLine, "Type<My.Sys.Drawing.Size>(" & QWString(pTemp) & ")")
 			Case "any", "any ptr"
 				If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
 				If Len(Trim(*FLine)) > 1 AndAlso StartsWith(*FLine, "=") Then
-					WLetEx FLine, Mid(*FLine, 2), True
+					WLetEx(FLine, Mid(*FLine, 2))
 				Else
-					WLetEx FLine, "@""" & Replace(*FLine, """", """""") & """", True
+					WLetEx(FLine, "@""" & Replace(*FLine, """", """""") & """")
 				End If
 			Case "icon", "bitmaptype", "cursor", "graphictype": If st->ToStringFunc <> 0 Then WLet(FLine, """" & st->ToStringFunc(pTemp) & """")
 			Case "integer": iTemp = QInteger(pTemp)
@@ -1700,7 +1700,7 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 						End If
 					End If
 				Else
-					If StartsWith(*FLine3, "@") Then WLetEx(FLine3, Mid(*FLine3, 2), True)
+					If StartsWith(*FLine3, "@") Then WLetEx(FLine3, Mid(*FLine3, 2))
 					If st AndAlso LCase(*FLine3) = "this" Then
 						Dim hTemp As Any Ptr
 						If st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Des->DesignControl, "Name")
@@ -3198,7 +3198,10 @@ Sub OnToolTipLinkClickedEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Co
 			SelectSearchResult *res(0), Val(*res(1)) + 1, , , , *res(2)
 		End If
 	End If
- 	WDeAllocateEx(res())
+	For i As Integer = 0 To UBound(res)
+		_Deallocate(res(i))
+	Next
+	Erase res
 End Sub
 
 Function GetCorrectParam(ByVal Param As String) As String
@@ -4454,7 +4457,7 @@ End Function
 Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Integer)
 	Dim As WString Ptr sTempRight
 	For i As Integer = iEndChar + 1 To Len(sLine)
-		If CInt(IsArg(Asc(Mid(sLine, i, 1)))) OrElse CInt(Mid(sLine, i, 1) = "#") Then WLetEx(sTempRight, *sTempRight & Mid(sLine, i, 1), True) Else Exit For
+		If CInt(IsArg(Asc(Mid(sLine, i, 1)))) OrElse CInt(Mid(sLine, i, 1) = "#") Then WAdd(sTempRight, Mid(sLine, i, 1)) Else Exit For
 	Next
 	#ifdef __USE_GTK__
 		With tb->txtCode.lvIntellisense
@@ -11333,7 +11336,7 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 	End If
 	If StartsWith(*ErrFileName, "In file included from") Then
 		WLet(ErrTitle, MLCompilerFun(Trim(Left(sLine, 22))))
-		WLetEx(ErrFileName, Mid(*ErrFileName, 23), True)
+		WLetEx(ErrFileName, Mid(*ErrFileName, 23))
 	Else
 		Pos3 = InStr(Pos1, sLine, ":")
 		If Pos3 > 0 Then
@@ -11898,7 +11901,7 @@ End Function
 Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 	'If StartsWith(LTrim(LCase(sFirstLine), Any !"\t "), "'#compile ") Then
 	Dim As WString Ptr Buff, File, sLines
-	Dim As WString * 1024 sLine
+	Dim As WString * 2048 sLine
 	Dim bAutoIncrement As Boolean
 	If Project Then
 		bAutoIncrement =  Project->AutoIncrementVersion
@@ -11934,7 +11937,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 		If Open(*File For Input Encoding "utf-8" As #Fn) = 0 Then
 			Dim As Integer iStartImages, MinResID
 			Dim As String MinResName
-			Dim As UString ResPath
+			Dim As WString * 2048 ResPath
 			Var n = 0
 			Var bChangeIcon = False
 			Do Until EOF(Fn)
@@ -11945,7 +11948,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					If Project Then
 						Var Pos3 = InStrRev(sLine, " ")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & "," & Project->BuildVersion)
 							bChanged = True
 							'									ThreadsEnter()
 							'									If CInt(ProjectNode) AndAlso CInt(Not EndsWith(ProjectNode->Text, "*")) Then ProjectNode->Text &= "*"
@@ -11954,7 +11957,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					ElseIf bAutoIncrement Then
 						Var Pos3 = InStrRev(sLine, ",")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1)) + 1)
 							bChanged = True
 						End If
 					End If
@@ -11962,13 +11965,13 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					If Project Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "." & Project->BuildVersion & "\0""")
 							bChanged = True
 						End If
 					ElseIf bAutoIncrement Then
 						Var Pos3 = InStrRev(sLine, ".")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Val(Mid(sLine, Pos3 + 1, Len(sLine) - Pos3 - 3)) + 1 & "\0""")
 							bChanged = True
 						End If
 					End If
@@ -11976,61 +11979,61 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 					If StartsWith(LCase(sLine), "#define app_title_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->ApplicationTitle) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_companyname_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->CompanyName) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_filedescription_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->FileDescription), "{ProjectDescription}", WGet(Project->ProjectDescription)) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_internalname_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->InternalName) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_legalcopyright_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalCopyright) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_legaltrademarks_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->LegalTrademarks) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_originalfilename_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFilename) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & WGet(Project->OriginalFilename) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_productname_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Replace(WGet(Project->ProductName), "{ProjectName}", WGet(Project->ProjectName)) & "\0""")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_productversion ") Then
 						Var Pos3 = InStrRev(sLine, " ")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "," & Project->MinorVersion & "," & Project->RevisionVersion & ",0")
 							bChanged = True
 						End If
 					ElseIf StartsWith(LCase(sLine), "#define ver_productversion_str ") Then
 						Var Pos3 = InStr(sLine, """")
 						If Pos3 > 0 Then
-							WLet(sLines, *sLines & NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
+							WAdd(sLines, NewLine & ..Left(sLine, Pos3) & Project->MajorVersion & "." & Project->MinorVersion & "." & Project->RevisionVersion & "\0""")
 							bChanged = True
 						End If
 					ElseIf Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" AndAlso (InStr(LCase(sLine), " icon ") OrElse InStr(LCase(sLine), " bitmap ") OrElse InStr(LCase(sLine), " png ") OrElse InStr(LCase(sLine), " cursor ") OrElse InStr(LCase(sLine), " rcdata ")) Then
@@ -12041,7 +12044,7 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							Pos1 = InStr(LTrim(sLine, Any !"\t "), " ")
 							If Pos1 > 0 Then
 								ResNameOrID = Trim(..Left(LTrim(sLine, Any !"\t "), Pos1 - 1), Any !"\t ")
-								If IsNumeric(ResNameOrID) Then
+								If isNumeric(ResNameOrID) Then
 									If MinResID = 0 OrElse MinResID > Val(ResNameOrID) Then MinResID = Val(ResNameOrID)
 								Else
 									If MinResName = "" OrElse LCase(MinResName) > LCase(ResNameOrID) Then MinResName = ResNameOrID
@@ -12054,22 +12057,22 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 							End If
 						End If
 					ElseIf StartsWith(LCase(sLine), "1 24 ") AndAlso Project->Manifest = False Then
-						WLet(sLines, *sLines & NewLine & "//" & sLine)
+						WAdd(sLines, NewLine & "//" & sLine)
 						bChanged = True
 					ElseIf StartsWith(LCase(sLine), "//1 24 ") AndAlso Project->Manifest Then
-						WLet(sLines, *sLines & NewLine & Mid(sLine, 3))
+						WAdd(sLines, NewLine & Mid(sLine, 3))
 						bChanged = True
 					End If
 				End If
 				If bChanged Then
 					bFinded = True
 				Else
-					WLet(sLines, *sLines & NewLine & sLine)
+					WAdd(sLines, NewLine & sLine)
 				End If
 				If n = 1 Then NewLine = WChr(13) & WChr(10)
 			Loop
 			If Project AndAlso LCase(Trim(*Project->ApplicationIcon)) <> "a" AndAlso Trim(*Project->ApplicationIcon) <> "" Then
-				If IsNumeric(*Project->ApplicationIcon) Then
+				If isNumeric(*Project->ApplicationIcon) Then
 					If MinResName <> "" OrElse (MinResID <> 0 AndAlso Val(*Project->ApplicationIcon) > MinResID) Then
 						bChangeIcon = True
 						bFinded = True
@@ -12099,17 +12102,17 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 			bChanged = False
 			If Project Then
 				If StartsWith(LCase(sLine), "                <!-- <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" /> -->") AndAlso Project->RunAsAdministrator Then
-					WLet(sLines, *sLines & NewLine & "                <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" />")
+					WAdd(sLines, NewLine & "                <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" />")
 					bChanged = True
 				ElseIf StartsWith(LCase(sLine), "                <requestedexecutionlevel level=""requireadministrator"" uiaccess=""false"" />") AndAlso Project->RunAsAdministrator = False Then
-					WLet(sLines, *sLines & NewLine & "                <!-- <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" /> -->")
+					WAdd(sLines, NewLine & "                <!-- <requestedExecutionLevel level=""requireAdministrator"" uiAccess=""false"" /> -->")
 					bChanged = True
 				End If
 			End If
 			If bChanged Then
 				bFinded = True
 			Else
-				WLet(sLines, *sLines & NewLine & sLine)
+				WAdd(sLines, NewLine & sLine)
 			End If
 		Loop
 		If bFinded Then

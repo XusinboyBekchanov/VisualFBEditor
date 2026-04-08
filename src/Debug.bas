@@ -3545,8 +3545,8 @@ Const WTCHALL=9999999
 'Dim Shared arr(ARRMAX) As tarr,arrnb As Integer
 'var =============================
 'Const VARMAX=20000 'CAUTION 3000 elements taken for globals
-Const VGBLMAX=3000 'max globals
-Const KBLOCKIDX=100 'max displayed lines inside index selection
+'Const VGBLMAX=3000 'max globals
+Const KBLOCKIDX = 1000 'max displayed lines inside index selection
 'Type tvrb
 '	nm As String    'name
 '	typ As Integer  'type
