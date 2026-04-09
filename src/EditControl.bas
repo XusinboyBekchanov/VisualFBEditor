@@ -33,7 +33,7 @@ Namespace My.Sys.Forms
 	End Destructor
 	
 	Constructor EditControlLine
-		WLet(This.Text, "")
+		'WLet(This.Text, "")
 		Visible = True
 	End Constructor
 	
@@ -411,14 +411,22 @@ Namespace My.Sys.Forms
 	End Property
 	
 	Sub EditControl._LoadFromHistory(ByRef HistoryItem As EditControlHistory Ptr, bToBack As Boolean, ByRef oldItem As EditControlHistory Ptr, bWithoutPaint As Boolean = False)
+		If HistoryItem = 0 OrElse oldItem = 0 Then Return
+		If HistoryItem->Lines.Count < 1 Then Return
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
 		Content.Lines.Clear
+		Dim As EditControlStatement Ptr srcStmtPtr
+		Dim As EditControlLine Ptr srcLinePtr
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
 			FECLine = _New( EditControlLine)
+			If FECLine = 0 Then Return
 			OlddwClientX = 0
-			With *Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
+			srcLinePtr = Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))
+			If srcLinePtr = 0 Then Continue For
+			With *srcLinePtr
+				If .Text = 0 Then Continue For
 				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
@@ -436,28 +444,32 @@ Namespace My.Sys.Forms
 				FECLine->CollapsedFully = .CollapsedFully
 				FECLine->LineContinues = .LineContinues
 				FECLine->Visible = .Visible
-				For ii As Integer = 0 To .Statements.Count - 1
-					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
-						FECStatement = _New( EditControlStatement)
-						WLet(FECStatement->Text, * (.Text))
-						FECStatement->ConstructionIndex = .ConstructionIndex
-						FECStatement->ConstructionPart = .ConstructionPart
-						FECStatement->ConstructionPartCount = .ConstructionPartCount
-						FECStatement->ConstructionNextCount = .ConstructionNextCount
-						FECStatement->InAsm = .InAsm
-						FECStatement->InConstructionIndex = .InConstructionIndex
-						FECStatement->InConstructionPart = .InConstructionPart
-						If Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))->MainStatement = Cast(EditControlLine Ptr, HistoryItem->Lines.Item(i))->Statements.Item(ii) Then
-							FECLine->MainStatement = FECStatement
-						End If
-						FECLine->Statements.Add FECStatement
-					End With
-				Next
 			End With
+			For ii As Integer = 0 To srcLinePtr->Statements.Count - 1
+				srcStmtPtr = Cast(EditControlStatement Ptr, srcLinePtr->Statements.Item(ii))
+				If srcStmtPtr = 0 Then Continue For
+				With *srcStmtPtr
+					FECStatement = _New( EditControlStatement)
+					If .Text = 0 OrElse FECStatement = 0 Then Continue For
+					WLet(FECStatement->Text, * (.Text))
+					FECStatement->ConstructionIndex = .ConstructionIndex
+					FECStatement->ConstructionPart = .ConstructionPart
+					FECStatement->ConstructionPartCount = .ConstructionPartCount
+					FECStatement->ConstructionNextCount = .ConstructionNextCount
+					FECStatement->InAsm = .InAsm
+					FECStatement->InConstructionIndex = .InConstructionIndex
+					FECStatement->InConstructionPart = .InConstructionPart
+					If srcLinePtr->MainStatement = srcStmtPtr Then
+						FECLine->MainStatement = FECStatement
+					End If
+					FECLine->Statements.Add FECStatement
+				End With
+			Next
 			Content.Lines.Add FECLine
 		Next i
 		If Content.Lines.Count = 0 Then
 			FECLine = _New( EditControlLine)
+			If FECLine = 0 Then Return
 			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			Content.Lines.Add FECLine
@@ -489,10 +501,16 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl._FillHistory(ByRef item As EditControlHistory Ptr, ByRef Comment As WString)
+		If item = 0 Then Return
 		WLet(item->Comment, Comment)
+		Dim As EditControlStatement Ptr srcStmtPtr
+		Dim As EditControlLine Ptr srcLinePtr
 		For i As Integer = 0 To Content.Lines.Count - 1
-			With *Cast(EditControlLine Ptr, Content.Lines.Items[i])
+			srcLinePtr = Cast(EditControlLine Ptr, Content.Lines.Items[i])
+			If srcLinePtr = 0 Then Continue For
+			With *srcLinePtr
 				FECLine = _New( EditControlLine)
+				If .Text = 0 OrElse FECLine = 0 Then  Continue For
 				WLet(FECLine->Text, * (.Text))
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
@@ -510,24 +528,27 @@ Namespace My.Sys.Forms
 				FECLine->Collapsible = .Collapsible
 				FECLine->LineContinues = .LineContinues
 				FECLine->Visible = .Visible
-				For ii As Integer = 0 To .Statements.Count - 1
-					With *Cast(EditControlStatement Ptr, .Statements.Item(ii))
-						FECStatement = _New( EditControlStatement)
-						WLet(FECStatement->Text, * (.Text))
-						FECStatement->ConstructionIndex = .ConstructionIndex
-						FECStatement->ConstructionPart = .ConstructionPart
-						FECStatement->ConstructionPartCount = .ConstructionPartCount
-						FECStatement->ConstructionNextCount = .ConstructionNextCount
-						FECStatement->InAsm = .InAsm
-						FECStatement->InConstructionIndex = .InConstructionIndex
-						FECStatement->InConstructionPart = .InConstructionPart
-						If Cast(EditControlLine Ptr, Content.Lines.Items[i])->MainStatement = Cast(EditControlLine Ptr, Content.Lines.Items[i])->Statements.Item(ii) Then
-							FECLine->MainStatement = FECStatement
-						End If
-						FECLine->Statements.Add FECStatement
-					End With
-				Next
 			End With
+			For ii As Integer = 0 To srcLinePtr->Statements.Count - 1
+				srcStmtPtr = Cast(EditControlStatement Ptr, srcLinePtr->Statements.Item(ii))
+				If srcStmtPtr = 0 Then Continue For
+				With *srcStmtPtr
+					FECStatement = _New( EditControlStatement)
+					If .Text = 0 Then Continue For
+					WLet(FECStatement->Text, * (.Text))
+					FECStatement->ConstructionIndex = .ConstructionIndex
+					FECStatement->ConstructionPart = .ConstructionPart
+					FECStatement->ConstructionPartCount = .ConstructionPartCount
+					FECStatement->ConstructionNextCount = .ConstructionNextCount
+					FECStatement->InAsm = .InAsm
+					FECStatement->InConstructionIndex = .InConstructionIndex
+					FECStatement->InConstructionPart = .InConstructionPart
+					If srcLinePtr->MainStatement = srcStmtPtr  Then
+						FECLine->MainStatement = FECStatement
+					End If
+					FECLine->Statements.Add FECStatement
+				End With
+			Next
 			item->Lines.Add FECLine
 		Next i
 	End Sub
@@ -1578,29 +1599,43 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ChangeText(ByRef Value As WString, CharTo As Integer = 0, ByRef Comment As WString = "", SelStartLine As Integer = -1, SelStartChar As Integer = -1, WithoutShow As Boolean = False)
 		If Not WithoutShow Then Changing Comment
-		ChangePos CharTo 
+		ChangePos CharTo
 		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		'If iSelStartLine <> iSelEndLine Or iSelStartChar <> iSelEndChar Then AddHistory
 		If Carets.Count > 0 Then
 			Dim As TypeElement Ptr teCurrent, te
 			Dim bFind As Boolean
+			Dim As Integer LineCountDelta = InStrCount(Value, !"\r" ) - (iSelEndLine - iSelStartLine)
+			Dim As Integer LenValue = Len(Value)
+			Dim As Integer OldStartChar, OldStartLine, OldEndChar, OldEndLine, Pos1
+			Dim As Integer OldFSelStartChar, OldFSelStartLine, OldFSelEndChar = FSelEndChar, OldFSelEndLine = FSelEndLine
 			For i As Integer = 0 To Carets.Count - 1
 				teCurrent = Carets.Object(i)
 				If teCurrent = 0 Then Continue For
+				'If iSelStartLine < teCurrent->StartLine OrElse iSelStartLine > teCurrent->EndLine OrElse _
+				'	iSelEndLine < teCurrent->StartLine OrElse iSelEndLine > teCurrent->EndLine OrElse _
+				'	iSelStartChar > teCurrent->EndChar OrElse iSelEndChar < teCurrent->StartChar OrElse _
+				'	iSelEndChar > teCurrent->EndChar Then Continue For
 				If iSelStartLine >= teCurrent->StartLine AndAlso iSelStartLine <= teCurrent->EndLine AndAlso iSelEndLine >= teCurrent->StartLine AndAlso iSelEndLine <= teCurrent->EndLine AndAlso _
 					IIf(CharTo < 0, iSelStartChar > teCurrent->StartChar, iSelStartChar >= teCurrent->StartChar) AndAlso iSelStartChar <= teCurrent->EndChar AndAlso iSelEndChar >= teCurrent->StartChar AndAlso iSelEndChar <= teCurrent->EndChar Then
-					Var OldStartChar = teCurrent->StartChar
-					Var OldStartLine = teCurrent->StartLine
-					Var OldEndChar = teCurrent->EndChar
-					Var OldEndLine = teCurrent->EndLine
-					Var c = InStrCount(Value, !"\r") - (iSelEndLine - iSelStartLine)
-					teCurrent->EndLine += c
-					If c = 0 Then
-						teCurrent->EndChar += Len(Value) - (iSelEndChar - iSelStartChar)
+					'If CharTo < 0 Then
+					'	If iSelStartChar <= teCurrent->StartChar Then Continue For
+					'Else
+					'	If iSelStartChar < teCurrent->StartChar Then Continue For
+					'End If
+					
+					OldStartChar = teCurrent->StartChar
+					OldStartLine = teCurrent->StartLine
+					OldEndChar = teCurrent->EndChar
+					OldEndLine = teCurrent->EndLine
+					
+					teCurrent->EndLine += LineCountDelta
+					If LineCountDelta = 0 Then
+						teCurrent->EndChar += LenValue - (iSelEndChar - iSelStartChar)
 					Else
-						Var Pos1 = InStrRev(Value, !"\r")
-						teCurrent->EndChar = Len(Value) - Pos1 + teCurrent->EndChar - iSelEndChar
+						Pos1 = InStrRev(Value, !"\r")
+						teCurrent->EndChar = LenValue - Pos1 + teCurrent->EndChar - iSelEndChar
 					End If
 					bFind = True
 					For j As Integer = 0 To Carets.Count - 1
@@ -1608,14 +1643,14 @@ Namespace My.Sys.Forms
 						If te= 0 Then Continue For
 						If te->StartLine > OldStartLine OrElse (te->StartLine = OldStartLine AndAlso te->StartChar > OldStartChar) Then
 							If te->Name = teCurrent->Name Then
-								Var OldFSelStartChar = FSelStartChar
-								Var OldFSelStartLine = FSelStartLine
-								Var OldFSelEndChar = FSelEndChar
-								Var OldFSelEndLine = FSelEndLine
-								FSelStartChar = FSelStartChar + (te->StartChar - OldStartChar)
-								FSelStartLine = FSelStartLine + (te->StartLine - OldStartLine)
-								FSelEndChar = FSelEndChar + (te->EndChar - OldEndChar)
-								FSelEndLine = FSelEndLine + (te->EndLine - OldEndLine)
+								OldFSelStartChar = FSelStartChar
+								OldFSelStartLine = FSelStartLine
+								OldFSelEndChar = FSelEndChar
+								OldFSelEndLine = FSelEndLine
+								FSelStartChar += te->StartChar - OldStartChar
+								FSelStartLine += te->StartLine - OldStartLine
+								FSelEndChar += te->EndChar - OldEndChar
+								FSelEndLine += te->EndLine - OldEndLine
 								ChangeText Value, , , , , True
 								FSelStartChar = OldFSelStartChar
 								FSelStartLine = OldFSelStartLine
@@ -1624,12 +1659,12 @@ Namespace My.Sys.Forms
 							End If
 							If te->StartLine = OldStartLine AndAlso te->StartChar > OldStartChar Then
 								te->StartChar += teCurrent->EndChar - OldEndChar
-								te->StartLine += c
+								te->StartLine += LineCountDelta
 								If te->EndLine = OldStartLine Then te->EndChar += teCurrent->EndChar - OldEndChar
-								te->EndLine += c
+								te->EndLine += LineCountDelta
 							ElseIf te->StartLine > OldStartLine Then
-								te->StartLine += c
-								te->EndLine += c
+								te->StartLine += LineCountDelta
+								te->EndLine += LineCountDelta
 							End If
 						End If
 					Next
@@ -1637,11 +1672,15 @@ Namespace My.Sys.Forms
 			Next
 			If Not bFind Then ClearCarets
 		End If
-		Dim As EditControlLine Ptr ecStartLine = Content.Lines.Item(iSelStartLine), ecEndLine = Content.Lines.Item(iSelEndLine), ecOldLine, ecRemovingLine
+		Dim As EditControlLine Ptr ecStartLine = Content.Lines.Item(iSelStartLine)
+		Dim As EditControlLine Ptr ecEndLine = Content.Lines.Item(iSelEndLine)
+		Dim As EditControlLine Ptr ecOldLine, ecRemovingLine
+		If ecStartLine = 0 OrElse ecEndLine = 0 Then Return
+		'If ecStartLine->Text = 0  OrElse ecEndLine->Text Then Return
 		FECLine = ecStartLine
 		WLetEx(FLine, Mid(*ecEndLine->Text, iSelEndChar + 1))
-		WLetEx(FECLine->Text, .Left(*ecStartLine->Text, iSelStartChar))
-		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, InAsm = False, OldInAsm = ecEndLine->InAsm, Pos1 = 0, p = 1, c = 0, l = 0
+		WLetEx(FECLine->Text, Mid(*ecStartLine->Text, 1, iSelStartChar))
+		Var iC = 0, OldiC = ecEndLine->CommentIndex, OldPreviC = 0, PreviC = 0, InAsm = False, OldInAsm = ecEndLine->InAsm, Pos1 = 0, p = 1, LineIdx = 0, LineLen  = 0
 		If iSelEndLine > 0 Then ecOldLine = Content.Lines.Item(iSelEndLine - 1): PreviC = ecOldLine->CommentIndex: OldPreviC = PreviC: InAsm = ecOldLine->InAsm
 		For i As Integer = iSelEndLine To iSelStartLine + 1 Step -1
 			ecRemovingLine = Content.Lines.Items[i]
@@ -1651,46 +1690,51 @@ Namespace My.Sys.Forms
 			_Delete(ecRemovingLine)
 			OlddwClientX = 0
 		Next i
-		If iSelStartLine > 0 Then iC = Cast(EditControlLine Ptr, Content.Lines.Item(iSelStartLine - 1))->CommentIndex
+		If iSelStartLine > 0 Then
+			Dim As EditControlLine Ptr ecStartLineTmp = Cast(EditControlLine Ptr, Content.Lines.Item(iSelStartLine - 1))
+			If ecStartLineTmp = 0 Then Return
+			iC = ecStartLineTmp->CommentIndex
+		End If
 		Do
 			Pos1 = InStr(p, Value, Chr(13))
-			c = c + 1
+			LineIdx += 1
 			If Pos1 = 0 Then
-				l = Len(Value) - p + 1
+				LineLen = Len(Value) - p + 1
 			Else
-				l = Pos1 - p
+				LineLen = Pos1 - p
 			End If
 			FECLine->InAsm = InAsm
-			If c = 1 Then
-				WAdd(FECLine->Text, Mid(Value, p, l))
+			If LineIdx = 1 Then
+				WAdd(FECLine->Text, Mid(Value, p, LineLen))
 				FECLine->Ends.Clear
 				FECLine->EndsCompleted = False
 				ChangeCollapsibility iSelStartLine
 			Else
 				FECLine = _New( EditControlLine)
-				WLet(FECLine->Text, Mid(Value, p, l))
+				WLet(FECLine->Text, Mid(Value, p, LineLen))
 				OlddwClientX = 0
 				'ecItem->CharIndex = p - 1
-				'ecItem->LineIndex = c - 1
+				'ecItem->LineIndex = LineIdx - 1
 			End If
 			'item->Length = Len(*item->Text)
 			iC = FindCommentIndex(*FECLine->Text, PreviC)
 			FECLine->CommentIndex = iC
 			FECLine->InAsm = InAsm
-			If c > 1 Then
-				If OnLineAdding Then OnLineAdding(*Designer, This, iSelStartLine + c - 1)
-				Content.Lines.Insert iSelStartLine + c - 1, FECLine
-				If OnLineAdded Then OnLineAdded(*Designer, This, iSelStartLine + c - 1)
-				ChangeCollapsibility iSelStartLine + c - 1
+			If LineIdx > 1 Then
+				If OnLineAdding Then OnLineAdding(*Designer, This, iSelStartLine + LineIdx - 1)
+				Content.Lines.Insert iSelStartLine + LineIdx - 1, FECLine
+				If OnLineAdded Then OnLineAdded(*Designer, This, iSelStartLine + LineIdx - 1)
+				ChangeCollapsibility iSelStartLine + LineIdx - 1
 			End If
 			If FECLine->ConstructionIndex = C_Asm Then
 				InAsm = FECLine->ConstructionPart = 0
 			End If
 			FECLine->InAsm = InAsm
-			p = Pos1 + 1
+			If Pos1 < 1 Then Exit Do
+			p = Pos1 + 1  ' 如果是 Windows 的 \r\n 换行，此处可能需要改为 Pos1 + 2
 			PreviC = iC
-		Loop While Pos1 > 0
-		FSelStartLine = iSelStartLine + c - 1
+		Loop
+		FSelStartLine = iSelStartLine + LineIdx - 1
 		FSelStartChar = Len(*FECLine->Text)
 		WLet(Cast(EditControlLine Ptr, Content.Lines.Item(FSelStartLine))->Text, *FECLine->Text & *FLine)
 		ChangeCollapsibility FSelStartLine
@@ -1700,7 +1744,7 @@ Namespace My.Sys.Forms
 			iC = OldPreviC
 			For i As Integer = iSelStartLine To Content.Lines.Count - 1 ' + 1
 				FECLine = Cast(EditControlLine Ptr, Content.Lines.Item(i))
-				If FECLine= 0 Then Continue For
+				If FECLine = 0 Then Continue For
 				'Item->CharIndex = p - 1
 				'Item->LineIndex = i
 				iC = FindCommentIndex(*FECLine->Text, iC)
@@ -1711,7 +1755,7 @@ Namespace My.Sys.Forms
 		If OldInAsm <> InAsm Then
 			For i As Integer = iSelStartLine To Content.Lines.Count - 1
 				FECLine = Cast(EditControlLine Ptr, Content.Lines.Item(i))
-				If FECLine= 0 Then Continue For
+				If FECLine = 0 Then Continue For
 				If FECLine->ConstructionIndex = C_Asm Then
 					InAsm = FECLine->ConstructionPart = 0
 				End If
@@ -1761,7 +1805,7 @@ Namespace My.Sys.Forms
 		If Value Then
 			WLetEx(Value, Replace(*Value, Chr(13, 10), Chr(13)))
 			'WLetEx(Value, Replace(*Value, Chr(10), Chr(13)))
-			ChangeText *Value, 0, "Xotiradan qo`yildi"
+			ChangeText *Value, 0, "Paste From Clipboard"
 			WDeAllocate(Value)
 		End If
 	End Sub

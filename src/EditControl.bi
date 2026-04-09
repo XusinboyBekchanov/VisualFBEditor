@@ -194,8 +194,8 @@ Namespace My.Sys.Forms
 		ElementType As ElementTypes
 		Parameters As UString
 		Comment As UString
-		FileName As UString
-		IncludeFile As UString
+		FileName As WString * MAX_PATH
+		IncludeFile As WString * MAX_PATH
 		TypeIsPointer As Boolean
 		Declaration As Boolean
 		Locals As Integer
@@ -295,7 +295,7 @@ Namespace My.Sys.Forms
 		Dim iPos As Integer
 		Dim As Boolean CStyle
 		DateChanged As Double
-		FileName As UString
+		FileName As WString * MAX_PATH
 		FileLists As List
 		FileListsLines As List
 		Includes As WStringList

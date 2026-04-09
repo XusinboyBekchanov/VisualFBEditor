@@ -9297,14 +9297,14 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate((tmpBodyWStrPtr) ): Return
 	End If
 	If AIBodyWStringPtr = 0 Then _Deallocate((tmpBodyWStrPtr) ): Return
-	'                                      'qwen/qwen3.6-plus:free|OpenRouter    OpenRouter              'Silicon                           NO Thinking                                      'Nvidia
-	Dim As String ContentStart(0 To 5) = {  """content"":"""    ,           """content"":""",          """content"":""",              """content"":""",             """content"":""",                ",""content"":"""   }
-	Dim As String ContentEnd(0 To 5) = {   """,""role"":""assistant",        """,""reasoning"":null",   """,""reasoning_content"":null", """},""logprobs"":null",    """},""finish_reason""",       """,""tool_calls"":"   }
-	Dim As String ReasoningStart(0 To 3) = {",""reasoning"":"""       ,      ",""reasoning"":""",       ",""reasoning_content"":""",        ",""reasoning_content"":"""                    }
-	Dim As String ReasoningEnd(0 To 3) = {  """,""reasoning_details"":" ,   """},""finish_reason""",     """,""role"":""",                  """},"""                                          }
+	'                                      'qwen/qwen3.6-plus:free|OpenRouter    OpenRouter              'Silicon                       'GLM                          NO Thinking                                      'Nvidia
+	Dim As String ContentStart(0 To 6) = {  """content"":"""    ,           """content"":""",           """content"":""",                """content"":""",           """content"":""",             """content"":""",                ",""content"":"""   }
+	Dim As String ContentEnd(0 To 6) = {   """,""role"":""assistant",        """,""reasoning"":null",   """,""reasoning_content"":null", """}}]}",                    """},""logprobs"":null",    """},""finish_reason""",       """,""tool_calls"":"   }
+	Dim As String ReasoningStart(0 To 4) = {",""reasoning"":"""       ,      ",""reasoning"":""",       ",""reasoning_content"":""",     ",""reasoning_content"":""", ",""reasoning_content"":"""                    }
+	Dim As String ReasoningEnd(0 To 4) = {  """,""reasoning_details"":" ,    """},""finish_reason""",     """,""role"":""",               """}}]}",                   """},"""                                          }
 	'","role":"assistant   ,"reasoning":"  ","role":"assistant"
 	Dim As WString Ptr Buff()
-	Dim As Integer k, iPos1, iPos2, iPos3, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
+	Dim As Integer k, iPosEnd, iPosStart, iPos3, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
 	ThreadsEnter
 	For i As Integer = 0 To BuffCount - 1
@@ -9314,23 +9314,23 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
 			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
 			binReason = False
-			For k = 0 To UBound(ReasoningStart)
-				iPos1 = InStr(LCase(*Buff(i)), ReasoningStart(k))
-				If iPos1 > 0 Then 'For think model
-					iPos2 = InStr(iPos1, LCase(*Buff(i)), ReasoningEnd(k))
-					If iPos2 Then
+			For k = 0 To UBound(ReasoningEnd)
+				iPosEnd = InStr(LCase(*Buff(i)), ReasoningEnd(k))
+				If iPosEnd > 0 Then 'For think model
+					iPosStart = InStrRev(LCase(*Buff(i)), ReasoningStart(k), iPosEnd)
+					If iPosStart Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
 							txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 							txtAIAgent.SelEnd = txtAIAgent.SelStart
 							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
-						'Print "REASON:" & (iPos2 - iPos1 - Len(ReasoningStart(k)))
-						iPos3 = iPos2 - iPos1 - Len(ReasoningStart(k))
+						'Print "REASON:" & (iPosStart - iPosEnd - Len(ReasoningStart(k)))
+						iPos3 = iPosEnd - iPosStart - Len(ReasoningStart(k))
 						If iPos3 > 0 Then
 							binReason = True
 							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ReasoningStart(k)), iPos3))
+							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ReasoningStart(k)), iPos3))
 							If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
 						End If
 						Exit For
@@ -9338,23 +9338,23 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				End If
 			Next
 			If Not binReason Then
-				For k = 0 To UBound(ContentStart)
-					iPos1 = InStr(LCase(*Buff(i)), ContentStart(k))
+				For k = 0 To UBound(ContentEnd)
+					iPosEnd = InStr(LCase(*Buff(i)), ContentEnd(k))
 					'"finish_reason":"stop"
-					If iPos1 > 0 Then
-						iPos2 = InStr(iPos1, LCase(*Buff(i)), ContentEnd(k))
-						If iPos2 > 0 Then
+					If iPosEnd > 0 Then
+						iPosStart = InStrRev(LCase(*Buff(i)), ContentStart(k), iPosEnd)
+						If iPosStart > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
 								txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 								txtAIAgent.SelEnd = txtAIAgent.SelStart
 								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
-							'Print "CONT:" & (iPos2 - iPos1 - Len(ContentStart(k)))
-							iPos3 = iPos2 - iPos1 - Len(ContentStart(k))
+							'Print "CONT:" & (iPosStart - iPosEnd - Len(ContentStart(k)))
+							iPos3 = iPosEnd - iPosStart - Len(ContentStart(k))
 							If iPos3 > 0 Then
 								_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-								AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPos1 + Len(ContentStart(k)), iPos3))
+								AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ContentStart(k)), iPos3))
 								If AIBodyWStringPtr <> 0 Then
 									WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr)
 									AIPrintAnswer(*AIBodyWStringPtr)
@@ -9364,12 +9364,12 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						End If
 					End If
 				Next
-				iPos2 = InStr(*Buff(i), ",""usage"":")
-				If iPos2 Then
+				iPosStart = InStr(*Buff(i), ",""usage"":")
+				If iPosStart Then
 					k = InStr(*Buff(i), """total_tokens"":")  '15
 					If k < 1 Then iPos3 = Len(*Buff(i)) Else iPos3 = InStr(k, *Buff(i), ",")
 					If iPos3 < 1 Then iPos3 = Len(*Buff(i))
-					*Buff(i) = Mid(*Buff(i), iPos2 + 10, iPos3 - iPos2 - 10)
+					*Buff(i) = Mid(*Buff(i), iPosStart + 10, iPos3 - iPosStart - 10)
 					ShowMessages(*Buff(i))
 				End If
 			End If
@@ -9380,7 +9380,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 					ShowMessages(*Buff(i))
 					#ifndef __USE_GTK__
-						If iPos1  > 0 Then
+						If iPosEnd  > 0 Then
 							If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
 								If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
 							ElseIf  AIAssistantsAnswersPtr Then
