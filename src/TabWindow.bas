@@ -412,11 +412,11 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	TabAdding = True
 	MouseHoverTimerVal = Timer
 	Dim bFind As Boolean
-	Dim As UString FileNameNew
+	Dim As WString * MAX_PATH FileNameNew
 	Dim As TabWindow Ptr tb
 	FileNameNew = FileName
 	Dim As Double timeElapse = Timer
-	If EndsWith(FileNameNew, ":") Then FileNameNew = ..Left(FileNameNew, Len(FileNameNew) - 1)
+	If EndsWith(FileNameNew, ":") Then FileNameNew = Mid(FileNameNew, 1, Len(FileNameNew) - 1)
 	If FileName <> "" Then
 		Dim As TabControl Ptr ptabCode
 		For j As Integer = 0 To TabPanels.Count - 1
@@ -488,10 +488,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 					Dim As UString LineTrim
 					Dim bChanged As Boolean
 					If TreeN <> 0 Then
-						NewFormName = ..Left(TreeN->Text, Len(TreeN->Text) - 5)
+						NewFormName = Mid(TreeN->Text, 1, Len(TreeN->Text) - 5)
 					End If
 					For i As Integer = 0 To .txtCode.LinesCount - 1
-						LeftSpace = Left(.txtCode.Lines(i), Len(.txtCode.Lines(i)) - Len(Trim(.txtCode.Lines(i), Any !"\t ")))
+						LeftSpace = Mid(.txtCode.Lines(i), 1, Len(.txtCode.Lines(i)) - Len(Trim(.txtCode.Lines(i), Any !"\t ")))
 						LineTrim = Trim(.txtCode.Lines(i), Any !"\t ")
 						bChanged = False
 						If CreateFormTypesWithoutTypeWord Then
@@ -559,10 +559,10 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			End If
 			ChangeFileEncoding tb->FileEncoding
 			ChangeNewLineType tb->NewLineType
-			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption &  " FormDesign: " & Format((Timer - timeElapse), "0.000s") ' Not working fine?
+			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption & " FormDesign: " & Format((Timer - timeElapse), "0.000s")
 			timeElapse = Timer
 			.FormDesign '(bNoActivate)
-			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption &  " / " & Format((Timer - timeElapse), "0.000s") ' Not working fine?
+			pstBar->Panels[1]->Caption = pstBar->Panels[1]->Caption & " / " & Format((Timer - timeElapse), "0.000s")
 			If CBool(FileName <> "") AndAlso CBool(tb->Project <> 0) AndAlso (EndsWith(FileName, "Form.frm") OrElse EndsWith(FileName, "UserControl.bas")) Then
 				If Not tb->Project->Components.Contains("Controls/MyFbFramework") Then tb->Project->Components.Add "Controls/MyFbFramework"
 			End If
