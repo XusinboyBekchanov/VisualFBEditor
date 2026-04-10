@@ -3254,6 +3254,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 	If tb->txtCode.SyntaxEdit AndAlso Not tb->txtCode.Content.CStyle Then
 		If CurrentLine > -1 AndAlso CurrentLine < tb->txtCode.Content.Lines.Count Then
 			Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[CurrentLine])
+			If ecl = 0 Then Return
 			ecl->OldConstructionIndex = ecl->ConstructionIndex
 			ecl->OldConstructionPart = ecl->ConstructionPart
 		End If
@@ -3313,8 +3314,10 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 								AndAlso eclFirst->OldConstructionIndex <> eclFirst->ConstructionIndex Then
 								For j As Integer = OldLine To .Content.Lines.Count - 1
 									ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[j])
+									If ecl = 0 Then Return
 									For i As Integer = 0 To ecl->Statements.Count - 1
 										ecs = ecl->Statements.Item(i)
+										If ecs = 0 Then Return
 										If Not bFind Then
 											If ecs->ConstructionIndex = ecl->ConstructionIndex AndAlso ecs->ConstructionPart = 0 Then
 												bFind = True
@@ -3332,10 +3335,11 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 															End If
 														Next
 													Else
-														Dim As UString Text, TextOld
+														Dim As WString * 4096 Text, TextOld
 														Dim As Integer s = 1
 														For k As Integer = 0 To i - 1
 															ecsOld = ecl->Statements.Item(k)
+															If ecsOld = 0 Then Return
 															Text &= Mid(*ecl->Text, s, Len(*ecsOld->Text)) & ":"
 															s += Len(*ecsOld->Text) + 1
 														Next
@@ -3365,7 +3369,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 														OrElse EndsWith(LCase(Trim(*ecs->Text, Any !"\t ")), LCase(" Exit " & Constructions(eclFirst->OldConstructionIndex).Name0)) _
 														OrElse CBool(LCase(Trim(*ecs->Text, Any !"\t ")) = LCase("Continue " & Constructions(eclFirst->OldConstructionIndex).Name0)) _
 														OrElse EndsWith(LCase(Trim(*ecs->Text, Any !"\t ")), LCase(" Continue " & Constructions(eclFirst->OldConstructionIndex).Name0)) Then
-														Dim As UString Text, TextOld
+														Dim As WString * 4096 Text, TextOld
 														Dim As Integer s = 1
 														For k As Integer = 0 To i - 1
 															ecsOld = ecl->Statements.Item(k)
@@ -5814,7 +5818,7 @@ Sub OnKeyDownEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key 
 		Select Case Mid(*sLine, iSelEndChar, 1)
 		Case Slash, BackSlash
 			If StartsWith(LCase(Trim(*sLine, Any !"\t ")), "#include") Then
-				Dim sTemp As WString * 1024
+				Dim sTemp As WString * 2048
 				Var Pos1 = InStr(Left(*sLine, iSelEndChar - 1), """")
 				If Pos1 = 0 Then Exit Sub
 				sTemp = Mid(*sLine, Pos1 + 1, iSelEndChar - Pos1 - 1)
@@ -6050,9 +6054,9 @@ Sub OnKeyPressEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key
 		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		Dim sLine As WString Ptr = @tb->txtCode.Lines(iSelEndLine)
 		If sLine= 0 OrElse Trim(*sLine, Any !"\t ") = "" Then Return
-		Dim sTemp As WString * 1024
+		Dim sTemp As WString * 2048
 		sTemp = Mid(*sLine, tb->txtCode.DropDownChar + 1, iSelEndChar + 1 - (tb->txtCode.DropDownChar + 1))
-		Static OldWord As WString * 200
+		Static OldWord As WString * 1024
 		If tb->txtCode.FileDropDown Then
 			FillFileIntellisenses *tb->txtCode.DropDownPath, sTemp
 		Else
