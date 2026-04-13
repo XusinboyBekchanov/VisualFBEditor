@@ -1,4 +1,6 @@
 ﻿'BASS for freebasic translate by Cm.Wang
+' Copyright (c) 2025 CM.Wang
+' Freeware. Use at your own risk.
 
 #include once "BassPlayback.bi"
 #pragma once
@@ -14,14 +16,14 @@ End Destructor
 
 Private Sub BassPlayback.Pause()
 	If (PlayStream) Then
-		Bass_ChannelPause(PlayStream)
+		BASS_ChannelPause(PlayStream)
 		PlayStatus = BassStatus.BassPause
 	End If
 End Sub
 
 Private Sub BassPlayback.Play()
 	If (PlayStream) Then
-		Bass_ChannelPlay(PlayStream, 0)
+		BASS_ChannelPlay(PlayStream, 0)
 		PlayStatus = BassStatus.BassPlay
 	End If
 End Sub

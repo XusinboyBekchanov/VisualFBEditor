@@ -1,4 +1,12 @@
+https://www.un4seen.com/
+
+BASS is an audio library for use in software on several platforms. Its purpose is to provide developers with powerful and efficient sample, stream (MP3, MP2, MP1, OGG, WAV, AIFF, custom generated, and more via OS codecs and add-ons), MOD music (XM, IT, S3M, MOD, MTM, UMX), MO3 music (MP3/OGG compressed MODs), and recording functions. All in a compact DLL that won't bloat your distribution.
+C/C++, Delphi, and Visual Basic APIs are provided, with several examples to get you started. .NET and other APIs are also available.
+BASS is also available for the UWP platform, and ARM64 Windows.
+
 # BassAudio
+
+Bass audio library Example for VisualFBEditor (freeBasic)
 
 #### Playback 
 

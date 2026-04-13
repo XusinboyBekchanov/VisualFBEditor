@@ -1,4 +1,6 @@
 ﻿'BASS for freebasic translate by Cm.Wang
+' Copyright (c) 2025 CM.Wang
+' Freeware. Use at your own risk.
 
 #pragma once
 
