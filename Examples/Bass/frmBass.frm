@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿'BassAudio
+' Copyright (c) 2026 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -6,11 +10,11 @@
 		#endif
 		Const _MAIN_FILE_ = __FILE__
 	#endif
-	'#ifdef __FB_64BIT__
-	'	#libpath "./lib/win64"
-	'#else
-	'	#libpath "./lib/win32"
-	'#endif
+	#ifdef __FB_64BIT__
+		#libpath "./lib/win64"
+	#else
+		#libpath "./lib/win32"
+	#endif
 	#include once "mff/Form.bi"
 	#include once "mff/GroupBox.bi"
 	#include once "mff/CommandButton.bi"
@@ -727,7 +731,6 @@
 			.Text = ""
 			.TabIndex = 50
 			.BorderStyle = BorderStyles.bsNone
-			.BackColor = 12632256
 			.SetBounds 20, 37, 368, 117
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Picture_Click)
@@ -4038,6 +4041,7 @@ Private Sub frmBassType.CheckBox_Click(ByRef Sender As CheckBox)
 		End If
 	Case "chkDarkMode"
 		App.DarkMode = chkDarkMode.Checked
+		InvalidateRect(Handle, NULL, False)
 	Case Else
 		FxEnabled(Sender.Name, Sender.Checked, StreamSelected())
 	End Select
@@ -4763,25 +4767,25 @@ End Sub
 
 Private Function frmBassType.FxIndex(fxName As WString) As Integer
 	Select Case fxName
-	Case "Chorus"
+	Case chkExChorus.Name
 		Return 1
-	Case "Compression"
+	Case chkExCompression.Name
 		Return 2
-	Case "Distortion"
+	Case chkExDistortion.Name
 		Return 3
-	Case "Echo"
+	Case chkExEcho.Name
 		Return 4
-	Case "Flanger"
+	Case chkExFlanger.Name
 		Return 5
-	Case "Gargle"
+	Case chkExGargle.Name
 		Return 6
-	Case "3D"
+	Case chkEx3D.Name
 		Return 7
-	Case "Equalizer"
+	Case chkExEqualizer.Name
 		Return 8
-	Case "Reverb"
+	Case chkExReverb.Name
 		Return 9
-	Case "Volume"
+	Case chkExVolume.Name
 		Return 10
 	End Select
 End Function
@@ -4885,7 +4889,6 @@ Private Sub frmBassType.tbEQ00_Change(ByRef Sender As TrackBar, Position As Inte
 	bfdEQ(i).fGain = 0 - Position
 	BASS_FXSetParameters(fxEQHdl(i), @bfdEQ(i))
 End Sub
-
 
 Private Sub frmBassType.Picture1_Resize(ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
 	bSpectrum.Init(ScaleX(NewWidth), ScaleY(NewHeight))
