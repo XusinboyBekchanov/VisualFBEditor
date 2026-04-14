@@ -177,7 +177,7 @@ Common Shared As Integer IncludeMFFPath
 Common Shared As Integer gSearchItemIndex
 Common Shared As Integer InterfaceFontSize
 Common Shared As Integer LastOpenedFileType
-Common Shared As Integer LoadFunctionsCount, AIAgentPort
+Common Shared As Integer LoadFunctionsCount, AIAgentPort, AIAgentContentSize
 Common Shared As Boolean AIAgentStream
 Common Shared As Double  AIAgentTop_P, AIAgentTemperature '介于 0 和 2 之间.
 Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName, AIRTF_HEADER, AIEditorFontName
@@ -226,6 +226,7 @@ Type ModelInfo
 	Provider As String
 	Port As Integer
 	Stream As Boolean
+	ContentSize As Integer
 	Temperature As Single '介于 0 和 2 之间.
 	Top_P As Single ' 《=1
 	Response_Format As String 'json_object

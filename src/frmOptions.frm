@@ -2743,6 +2743,7 @@ pfOptions = @fOptions
 		lvTerminalPaths.Columns.Add ML("Command line"), , 80
 		lvHelpPaths.Columns.Add ML("Version"), , 190
 		lvHelpPaths.Columns.Add ML("Path"), , 190
+		
 		lvAIAgentTypes.Columns.Add ML("Name"), , 190
 		lvAIAgentTypes.Columns.Add ML("Host"), , 100
 		lvAIAgentTypes.Columns.Add ML("Port"), , 50
@@ -2753,6 +2754,7 @@ pfOptions = @fOptions
 		lvAIAgentTypes.Columns.Add ML("Temperature"), , 50
 		lvAIAgentTypes.OnItemActivate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer), @lvAIAgentTypes_ItemActivate)
 		lvAIAgentTypes.Columns.Add ML("Stream"), , 50
+		lvAIAgentTypes.Columns.Add ML("Content"), , 100
 		' hbxEditors
 		With hbxEditors
 			.Name = "hbxEditors"
@@ -3637,6 +3639,7 @@ Sub frmOptions.LoadSettings()
 			.lvAIAgentTypes.ListItems.Item(i)->Text(6) = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
 			.lvAIAgentTypes.ListItems.Item(i)->Text(7) = Str(Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature)
 			.lvAIAgentTypes.ListItems.Item(i)->Text(8) = Str(Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream)
+			.lvAIAgentTypes.ListItems.Item(i)->Text(9) = Str(Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ContentSize\ 1024)
 			.cboAIAgent.AddItem pAIAgents->Item(i)->Key
 		Next
 		.cboAIAgent.ItemIndex = Max(0, .cboAIAgent.IndexOf(*DefaultAIAgent))
@@ -4180,6 +4183,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			Model->APIKey = .lvAIAgentTypes.ListItems.Item(i)->Text(6)
 			Model->Temperature = Val(.lvAIAgentTypes.ListItems.Item(i)->Text(7))
 			Model->Stream = CBool(.lvAIAgentTypes.ListItems.Item(i)->Text(8))
+			Model->ContentSize = Val(.lvAIAgentTypes.ListItems.Item(i)->Text(9)) * 1024
 			pAIAgents->Add tempStr, .lvAIAgentTypes.ListItems.Item(i)->Text(1), Model
 		Next
 		If *DefaultAIAgent <> IIf(.cboAIAgent.ItemIndex = 0, "", .cboAIAgent.Text) OrElse Not pAIAgents->ContainsKey(*CurrentAIAgent) Then
@@ -4328,6 +4332,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			piniSettings->WriteFloat "AIAgents", "Temperature_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature
 			piniSettings->WriteFloat "AIAgents", "Top_P_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Top_P
 			piniSettings->WriteBool "AIAgents", "Stream_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream
+			piniSettings->WriteInteger "AIAgents", "ContentSize_" & WStr(i),  Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ContentSize \ 1024
 			If *CurrentAIAgent = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Name Then
 				AIAgentModelName = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ModelName
 				AIAgentProvider = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Provider
@@ -4337,6 +4342,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 				AIAgentAPIKey = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->APIKey
 				AIAgentTemperature = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Temperature
 				AIAgentStream  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->Stream  
+				AIAgentContentSize  = Cast(ModelInfo Ptr, pAIAgents->Item(i)->Object)->ContentSize
 			End If
 		Next
 		i = pAIAgents->Count
@@ -4351,6 +4357,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			piniSettings->KeyRemove "AIAgents", "Temperature_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "Top_P_" & WStr(i)
 			piniSettings->KeyRemove "AIAgents", "Stream_" & WStr(i)
+			piniSettings->KeyRemove "AIAgents", "ContentSize_" & WStr(i)
 			i += 1
 		Loop
 		piniSettings->WriteString "Compilers", "DefaultCompiler32", *DefaultCompiler32
@@ -5649,6 +5656,7 @@ Private Sub frmOptions.cmdAddAIAgent_Click(ByRef Sender As Control)
 				lvi->Text(6) = frmAIAgent.txtAIAgentAPIKey.Text
 				lvi->Text(7) = frmAIAgent.updnAIAgentTemperature.Text
 				lvi->Text(8) = Str(frmAIAgent.chkAIAgentStream.Checked)
+				lvi->Text(9) = frmAIAgent.cboAIAgentContentSize.Text
 				.cboAIAgent.AddItem frmAIAgent.txtAIAgentName.Text
 				cboAIAgentModels.AddItem frmAIAgent.txtAIAgentName.Text
 			Else
@@ -5684,6 +5692,7 @@ Private Sub frmOptions.cmdChangeAIAgent_Click(ByRef Sender As Control)
 		frmAIAgent.txtAIAgentAPIKey.Text = .lvAIAgentTypes.SelectedItem->Text(6)
 		frmAIAgent.updnAIAgentTemperature.Text = .lvAIAgentTypes.SelectedItem->Text(7)
 		frmAIAgent.chkAIAgentStream.Checked = IIf(LCase(.lvAIAgentTypes.SelectedItem->Text(8)) = "true", True, False)
+		frmAIAgent.cboAIAgentContentSize.Text = .lvAIAgentTypes.SelectedItem->Text(9)
 		If frmAIAgent.ShowModal(fOptions) = ModalResults.OK Then
 			If .lvAIAgentTypes.SelectedItem->Text(0) = frmAIAgent.txtAIAgentName.Text OrElse .cboAIAgent.IndexOf(frmAIAgent.txtAIAgentName.Text) = -1 Then
 				Var i = .cboAIAgent.IndexOf(.lvAIAgentTypes.SelectedItem->Text(0))
@@ -5699,6 +5708,7 @@ Private Sub frmOptions.cmdChangeAIAgent_Click(ByRef Sender As Control)
 				.lvAIAgentTypes.SelectedItem->Text(6) = frmAIAgent.txtAIAgentAPIKey.Text
 				.lvAIAgentTypes.SelectedItem->Text(7) = frmAIAgent.updnAIAgentTemperature.Text
 				.lvAIAgentTypes.SelectedItem->Text(8) = Str(frmAIAgent.chkAIAgentStream.Checked)
+				.lvAIAgentTypes.SelectedItem->Text(9) = frmAIAgent.cboAIAgentContentSize.Text
 			Else
 				MsgBox ML("This name is exists!")
 			End If
