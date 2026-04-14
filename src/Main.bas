@@ -9565,20 +9565,24 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	Dim As Boolean bShouldSend
 	Dim As Integer  AIContextCount = AIContext.Count - 1
 	For j As Integer = 0 To AIContextCount
-		FileName = AIContext.Item(j)->Key
-		If InStr(txtAIRequest.Text, "MyFbFramework") > 0 Then bShouldSend = True
-		If InStr(txtAIRequest.Text, "MFF") > 0 Then bShouldSend = True
-		If InStr(txtAIRequest.Text, "Interface") > 0 Then bShouldSend = True
-		If InStr(txtAIRequest.Text, "GUI ") > 0 Then bShouldSend = True
+		filename = AIContext.Item(j)->Key
+		'Debug.Print FileName & " j=" & j
+		bShouldSend = False
+		'If InStr(FileName, "MyFbFramework") Then
+		'	If InStr(txtAIRequest.Text, "MyFbFramework") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "MFF") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "Interface") > 0 Then bShouldSend = True
+		'	If InStr(txtAIRequest.Text, "GUI ") > 0 Then bShouldSend = True
+		'
 		If j = 0 Then
 			bShouldSend = True 'MyFbFramework must be send
 		Else
-			If InStr(FileName, "VisualFBEditor") Then
+			If InStr(filename, "VisualFBEditor") Then
 				If InStr(txtAIRequest.Text, "VisualFBEditor") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "VFBE") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "IDE") > 0 Then bShouldSend = True
 			Else
-				bShouldSend = InStr(txtAIRequest.Text, FileName)
+				bShouldSend = InStr(txtAIRequest.Text, filename)
 			End If
 		End If
 		If bShouldSend AndAlso CBool(AIIncludeFileNameList.Count < 1 OrElse Not AIIncludeFileNameList.Contains(FileName)) Then
