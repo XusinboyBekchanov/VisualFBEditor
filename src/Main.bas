@@ -9219,10 +9219,10 @@ Sub AIPrintAnswer(ByRef Content As WString)
 End Sub
 
 Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
-	' Validate overlap parameter
-	Dim As Integer Overlap, chunkSizeNew = IIf(chunkSize < 4000, 4000, chunkSize)
-	If Overlap >= chunkSizeNew  OrElse Overlap < 0 Then
-		Overlap = chunkSizeNew \ 20
+	' Validate OverlapNew parameter
+	Dim As Integer OverlapNew, chunkSizeNew = IIf(chunkSize < 4000, 4000, chunkSize)
+	If OverlapNew >= chunkSizeNew  OrElse OverlapNew < 0 Then
+		OverlapNew = chunkSizeNew \ 20
 	End If
 	
 	' Initialize variables
@@ -9234,7 +9234,7 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 	End If
 	
 	' Calculate estimated chunks with a safer margin
-	Dim As Integer EstimatedChunks = (TextLength \ (chunkSizeNew - Overlap)) + 2
+	Dim As Integer EstimatedChunks = (TextLength \ (chunkSizeNew - OverlapNew)) + 2
 	ReDim Chunks(EstimatedChunks - 1)
 	Dim ChunkCount As Integer = 0
 	
@@ -9284,8 +9284,8 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 		Chunks(ChunkCount) = Mid(iText, startPos, lastGoodPos - startPos + 1)
 		If endPos >= TextLength Then Exit Do
 		ChunkCount += 1
-		' Adjust start position with overlap
-		startPos = lastGoodPos - Overlap + 1
+		' Adjust start position with OverlapNew
+		startPos = lastGoodPos - OverlapNew + 1
 	Loop
 	
 	' Adjust array to actual size
