@@ -1,4 +1,8 @@
-﻿'#Region "Form"
+﻿'LiveFX
+' Copyright (c) 2025 CM.Wang
+' Freeware. Use at your own risk.
+
+'#Region "Form"
 	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
 		#define __MAIN_FILE__
 		#ifdef __FB_WIN32__
@@ -292,7 +296,7 @@
 	
 	#if _MAIN_FILE_ = __FILE__
 		App.DarkMode = True
-		frmLiveFX.MainForm = true 
+		frmLiveFX.MainForm = True 
 		frmLiveFX.Show
 		App.Run
 	#endif
@@ -316,7 +320,7 @@ Private Function frmLiveFXType.StreamProc(ByVal handle As HSTREAM, ByVal buffer 
 		If (got < IIf(buftarget, buftarget, length)) Then Return 0 ';  haven 't got enough yet
 		prebuf = False
 		ratedelay = 10
-	End If
+	EndIf
 	Dim As DWORD r = rate
 	If (buftarget) Then
 		#if 1 ' target buffer amount = minimum

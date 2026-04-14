@@ -1,4 +1,6 @@
 ﻿'BASS for freebasic translate by Cm.Wang
+' Copyright (c) 2025 CM.Wang
+' Freeware. Use at your own risk.
 
 #pragma once
 
@@ -6,8 +8,8 @@
 #include once "string.bi"
 #include once "bass.bi"
 
-#define BASS_SYNC_HLS_SEGMENT	&H10300
-#define BASS_TAG_HLS_EXTINF		&h14000
+#define BASS_SYNC_HLS_SEGMENT   &H10300
+#define BASS_TAG_HLS_EXTINF     &h14000
 
 Enum BassStatus
 	BassStop

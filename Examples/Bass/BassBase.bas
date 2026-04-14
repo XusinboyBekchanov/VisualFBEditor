@@ -1,11 +1,13 @@
 ﻿'BASS for freebasic translate by Cm.Wang
+' Copyright (c) 2025 CM.Wang
+' Freeware. Use at your own risk.
 
 #include once "BassBase.bi"
 #pragma once
 
 Private Function Len2Str(Stream As HSTREAM, ByVal D As QWORD) As String
 	Dim pt As Integer
-	pt = BASS_ChannelBytes2Seconds(Stream, d)
+	pt = BASS_ChannelBytes2Seconds(Stream, D)
 	Dim s As String = Format(pt \ 60, "0") & ":" & Format(pt Mod 60, "00")
 	Return s
 End Function
@@ -15,7 +17,7 @@ Private Function OutputDeviceList(ByRef cbx As ComboBoxEdit Ptr) As Integer
 	Dim As Integer c = 0, def = -1
 	Dim As BASS_DEVICEINFO di
 	cbx->Clear
-	While Bass_GetDeviceInfo(c, @di)
+	While BASS_GetDeviceInfo(c, @di)
 		cbx->AddItem *Cast(ZString Ptr, di.name)
 		If (di.flags And BASS_DEVICE_DEFAULT) Then ' got the default device
 			def = c
