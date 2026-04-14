@@ -414,9 +414,10 @@ Namespace My.Sys.Forms
 		If HistoryItem = 0 OrElse oldItem = 0 Then Return
 		If HistoryItem->Lines.Count < 1 Then Return
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
-			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			_Delete(Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			Content.Lines.Remove i
 		Next i
-		Content.Lines.Clear
+		'Content.Lines.Clear
 		Dim As EditControlStatement Ptr srcStmtPtr
 		Dim As EditControlLine Ptr srcLinePtr
 		For i As Integer = 0 To HistoryItem->Lines.Count - 1
@@ -428,6 +429,7 @@ Namespace My.Sys.Forms
 			With *srcLinePtr
 				If .Text = 0 Then Continue For
 				WLet(FECLine->Text, * (.Text))
+				If FECLine->Text = 0 Then Return
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -512,6 +514,7 @@ Namespace My.Sys.Forms
 				FECLine = _New( EditControlLine)
 				If .Text = 0 OrElse FECLine = 0 Then  Continue For
 				WLet(FECLine->Text, * (.Text))
+				If FECLine->Text = 0 Then Return
 				FECLine->Breakpoint = .Breakpoint
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
@@ -534,7 +537,7 @@ Namespace My.Sys.Forms
 				If srcStmtPtr = 0 Then Continue For
 				With *srcStmtPtr
 					FECStatement = _New( EditControlStatement)
-					If .Text = 0 Then Continue For
+					If .Text = 0 OrElse FECStatement = 0 Then Continue For
 					WLet(FECStatement->Text, * (.Text))
 					FECStatement->ConstructionIndex = .ConstructionIndex
 					FECStatement->ConstructionPart = .ConstructionPart
@@ -558,7 +561,7 @@ Namespace My.Sys.Forms
 			_Delete( Cast(EditControlHistory Ptr, FHistory.Items[i]))
 			FHistory.Remove i
 		Next i
-		If Index = 0 Then FHistory.Clear
+		If Index < 1 Then FHistory.Clear
 	End Sub
 	
 	'Function TextWithoutQuotesAndComments(subject As String, OldCommentIndex As Integer = 0, WithoutComments As Boolean = True, WithoutBracket As Boolean = False, WithoutDoubleSpaces As Boolean = False) As String
@@ -846,6 +849,7 @@ Namespace My.Sys.Forms
 		Dim As EditControlLine Ptr FECLine2
 		Dim As EditControlStatement Ptr FECStatement
 		OlddwClientX = 0
+		If FECLine = 0 OrElse FECLine->Text = 0 Then Return
 		FECLine->Collapsed = Value
 		If FECLine->Collapsed Then
 			FECLine->CollapsedFully = True
@@ -1711,7 +1715,9 @@ Namespace My.Sys.Forms
 				ChangeCollapsibility iSelStartLine
 			Else
 				FECLine = _New( EditControlLine)
+				If FECLine = 0 Then Return
 				WLet(FECLine->Text, Mid(Value, p, LineLen))
+				If FECLine->Text = 0 Then Return
 				OlddwClientX = 0
 				'ecItem->CharIndex = p - 1
 				'ecItem->LineIndex = LineIdx - 1
@@ -1823,6 +1829,7 @@ Namespace My.Sys.Forms
 		'Changed "Matn almashtirildi"
 		If Content.Lines.Count = 0 Then
 			FECLine = _New( EditControlLine)
+			If FECLine = 0 Then Return
 			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
@@ -1852,8 +1859,8 @@ Namespace My.Sys.Forms
 		FText = ""
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+			Content.Lines.Remove i
 		Next i
-		Content.Lines.Clear
 		Dim j As Integer
 		For i As Integer = 0 To Len(Value)
 			WAdd(FText.m_Data, WChr(Value[i]))
@@ -1994,8 +2001,8 @@ Namespace My.Sys.Forms
 					CloseHandle(hFile)
 					For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 						_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+						Content.Lines.Remove i
 					Next i
-					Content.Lines.Clear
 					i = 0
 					OldFileEncoding = FileEncoding
 					If FileEncoding = FileEncodings.PlainText Then
@@ -2049,13 +2056,12 @@ Namespace My.Sys.Forms
 					Do While j <= jCount
 						WAdd(FText, WChr((*wsFileContents)[j]))
 						If (*wsFileContents)[j] = 13 OrElse (*wsFileContents)[j] = 10 OrElse (*wsFileContents)[j] = 0 Then
-							FECLine = _New(EditControlLine)
+							FECLine = _New( EditControlLine)
 							OlddwClientX = 0
-							If FECLine = 0 Then
-								Return
-							End If
+							If FECLine = 0 Then Return
 							pBuff = 0
 							WLet(pBuff, Trim(Trim(Mid(*FText, 1, Len(*FText)), Any WChr(10)), Any WChr(13)))
+							If pBuff = 0 Then Return
 							FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 							Content.Lines.Add(FECLine)
 							iC = FindCommentIndex(*pBuff, OldiC)
@@ -2150,8 +2156,8 @@ Namespace My.Sys.Forms
 			CloseFile_(Fn)
 			For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 				_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
+				Content.Lines.Remove i
 			Next i
-			Content.Lines.Clear
 			'VisibleLines.Clear
 			i = 0
 			InContinueStrOld = " "
@@ -2162,7 +2168,7 @@ Namespace My.Sys.Forms
 				Dim As Integer MaxChars = LOF(Fn)
 				WReAllocate(BuffRead, MaxChars)
 				Do Until EOF(Fn)
-					FECLine = _New( EditControlLine)
+					FECLine = _New(EditControlLine)
 					OlddwClientX = 0
 					If FECLine = 0 Then
 						CloseFile_(Fn)
@@ -2178,6 +2184,7 @@ Namespace My.Sys.Forms
 						LineInputWstr Fn, BuffRead, MaxChars
 						WLet(pBuff, *BuffRead)
 					End If
+					If pBuff = 0 Then Return
 					FECLine->Text = pBuff 'Do not Deallocate the pointer. transffer the point to FECLine->Text already.
 					Content.Lines.Add(FECLine)
 					iC = FindCommentIndex(*pBuff, OldiC)
@@ -2216,6 +2223,7 @@ Namespace My.Sys.Forms
 		End If
 		If Content.Lines.Count = 0 Then
 			FECLine = _New( EditControlLine)
+			If FECLine = 0 Then Return
 			OlddwClientX = 0
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
@@ -2333,7 +2341,9 @@ Namespace My.Sys.Forms
 			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Index])->InAsm
 		End If
 		FECLine = _New( EditControlLine)
+		If FECLine = 0 Then Return
 		WLet(FECLine->Text, sLine)
+		If FECLine->Text = 0 Then Return
 		OlddwClientX = 0
 		iC = FindCommentIndex(sLine, OldiC)
 		FECLine->CommentIndex = iC
@@ -2376,7 +2386,9 @@ Namespace My.Sys.Forms
 				ChangeCollapsibility Index
 			Else
 				FECLine = _New( EditControlLine)
+				If FECLine = 0 Then Return
 				WLet(FECLine->Text, Mid(sLine, p, l))
+				If FECLine->Text = 0 Then Return
 				OlddwClientX = 0
 			End If
 			iC = FindCommentIndex(*FECLine->Text, OldiC)
@@ -2420,8 +2432,10 @@ Namespace My.Sys.Forms
 			InAsm = Cast(EditControlLine Ptr, Content.Lines.Items[Idx])->InAsm
 		End If
 		FECLine = _New( EditControlLine)
+		If FECLine = 0 Then Return
 		OlddwClientX = 0
 		WLet(FECLine->Text, *Cast(EditControlLine Ptr, Content.Lines.Items[Idx])->Text)
+		If FECLine->Text = 0 Then Return
 		iC = FindCommentIndex(*FECLine->Text, OldiC)
 		FECLine->CommentIndex = iC
 		FECLine->InAsm = InAsm
@@ -2753,13 +2767,17 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Sub EditControl.ShowCaretPos(Scroll As Boolean = False)
+		If FSelStartLine < 0 OrElse  FSelStartLine >= Content.Lines.Count Then Return
+		If FSelEndLine< 0 OrElse  FSelEndLine >= Content.Lines.Count Then Return
 		nCaretPosY = GetCaretPosY(FSelEndLine)
 		FCurLineCharIdx = FSelEndChar
 		nCaretPosX = TextWidth(GetTabbedText(.Left(Lines(FSelEndLine), FCurLineCharIdx)))
-		If CInt(DropDownShowed) AndAlso CInt(CInt(FSelEndChar < DropDownChar) OrElse CInt(FSelEndChar > GetNextCharIndex(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Text, DropDownChar) AndAlso Not FileDropDown)) Then
+		Dim As EditControlLine Ptr pEndLine = Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])
+		Dim As EditControlLine Ptr pStartLine = Cast(EditControlLine Ptr, Content.Lines.Items[FSelStartLine])
+		If DropDownShowed AndAlso CBool(FSelEndChar < DropDownChar OrElse CBool(FSelEndChar > GetNextCharIndex(*pEndLine->Text, DropDownChar) AndAlso Not FileDropDown)) Then
 			CloseDropDown()
 		End If
-		If CInt(ToolTipShowed) AndAlso CInt(CInt(FSelEndChar < ToolTipChar) OrElse CInt(Mid(*Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord AndAlso Mid(Lines(FSelEndLine), ToolTipChar + 1, 1) <> "?")) Then
+		If ToolTipShowed AndAlso CBool(FSelEndChar < ToolTipChar OrElse CBool(Mid(*pEndLine->Text, FSelEndChar + 1, 1) = ":") OrElse CInt(GetWordAt(FSelEndLine, ToolTipChar) <> HintWord AndAlso Mid(Lines(FSelEndLine), ToolTipChar + 1, 1) <> "?")) Then
 			CloseToolTip()
 		End If
 		If OldLine <> FSelEndLine OrElse OldChar <> FSelEndChar Then
@@ -2772,13 +2790,8 @@ Namespace My.Sys.Forms
 			If Not bOldCommented Then Changing "Matn kiritildi"
 			If This.OnLineChange Then This.OnLineChange(*Designer, This, FSelEndLine, OldLine)
 		End If
-		If CInt(FSelStartLine > -1) AndAlso CInt(FSelStartLine < Content.Lines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, Content.Lines.Items[FSelStartLine])->Visible) Then
-			ShowLine FSelStartLine
-		End If
-		If CInt(FSelEndLine > -1) AndAlso CInt(FSelEndLine < Content.Lines.Count) AndAlso CInt(Not Cast(EditControlLine Ptr, Content.Lines.Items[FSelEndLine])->Visible) Then
-			ShowLine FSelEndLine
-		End If
-		
+		If Not pStartLine->Visible Then ShowLine FSelStartLine
+		If Not pEndLine->Visible Then ShowLine FSelEndLine
 		SetScrollsInfo
 		Dim As Integer Ptr pHScrollPos
 		If bDividedX AndAlso ActiveCodePane = 0 Then
@@ -6242,7 +6255,7 @@ Namespace My.Sys.Forms
 		If curHistory <= 0 Then Exit Sub
 		If OnUndoing Then OnUndoing(*Designer, This)
 		curHistory = curHistory - 1
-		_LoadFromHistory FHistory.Items[curHistory], True, FHistory.Items[curHistory + 1], True
+		_LoadFromHistory FHistory.Item(curHistory), True, FHistory.Item(curHistory + 1), True
 		If OnUndo Then OnUndo(*Designer, This)
 		ScrollToCaret
 	End Sub
@@ -8681,6 +8694,7 @@ Namespace My.Sys.Forms
 			This.Add @pnlIntellisense
 		#endif
 		Var item = _New( EditControlLine)
+		If item = 0 Then Return
 		WLet(item->Text, "")
 		Content.Lines.Add item
 		bOldCommented = True
@@ -8723,6 +8737,7 @@ Namespace My.Sys.Forms
 		WDeAllocate(FHintWord)
 		WDeAllocate(CurrentFontName)
 		WDeAllocate(DropDownPath)
+		WDeAllocate(s)
 	End Destructor
 	
 	Destructor TypeElement

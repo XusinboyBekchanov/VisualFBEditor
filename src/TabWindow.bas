@@ -3263,6 +3263,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 				'If Not .Focused Then bNotFunctionChange = False: Exit Sub
 				If OldLine > -1 AndAlso OldLine < .Content.Lines.Count Then
 					Dim As EditControlLine Ptr ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[OldLine])
+					If ecl = 0 Then Return
 					If CInt(ecl->CommentIndex = 0) Then
 						If CInt(EndsWith(RTrim(*ecl->Text), "++") OrElse EndsWith(RTrim(*ecl->Text), "--")) AndAlso CInt(IsArg(Asc(Mid(RTrim(*ecl->Text), Len(RTrim(*ecl->Text)) - 2, 1)))) Then
 							Dim As WString Ptr res(Any)
@@ -3314,10 +3315,10 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 								AndAlso eclFirst->OldConstructionIndex <> eclFirst->ConstructionIndex Then
 								For j As Integer = OldLine To .Content.Lines.Count - 1
 									ecl = Cast(EditControlLine Ptr, .Content.Lines.Items[j])
-									If ecl = 0 Then Return
+									If ecl = 0 OrElse ecl->Text = 0 Then Continue For
 									For i As Integer = 0 To ecl->Statements.Count - 1
 										ecs = ecl->Statements.Item(i)
-										If ecs = 0 Then Return
+										If ecS = 0 OrElse ecS->Text = 0 Then Continue For
 										If Not bFind Then
 											If ecs->ConstructionIndex = ecl->ConstructionIndex AndAlso ecs->ConstructionPart = 0 Then
 												bFind = True
@@ -3339,7 +3340,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 														Dim As Integer s = 1
 														For k As Integer = 0 To i - 1
 															ecsOld = ecl->Statements.Item(k)
-															If ecsOld = 0 Then Return
+															If ecsOld = 0 OrElse ecsOld->Text = 0 Then Continue For
 															Text &= Mid(*ecl->Text, s, Len(*ecsOld->Text)) & ":"
 															s += Len(*ecsOld->Text) + 1
 														Next
@@ -11393,7 +11394,8 @@ Function SplitError(ByRef sLine As WString, ByRef ErrFileName As WString Ptr, By
 				End If
 			End If
 		Else
-			WLet(ErrTitle, Mid(sLine, Pos1 + 1))
+			'WLet(ErrTitle, Mid(sLine, Pos1 + 1))
+			WLet(ErrTitle, ML(bFlagErr) & IIf(bFlagErr = "", "", ": ") & MLCompilerFun(Trim(Mid(sLine, Pos3 + 1))))
 		End If
 	End If
 	If bFlagErr = "Warning"  Then
