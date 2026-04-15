@@ -320,7 +320,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "SaveSession":                         SaveSession
 	Case "CloseFolder":                         CloseFolder GetParentNode(ptvExplorer->SelectedNode)
 	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
-	Case "New":                                 AddTab
+	Case "New":                                 Dim As TabWindow Ptr tb = AddTab(ExePath & "/Templates/Files/Module.bas", False) : If tb <> 0 Then tb->FileName = ML("Untitled") : tb->Caption = tb->FileName + "*"
 	Case "Open":                                OpenProgram
 	Case "Save":                                Save
 	Case "Print":                               PrintThis

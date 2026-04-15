@@ -28,9 +28,9 @@
 		Declare Sub Form_Create(ByRef Sender As Control)
 		Declare Constructor
 		
-		Dim As Label lblAIAgentName, lblAIAgentModelName, lblAIAgentHost, lblAIAgentPort, lblAIAgentAPIKey, lblAIAgentTemperature, lblAIAgentAddress, lblAIAgentprovider
+		Dim As Label lblAIAgentName, lblAIAgentModelName, lblAIAgentHost, lblAIAgentPort, lblAIAgentAPIKey, lblAIAgentTemperature, lblAIAgentAddress, lblAIAgentprovider, lblAIAgentContentSize
 		Dim As TextBox txtAIAgentAPIKey, txtAIAgentName
-		Dim As ComboBoxEdit cboAIAgentModelName, cboAIAgentProvider, cboAIAgentPort, cboAIAgentAddress, cboAIAgentHost
+		Dim As ComboBoxEdit cboAIAgentModelName, cboAIAgentProvider, cboAIAgentPort, cboAIAgentAddress, cboAIAgentHost, cboAIAgentContentSize
 		Dim As NumericUpDown updnAIAgentTemperature
 		Dim As CheckBox chkAIAgentStream, chkAIAgentAuto
 		Dim As CommandButton cmdOK, cmdCancel
@@ -55,7 +55,7 @@
 			.WindowState = WindowStates.wsNormal
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedSingle
-			.AutoSize = true
+			.AutoSize = True
 			.SetBounds 0, 0, 528, 269
 		End With
 		' lblAIAgentName
@@ -66,9 +66,9 @@
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 0
 			.Align = DockStyle.alLeft
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1887
-			.WordWraps = true
+			.WordWraps = True
 			.SetBounds 0, 0, 80, 20
 			.Designer = @This
 			.Parent = @HorizontalBox1
@@ -81,7 +81,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
 			.Align = DockStyle.alLeft
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1918
 			.Caption = ML("Model Name") & ":"
 			.SetBounds 0, 0, 80, 21
@@ -96,7 +96,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 2
 			.Align = DockStyle.alLeft
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1919
 			.SetBounds 0, 0, 80, 21
 			.Designer = @This
@@ -110,7 +110,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 3
 			.Align = DockStyle.alLeft
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1920
 			.SetBounds 0, 0, 80, 21
 			.Designer = @This
@@ -123,7 +123,7 @@
 			.TabIndex = 4
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 4
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1923
 			.SetBounds 0, 0, 80, 21
 			.Designer = @This
@@ -157,7 +157,7 @@
 			.ControlIndex = 7
 			.Alignment = AlignmentConstants.taRight
 			.ID = 1922
-			.CenterImage = true
+			.CenterImage = True
 			.SetBounds 154, 0, 80, 21
 			.Designer = @This
 			.Parent = @HorizontalBox5
@@ -204,7 +204,7 @@
 			.ControlIndex = 8
 			.Alignment = AlignmentConstants.taRight
 			.ID = 1921
-			.CenterImage = true
+			.CenterImage = True
 			.SetBounds 291, 0, 71, 21
 			.Designer = @This
 			.Parent = @HorizontalBox4
@@ -254,7 +254,7 @@
 			.Anchor.Right = AnchorStyle.asAnchor
 			.Anchor.Bottom = AnchorStyle.asAnchor
 			.Align = DockStyle.alRight
-			.SetBounds 112, 0, 112, 20
+			.SetBounds 285, 0, 112, 30
 			.Designer = @This
 			.OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @cmdOK_Click)
 			.Parent = @HorizontalBox7
@@ -267,7 +267,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.ControlIndex = 1
 			.Align = DockStyle.alLeft
-			.CenterImage = true
+			.CenterImage = True
 			.ID = 1917
 			.Caption = ML("Provider") & ":"
 			.SetBounds 0, 0, 80, 21
@@ -431,16 +431,40 @@
 			.Designer = @This
 			.Parent = @VerticalBox1
 		End With
+		' lblAIAgentContentSize
+		With lblAIAgentContentSize
+			.Name = "lblAIAgentContentSize"
+			.Text = ML("Content") & " (Kb)"
+			.TabIndex = 29
+			.Align = DockStyle.alLeft
+			.Alignment = AlignmentConstants.taRight
+			.CenterImage = True
+			.ControlIndex = 0
+			.SetBounds 361, 0, 80, 21
+			.Designer = @This
+			.Parent = @HorizontalBox5
+		End With
+		' cboAIAgentContentSize
+		With cboAIAgentContentSize
+			.Name = "cboAIAgentContentSize"
+			.Text = "128"
+			.TabIndex = 30
+			.ControlIndex = 2
+			.Style = ComboBoxEditStyle.cbDropDown
+			.SetBounds 451, 0, 50, 16
+			.Designer = @This
+			.Parent = @HorizontalBox5
+		End With
 	End Constructor
 	
 	Dim Shared frmAIAgent As frmAIAgentType
 	
-	'#if _MAIN_FILE_ = __FILE__
-	'	App.DarkMode = True
-	'	frmAIAgent.MainForm = True
-	'	frmAIAgent.Show
-	'	App.Run
-	'#endif
+	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
+		frmAIAgent.MainForm = True
+		frmAIAgent.Show
+		App.Run
+	#endif
 '#End Region
 
 Private Sub frmAIAgentType.cmdCancel_Click(ByRef Sender As Control)
@@ -481,6 +505,10 @@ Private Sub frmAIAgentType.cmdOK_Click(ByRef Sender As Control)
 		MsgBox ML("Enter API key of AI Agent!")
 		This.BringToFront()
 		Exit Sub
+	ElseIf Trim(cboAIAgentContentSize.Text) = "" Then
+		MsgBox ML("Enter Content size AI Agent!")
+		This.BringToFront()
+		Exit Sub
 	End If
 	If Not cboAIAgentProvider.Contains(cboAIAgentProvider.Text) Then cboAIAgentProvider.AddItem cboAIAgentProvider.Text
 	If Not cboAIAgentModelName.Contains(cboAIAgentModelName.Text) Then cboAIAgentModelName.AddItem cboAIAgentModelName.Text
@@ -516,10 +544,11 @@ End Sub
 
 Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	txtAIAgentName.Enabled = chkAIAgentAuto.Checked
-	Dim As UString Temp = cboAIAgentPort.Text
+	Dim As WString * 260 Temp = cboAIAgentPort.Text
 	cboAIAgentPort.Clear
 	cboAIAgentPort.AddItem "80"
 	cboAIAgentPort.AddItem "443"
+	cboAIAgentContentSize.AddItem "128"
 	cboAIAgentPort.Text = Temp
 	Temp = cboAIAgentModelName.Text
 	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
@@ -556,6 +585,7 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 			.AddItem "dashscope.aliyuncs.com"
 			.AddItem "api.google.com"
 			.AddItem "cn-beijing.azure.com"
+			.AddItem "open.bigmodel.cn"
 		End With
 		cboAIAgentHost.SaveToFile(tmpName)
 	End If
@@ -569,7 +599,8 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 			.AddItem "api/v1/chat/completions"
 			.AddItem "v1/chat/completions"
 			.AddItem "v1/completions"
-			.AddItem "compatible-mode/v1/"
+			.AddItem "compatible-mode/v1"
+			.AddItem "api/paas/v4/chat/completions"
 		End With
 		cboAIAgentAddress.SaveToFile(tmpName)
 	End If
@@ -582,7 +613,7 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		With cboAIAgentProvider
 			.AddItem "DeepSeek"
 			.AddItem "Google"
-			.AddItem "openai"
+			.AddItem "OpenAI"
 			.AddItem "Silicon"
 			.AddItem "ChatGPT"
 			.AddItem "OpenRouter"

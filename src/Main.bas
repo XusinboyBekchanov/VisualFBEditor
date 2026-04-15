@@ -142,7 +142,8 @@ Dim Shared As Dictionary AIMessages, AIContext
 Dim Shared As WStringList AIIncludeFileNameList
 Dim Shared As Any Ptr AIThread
 Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr, AIAssistantsAnswersPtr
-Dim Shared As String AIPostData
+Dim Shared As String AIPostData, AIPostDataInitStr
+Dim Shared As Integer AIPostDataSize
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
 Dim Shared As TextBox txtOutput, txtImmediate
@@ -692,12 +693,22 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Parameter = "Check" Then WAdd(CompileWith, " -c")
 		WAdd(CompileWith, " " & *FirstLine)
 		WLet(MainFileNameOnly, GetFileName(*MainFile))
+		#ifdef __USE_WINAPI__
+			If InStr(LCase(*CompileWith), ".rc") < 1 AndAlso FileExists(Left(*MainFile, Len(*MainFile) - 4) & ".rc") Then WAdd(CompileWith, " """  & GetFileName(Left(*MainFile, Len(*MainFile) - 4) & ".rc"""))
+		#endif
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 		Dim As Boolean UseWasm = InStr(*FirstLine & CompileLine, "__USE_WASM__") > 0
 		'If UseWasm Then
 		'	WAdd CompileWith, " -Wl ""--post-js " & *MFFPathC & "\mff\Web\mff.js"""
 		'End If
 		If Project Then
+			Select Case Project->CompileTo
+			Case ByDefault: 'WAdd(CompileWith, " -gen gas" & IIf(Bit32, "32", "64"))
+			Case ToGAS: WAdd(CompileWith, " -gen gas" & IIf(Bit32, "", "64"))
+			Case ToLLVM: WAdd(CompileWith, " -gen llvm" )
+			Case ToGCC: WAdd(CompileWith, " -gen gcc" )
+			Case ToCLANG: WAdd(CompileWith, " -gen clang" )
+			End Select
 			For i As Integer = 0 To Project->Components.Count - 1
 				If EndsWith(Project->Components.Item(i), Slash) Then
 					WAdd(CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """")
@@ -1066,7 +1077,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 									
 								End If
 								If bFlagErr >= 0 AndAlso *ErrFileName <> "" AndAlso iLine> 0 Then
-									If InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+									If InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLetEx(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 									lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 									lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -1152,7 +1163,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 						NumberInfo += 1
 					End If
 					ThreadsEnter()
-					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+					If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLetEx(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 					lvProblems.ListItems.Add *ErrTitle, IIf(InStr(*ErrTitle, "warning"), "Warning", IIf(InStr(LCase(*ErrTitle), "error"), "Error", "Info"))
 					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -3881,7 +3892,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				Line Input #ff, b
 				If LoadParameter = LoadParam.OnlyFilePathOverwriteWithContent Then
 					FECLine = _New( EditControlLine)
+					If FECLine->Text = 0 Then Return
 					WLet(FECLine->Text, b)
+					If FECLine->Text = 0 Then Return
 					File->Lines.Add(FECLine)
 					iC = FindCommentIndex(b, OldiC)
 					FECLine->CommentIndex = iC
@@ -6785,6 +6798,7 @@ Sub LoadSettings
 			Info->Temperature = iniSettings.ReadFloat("AIAgents", "Temperature_" & WStr(i), 0.6)
 			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
 			Info->Stream = iniSettings.ReadBool("AIAgents", "Stream_" & WStr(i), True)
+			Info->ContentSize = iniSettings.ReadInteger("AIAgents", "ContentSize_" & WStr(i), 100) * 1024
 			cboAIAgentModels.AddItem(Temp)
 			AIAgents.Add Temp, Info->Host, Info
 			If *CurrentAIAgent = Temp Then
@@ -6796,7 +6810,9 @@ Sub LoadSettings
 				AIAgentAPIKey = Info->APIKey
 				AIAgentTemperature = Info->Temperature
 				AIAgentStream  = Info->Stream
-				cboAIAgentModels.Text = Temp
+				AIAgentContentSize  = Info->ContentSize
+				'cboAIAgentModels.Text = Temp
+				cboAIAgentModels.ItemIndex = Max(0, cboAIAgentModels.IndexOf(Temp))
 				AIPostDataFirstTime= True
 				AIIncludeFileNameList.Clear
 			End If
@@ -8902,6 +8918,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		AIAgentAPIKey = Info->APIKey
 		AIAgentTemperature = Info->Temperature
 		AIAgentStream  = Info->Stream
+		AIAgentContentSize  = Info->ContentSize
 		AIPostDataFirstTime = True
 		AIIncludeFileNameList.Clear
 	End If
@@ -9159,6 +9176,10 @@ WLet(AISystem_PromoptPtr, "Please use " & App.CurLanguage & " for your responses
 AIContext.Add("MyFbFramework (MFF) GUI Form Interface Guidelines", *AIPostDataPtr_1st)
 AIContext.Add("VisualFBEditor (VFBE) IDE Environment", *AIPostDataPtr_2nd)
 
+AIPostDataInitStr  = _
+	"{""model"": """ & AIAgentModelName & """, " & _
+	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to sent file in chunks." & """}"
 ' 定义各AI平台的最大分块大小常量
 Const OPENAI_MAX_CHUNK = 4096       ' OpenAI标准模型
 Const DEEPSEEK_MAX_CHUNK = 4000     ' DeepSeek标准模型
@@ -9198,9 +9219,10 @@ Sub AIPrintAnswer(ByRef Content As WString)
 End Sub
 
 Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
-	' Validate overlap parameter
-	If Overlap >= chunkSize  OrElse Overlap < 0 Then
-		Overlap = chunkSize \ 20
+	' Validate OverlapNew parameter
+	Dim As Integer OverlapNew, chunkSizeNew = IIf(chunkSize < 4000, 4000, chunkSize)
+	If OverlapNew >= chunkSizeNew  OrElse OverlapNew < 0 Then
+		OverlapNew = chunkSizeNew \ 20
 	End If
 	
 	' Initialize variables
@@ -9212,7 +9234,7 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 	End If
 	
 	' Calculate estimated chunks with a safer margin
-	Dim As Integer EstimatedChunks = (TextLength \ (chunkSize - Overlap)) + 2
+	Dim As Integer EstimatedChunks = (TextLength \ (chunkSizeNew - OverlapNew)) + 2
 	ReDim Chunks(EstimatedChunks - 1)
 	Dim ChunkCount As Integer = 0
 	
@@ -9223,7 +9245,7 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 	' Main splitting loop
 	Do While startPos <= TextLength
 		' Calculate end position
-		endPos = startPos + chunkSize - 1
+		endPos = startPos + chunkSizeNew - 1
 		If endPos >= TextLength Then endPos = TextLength
 		' Find natural break point
 		lastGoodPos = endPos
@@ -9262,8 +9284,8 @@ Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer
 		Chunks(ChunkCount) = Mid(iText, startPos, lastGoodPos - startPos + 1)
 		If endPos >= TextLength Then Exit Do
 		ChunkCount += 1
-		' Adjust start position with overlap
-		startPos = lastGoodPos - Overlap + 1
+		' Adjust start position with OverlapNew
+		startPos = lastGoodPos - OverlapNew + 1
 	Loop
 	
 	' Adjust array to actual size
@@ -9543,7 +9565,8 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 	Dim As Boolean bShouldSend
 	Dim As Integer  AIContextCount = AIContext.Count - 1
 	For j As Integer = 0 To AIContextCount
-		FileName = AIContext.Item(j)->Key
+		filename = AIContext.Item(j)->Key
+		'Debug.Print FileName & " j=" & j
 		bShouldSend = False
 		'If InStr(FileName, "MyFbFramework") Then
 		'	If InStr(txtAIRequest.Text, "MyFbFramework") > 0 Then bShouldSend = True
@@ -9554,12 +9577,12 @@ Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextB
 		If j = 0 Then
 			bShouldSend = True 'MyFbFramework must be send
 		Else
-			If InStr(FileName, "VisualFBEditor") Then
+			If InStr(filename, "VisualFBEditor") Then
 				If InStr(txtAIRequest.Text, "VisualFBEditor") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "VFBE") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "IDE") > 0 Then bShouldSend = True
 			Else
-				bShouldSend = InStr(txtAIRequest.Text, FileName)
+				bShouldSend = InStr(txtAIRequest.Text, filename)
 			End If
 		End If
 		If bShouldSend AndAlso CBool(AIIncludeFileNameList.Count < 1 OrElse Not AIIncludeFileNameList.Contains(FileName)) Then
@@ -9659,6 +9682,7 @@ Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
 	frmMain.Cursor = 0
 	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
 End Sub
+
 Public Sub AIRelease()
 	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
@@ -9678,7 +9702,6 @@ Public Sub AIResetContext()
 	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
-	Sleep(500)
 	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	_Deallocate(AIBodyWStringSavePtr): AIBodyWStringSavePtr = 0
 	AIPostData = _
@@ -9707,7 +9730,7 @@ Public Sub AIResetContext()
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
 	cboAIAgentModels.Enabled = True
-	Sleep(500)
+	Sleep(300)
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
 End Sub
