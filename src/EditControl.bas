@@ -1809,7 +1809,7 @@ Namespace My.Sys.Forms
 		Dim Value As WString Ptr
 		WLet(Value, Clipboard.GetAsText)
 		If Value Then
-			WLetEx(Value, Replace(*Value, Chr(13, 10), Chr(13)))
+			WLetEx(Value, Replace(Replace(*Value, Chr(13, 10), Chr(13)), Chr(10), Chr(13)))
 			'WLetEx(Value, Replace(*Value, Chr(10), Chr(13)))
 			ChangeText *Value, 0, "Paste From Clipboard"
 			WDeAllocate(Value)
@@ -3396,6 +3396,7 @@ Namespace My.Sys.Forms
 				ScaleX(IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX)), y + ScaleY(dwCharY))
 				CreateTextLayout(pDWriteFactory, FLineRight, Len(*FLineRight), pFormat, FLT_MAX, FLT_MAX, @pLayout)
 				If pLayout <> 0 Then
+					pRenderTarget->lpVtbl->PushAxisAlignedClip(pRenderTarget, @Type<D2D1_RECT_F>(rc.Left, rc.Top, rc.Right, rc.Bottom), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
 					pLayout->lpVtbl->GetMetrics(pLayout, @Metrics)
 					sz.cx = Metrics.widthIncludingTrailingWhitespace
 					sz.cy = Metrics.height + 1
@@ -3407,6 +3408,7 @@ Namespace My.Sys.Forms
 						pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(x - 1, y - 1, x + sz.cx + 1, y + sz.cy - 1 - (sz.cy - ScaleY(dwCharY))), pBrushBackground)
 					End If
 					pRenderTarget->lpVtbl->DrawTextLayout(pRenderTarget, Type<D2D1_POINT_2F>(x, y - (sz.cy - ScaleY(dwCharY))), pLayout, Cast(ID2D1Brush Ptr, pBrushForeground), D2D1_DRAW_TEXT_OPTIONS_ENABLE_COLOR_FONT)
+					pRenderTarget->lpVtbl->PopAxisAlignedClip(pRenderTarget)
 					pLayout->lpVtbl->Release(pLayout): pLayout = 0
 					CameOut = x + sz.cx + 1 > ScaleX(dwClientX)
 				End If
