@@ -8747,8 +8747,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	Dim bSelControlFind As Boolean
 	Dim As UString ResourceFile
 	txtCode.DropDownTypeElement = 0
-	If CInt(NotForms = False) AndAlso CInt(Des) Then
+	If Not NotForms Then
 		ResourceFile = GetResourceFile(True)
+	End If
+	If CInt(NotForms = False) AndAlso CInt(Des) Then
 		With *Des
 			If Des->SymbolsReadProperty(pfImageListEditor->CurrentImageList) Then CurrentImageListName = WGet(Des->Symbols(pfImageListEditor->CurrentImageList)->ReadPropertyFunc(pfImageListEditor->CurrentImageList, "Name"))
 			If Des->SymbolsReadProperty(pfMenuEditor->ActiveCtrl) Then ActiveCtrlName = WGet(Des->Symbols(pfMenuEditor->ActiveCtrl)->ReadPropertyFunc(pfMenuEditor->ActiveCtrl, "Name"))
@@ -11857,7 +11859,8 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 End Function
 
 Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As WString = "", ProjectNode_ As TreeNode Ptr = 0) As UString
-	Dim As WString * MAX_PATH ResourceFile, MainFile, sFirstLine, CompileLine
+	Dim As WString * MAX_PATH ResourceFile, MainFile, sFirstLine
+	Dim As UString CompileLine
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode = ProjectNode_
 	MainFile = GetMainFile(, Project, ProjectNode, WithoutMainNode)
