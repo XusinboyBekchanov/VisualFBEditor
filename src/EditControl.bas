@@ -8739,7 +8739,7 @@ Namespace My.Sys.Forms
 		WDeAllocate(FHintWord)
 		WDeAllocate(CurrentFontName)
 		WDeAllocate(DropDownPath)
-		WDeAllocate(s)
+		'WDeAllocate(s)
 	End Destructor
 	
 	Destructor TypeElement
