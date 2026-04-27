@@ -419,18 +419,21 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 	If EndsWith(FileNameNew, ":") Then FileNameNew = Mid(FileNameNew, 1, Len(FileNameNew) - 1)
 	If FileName <> "" Then
 		Dim As TabControl Ptr ptabCode
+		Dim As TabPanel Ptr pPanel
 		For j As Integer = 0 To TabPanels.Count - 1
-			ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
-			For i As Integer = 0 To ptabCode->TabCount - 1
-				If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
-					bFind = True
-					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
-					If Not bNoActivate Then tb->SelectTab
-					TabAdding = False
-					Return tb
-				End If
-			Next i
-		Next j
+			pPanel = Cast(TabPanel Ptr, TabPanels.Item(j))
+			If pPanel = 0 Then Continue For
+			ptabCode = @pPanel->tabCode
+   	         	For i As Integer = 0 To ptabCode->TabCount - 1
+    	         	   If EqualPaths(Cast(TabWindow Ptr, ptabCode->Tabs[i])->FileName, FileNameNew) Then
+     	         	      bFind = True
+      	         	     tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+                	     If Not bNoActivate Then tb->SelectTab
+                     	     TabAdding = False
+		             Return tb
+		                End If
+	            	Next i
+	        Next j
 		If Not bFind Then
 			Dim tn2 As TreeNode Ptr
 			For i As Integer = 0 To ptvExplorer->Nodes.Count - 1
@@ -475,7 +478,7 @@ Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN A
 			tb->ImageKey = GetIconName(FileNameNew)
 			If Not bNoActivate Then .SelectTab Else .Visible = True: ptabCode->RequestAlign: .Visible = False
 			.tbrTop.Buttons.Item(1)->Checked = True
-			If FileName <> "" Then
+			If FileNameNew <> "" Then
 				pApp = @VisualFBEditorApp
 				pApp->MainForm = @frmMain
 				pstBar->Panels[1]->Caption = ML("Elapsed time") & ": Loading " & Format((Timer - timeElapse), "0.000s")
@@ -1197,6 +1200,7 @@ Function TabWindow.CloseTab(WithoutMessage As Boolean = False) As Boolean
 		MutexUnlock tlockSuggestions
 	End If
 	Var ptabCode = Cast(TabControl Ptr, This.Parent)
+	If ptabCode = 0 OrElse This.mi = 0 Then Return False
 	ptabCode->Remove(@btnClose)
 	miWindow->Remove This.mi
 	_Delete(This.mi)

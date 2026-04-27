@@ -1071,7 +1071,7 @@ Namespace My.Sys.Forms
 		*LineText_ = Replace(*LineText_, ")then ", ")then:")
 		*LineText_ = Replace(*LineText_, " else ", " else:")
 		*LineText_ = Replace(*LineText_, ":else ", ":else:")
-		If StartsWith(*LineText_, "else ") Then WLetEx(LineText_, "else:" & Mid(*LineText_, 6), True)
+		If StartsWith(*LineText_, "else ") Then WLetEx(LineText_, "else:" & Mid(*LineText_, 6))
 		Split(*LineText_, ":", res())
 		Dim As Integer iPosSymbol = -1
 		Dim As EditControlStatement Ptr ecs, ecs_, ecsOld_
@@ -1817,6 +1817,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.ClearUndo
+		If curHistory = 0 Then Return
 		On Error Goto ErrL
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
@@ -1947,7 +1948,6 @@ Namespace My.Sys.Forms
 		Dim As FileEncodings OldFileEncoding
 		Dim As Integer iC = 0, OldiC = 0, i = 0, OldConsIndex, OldConsPart, OldConsNextCount
 		Dim As Boolean InAsm = False, FileLoaded
-		Dim As Double  timeElapse = Timer
 		'check the Newlinetype again for missing Cr in AsicII file
 		Fn = FreeFile_
 		If Not FileExists(FileName) Then
@@ -2228,7 +2228,6 @@ Namespace My.Sys.Forms
 			WLet(FECLine->Text, "")
 			Content.Lines.Add(FECLine)
 		End If
-		pstBar->Panels[1]->Caption = ML("Elapsed time") & " (s):" & Format((Timer - timeElapse) , "#0.000")
 	End Sub
 	
 	Sub EditControl.SaveToFile(ByRef FileName As WString, FileEncoding As FileEncodings, NewLineType As NewLineTypes)
@@ -8739,7 +8738,6 @@ Namespace My.Sys.Forms
 		WDeAllocate(FHintWord)
 		WDeAllocate(CurrentFontName)
 		WDeAllocate(DropDownPath)
-		'WDeAllocate(s)
 	End Destructor
 	
 	Destructor TypeElement
