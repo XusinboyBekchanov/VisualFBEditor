@@ -193,6 +193,7 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 	Dim As WString Ptr Lines(), rtfiText, rtfiText1, ResultPtr
 	Dim As Integer  LineLength, titleSize, level, i
 	Dim As WString * 2 Ch
+	Dim As Boolean inListItem = False
 	
 	rtfiText1 = EscapeRTF(mdiText)
 	If rtfiText1 = 0 Then Return 0
@@ -204,11 +205,14 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 		_Deallocate(ResultPtr ): ResultPtr = 0
 		If LineLength = 0 Then
 			WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
+			inListItem = False ' 空行重置列表状态
+			Continue For
 		Else
 			Ch = Left(*Lines(i), 1)
 			'Print *Lines(i)
 			Select Case Ch
 			Case "["   '"[" & ML("User") & "]: "
+				level = 1
 				If Left(*Lines(i), 20) = "[**User Question:**]" Then
 					WAdd(rtfiText, "\f1\cf2\highlight" & "11" & " " & Left("[User Question:] " & Mid(*Lines(i), 21) & Space(300), 300) & "\cf11\highlight" & AIColorBK & "\par")
 					'*Lines(i) = Mid(*Lines(i), 21)
@@ -232,6 +236,21 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 					Wend
 					WAdd(rtfiText, "```\par\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & "\par")
 					Continue For
+				End If
+			Case "1" To "9" ' 2. 解析 "1. **title 1**" 等数字标题列表
+				Dim As Integer dotPos = InStr(*Lines(i), ". ")
+				If dotPos > 0 Then
+					Dim As String listNum = Left(*Lines(i), dotPos - 1)
+					Dim As String afterDot = Mid(*Lines(i), dotPos + 2)
+					' 格式化标题：加粗、加大字号(cf15代表Keywords色)
+					WAdd(rtfiText, "\b\fs32\cf15 " & listNum & ". " )
+					inListItem = True ' 标记进入列表项，后续缩进行属于此列表
+					ResultPtr = ProcessInlineStyles(afterDot)
+					If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\highlight" & AIColorBK & *ResultPtr & "\par")
+				Else
+					' 若不是指定的 Title 格式，按常规文本处理
+					ResultPtr = ProcessInlineStyles(*Lines(i))
+					If ResultPtr Then WAdd(rtfiText, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
 				End If
 				
 				'No need for this party
@@ -283,6 +302,18 @@ Function MDtoRTF(ByRef mdiText As WString) As WString Ptr
 				'	If i <= UBound(Lines) Then i -= 1
 				'	Continue For
 				'End If
+			Case " " ' 3. 处理列表项下方的缩进内容 (如 "   abcd")
+				If inListItem Then
+					Dim As Integer indentCount = 0
+					While indentCount < Len(*Lines(i)) AndAlso Mid(*Lines(i), indentCount + 1, 1) = " "
+						indentCount += 1
+					Wend
+					' 转换为 RTF 缩进 (每 3 个空格约 360 twips，再加上列表自身的 360 偏移)
+					Dim As Integer rtfIndent = (indentCount \ 3) * 360 + 360
+					ResultPtr = ProcessInlineStyles(Trim(*Lines(i)))
+					If ResultPtr Then WAdd(rtfiText, "\li" & rtfIndent & "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & *ResultPtr & "\par")
+					Continue For
+				End If
 				
 			Case "|"   ' 3. Table processing (enhanced robustness)
 				If i < UBound(Lines) - 1 AndAlso Left(*Lines(i + 1), 1) = "|" AndAlso InStr(*Lines(i + 1), "---") > 0 Then
@@ -334,7 +365,7 @@ End Function
 ' Helper function: Process tables
 Function ProcessTable(Lines() As WString Ptr, ByRef i As Integer) As WString Ptr
 	Dim tableRTF As WString Ptr
-	Dim As Integer cols, j, colWidthMax(), colWidth 
+	Dim As Integer cols, j, colWidthMax(), colWidth
 	
 	' Parse table header
 	Dim As WString Ptr headers(), Cells(), RowStrPtr
@@ -430,7 +461,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 		endPosi = InStr(Posi + 2, *Result, "**")
 		If endPosi = 0 Then Exit While
 		' Replace with RTF format
-		WLetEx(Result, Left(*Result, Posi - 1) & "{\b " & Mid(*Result, Posi + 2, endPosi - Posi - 2) & "}{\b0 " & Mid(*Result, endPosi + 2))
+		WLetEx(Result, Left(*Result, Posi - 1) & "{\b " & Mid(*Result, Posi + 2, endPosi - Posi - 2) & "}{\b0" & "\f0\" & AIColorFore & Mid(*Result, endPosi + 2))
 		' Update position pointer to avoid reprocessing
 		Posi = endPosi + 2 - (endPosi - Posi) ' Compensate for position offset after replacement
 	Wend
@@ -493,7 +524,7 @@ Function ProcessInlineStyles(ByRef iText As WString) As WString Ptr
 			If startParen > 0 And endParen > 0 And startParen = endBracket+1 Then
 				url = Mid(*Result, startParen + 1, endParen - startParen - 1)
 				tmpPtr = ProcessInlineStyles(linkiText)
-				If tmpPtr <> 0 Then 
+				If tmpPtr <> 0 Then
 					WAdd(Result, "\f0\" & AIRTF_FontSize & "\" & AIColorFore & "\highlight" & AIColorBK & " ")
 					WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))
 					'WLetEx(Result,  Left(*Result, Posi - 1) & "{\field{\*\fldinst HYPERLINK """ & url & """}" &	"{\fldrslt\ul\cf6 " & *tmpPtr & "\ulnone\cf6}}" & Mid(*Result, endParen + 1))

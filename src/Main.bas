@@ -142,7 +142,7 @@ Dim Shared As Dictionary AIMessages, AIContext
 Dim Shared As WStringList AIIncludeFileNameList
 Dim Shared As Any Ptr AIThread
 Dim Shared As WString Ptr AISystem_PromoptPtr, AIPostDataPtr_1st, AIPostDataPtr_2nd, AIBodyWStringPtr, AIBodyWStringSavePtr, AIAssistantsAnswersPtr
-Dim Shared As String AIPostData, AIPostDataInitStr
+Dim Shared As String AIPostData, AIPostDataInitStr, AIBodyStringBuff
 Dim Shared As Integer AIPostDataSize
 Dim Shared As TabControl tabLeft, tabRight, tabBottom ', tabDebug
 Dim Shared As TreeView tvExplorer, tvVar, tvPrc, tvThd, tvWch
@@ -886,7 +886,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Integer Result = -1
 		Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 		#ifdef __USE_GTK__
-			WLetEx(PipeCommand, *PipeCommand & " 2> """ + *LogFileName2 + """", True)
+			WAdd(PipeCommand, " 2> """ + *LogFileName2 + """") 
 		#else
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		#endif
@@ -906,9 +906,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
 			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD'"
-			For i As Integer = 0 To Globals.Functions.Count - 1
-				
-			Next
+			'For i As Integer = 0 To Globals.Functions.Count - 1
+			'
+			'Next
 			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
 		Else
 			CompileCommands.Add "", *PipeCommand
@@ -983,7 +983,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							End If
 							If 	bFlagErr >= 0 Then
 								ThreadsEnter()
-								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLet(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
+								If *ErrFileName <> "" AndAlso InStr(*ErrFileName, "/") = 0 AndAlso InStr(*ErrFileName, "\") = 0 Then WLetEx(ErrFileName, GetFolderName(*MainFile) & *ErrFileName)
 								lvProblems.ListItems.Add *ErrTitle, IIf(bFlagErr = 1, "Warning", IIf(bFlagErr = 2, "Error", "Info"))
 								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = WStr(iLine)
 								lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ErrFileName
@@ -9133,7 +9133,8 @@ End Function
 If Dir(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md") <> "" Then
 	AIPostDataPtr_1st = LoadFromFile(ExePath & "\Help\AI prompt\MyFbFramework GUI Form Interface Guidelines.md")
 Else
-	WLet(AIPostDataPtr_1st, "Following Is MyFbFramework GUI Forms guidelines." & _
+	WLet(AIPostDataPtr_1st, "You are an expert FreeBasic programming assistant specializing in the MyFbFramework (MFF) GUI library. Following Is MyFbFramework GUI Forms guidelines." & _
+	"When writing GUI form code, you MUST strictly adhere to the template provided below. Do not invent your own structure, do not use VB.NET specific syntax (use MFF equivalents like CommandButton instead of Button), and ensure all preprocessor directives start with a hash (#)." & _
 	" When working with GUI, strictly follow MyFbFramework GUI forms guidelines. If NO GUI is involved: 1. Ignore all reference constraints  2. Perform regular analysis 3. Apply standard procedures. " & _
 	" The MyFbFramework framework includes 39 controls: Animate, Chart, CheckBox, CheckedListBox, ComboBoxEdit, ComboBoxEx, CommandButton, DateTimePicker, Grid, Header, HotKey, HScrollBar, ImageBox, IPAddress, Label, LinkLabel, ListControl, ListView, MonthCalendar, NumericUpDown, OpenFileControl, PrintPreviewControl, ProgressBar, RadioButton, RichTextBox, ScrollBarControl, SearchBox, Splitter, StatusBar, TextBox, ToolBar, ToolPalette, ToolTips, TrackBar, TreeListView, TreeView, UpDown, VScrollBar, WebBrowser," & _
 	" includes 13 Containers: Form, GroupBox, HorizontalBox, PagePanel, PageScroller, Panel, Picture, ReBar, ScrollControl, TabControl, TabPage, VerticalBox, UserControl," & _
@@ -9148,7 +9149,7 @@ Else
 	" Draw through `[Canvas](Canvas.md)` property of visible containers." & _
 	" `OnPaint` handlers must include: must accept the `ByRef Canvas As My.Sys.Drawing.Canvas` parameter to ensure correct graphic context delivery. \n" & _
 	" **Event Handling Patterns** Use controlName_eventName format for handlers. Declare event handlers OUTSIDE form class." & _
-	" **Event Binding Syntax** Ensure event handlers match the subroutine signatures used in Cast function")
+	" Bind events using the Cast(Sub(ByRef Sender As Control), @ProcedureName) syntax.")
 End If
 
 If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
@@ -9302,9 +9303,10 @@ Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCo
 		ShowMessages(Responce.StatusCode & "  " & Responce.Body) 
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
+		cboAIAgentModels.Enabled = True
+		If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	End If
 End Sub
-
 HTTPAIAgent.OnComplete = @HTTPAIAgent_Complete
 AIPostDataFirstTime = True
 
@@ -9313,12 +9315,48 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As WString Ptr tmpBodyWStrPtr = FromUtf8(StrPtr(Buffer))
 	If tmpBodyWStrPtr = 0 OrElse *tmpBodyWStrPtr = "" Then Return
 	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
-	'If Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}" OrElse Left(Trim(*tmpBodyWStrPtr), 5) <> "data:" Then ShowMessages(*tmpBodyWStrPtr)
-	'Right(Trim(*tmpBodyWStrPtr), 3) <> "}]}"  = } or ] ??????????
-	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then
-		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate((tmpBodyWStrPtr) ): Return
-	End If
 	If AIBodyWStringPtr = 0 Then _Deallocate((tmpBodyWStrPtr) ): Return
+	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate(tmpBodyWStrPtr) : Return
+	End If
+	
+	'' 检查是否包含完整的JSON对象（用于判断是否是一个完整的数据包）
+	Dim As Boolean inString   = False   ' False 不在字符串中，True=在字符串中
+	Dim As Boolean escapeNext = False   ' 是否遇到了反斜杠转义
+	Dim As Integer braceCount = 0   ' 当前未闭合的大括号数量（{ 增加，} 减少）
+	Dim As Integer lastEndPos = -1  ' 记录最外层对象结束时 '}' 的位置
+	For i As Integer = 0 To Len(*tmpBodyWStrPtr) - 1
+		If escapeNext Then
+			' 上一个是反斜杠，当前字符直接被转义，无论是什么都不影响状态
+			escapeNext = False
+		Else
+			Select Case (*tmpBodyWStrPtr)[i]
+			Case 92   ' \
+				escapeNext = True
+			Case 34   ' "
+				inString = Not inString
+			Case 123  ' {
+				If Not inString Then braceCount += 1
+			Case 125  ' }
+				If Not inString Then
+					braceCount -= 1
+					' 找到一个顶级JSON对象的结束位置
+					If braceCount = 0 Then lastEndPos = i
+				End If
+			End Select
+		End If
+	Next
+	
+	' 判断结果
+	If braceCount <> 0 Then
+		' 括号不匹配，数据可能不完整，等待更多数据
+		'ShowMessages("等待更多数据，当前未闭合括号数: " & braceCount & "  Buffer:" & *tmpBodyWStrPtr)
+		_Deallocate(tmpBodyWStrPtr)
+		Return
+		'ElseIf lastEndPos >= 0 Then
+		'	' 解析出一个完整JSON对象，其结束位置为 lastEndPos
+		'	ShowMessages("接收到完整JSON对象，最后一个'}'在位置: " & lastEndPos)
+	End If
 	'                                      'qwen/qwen3.6-plus:free|OpenRouter    OpenRouter              'Silicon                       'GLM                          NO Thinking                                      'Nvidia
 	Dim As String ContentStart(0 To 6) = {  """content"":"""    ,           """content"":""",           """content"":""",                """content"":""",           """content"":""",             """content"":""",                ",""content"":"""   }
 	Dim As String ContentEnd(0 To 6) = {   """,""role"":""assistant",        """,""reasoning"":null",   """,""reasoning_content"":null", """}}]}",                    """},""logprobs"":null",    """},""finish_reason""",       """,""tool_calls"":"   }
@@ -9402,20 +9440,19 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
 					ShowMessages(*Buff(i))
 					#ifndef __USE_GTK__
-						If iPosEnd  > 0 Then
-							If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
-								If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
-							ElseIf  AIAssistantsAnswersPtr Then
-								If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
-							End If
-							WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-							If AIBodyWStringSavePtr <> 0 Then
-								_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-								AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-								If AIBodyWStringPtr <> 0 Then
-									txtAIAgent.TextRTF = *AIBodyWStringPtr
-									txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
-								End If
+						If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
+							If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
+						End If
+						If  AIAssistantsAnswersPtr Then
+							If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
+						End If
+						WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+						If AIBodyWStringSavePtr <> 0 Then
+							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+							AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+							If AIBodyWStringPtr <> 0 Then
+								txtAIAgent.TextRTF = *AIBodyWStringPtr
+								txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 							End If
 						End If
 					#endif
@@ -9724,7 +9761,7 @@ Public Sub AIResetContext()
 	End If
 	_Deallocate((RecentAIChat)): RecentAIChat = 0
 	AIIncludeFileNameList.Clear
-	AIPostDataFirstTime= True
+	AIPostDataFirstTime = True
 	txtAIRequest.Enabled = True
 	WLet(AIAssistantsAnswersPtr, "")
 	txtAIRequest.Enabled = True
@@ -9737,7 +9774,7 @@ End Sub
 
 txtAIRequest.Align = DockStyle.alBottom
 txtAIRequest.Height = 50
-txtAIRequest.MaxLength = 128000
+txtAIRequest.MaxLength = 0
 txtAIRequest.Parent = @pnlAIAgent
 txtAIRequest.Font.Name = *EditorFontName
 txtAIRequest.Font.Size = EditorFontSize
@@ -12263,6 +12300,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
 		End If
 		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		AIMessages.Clear
 	End If
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
 		iniSettings.WriteInteger("MainWindow", "Width", frmMain.Width)

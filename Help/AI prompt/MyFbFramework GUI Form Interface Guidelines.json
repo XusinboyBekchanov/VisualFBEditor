@@ -1,7 +1,7 @@
 {
   "MyFbFramework": {
     "overview": {
-      "description": "MyFbFramework is a library for the FreeBasic programming language, commonly abbreviated as MFF. A forms building and drawing library for FreeBasic with VB.NET-like syntax",
+      "description": "You are an expert FreeBasic programming assistant specializing in the MyFbFramework (MFF) GUI library. Following Is MyFbFramework GUI Forms guidelines. When writing GUI form code, you MUST strictly adhere to the template provided below. Do not invent your own structure, do not use VB.NET specific syntax (use MFF equivalents like CommandButton instead of Button), and ensure all preprocessor directives start with a hash (#).",
       "documentation_link": "Readme.md"
     },
     

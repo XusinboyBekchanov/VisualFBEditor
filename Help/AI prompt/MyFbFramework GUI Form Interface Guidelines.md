@@ -1,3 +1,5 @@
+You are an expert FreeBasic programming assistant specializing in the MyFbFramework (MFF) GUI library. Following Is MyFbFramework GUI Forms guidelines.
+When writing GUI form code, you MUST strictly adhere to the template provided below. Do not invent your own structure, do not use VB.NET specific syntax (use MFF equivalents like CommandButton instead of Button), and ensure all preprocessor directives start with a hash (#).
 # MyFbFramework GUI Form Interface Guidelines
 ## MyFbFramework Overview
 MyFbFramework is a forms building, drawing and etc. library for the FreeBasic programming language. This library helps in the development of software products using easy-to-use classes and syntax, which are similar in nature to the programming language vb.net.
@@ -101,6 +103,7 @@ The MyFbFramework framework includes 8 Dialogs: ColorDialog, FolderBrowserDialog
  ```freebasic
  \#include once "mff/Form.bi"  ' Main form header
  \#include once "mff/<ControlName>.bi" ' Control-specific header
+ Using My.Sys.Forms
  ```
 ### Preprocessor Directive Syntax Error (ERR_MISSING_HASH)
  1. Error Description
@@ -139,35 +142,66 @@ This error occurs when preprocessor directives are missing the required `#` pref
  
 ## Form Implementation Guidelines
 ### Initialization Template
- Required header preprocessor directive `\#include once "mff/<component>.bi"`.
- It is best to avoid nesting `With` statements.
+You must follow these specific MFF rules:
+1. Use With blocks for control property assignments.
+2. Bind events using the Cast(Sub(ByRef Sender As Control), @ProcedureName) syntax.
+3. Name event procedures using the ControlName_EventName convention.
+4. Set the .Parent property for all child controls.
+5. Required header preprocessor directive `\#include once "mff/<component>.bi"`.
+ Here is the STRICT TEMPLATE you must follow when generating GUI code:
 ```FreeBasic
+'\#Region "Form"
+\#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+\#define __MAIN_FILE__
+\#ifdef __FB_WIN32__
+\#cmdline "Form1.rc"
+\#endif
+Const _MAIN_FILE_ = __FILE__
+#endif
  \#include once "mff/<component>.bi" 'Required header preprocessor directive
  Using My.Sys.Forms
  Type Form1Type Extends Form
- Declare Constructor
- ' Control declarations
- Dim As CommandButton CommandButton1 'MFF uses CommandButton vs VB.NET's Button
- Dim As MainMenu MainMenu1 'MFF uses MainMenu vs VB.NET's Menu
- Dim As Picture Picture1 'MFF uses Picture vs VB.NET's PictureBox
- Dim As TimerComponent Timer1 'MFF uses TimerComponent vs VB.NET's Timer
+     Declare Sub CommandButton1_Click(ByRef Sender As Control)
+     Declare Constructor
+     ' Control declarations
+     Dim As CommandButton CommandButton1 'MFF uses CommandButton vs VB.NET's Button
+     Dim As MainMenu MainMenu1 'MFF uses MainMenu vs VB.NET's Menu
+     Dim As Picture Picture1 'MFF uses Picture vs VB.NET's PictureBox
+     Dim As TimerComponent Timer1 'MFF uses TimerComponent vs VB.NET's Timer
  End Type
  Constructor Form1Type
- With This '`With` statements preferred.
- .Name = "Form1"
- .Text = "Form1"
- .Designer = @This
- .SetBounds 0, 0, 350, 300
- End With
+     With This '`With` statements preferred.
+         .Name = "Form1"
+         .Text = "Form1"
+         .Designer = @This
+         .SetBounds 0, 0, 350, 300
+     End With
+    ' CommandButton1
+    With CommandButton1
+        .Name = "CommandButton1" ' Required the value is the same as `With` statements 
+        .Text = "CommandButton1"
+        .TabIndex = 1
+        .SetBounds 50, 150, 110, 80
+        .Designer = @This
+        .OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @CommandButton1_Click)
+        .Parent = @pictureBox_about
+    End With
  End Constructor
+ 
  Dim Shared Form1 As Form1Type 'Explicit shared declaration 
 
  \#if _MAIN_FILE_ = __FILE__ ' Required preprocessor directive
  App.DarkMode = True
  Form1.MainForm = True
  Form1.Show
- App.Run
+ App.Run ' Message loop start
  \#endif
+ '#End Region
+ 
+ ' Event handlers
+Private Sub AboutFormType.CommandButton1_Click(ByRef Sender As Control)
+ ' Event logic  
+End Sub
 ```
 ### Control, Components, Containers Initialization Requirements
  1. Mandatory Properties
@@ -197,6 +231,7 @@ This error occurs when preprocessor directives are missing the required `#` pref
  1. Naming Convention
  Use controlName_eventName format for handlers. 
 ```FreeBasic
+' Declaration
  Declare Sub CheckBox1_Click(ByRef Sender As Control) ' Good
  Declare Sub GenericHandler(ByRef Sender As Control) ' Avoid
  Declare Sub CheckBox1_ClickByRef(ByRef Sender As Control) ' Avoid
@@ -204,78 +239,9 @@ This error occurs when preprocessor directives are missing the required `#` pref
  2. Message Loop Initialization
  Launch message loop with App.Run instead of Application.Run.
  3. Event Binding Syntax
- `CastSubByRef` is not recognized as a valid macro or function
+   `CastSubByRef` is not recognized as a valid macro or function
  Add the required parenthesis pair after the Sub declaration, Match parameter types between declarations and casts
 ```freebasic
+ 'Binding
  .OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox1_Click) ' Required that the event declarations of `Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)` and matches the event handler of the CheckBox control (CheckBox.OnClick Event).
 ```
-## Complete Form Template
- To create form interfaces using MyFbFramework (commonly abbreviated as `MFF`), required follow this template structure. The example demonstrates adding a `CheckBox` control named CheckBox1 to form `Form1`.
-```FreeBasic
- ' Required main file identification logic
- \#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__) ' Required conditional compilation directives
- \#define __MAIN_FILE__
- \#ifdef __FB_WIN32__
- \#cmdline "Form1.rc"
- \#endif
- Const _MAIN_FILE_ = __FILE__
- \#endif
- ' Component header inclusions
- \#include once "mff/Form.bi" ' Required header preprocessor directive. Form control
- \#include once "mff/CheckBox.bi" ' Required header preprocessor directive. CheckBox control
- Using My.Sys.Forms
- Type Form1Type Extends Form
- ' Event handler declarations
- Declare Sub Form_Click (ByRef Sender As Control)
- Declare Sub CheckBox1_Click (ByRef Sender As Control)
- Declare Sub CheckBox1_Create(ByRef Sender As Control)
- Declare Constructor ' Mandatory constructor
- Dim As CheckBox CheckBox1 ' Control instantiation
- End Type
- Constructor Form1Type
- \#if _MAIN_FILE_ = __FILE__ ' Required Conditional compilation directives
- With App
- .CurLanguagePath = ExePath & "/Languages/"
- .CurLanguage = My.Sys.Language
- End With
- \#endif
- ' Form initialization
- With This
- .Name = "Form1"
- .Text = "Form1"
- .Designer = @This ' Required parent assignment
- .OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @Form_Click)
- .SetBounds 0, 0, 350, 300
- End With
- ' CheckBox configuration
- With CheckBox1
- .Name = "CheckBox1" ' Required the value is the same as `With` statements 
- .Text = "CheckBox1"
- .SetBounds 42, 53, 265, 17
- .Designer = @This ' Required Design-time parent assignment
- .Parent = @This ' Required Runtime parent assignment
- .OnClick = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox1_Click) ' Required that the event declarations of `Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)` and matches the event handler of the CheckBox control (CheckBox.OnClick Event).
- .OnCreate = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox), @CheckBox1_Create) ' Required that the event declarations of `Sub(ByRef Designer As My.Sys.Object, ByRef Sender As CheckBox)` and matches the event handler of the CheckBox control (CheckBox.OnCreate Event).
- End With
- End Constructor
- Dim Shared Form1 As Form1Type ' Global form instance
- \#if _MAIN_FILE_ = __FILE__ 
- App.DarkMode = True
- Form1.MainForm = True
- Form1.Show
- App.Run  ' Message loop start
- \#endif
- ' Event handlers
- Private Sub Form1Type.Form_Click (ByRef Sender As Control)
- ' Event logic
- End Sub
- ' Event handlers
- Private Sub Form1Type.CheckBox1_Click (ByRef Sender As Control)
- ' Event logic
- End Sub
- ' Event handlers
- Private Sub Form1Type.CheckBox1_Create(ByRef Sender As Control)
- ' Event logic
- End Sub
-```
-
