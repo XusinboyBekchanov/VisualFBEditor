@@ -1817,7 +1817,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.ClearUndo
-		If curHistory = 0 Then Return
+		'If curHistory = 0 Then Return
 		On Error Goto ErrL
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
