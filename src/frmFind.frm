@@ -239,6 +239,33 @@ pfFind = @fFind
 	#endif
 '#End Region
 
+Public Function frmFind.IsValidWLetFormat(ByRef wstrInput As WString, ByRef txtFindText As WString) As Integer
+	Dim As Long length = Len(wstrInput)
+	Dim As Long FindLen = Len(Trim(txtFindText))
+	Dim As Long iStart = InStr(" " & LCase(wstrInput), " " & LCase(Trim(txtFindText)) & " ")
+	If iStart < 1 Then iStart = InStr(" " & LCase(wstrInput), " " & LCase(Trim(txtFindText)) & "(")
+	If length < FindLen + 2 OrElse iStart < 1 Then Return 0
+	Dim As Long commaPos = InStr(iStart, wstrInput, "," )
+	If commaPos = 0 Then Return False
+	
+	Dim As WString * 2048 extractStr
+	If commaPos <= FindLen + 2 Then
+		extractStr = ""
+	Else
+		extractStr = Mid(wstrInput, iStart + FindLen + 1, commaPos - iStart - FindLen - 1)
+	End If
+	Dim As WString * 2048 afterCommaStr
+	If commaPos < length Then
+		afterCommaStr = Mid(wstrInput, commaPos + 1)
+	Else
+		afterCommaStr = ""
+	End If
+	If Len(extractStr) > 0 And InStr(LCase(afterCommaStr), LCase(extractStr)) > 0 Then
+		Return iStart + 4
+	Else
+		Return 0
+	End If
+End Function
 Public Function frmFind.Find(Down As Boolean, bNotShowResults As Boolean = False) As Integer
 	If txtFind.Text = "" OrElse mTabSelChangeByError Then Exit Function
 	If CInt(*gSearchSave <> txtFind.Text OrElse plvSearch->ListItems.Count < 1) AndAlso CInt(cboFindRange.ItemIndex = 2) Then FindAll plvSearch, tpFind, , False : WLet(gSearchSave, txtFind.Text) : Exit Function
@@ -437,6 +464,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 	Dim As Integer Result, Pos1, Pos2
 	Dim As WString * 1024 Buff
 	Dim As Integer iLine, iStart, Fn
+	Dim As Boolean bCheckIsValidWLetUseage = LCase(tSearch) = "wlet$"
 	If tSearch = "" OrElse tn < 1 Then Exit Sub
 	For i As Integer = 0 To tn->Nodes.Count - 1
 		If FormClosing Then Exit For
@@ -472,10 +500,14 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 									ThreadsLeave
 								End If
 							Else
-								If chkMatchCase.Checked Then
-									Pos1 = InStr(Buff, tSearch)
+								If bCheckIsValidWLetUseage Then
+									Pos1 = IsValidWLetFormat(Trim(LCase(Buff), Any !"\t "), "wlet")
 								Else
-									Pos1 = InStr(LCase(Buff), LCase(tSearch))
+									If chkMatchCase.Checked Then
+										Pos1 = InStr(Buff, tSearch)
+									Else
+										Pos1 = InStr(LCase(Buff), LCase(tSearch))
+									End If
 								End If
 								While Pos1 > 0
 									ThreadsEnter
@@ -505,7 +537,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 	Dim As Integer Result, Pos1
 	Dim As WString * 1024 Buff
 	Dim As Integer iLine, iStart
-	Dim As Integer Fn
+	Dim As Integer Fn, Capacity
 	Dim SubStr() As WString Ptr
 	Dim As WString * 5 tML = WChr(77) & WChr(76) & WChr(40)& WChr(34)
 	If tSearch = "" OrElse tn < 1 Then Exit Sub
@@ -550,26 +582,28 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 							If Pos1 > 0 Then
 								If LCase(tSearch) = LCase(tReplace) Then
 									Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
-									For i As Integer =0 To NumS-1
+									For i As Integer = 0 To NumS - 1
 										If InStr(*BuffOut, Chr(13,10) & *SubStr(i))<=0 Then
-											WAdd(BuffOut, Chr(13, 10) & *SubStr(i))
-											If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, Chr(13, 10) & Replace(*SubStr(i), "&", ""))
+											WAdd(BuffOut, Chr(13, 10) & *SubStr(i), Capacity)
+											If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, Chr(13, 10) & Replace(*SubStr(i), "&", ""), Capacity)
 										End If
 										_Deallocate(SubStr(i)): SubStr(i) = 0
 									Next
 									Erase SubStr
 								Else
-									If *BuffOut="" Then
+									If *BuffOut = "" Then
+										Capacity = 0
 										WLet(BuffOut, Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
 									Else
-										WAdd(BuffOut, Chr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
+										WAdd(BuffOut, Chr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked), Capacity)
 									End If
 								End If
 							ElseIf LCase(tSearch) <> LCase(tReplace) Then
-								If *BuffOut="" Then
+								If *BuffOut = "" Then
+									Capacity = 0
 									WLet(BuffOut, Buff)
 								Else
-									WAdd(BuffOut, Chr(13,10) & Buff)
+									WAdd(BuffOut, Chr(13, 10) & Buff, Capacity)
 								End If
 							End If
 							While Pos1 > 0
@@ -905,7 +939,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = tb->FileName
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Tag = tb
-				WLet(ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
+				WLet(ECLine->Text, Mid(*buff, 1, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
 				ECLine->Ends.Clear
 				ECLine->EndsCompleted = False
 				tb->txtCode.ChangeCollapsibility i
@@ -940,7 +974,11 @@ Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
 	If Sender.Name = btnReplaceShow.Name Then mFormFind = IIf(Height > 80, True, False)
 	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
 	btnReplaceShow.Caption = IIf(mFormFind, ">", "^")
-	btnReplaceShow.Hint = IIf(mFormFind, ML("Expand to Replace Mode"), ML("Narrowdown to Find mode"))
+	If mFormFind Then
+		btnReplaceShow.Hint = ML("Expand to Replace Mode")
+	Else
+		btnReplaceShow.Hint = ML("Narrowdown to Find mode")
+	End If
 	btnReplace.Enabled = IIf(mFormFind, False, True)
 	btnReplaceAll.Enabled = IIf(mFormFind, False, True)
 	This.Size = Type<My.Sys.Drawing.Size>(433, IIf(mFormFind, 52, 82))
@@ -1019,7 +1057,7 @@ Private Sub frmFind.Form_Show(ByRef Sender As Form)
 		Var Posi = InStr(SelText, Chr(13)) - 1
 		If Posi < 1 Then Posi = InStr(SelText, Chr(10)) - 1
 		If Posi < 1 Then Posi = Len(SelText)
-		txtFind.Text = ..Left(SelText, Posi)
+		txtFind.Text = Mid(SelText, 1, Posi)
 	End If
 	btnReplaceShow_Click(Sender)
 	txtFind.SetFocus

@@ -415,6 +415,7 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 			If Result = 0 Then
 				iLine = 0
 				If LCase(tSearch) <> LCase(tReplace) Then WLet(BuffOut, "")
+				Dim As Integer Capacity
 				Do Until EOF(Fn)
 					Line Input #Fn, Buff
 					iLine += 1
@@ -428,24 +429,26 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 							Var NumS = StringSubStringAll(Buff,tML, WChr(34) & ")",SubStr())
 							For i As Integer =0 To NumS-1
 								If InStr(*BuffOut, WChr(13,10) & *SubStr(i))<=0 Then
-									WAdd(BuffOut, WChr(13, 10) & *SubStr(i))
-									If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, WChr(13, 10) & Replace(*SubStr(i), "&", ""))
+									WAdd(BuffOut, WChr(13, 10) & *SubStr(i), , Capacity)
+									If InStr(*SubStr(i), "&") > 0 Then WAdd(BuffOut, WChr(13, 10) & Replace(*SubStr(i), "&", ""), , Capacity)
 								End If
 								_Deallocate(SubStr(i))
 							Next
 							Erase SubStr
 						Else
-							If *BuffOut="" Then
+							If *BuffOut = "" Then
+								Capacity = 0
 								WLet(BuffOut, Replace(Buff, tSearch, tReplace,,,chkMatchCase.Checked))
 							Else
-								WAdd(BuffOut, WChr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked))
+								WAdd(BuffOut, WChr(13, 10) & Replace(Buff, tSearch, tReplace, , , chkMatchCase.Checked), , Capacity)
 							End If
 						End If
 					ElseIf LCase(tSearch) <> LCase(tReplace) Then
-						If *BuffOut="" Then
+						If *BuffOut = "" Then
+							Capacity = 0
 							WLet(BuffOut, Buff)
 						Else
-							WAdd(BuffOut, WChr(13,10) & Buff)
+							WAdd(BuffOut, WChr(13, 10) & Buff, , Capacity)
 						End If
 					End If
 					While Pos1 > 0
