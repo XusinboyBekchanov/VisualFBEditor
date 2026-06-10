@@ -120,7 +120,6 @@ Dim Shared As ReBar MainReBar, rbLeft, rbRight, rbBottom
 	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 #endif
 Dim Shared As List Tools, TabPanels, ControlLibraries
-Dim Shared As Library Ptr MFFCtlLibrary
 Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
 Dim Shared As WStringList AddIns, IncludeFiles, LoadPaths, IncludePaths, LibraryPaths, MRUAIChat, MRUFiles, MRUFolders, MRUProjects, MRUSessions, ProfilingFunctions ' add Sessions
@@ -238,7 +237,7 @@ Globals.Args.Sorted = True
 GlobalAsmFunctionsHelp.Sorted = True
 GlobalFunctionsHelp.Sorted = True
 WithFrame = Month(Now) = 12 OrElse Month(Now) = 1
-Dim Shared As MarkdownStreamConverter Ptr AIMDtoRTFConverterPtr
+
 Namespace VisualFBEditor
 	Function Application.ReadProperty(ByRef PropertyName As String) As Any Ptr
 		Select Case LCase(PropertyName)
@@ -5564,13 +5563,13 @@ Function GetTypeLink(ByRef TypeName As String, ByVal bMarkDown As Boolean = Fals
 End Function
 
 Sub LoadToolBox(ForLibrary As Library Ptr = 0)
-	On Error Goto ErrorHandler
 	Dim As String f
 	Dim As Integer i, j
 	Dim As My.Sys.Drawing.Cursor cur
 	Dim As String IncludePath
-	Dim As WString * 1024 MFF, Temp
+	Dim As UString MFF, Temp
 	Dim As UInteger Attr
+	Dim As Library Ptr MFFCtlLibrary
 	#ifndef __USE_GTK__
 		#ifdef __FB_64BIT__
 			MFF = IIf(i = 0, "Controls\MyFbFramework\mff64.dll", "")
@@ -5670,7 +5669,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Comps.Sort
 	Var iOld = -1, iNew = 0
 	Dim As String it = "Cursor"
-	Dim As TypeElement Ptr tbi
+	Dim As String wikiFolder = ExePath & "/Controls/MyFbFramework/MyFbFramework.wiki/"
+	Dim As String wikiTitle
+	Dim As List ECLines, teList
+	Dim As TypeElement Ptr tbi, tbi1, te, te1
 	For i = 0 To Comps.Count - 1
 		tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If tbi=0 Then Continue For
@@ -5690,31 +5692,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
-	
-	For i = 0 To ControlLibraries.Count - 1
-		CtlLibrary = ControlLibraries.Item(i)
-		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
-		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
-	Next i
-	Print ML("Load On Startup") & ": " & "Finish Loading Toolbox"
-	Exit Sub
-	ErrorHandler:
-	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
-End Sub
-
-Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boolean = False)
 	' HTML STYLE
-	On Error Goto ErrorHandler
-	Dim As WString * MAX_PATH wikiFolder = ExePath & "/Controls/MyFbFramework/MyFbFramework.wiki/"
-	Dim As WString * MAX_PATH wikiTitle
-	Dim As Library Ptr MFFCtlLibrary
-	Dim As Integer i, iLine
-	Dim As List ECLines, teList
-	Dim As TypeElement Ptr tbi, tbi1, te, te1
-	If OutputHTML Then
+	#if 0
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
@@ -6319,7 +6298,7 @@ Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boo
 			End If
 			CloseFile_(Fn1)
 			For kk As Integer = 0 To UBound(Lines)
-				If Lines(kk) Then _Deallocate(Lines(kk))
+				if Lines(kk) Then _Deallocate(*Lines(kk))
 			Next
 			Erase Lines
 		Next i
@@ -6344,15 +6323,18 @@ Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boo
 			Print #Fn, GetTypeLink(tbi->TypeName)
 			CloseFile_(Fn)
 		Next i
-	End If
+	#else
 		' Markdown STYLE
 		'This is a component of the MyFbFramework, which is part of the freeBasic framework and belongs to the container control.
-	'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
-	If OutputMarkDown Then
+		
+		'This is part of the MyFbFramework FreeBasic framework. It belongs to the container control.
+		'This is part of the properties of the grid control. It belongs to the .
+		
+		'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName, StringToC, tmpDefinition
 		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
-		Dim As Integer Posi, Capacity, Capacity1
+		Dim As Integer Posi
 		Dim As Boolean bNotEmpty
 		Dim As Dictionary ControlParentDict
 		Dim As WString Ptr FileContentPtr, FileContentPtr1, FileContentEmpty
@@ -6363,9 +6345,7 @@ Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boo
 		Else
 			ControlParentDict.Add "NULL", "NULL"
 		End If
-		Print ML("Load On Startup") & ": " & " Loading Comps"
 		For i = 0 To Comps.Count - 1
-			Capacity = 0 : Capacity1 = 0
 			tbi = Cast(TypeElement Ptr, Comps.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->ControlType = 0 Then
@@ -6378,122 +6358,113 @@ Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boo
 				tmpDefinition &= "The " & TmpControlName & " control structure is highly analogous to the VB6, vb.net " & TmpControlName & " control, with similar components, properties, and behaviors but uses the syntax and conventions defined by the MyFbFramework."
 			End If
 			
-			WAdd(FileContentPtr, Chr(13, 10) & "## " & Comps.Item(i), , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) & "### Definition", , Capacity)
-			If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace & " ", , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "## " & Comps.Item(i))
+			WAdd(FileContentPtr, Chr(13, 10) & "### Definition")
+			If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace & " ")
 			FPropertyItems.Clear
 			TabWindow.FillProperties Comps.Item(i)
 			FPropertyItems.Sort
-			WAdd(FileContentPtr, Chr(13, 10), , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) & "`" & Comps.Item(i) & "` - " & IIf(Trim(tbi->Comment) <> "", WStr(tbi->Comment), WStr(tmpDefinition)), , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10), , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10))
+			WAdd(FileContentPtr, Chr(13, 10) & "`" & Comps.Item(i) & "` - " & IIf(Trim(tbi->Comment) <> "", WStr(tbi->Comment), WStr(tmpDefinition)))
+			WAdd(FileContentPtr, Chr(13, 10))
 			bNotEmpty = False
-			WAdd(FileContentPtr, Chr(13, 10) & "### Properties", , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "### Properties")
 			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
-			Capacity1 = 0
-			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |", , Capacity1)
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Field AndAlso te->ElementType <> ElementTypes.E_Property Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(WStr(te->Comment), Any !"\r\n\t ") & "|`" & WStr(te->Parameters) & "`|", , Capacity1)
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & te->Parameters & "`|")
 				bNotEmpty = True
 			Next
 			If bNotEmpty Then
-				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1, , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
 			Else
-				WAdd(FileContentPtr, Chr(13, 10) & "(No properties defined)", , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & "(No properties defined)")
 			End If
 			
-			WAdd(FileContentPtr, Chr(13, 10), , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10))
 			bNotEmpty = False
-			WAdd(FileContentPtr, Chr(13, 10) & "### Methods", , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "### Methods")
 			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
-			Capacity1 = 0
-			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |", , Capacity1)
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Function AndAlso te->ElementType <> ElementTypes.E_Sub AndAlso te->ElementType <> ElementTypes.E_Define AndAlso te->ElementType <> ElementTypes.E_Macro Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(WStr(te->Comment), Any !"\r\n\t ") & "|`" & IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & WStr(te->Parameters) & "`|", , Capacity1)
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & IIf(te->ElementType = ElementTypes.E_Function, "Declare Function", "Declare Sub") & " " & te->Parameters & "`|")
 				bNotEmpty = True
 			Next
 			If bNotEmpty Then
-				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1, , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
 			Else
-				WAdd(FileContentPtr, Chr(13, 10) & "(No methods defined)", , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & "(No methods defined)")
 			End If
 			bNotEmpty = False
-			WAdd(FileContentPtr, Chr(13, 10) & "### Events", , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "### Events")
 			WLet(FileContentPtr1, Chr(13, 10) & "|Name|Description|Syntax|")
-			Capacity1 = 0
-			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |", , Capacity1)
+			WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To FPropertyItems.Count - 1
 				te = FPropertyItems.Object(j)
 				If te = 0 OrElse te->ElementType <> ElementTypes.E_Event Then Continue For
 				Var Pos1 = InStr(te->DisplayName, "[")
 				If Pos1 > 0 Then wikiTitle = Trim(Left(te->DisplayName, Pos1 - 1)) Else wikiTitle = te->DisplayName
-				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(WStr(te->Comment), Any !"\r\n\t ") & "|`" & WStr(te->Parameters) & "`|", , Capacity1)
+				WAdd(FileContentPtr1, Chr(13, 10) & "|" & FPropertyItems.Item(j) & "|" & Trim(te->Comment, Any !"\r\n\t ") & "|`" & te->Parameters & "`|")
 				bNotEmpty = True
 			Next
 			If bNotEmpty Then
-				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1, , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & *FileContentPtr1)
 			Else
-				WAdd(FileContentPtr, Chr(13, 10) & "(No events defined)", , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & "(No events defined)")
 			End If
 			'SaveToFile(wikiFolder & Comps.Item(i) & ".md", *FileContentPtr, FileEncoding, NewLineType)
 			'If tbi->ControlType <> 0 Then
-			'Debug.Print Comps.Item(i)
-			AIContext.Add(Comps.Item(i), *FileContentPtr)
+				'Debug.Print Comps.Item(i)
+				AIContext.Add(Comps.Item(i), *FileContentPtr)
 			'End If
 			_Deallocate(FileContentPtr ): FileContentPtr = 0
 		Next i
-		Print ML("Load On Startup") & ": " & " Loading Globals Enums.Count =" & Globals.Enums.Count
 		WLet(FileContentPtr, "## " & "Globals Enums")
-		Capacity = 0 : Capacity1 = 0
 		For i = 0 To Globals.Enums.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Enums.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
-			WAdd(FileContentPtr, Chr(13, 10) & "### " & Globals.Enums.Item(i) & " Enum", , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) &  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework.", , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) & tbi->Comment, , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "### " & Globals.Enums.Item(i) & " Enum")
+			WAdd(FileContentPtr, Chr(13, 10) &  "`" & Globals.Enums.Item(i) & "` is a global enum within the MyFbFramework.")
+			WAdd(FileContentPtr, Chr(13, 10) & tbi->Comment)
 			If tbi->OwnerNamespace <> "" Then
-				WAdd(FileContentPtr, Chr(13, 10) & "#### Definition", , Capacity)
-				If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace, , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & "#### Definition")
+				If Trim(tbi->OwnerNamespace) <> "" Then WAdd(FileContentPtr, Chr(13, 10) & "Namespace: " & tbi->OwnerNamespace)
 			End If
-			WAdd(FileContentPtr, Chr(13, 10) & "#### Fields", , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) & "|Name|Description|Syntax|", , Capacity)
-			WAdd(FileContentPtr, Chr(13, 10) & "| :---- | :---- | :---- |", , Capacity)
+			WAdd(FileContentPtr, Chr(13, 10) & "#### Fields")
+			WAdd(FileContentPtr, Chr(13, 10) & "|Name|Description|Syntax|")
+			WAdd(FileContentPtr, Chr(13, 10) & "| :---- | :---- | :---- |")
 			For j As Integer = 0 To tbi->Elements.Count - 1
 				te = tbi->Elements.Object(j)
 				If te = 0 Then Continue For
-				WAdd(FileContentPtr, Chr(13, 10) & "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|`" & WStr(te->Comment) & "`|", , Capacity)
+				WAdd(FileContentPtr, Chr(13, 10) & "|`" & tbi->Elements.Item(j) & "`|" & te->Value & "|`" & te->Comment & "`|")
 			Next
 		Next i
 		'SaveToFile(wikiFolder & "Globals Enums.md", *FileContentPtr, FileEncoding, NewLineType)
 		AIContext.Add("Globals Enums", *FileContentPtr)
-		Print ML("Load On Startup") & ": " & " Loading Globals Procedures"
 		_Deallocate(FileContentPtr ): FileContentPtr = 0
-		Capacity = 0 : Capacity1 = 0
 		If FileContentPtr1 Then Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
 		WLet(FileContentPtr1, "## Globals Procedures")
-		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|", , Capacity1)
-		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |", , Capacity1)
-		For i = 0 To Globals.Functions.Count - 1
+		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|")
+		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |")
+For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
 			If tbi->Declaration Then Continue For
-			WAdd(FileContentPtr1, Chr(13, 10) & "|" & Replace(tbi->FullName, "My.Sys.Forms.", "") & "|" & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "|" , , Capacity1)
-			WAdd(FileContentPtr1, "|`" & IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters & "`|", , Capacity1)
+			WAdd(FileContentPtr1, Chr(13, 10) & "|" & Replace(tbi->FullName, "My.Sys.Forms.", "") & "|" & IIf(tbi->ElementType = ElementTypes.E_Function, " Function", IIf(tbi->ElementType = ElementTypes.E_Sub, " Method", IIf(tbi->ElementType = ElementTypes.E_Define, " Define", IIf(tbi->ElementType = ElementTypes.E_Macro, " Macro", "")))) & "|" )
+			WAdd(FileContentPtr1, "|`" & IIf(tbi->ElementType = ElementTypes.E_Function, "Function", IIf(tbi->ElementType = ElementTypes.E_Sub, "Sub", IIf(tbi->ElementType = ElementTypes.E_Define, "#define", IIf(tbi->ElementType = ElementTypes.E_Macro, "#macro", "")))) & " " & tbi->Parameters & "`|")
 		Next i
 		'SaveToFile(wikiFolder & "Globals Procedures.md", *FileContentPtr1, FileEncoding, NewLineType)
-		Print ML("Load On Startup") & ": " & " Loading Globals Procedures"
 		AIContext.Add("Globals Procedures", *FileContentPtr1)
 		_Deallocate(FileContentPtr1 ): FileContentPtr1 = 0
-		Capacity1 = 0
 		'WLet(FileContentPtr1, "## Globals Args")
 		'For i = 0 To Globals.Args.Count - 1
 		'	tbi = Cast(TypeElement Ptr, Globals.Args.Object(i))
@@ -6514,14 +6485,14 @@ Sub MFFMediawiki(ByVal OutputMarkDown As Boolean = True, ByVal OutputHTML As Boo
 		'Next i
 		'SaveToFile(wikiFolder & "Globals Args.md", *FileContentPtr1, FileEncoding, NewLineType)
 		'Deallocate FileContentPtr1 : FileContentPtr1 = 0
-	End If
+	#endif
 	
-   'Dim As Library Ptr CtlLibrary
-	'For i = 0 To ControlLibraries.Count - 1
-		'CtlLibrary = ControlLibraries.Item(i)
-		'If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
-		'If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
-	'Next i
+
+	For i = 0 To ControlLibraries.Count - 1
+		CtlLibrary = ControlLibraries.Item(i)
+		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
+		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+	Next i
 	Exit Sub
 	ErrorHandler:
 	MsgBox ErrDescription(Err) & " (" & Err & ") " & _
@@ -6840,8 +6811,8 @@ Sub LoadSettings
 				AIAgentTemperature = Info->Temperature
 				AIAgentStream  = Info->Stream
 				AIAgentContentSize  = Info->ContentSize
-				cboAIAgentModels.Text = Temp
-				'cboAIAgentModels.ItemIndex = Max(0, cboAIAgentModels.IndexOf(Temp))
+				'cboAIAgentModels.Text = Temp
+				cboAIAgentModels.ItemIndex = Max(0, cboAIAgentModels.IndexOf(Temp))
 				AIPostDataFirstTime= True
 				AIIncludeFileNameList.Clear
 			End If
@@ -8822,7 +8793,7 @@ tpAIAgent->Add @pnlAIAgent
 
 pnlAIAgent.Align = DockStyle.alClient
 pnlAIAgent.Width = tabLeftWidth
-pnlAIAgent.Hint = ML("You'll also need to manually paste, edit, and submit it in the AI Agent's command window.") '"你还需要在命令窗口中手动粘贴、编辑和提交它。"
+'pnlAIAgent.OnResize = @pnlAIAgent_Resize
 #ifdef __USE_GTK__
 	#ifdef __USE_GTK3__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
@@ -9005,53 +8976,69 @@ Function EscapeJsonForPrompt(ByRef iText As WString) As String
 		Select Case iText[i]
 		Case 92                  '"\\", "\"))    ' 反斜杠
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 92
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 92
+			Posi += 1
+			i += 1
 		Case 34                  '"\""", """"))  ' 双引号
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 34
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 34
+			Posi += 1
 		Case 47                  '"\/", "/"))    ' 斜杠
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 47
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 47
+			Posi += 1
 		Case 8                  '"\b", Chr(8))) ' 退格
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 98
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 98
+			Posi += 1
 		Case 12                 '"\f", Chr(12)))' 换页
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 102
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 102
+			Posi += 1
 		Case 10                 '"\n", Chr(10)))' 换行
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 110
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 110
+			Posi += 1
 		Case 13                 '"\r", Chr(13)))' 回车
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 114
-			Posi += 2
+			Posi += 1
+			(*ResultPtr)[Posi] = 114
+			Posi += 1
 		Case 9                 '"\t", "    ")) ' 制表符
 			(*ResultPtr)[Posi] = 32
-			(*ResultPtr)[Posi + 1] = 32
-			(*ResultPtr)[Posi + 2] = 32
-			(*ResultPtr)[Posi + 3] = 32
-			Posi += 4
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
+			(*ResultPtr)[Posi] = 32
+			Posi += 1
 		Case 0 To 31: ' 控制字符 \uXXXX
 			TmpStr = Hex(iText[i], 4)
 			(*ResultPtr)[Posi] = 92
-			(*ResultPtr)[Posi + 1] = 117
-			(*ResultPtr)[Posi + 2] = TmpStr[0]
-			(*ResultPtr)[Posi + 3] = TmpStr[1]
-			(*ResultPtr)[Posi + 4] = TmpStr[2]
-			(*ResultPtr)[Posi + 5] = TmpStr[3]
-			Posi += 6
+			Posi += 1
+			(*ResultPtr)[Posi] = 117
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[0]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[1]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[2]
+			Posi += 1
+			(*ResultPtr)[Posi] = TmpStr[3]
+			Posi += 1
 		Case Else
 			(*ResultPtr)[Posi] = iText[i]
 			Posi += 1
 		End Select
 	Next
-	(*ResultPtr)[Posi] = 0
+	(*ResultPtr)[Posi] = 0: (*ResultPtr)[Posi + 1] = 0
 	' Marke issues
 	#ifdef __USE_WINAPI__
 		Dim CodePage As Integer = GetACP()
@@ -9070,24 +9057,24 @@ Function EscapeFromJson(ByRef iText As WString) As WString Ptr
 	Dim As Integer iLen = Len(iText)
 	If iLen = 0 Then Return 0
 	' 预分配内存（按最大需求：每个制表符最多4个转义字符）
-	Dim As Integer bufferSize = iLen * 6 + 2
+	Dim As Integer bufferSize = iLen * 4 + 2
 	Dim As WString Ptr ResultPtr = _Allocate(bufferSize * SizeOf(WString)) ' 预分配最大可能空间
 	If ResultPtr = 0 Then Return 0
 	Dim As String HexVal
 	Dim As Integer CharCode, Posi
 	For i As Integer = 0 To iLen - 1
-		If Posi >= bufferSize - 6 Then
+		If Posi >= bufferSize- 4 Then
 			bufferSize *= 2
 			ResultPtr = _Reallocate(ResultPtr, bufferSize * SizeOf(WString))
 		End If
 		If iText[i] = 92  AndAlso i < iLen - 1 Then
 			Select Case iText[i + 1]
-			Case 34                  '"\""", """"))  ' 双引号
-				(*ResultPtr)[Posi] = 34
-				Posi += 1
-				i += 1
 			Case 92                  '"\\", "\"))    ' 反斜杠
 				(*ResultPtr)[Posi] = 92
+				Posi += 1
+				i += 1
+			Case 34                  '"\""", """"))  ' 双引号
+				(*ResultPtr)[Posi] = 34
 				Posi += 1
 				i += 1
 			Case 47                  '"\/", "/"))    ' 斜杠
@@ -9112,26 +9099,26 @@ Function EscapeFromJson(ByRef iText As WString) As WString Ptr
 				i += 1
 			Case 116                 '"\t", "    ")) ' 制表符
 				(*ResultPtr)[Posi] = 32
-				(*ResultPtr)[Posi + 1] = 32
-				(*ResultPtr)[Posi + 2] = 32
-				(*ResultPtr)[Posi + 3] = 32
-				Posi += 4
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
+				(*ResultPtr)[Posi] = 32
+				Posi += 1
 				i += 1
 			Case 117  ' \u 处理 Unicode （如\u0026）
-				If i + 5 < iLen Then ' 确保后面有足够的字符
-					HexVal = Mid(iText, i + 3, 4)
-					CharCode = Val("&h" & HexVal)
-					(*ResultPtr)[Posi] = CharCode
-					Posi += 1
-					i += 5 ' 跳过4位十六进制字符
-				Else
-					(*ResultPtr)[Posi] = iText[i]
-					Posi += 1
-				End If
+				i += 1
+				HexVal = Mid(iText, i + 2, 4)
+				CharCode = Val("&h" & HexVal)
+				(*ResultPtr)[Posi] = CharCode
+				Posi += 1
+				i += 4 ' 跳过4位十六进制字符
 			Case Else
 				(*ResultPtr)[Posi] = iText[i]
-				(*ResultPtr)[Posi + 1] = iText[i + 1]
-				Posi += 2
+				Posi += 1
+				(*ResultPtr)[Posi] = iText[i + 1]
+				Posi += 1
 				i += 1
 			End Select
 		Else
@@ -9139,7 +9126,7 @@ Function EscapeFromJson(ByRef iText As WString) As WString Ptr
 			Posi += 1
 		End If
 	Next
-	(*ResultPtr)[Posi] = 0 ' 截取实际使用长度
+	(*ResultPtr)[Posi] = 0: (*ResultPtr)[Posi + 1] = 0   ' 截取实际使用长度
 	Return ResultPtr
 End Function
 
@@ -9162,9 +9149,9 @@ Else
 	" Draw through `[Canvas](Canvas.md)` property of visible containers." & _
 	" `OnPaint` handlers must include: must accept the `ByRef Canvas As My.Sys.Drawing.Canvas` parameter to ensure correct graphic context delivery. \n" & _
 	" **Event Handling Patterns** Use controlName_eventName format for handlers. Declare event handlers OUTSIDE form class." & _
-	" Bind events using the Cast(Sub(ByRef Sender As Control), @ProcedureName) syntax." & _
-	" ZString` is a null-terminated character array. `WString` is also a null-terminated character array, but it differs in that it is stored inline — memory is allocated automatically either on the stack (when declared as a local variable inside a function) or as a fixed-size array. Example:`subject` is a `WString Ptr`. The notation `(*subject)[Index]` is the pointer indexing representation for accessing elements of the wide string.")
+	" Bind events using the Cast(Sub(ByRef Sender As Control), @ProcedureName) syntax.")
 End If
+
 If Dir(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md") <> "" Then
 	WAdd(AIPostDataPtr_2nd, *LoadFromFile(ExePath & "\Help\AI prompt\VisualFBEditor IDE Environment.md"))
 Else
@@ -9193,7 +9180,7 @@ AIContext.Add("VisualFBEditor (VFBE) IDE Environment", *AIPostDataPtr_2nd)
 AIPostDataInitStr  = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to send file in chunks." & """}"
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to sent file in chunks." & """}"
 ' 定义各AI平台的最大分块大小常量
 Const OPENAI_MAX_CHUNK = 4096       ' OpenAI标准模型
 Const DEEPSEEK_MAX_CHUNK = 4000     ' DeepSeek标准模型
@@ -9202,7 +9189,6 @@ Const MISTRAL_MAX_CHUNK = 32000     ' Mistral 32K上下文
 Const OLLAMA_MAX_CHUNK = 4096       ' Ollama本地模型
 Const OPENROUTER_MAX_CHUNK = 8192    ' OpenRouter通用限制
 ' 获取当前AI平台的最大分块大小
-
 Function AIGetMaxChunkSize() As Integer
 	Select Case LCase(AIAgentProvider)
 	Case "openai", "gpt"
@@ -9221,15 +9207,17 @@ Function AIGetMaxChunkSize() As Integer
 		Return 4000 ' 默认值
 	End Select
 End Function
-'Sub AIPrintAnswer(ByRef Content As WString)
-'	If Content = "" Then Return
-'	txtAIAgent.SelStart = Len(txtAIAgent.Text)
-'	txtAIAgent.SelEnd = txtAIAgent.SelStart
-'	txtAIAgent.SelText = Content
-'	If Not txtAIAgent.Focused Then
-'		txtAIAgent.ScrollToEnd
-'	End If
-'End Sub
+Sub AIPrintAnswer(ByRef Content As WString)
+	If Content = "" Then Return
+	txtAIAgent.SelStart = Len(txtAIAgent.Text)
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelText = Content
+	If Not txtAIAgent.Focused Then
+		txtAIAgent.ScrollToEnd
+	End If
+	'Next j
+	'Erase BuffFormat
+End Sub
 
 Sub AISplitText(ByRef iText As WString, Chunks() As String, chunkSize As Integer = 4000, Overlap As Integer = 0)
 	' Validate OverlapNew parameter
@@ -9322,29 +9310,15 @@ End Sub
 HTTPAIAgent.OnComplete = @HTTPAIAgent_Complete
 AIPostDataFirstTime = True
 
-Sub UpdateRTB(ByRef tempChunk As WString = "")
-	If tempChunk = "" Then
-		If AIMDtoRTFConverterPtr->RTFBodyPtr = 0 Then  Exit Sub
-		txtAIAgent.TextRTF = AIMDtoRTFConverterPtr->RTFHeader & * (AIMDtoRTFConverterPtr->RTFBodyPtr) & "\row\par\li0\b0" & Chr(13, 10) & "\pard\plain\fs" & AIMDtoRTFConverterPtr->RTFFontSizefs & AIMDtoRTFConverterPtr->RTFFooter
-	Else
-		txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		txtAIAgent.SelEnd = txtAIAgent.SelStart
-		txtAIAgent.SelLength = 0
-		txtAIAgent.SelText = tempChunk
-	End If
-	txtAIAgent.ScrollToEnd
-	txtAIRequest.SetFocus
-End Sub
-
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	'ShowMessages(Buffer) ' Sometimes got party of the string   'data: [DONE] ': OPENROUTER PROCESSING
 	Dim As WString Ptr tmpBodyWStrPtr = FromUtf8(StrPtr(Buffer))
 	If tmpBodyWStrPtr = 0 OrElse *tmpBodyWStrPtr = "" Then Return
 	WAdd(AIBodyWStringPtr, *tmpBodyWStrPtr)
 	If AIBodyWStringPtr = 0 Then _Deallocate((tmpBodyWStrPtr) ): Return
-	'If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then
-	'	If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate(tmpBodyWStrPtr) : Return
-	'End If
+	If CBool(InStr(*tmpBodyWStrPtr, "[DONE]") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "OPENROUTER PROCESSING") < 1) AndAlso CBool(InStr(*tmpBodyWStrPtr, "failed to decode json")) AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "error: ") AndAlso Not StartsWith(LCase(*tmpBodyWStrPtr), "{""error""") AndAlso Not StartsWith(*tmpBodyWStrPtr, "{""code""") Then
+		If InStr(*tmpBodyWStrPtr, "data:") < 1 OrElse InStr(*tmpBodyWStrPtr, """content"":""") < 1 OrElse Right(*tmpBodyWStrPtr, 1) <> "}" Then _Deallocate(tmpBodyWStrPtr) : Return
+	End If
 	
 	'' 检查是否包含完整的JSON对象（用于判断是否是一个完整的数据包）
 	Dim As Boolean inString   = False   ' False 不在字符串中，True=在字符串中
@@ -9389,17 +9363,13 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	Dim As String ReasoningStart(0 To 4) = {",""reasoning"":"""       ,      ",""reasoning"":""",       ",""reasoning_content"":""",     ",""reasoning_content"":""", ",""reasoning_content"":"""                    }
 	Dim As String ReasoningEnd(0 To 4) = {  """,""reasoning_details"":" ,    """},""finish_reason""",     """,""role"":""",               """}}]}",                   """},"""                                          }
 	'","role":"assistant   ,"reasoning":"  ","role":"assistant"
-	Dim As WString Ptr Buff(Any)
-	Dim As Integer k, iPosEnd, iPosStart, iPos3
-	Dim As Integer BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
+	Dim As WString Ptr Buff()
+	Dim As Integer k, iPosEnd, iPosStart, iPos3, BuffCount = Split(*AIBodyWStringPtr, "data: ", Buff())
 	Dim As Boolean binReason
 	ThreadsEnter
-	Dim As Integer Capacity
 	For i As Integer = 0 To BuffCount - 1
 		If Buff(i) = 0 OrElse Len(*Buff(i)) < 2 Then Continue For
-		'If i > BuffCount - 2 Then ShowMessages(" i=" & i & " " & *Buff(i))
-		'If InStr(*Buff(i), "chat.completion.chunk") Then
-		If InStr(*Buff(i), ",""delta"":{") Then
+		If InStr(*Buff(i), "chat.completion.chunk") Then
 			'Skip the empty
 			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
 			'If InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":null") OrElse InStr(LCase(*Buff(i)), """content"":"""",""reasoning_content"":""""") OrElse InStr(LCase(*Buff(i)), """content"":"""",""role"":""assistant") Then Continue For
@@ -9411,7 +9381,9 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If iPosStart Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
-							If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n<think>\n")
+							txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+							txtAIAgent.SelEnd = txtAIAgent.SelStart
+							txtAIAgent.SelText =  !"\r\n<think>\r\n"
 						End If
 						'Print "REASON:" & (iPosStart - iPosEnd - Len(ReasoningStart(k)))
 						iPos3 = iPosEnd - iPosStart - Len(ReasoningStart(k))
@@ -9419,7 +9391,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							binReason = True
 							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ReasoningStart(k)), iPos3))
-							If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+							If AIBodyWStringPtr <> 0 Then AIPrintAnswer(*AIBodyWStringPtr)
 						End If
 						Exit For
 					End If
@@ -9434,15 +9406,18 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						If iPosStart > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
-								If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n</think>\n")
+								txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+								txtAIAgent.SelEnd = txtAIAgent.SelStart
+								txtAIAgent.SelText =  !"\r\n</think>\r\n"
 							End If
+							'Print "CONT:" & (iPosStart - iPosEnd - Len(ContentStart(k)))
 							iPos3 = iPosEnd - iPosStart - Len(ContentStart(k))
 							If iPos3 > 0 Then
 								_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 								AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ContentStart(k)), iPos3))
 								If AIBodyWStringPtr <> 0 Then
-									WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr, , Capacity)
-									If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+									WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr)
+									AIPrintAnswer(*AIBodyWStringPtr)
 								End If
 							End If
 							Exit For
@@ -9459,38 +9434,41 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				End If
 			End If
 			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
-			',"usage":{"prompt_tokens":2939,"completion_tokens":420,"total_tokens":3359,
-		ElseIf CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") Then
-			ShowMessages(*Buff(i))
-			'#ifndef __USE_GTK__
-			If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
-				If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
-			End If
-			If  AIAssistantsAnswersPtr Then
-				If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = Chr(10) & Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10) & *AIAssistantsAnswersPtr
-			End If
-			WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
-			'If AIBodyWStringSavePtr <> 0 AndAlso AIMDtoRTFConverterPtr <> 0 Then
-			'AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringSavePtr)
-			'AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
-			'If AIBodyWStringPtr <> 0 Then
-			'txtAIAgent.TextRTF = *AIBodyWStringPtr
-			'	txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
-			'txtAIAgent.ScrollToCaret
-			'End If
-			'End If
-			'#endif
-			txtAIRequest.Enabled = True
-			txtAIRequest.SetFocus
-			cboAIAgentModels.Enabled = True
-			If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 		Else
-			WLet(AIBodyWStringPtr, *Buff(i))
+			',"usage":{"prompt_tokens":2939,"completion_tokens":420,"total_tokens":3359,
+			If Buff(i) <> 0 Then
+				If CBool(InStr(*Buff(i), "[DONE]") > 0) OrElse CBool(InStr(*Buff(i), "OPENROUTER PROCESSING") > 0) OrElse CBool(InStr(*Buff(i), "failed to decode json")) OrElse StartsWith(LCase(*Buff(i)), "error: ") OrElse StartsWith(LCase(*Buff(i)), "{""error""") OrElse StartsWith(*Buff(i), "{""code""") OrElse CBool(InStr(*Buff(i), "{") > 1) Then
+					ShowMessages(*Buff(i))
+					#ifndef __USE_GTK__
+						If AIAssistantsAnswersPtr AndAlso Trim(*AIAssistantsAnswersPtr) = "" Then
+							If AIMessages.Count > 0  AndAlso AIMessages.Item(AIMessages.Count - 1)->Text = "NA" Then AIMessages.Remove AIMessages.Count - 1
+						End If
+						If  AIAssistantsAnswersPtr Then
+							If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = "[**AI Response:**] " & *AIAssistantsAnswersPtr
+						End If
+						WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+						If AIBodyWStringSavePtr <> 0 Then
+							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+							AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+							If AIBodyWStringPtr <> 0 Then
+								txtAIAgent.TextRTF = *AIBodyWStringPtr
+								txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+							End If
+						End If
+					#endif
+					txtAIRequest.Enabled = True
+					txtAIRequest.SetFocus
+					cboAIAgentModels.Enabled = True
+					If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+				Else
+					WLet(AIBodyWStringPtr, *Buff(i))
+				End If
+			End If
 		End If
 		_Deallocate(Buff(i))
 	Next
 	Erase Buff
-	If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
+	If AIBodyWStringPtr Then _Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0 
 	_Deallocate((tmpBodyWStrPtr))
 	ThreadsLeave
 End Sub
@@ -9527,6 +9505,11 @@ Sub AIRequest(Param As Any Ptr)
 	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
 	WLet(AIAssistantsAnswersPtr, "")
 	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkHlBkColor
+	txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
+	txtAIAgent.SelBackColor = darkBkColor
 	txtAIAgent.ScrollToEnd
 	ThreadsLeave
 	If AIAgentStream Then
@@ -9541,20 +9524,18 @@ Sub AIRequest(Param As Any Ptr)
 		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 14, iPos2 - iPos1 - 14))
 		If BuffPtr = 0 Then Return
 		ThreadsEnter
-		'txtAIAgent.SelStart = Len(txtAIAgent.Text)
-		'txtAIAgent.SelEnd = txtAIAgent.SelStart
-		'txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-		'txtAIAgent.SelBackColor = darkHlBkColor
-		'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		'txtAIAgent.SelEnd = txtAIAgent.SelStart
-		'txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**AI Response:**] " & (*CurrentAIAgent) & !"\n")
-		'txtAIAgent.ScrollToCaret
-		'txtAIAgent.SelBackColor = darkBkColor
-		'txtAIAgent.SelText = !"<Think>\r\n" & *BuffPtr & !"</Think>\r\n"
-		'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
-		'txtAIAgent.SelEnd = txtAIAgent.SelStart
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"<Think>\n" & *BuffPtr & !"</Think>\n")
+		txtAIAgent.SelStart = Len(txtAIAgent.Text)
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.SelBackColor = darkHlBkColor
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
+		txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
+		txtAIAgent.ScrollToCaret
+		txtAIAgent.SelBackColor = darkBkColor
+		txtAIAgent.SelText = !"<Think>\r\n" & *BuffPtr & !"</Think>\r\n"
+		txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+		txtAIAgent.SelEnd = txtAIAgent.SelStart
 		ThreadsLeave
 		iPos1 = InStrRev(*Temp, ",""content"":""")
 		iPos2 = InStrRev(*Temp, """,""refusal""")
@@ -9562,8 +9543,7 @@ Sub AIRequest(Param As Any Ptr)
 		BuffPtr = EscapeFromJson(Mid(*Temp, iPos1 + 12, iPos2 - iPos1 - 12))
 		If BuffPtr <> 0 Then
 			ThreadsEnter
-			'AIPrintAnswer(*BuffPtr)
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*BuffPtr)
+			AIPrintAnswer(*BuffPtr)
 			'txtAIRequest.Enabled = True
 			txtAIRequest.SetFocus
 			ThreadsLeave
@@ -9574,30 +9554,23 @@ Sub AIRequest(Param As Any Ptr)
 	bInAIThread = False
 End Sub
 
-Sub CheckAndFlushAIRequest()
-	If AIPostDataSize > AIAgentContentSize Then Exit Sub
-	AIPostData &= "]}"
-	Debug.Print ML("The content exceeds the model's character limit.") & " Total: " & AIPostDataSize / 1024 & "Kb. ", True
-	Sleep(300)
-	' 根据实际需求，如果此处需要分段发送，请取消以下注释：
-	If AIThread Then ThreadDetach(AIThread)
-	AIThread = ThreadCreate(@AIRequest)
-	AIPostDataSize = 0
-	AIPostData = AIPostDataInitStr ' 重新初始化 JSON
-End Sub
-
-Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
-	If Key <> 13 Then Return
-	If Shift = 4 OrElse Shift = 1 Then Return 'Ctrl ,Shift
-	If bInAIThread Then
+Sub txtAIRequest_Activate(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+	If bInAIThread Then 
 		ShowMessages(ML("Please waiting, AI is working hard......"))
 		Return
 	End If
-	If txtAIRequest.Text = "" Then Return
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**User Question:**] " & Date & " " & Time & !"\n")
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n" & txtAIRequest.Text & !"\n")
-	'txtAIAgent.ScrollToEnd
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**AI Response:**] " & *CurrentAIAgent & !"\n")
+	If Trim(txtAIRequest.Text, Any !"\t\n\r ") = "" Then Return
+	txtAIRequest.Text = Trim(txtAIRequest.Text, Any !"\t\r\n ")
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkHlBkColor
+	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+	txtAIAgent.SelText = !"\r\n\r\n[**User Question:**] " & Date & " " & Time
+	txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
+	txtAIAgent.SelEnd = txtAIAgent.SelStart
+	txtAIAgent.SelBackColor = darkBkColor
+	txtAIAgent.SelText = !"\r\n" & txtAIRequest.Text & !"\r\n"
+	txtAIAgent.ScrollToEnd
 	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 	bInAIThread = True
 	txtAIRequest.Enabled = False
@@ -9617,19 +9590,19 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 	ChunkOverlap = 0       ' 代码需要更大重叠??????
 	Dim As WString * MAX_PATH FileName , IncludeFile
 	Dim As WString Ptr ControlBIContentPtr
-	Dim As Integer i, ControlBIIndex
+	Dim As Integer ControlBIIndex
 	Dim As String ContentType
 	AIPostData = _
 	"{""model"": """ & AIAgentModelName & """, " & _
 	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
-	"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to send file in chunks." & """}"
+	"""messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to sent file in chunks." & """}"
 	
 	' Find the control in txtAIRequest.Text
 	ContentType= "Markdown "
 	Dim As Boolean bShouldSend
 	Dim As Integer  AIContextCount = AIContext.Count - 1
 	For j As Integer = 0 To AIContextCount
-		FileName = AIContext.Item(j)->Key
+		filename = AIContext.Item(j)->Key
 		'Debug.Print FileName & " j=" & j
 		bShouldSend = False
 		'If InStr(FileName, "MyFbFramework") Then
@@ -9641,12 +9614,12 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		If j = 0 Then
 			bShouldSend = True 'MyFbFramework must be send
 		Else
-			If InStr(FileName, "VisualFBEditor") Then
+			If InStr(filename, "VisualFBEditor") Then
 				If InStr(txtAIRequest.Text, "VisualFBEditor") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "VFBE") > 0 Then bShouldSend = True
 				If InStr(txtAIRequest.Text, "IDE") > 0 Then bShouldSend = True
 			Else
-				bShouldSend = InStr(txtAIRequest.Text, FileName)
+				bShouldSend = InStr(txtAIRequest.Text, filename)
 			End If
 		End If
 		If bShouldSend AndAlso CBool(AIIncludeFileNameList.Count < 1 OrElse Not AIIncludeFileNameList.Contains(FileName)) Then
@@ -9656,11 +9629,9 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 				If Len(*ControlBIContentPtr) > MaxChunkSize Then
 					AISplitText(" <context> ```" & ContentType & EscapeJsonForPrompt(*ControlBIContentPtr & " ``` </context> "), UserChunks(), ChunkThreshold, ChunkOverlap)
 					MaxChunks = UBound(UserChunks) + 1
-					For i = 0 To MaxChunks - 2
-						AIPostData &= ", {""role"": ""system"", ""content"": ""[" & FileName & " part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+					For i As Integer = 0 To MaxChunks - 1
+						AIPostData &= ", {""role"": ""system"", ""content"": ""[" & FileName & " Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
 					Next
-					i = MaxChunks - 1
-					AIPostData &= ", {""role"": ""system"", ""content"": ""[" & FileName & " final part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
 				Else
 					AIPostData &= ", {""role"": ""system"", ""content"": """  & " <context> ```" & ContentType & EscapeJsonForPrompt(*ControlBIContentPtr) & " ``` </context> " & """}"
 				End If
@@ -9678,13 +9649,10 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 				MaxChunks = Max(UBound(UserChunks), UBound(AssistantChunks)) + 1
 				ReDim Preserve UserChunks(MaxChunks - 1)
 				ReDim Preserve AssistantChunks(MaxChunks - 1)
-				For i = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
+				For i As Integer = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
 					AIPostData &= ", {""role"": ""user"", ""content"": ""[User chunk " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
 					AIPostData &= ", {""role"": ""assistant"", ""content"": ""[AI chunk " & (i + 1) & "/" & (MaxChunks) & "] " & AssistantChunks(i) & """}"
 				Next
-				i = MaxChunks - 1
-				AIPostData &= ", {""role"": ""user"", ""content"": ""[User final part chunk " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
-				AIPostData &= ", {""role"": ""assistant"", ""content"": ""[AI final part chunk " & (i + 1) & "/" & (MaxChunks) & "] " & AssistantChunks(i) & """}"
 			Else
 				AIPostData &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Key) & """}"
 				AIPostData &= ", {""role"": ""assistant"", ""content"": """ & EscapeJsonForPrompt(AIMessages.Item(j)->Text) & """}"
@@ -9695,76 +9663,65 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 	If Len(txtAIRequest.Text) > MaxChunkSize Then
 		AISplitText(EscapeJsonForPrompt(txtAIRequest.Text), UserChunks(), ChunkThreshold, ChunkOverlap)
 		MaxChunks = UBound(UserChunks) + 1
-		For i = 0 To MaxChunks - 2 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
-			AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
-			AIPostData &= ", {""role"": ""assistant"", ""content"": ""[**Received** part " & (i + 1) & "/" & (MaxChunks) & "] - please send next segment: " & """}"
+		For i As Integer = 0 To MaxChunks - 1 'strictly adhere to the user/assistant alternating format required by the DeepSeek API.
+			If i <> MaxChunks - 1 Then
+				AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}"
+				AIPostData &= ", {""role"": ""assistant"", ""content"": ""[**Received** part " & (i + 1) & "/" & (MaxChunks) & "] - please send next segment: " & """}"
+			Else
+				AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** Part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}]" & ExtraHeaders
+			End If
 		Next
-		i = MaxChunks - 1
-		AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** final part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}]" & ExtraHeaders
-		
 	Else
 		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
 	End If
 	
-	AIMessages.Add(Chr(10) & Chr(10) & "[**User Question:**] " & Date & " " & Time & Chr(10) & txtAIRequest.Text & Chr(10), " NA ")
+	AIMessages.Add("[**User Question:**] " & txtAIRequest.Text, "NA")
 	WLet(AIAssistantsAnswersPtr, "")
 	ClearMessages
-	'Debug.Print "--AIRequest Begin-- " & Time, True
-	'Debug.Print AIPostData, True
-	'Debug.Print "--AIRequest End-- " & Time, True
 	Erase UserChunks
 	Erase AssistantChunks
 	cboAIAgentModels.Enabled = False
-	Sleep(300)
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
 End Sub
 
 Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
 	Dim As WString Ptr res(Any), tmpWStrPtr
-	Dim As Integer Capacity
 	pstBar->Panels[0]->Caption = ML("Wait until tool quits")
 	If IsFBCode Then
-		WLet(tmpWStrPtr, "```FreeBasic" & Chr(10) & Replace(Clipboard.GetAsText, Chr(9), "    ") & Chr(10) & "```" & Chr(10))
-		If tmpWStrPtr = 0 Then Return
-		AIMessages.Add *tmpWStrPtr, " "
-		WAdd(AIBodyWStringPtr, *tmpWStrPtr, , Capacity)
+		WLet(tmpWStrPtr, Replace(Clipboard.GetAsText, Chr(9), "    "))
+		AIMessages.Add "```FreeBasic " & Chr(10) & *tmpWStrPtr & Chr(10) & "```", " "
+		WAdd(AIBodyWStringPtr, "```FreeBasic " & Chr(10) & *tmpWStrPtr & Chr(10) & "```")
 		_Deallocate(tmpWStrPtr)
 	Else
-		Dim As Integer maxIdx = Split(Clipboard.GetAsText, Chr(9), res())
-		If maxIdx <= 1 Then
-			AIMessages.Add *res(0), "NA"
-			WAdd(AIBodyWStringPtr, *res(0) & Chr(10), , Capacity)
-		Else
-			For j As Integer = 0 To maxIdx - 2 Step 2
-				If Trim(*res(j)) <> "" Then
-					AIMessages.Add *res(j), *res(j + 1)
-					WAdd(AIBodyWStringPtr, *res(j) & Chr(10) & *res(j + 1) & Chr(10), , Capacity)
-				End If
-				_Deallocate(res(j))
-				_Deallocate(res(j + 1))
-			Next
-		End If
-		If maxIdx >= 2 AndAlso (maxIdx Mod 2 = 1) Then _Deallocate(res(maxIdx - 1))
+		Split(Clipboard.GetAsText, Chr(9), res())
+		If UBound(res) < 1 Then Exit Sub
+		For j As Integer = 0 To UBound(res) - 1 Step 2
+			If Trim(*res(j)) <> "" Then
+				AIMessages.Add *res(j), *res(j + 1)
+				WAdd(AIBodyWStringPtr, *res(j) & Chr(10) & *res(j + 1) & Chr(10))
+			End If
+			_Deallocate(res(j))
+			_Deallocate(res(j + 1))
+		Next
 		Erase res
 	End If
+	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+	If (Not IsFBCode) AndAlso (AIBodyWStringSavePtr <> 0) Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0 : AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
 	If AIBodyWStringPtr Then
-		WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-		If AIMDtoRTFConverterPtr <> 0 Then
-			AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-			AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
-		End If
+		txtAIAgent.TextRTF = *AIBodyWStringPtr
+		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+		txtAIAgent.ScrollToCaret
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
-		If (Not IsFBCode) AndAlso (AIBodyWStringSavePtr <> 0) Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	End If
-	
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	frmMain.Cursor = 0
 	pstBar->Panels[0]->Caption = ML("Press F1 for get more information")
 End Sub
 
 Public Sub AIRelease()
-	ThreadsEnter
+	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
 	Sleep(500)
@@ -9777,10 +9734,9 @@ Public Sub AIRelease()
 End Sub
 
 Public Sub AIResetContext()
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
 	txtAIAgent.Text = " "
 	txtAIAgent.TextRTF = ""
-	ThreadsEnter
+	ThreadsEnter 
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
 	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
@@ -9793,26 +9749,8 @@ Public Sub AIResetContext()
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
 	If AIMessages.Count > 0 Then
-		Dim As WString * 260 FileName, tmpName = Left(AIMessages.Item(0)->Key, 200)
-		Dim As Integer iBracketPos, iFirstNlPos, iSecondNlPos
-		iBracketPos = InStr(tmpName, "]")
-		If iBracketPos < 1 Then
-			tmpName = ML("Untitled")
-		Else
-			iFirstNlPos = InStr(iBracketPos + 1, tmpName, !"\n")
-			If iFirstNlPos > 0 Then
-				tmpName = Mid(tmpName, iFirstNlPos + 1)
-				iSecondNlPos = InStr(tmpName, !"\n")
-				If iSecondNlPos > 0 AndAlso iSecondNlPos <= 50 Then
-					tmpName = Left(tmpName, iSecondNlPos - 1)
-				Else
-					tmpName = Left(tmpName, 50)
-				End If
-			Else
-				tmpName = Trim(Mid(tmpName, iBracketPos + 1, 50))
-			End If
-		End If
-		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
+		Dim As WString * MAX_PATH FileName
+		FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
 		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
 		If Not MRUAIChat.Contains(FileName) Then
 			MRUAIChat.Add FileName
@@ -9822,7 +9760,6 @@ Public Sub AIResetContext()
 		AIMessages.Clear
 	End If
 	_Deallocate((RecentAIChat)): RecentAIChat = 0
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10))
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime = True
 	txtAIRequest.Enabled = True
@@ -9842,11 +9779,10 @@ txtAIRequest.Parent = @pnlAIAgent
 txtAIRequest.Font.Name = *EditorFontName
 txtAIRequest.Font.Size = EditorFontSize
 txtAIRequest.ScrollBars = ScrollBarsType.Vertical
-txtAIRequest.Hint = ML("Press Shift+Enter for a line break; Enter alone submits.") '按 Shift Enter 换行；单独按 Enter 提交。"
 txtAIRequest.Multiline= True
 txtAIRequest.WantReturn = False
 txtAIRequest.WordWraps = True
-txtAIRequest.OnKeyDown = @txtAIRequest_OnKeyDown
+txtAIRequest.OnActivate = @txtAIRequest_Activate
 ptxtAIRequest = @txtAIRequest
 AIPostDataFirstTime = True
 splAIAgent.Parent = @pnlAIAgent
@@ -12074,8 +12010,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'			wDeallocate Changelog
 	'		End If
 	'	End If
-	AIMDtoRTFConverterPtr = New MarkdownStreamConverter(*EditorFontName, EditorFontSize, 9)
-	'If AIMDtoRTFConverterPtr = 0 Then Return
+	
 	#ifdef __FB_64BIT__
 		App.Title = App.Title & " (" & ML("64-bit") & ")"
 	#else
@@ -12116,18 +12051,74 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		Case 4: OpenFiles GetFullPath(*RecentFile)
 		End Select
 	End Select
-	Print ML("Load On Startup") & ": " & "finish frmMain Create."
-	
+	'frmMain.RequestAlign
 End Sub
-'
-'For i As Integer = 48 To 57
-'	symbols(i - 48) = i
-'Next
-'For i As Integer = 97 To 102
-'	symbols(i - 87) = i
-'Next
 
-Function UTF16BeByte2wchars(ta() As UByte) ByRef As WString
+For i As Integer = 48 To 57
+	symbols(i - 48) = i
+Next
+For i As Integer = 97 To 102
+	symbols(i - 87) = i
+Next
+
+Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
+	If subject = "" OrElse subject = "." OrElse subject = "+" OrElse subject = "-" Then Return False
+	Err = 0
+	
+	If base_ < 2 OrElse base_ > 16 Then
+		Err = 1000
+		Return False
+	End If
+	
+	Dim t As String = LCase(subject)
+	
+	If (t[0] = plus) OrElse (t[0] = minus) Then
+		t = Mid(t, 2)
+	End If
+	
+	If Left(t, 2) = "&h" Then
+		If base_ <> 16 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Left(t, 2) = "&o" Then
+		If base_ <> 8 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Left(t, 2) = "&b" Then
+		If base_ <> 2 Then Return False
+		t = Mid(t, 3)
+	End If
+	
+	If Len(t) = 0 Then Return False
+	Dim As Boolean isValid, hasDot = False
+	
+	For i As Integer = 0 To Len(t) - 1
+		isValid = False
+		
+		For j As Integer = 0 To base_ - 1
+			If t[i] = symbols(j) Then
+				isValid = True
+				Exit For
+			End If
+			If t[i] = dot Then
+				If CInt(Not hasDot) AndAlso (base_ = 10) Then
+					hasDot = True
+					isValid = True
+					Exit For
+				End If
+				Return False ' either more than one dot or not base 10
+			End If
+		Next j
+		
+		If Not isValid Then Return False
+	Next i
+	
+	Return True
+End Function
+
+Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 	Type mstring
 		p As WString Ptr ' pointer to wstring buffer
 		l As UInteger ' length of string

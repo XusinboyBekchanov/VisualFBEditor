@@ -6545,7 +6545,7 @@ Private Function var_search(pproc As Integer,text() As String,vnb As Integer,var
 						
 					End If
 					tvar += 1 'next element, a component
-				ElseIf Ucase(vrb(vrr(begv).vr).nm) = "THIS" Then
+				ElseIf vrb(vrr(begv).vr).nm = "THIS" Then
 					Dim ivrr As Integer = var_search2(text(tvar), vrb(vrr(begv).vr).typ, procr(pproc).tv)
 					If ivrr <> -1 Then Return ivrr
 				End If
@@ -14299,7 +14299,7 @@ End Sub
 		
 	End Function
 	
-	Function load_file(ByRef sCurentFileExe As WString, ByRef sPathGDB As WString) As Long
+	Function load_file(ByRef sCurentFileExe As UString, ByRef sPathGDB As UString) As Long
 		
 		#ifdef __USE_GTK__
 			If g_find_program_in_path(ToUtf8(sPathGDB)) = NULL Then
@@ -14341,7 +14341,7 @@ End Sub
 		
 		'Updateinfoxserver(10)
 		
-		iGlPid = CreatePipeD(sPathGDB,  "-f" , Chr(34) & sCurentFileExe & Chr(34))
+		iGlPid = CreatePipeD(sPathGDB,  "-f" , sCurentFileExe )
 		
 		'Updateinfoxserver(150)
 		

@@ -363,6 +363,12 @@ Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub pnlToolBox_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
+
+Dim Shared symbols(0 To 15) As UByte
+Const plus  As UByte = 43
+Const minus As UByte = 45
+Const dot   As UByte = 46
+Declare Function IsNumeric(ByRef subject As Const WString, base_ As Integer = 10) As Boolean
 Declare Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 
 #ifndef __USE_MAKE__

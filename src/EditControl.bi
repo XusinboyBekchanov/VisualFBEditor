@@ -14,7 +14,7 @@
 #include once "mff/ListView.bi"
 #include once "mff/ToolTips.bi"
 #ifdef __USE_WINAPI__
-	#include once "mff/D2D1/D2D1_MFF.bi"
+	#include once "mff/D2D1/D2D1.bi"
 #endif
 '#include once "Main.bi"
 

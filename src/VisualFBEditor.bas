@@ -178,84 +178,44 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			AddMRUAIChat FileName
 			WLet(RecentAIChat, FileName)
 			_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
-			Dim As Integer Capacity
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-			txtAIAgent.TextRTF = ""
 			For i As Integer = 0 To AIMessages.Count - 1
 				If i <> AIMessages.Count - 1 Then
-					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text & Chr(10), , Capacity)
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text & Chr(10))
 				Else
-					Capacity = 0
-					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text, , Capacity)
+					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text)
 				End If
 			Next
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+			
 			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+			If AIBodyWStringSavePtr Then AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+			If AIBodyWStringPtr Then
+				txtAIAgent.TextRTF = *AIBodyWStringPtr
+				txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+				txtAIAgent.ScrollToCaret
+				txtAIRequest.Enabled = True
+				txtAIRequest.SetFocus
+			End If
 			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			frmMain.Cursor = 0
 		End If
 	Case "AIChatSave"
-		If AIMessages.Count < 1 Then
-			ShowMessages(__FUNCTION__ & " Line:" & __LINE__ & " No any message！" )
-			Exit Sub
-		End If
-		Dim As WString * 260 tmpName = Left(AIMessages.Item(0)->Key, 200)
-		Dim As Integer iBracketPos, iFirstNlPos, iSecondNlPos
-		iBracketPos = InStr(tmpName, "]")
-		If iBracketPos < 1 Then
-			tmpName = ML("Untitled")
-		Else
-			iFirstNlPos = InStr(iBracketPos + 1, tmpName, !"\n")
-			If iFirstNlPos > 0 Then
-				tmpName = Mid(tmpName, iFirstNlPos + 1)
-				iSecondNlPos = InStr(tmpName, !"\n")
-				If iSecondNlPos > 0 AndAlso iSecondNlPos <= 50 Then
-					tmpName = Left(tmpName, iSecondNlPos - 1)
-				Else
-					tmpName = Left(tmpName, 50)
-				End If
-			Else
-				tmpName = Trim(Mid(tmpName, iBracketPos + 1, 50))
-			End If
-		End If
-		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		ShowMessages(ExePath & "/AIChat/" & FileName)
+		If AIMessages.Count < 1 Then Exit Sub
 		frmMain.Cursor = crWait
+		FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
+		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
 		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
 		WLet(RecentAIChat, FileName)
 		frmMain.Cursor = 0
 	Case "AIChatSaveAs"
-		If AIMessages.Count < 1 Then
-			Debug.Print __FUNCTION__ & " Line:" & __LINE__ & " No any message！"
-			Exit Sub
-		End If
+		If AIMessages.Count < 1 Then Exit Sub
 		Dim As OpenFileDialog OpenD
 		SaveD.InitialDir = ExePath & "/AIChat/"
 		SaveD.Caption = "Save AIChat Files"
 		SaveD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
-		Dim As WString * 260 tmpName = Left(AIMessages.Item(0)->Key, 200)
-		Dim As Integer iBracketPos, iFirstNlPos, iSecondNlPos
-		iBracketPos = InStr(tmpName, "]")
-		If iBracketPos < 1 Then
-			tmpName = ML("Untitled")
-		Else
-			iFirstNlPos = InStr(iBracketPos + 1, tmpName, !"\n")
-			If iFirstNlPos > 0 Then
-				tmpName = Mid(tmpName, iFirstNlPos + 1)
-				iSecondNlPos = InStr(tmpName, !"\n")
-				If iSecondNlPos > 0 AndAlso iSecondNlPos <= 50 Then
-					tmpName = Left(tmpName, iSecondNlPos - 1)
-				Else
-					tmpName = Left(tmpName, 50)
-				End If
-			Else
-				tmpName = Trim(Mid(tmpName, iBracketPos + 1, 50))
-			End If
-		End If
-		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		ShowMessages(ExePath & "/AIChat/" & FileName)
-		SaveD.FileName = FileName
 		If Not SaveD.Execute Then Exit Sub
+		AIMessages.SaveToFile(SaveD.FileName)
+		FileName = GetFileName(SaveD.FileName)
 		AIMessages.SaveToFile(SaveD.FileName)
 		FileName = GetFileName(SaveD.FileName)
 		AddMRUAIChat FileName
@@ -264,7 +224,6 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		miRecentAIChat->Clear
 		miRecentAIChat->Enabled = False
 		MRUAIChat.Clear
-		_Deallocate(RecentAIChat): RecentAIChat = 0
 	Case Else
 		FileName= ExePath & "/AIChat/" & Sender.ToString
 		AIMessages.LoadFromFile(FileName)
@@ -272,21 +231,17 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		AddMRUAIChat Sender.ToString
 		WLet(RecentAIChat, Sender.ToString)
 		_Deallocate(AIBodyWStringPtr)
-		Dim As Integer Capacity
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-		txtAIAgent.TextRTF = ""
 		For i As Integer = 0 To AIMessages.Count - 1
 			If i <> AIMessages.Count - 1 Then
-				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10), , Capacity)
+				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10))
 			Else
-				Capacity = 0
-				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text, , Capacity)
+				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text)
 			End If
 		Next
 		WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
-		'txtAIAgent.TextRTF = *AIBodyWStringPtr
-		'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+		AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
+		txtAIAgent.TextRTF = *AIBodyWStringPtr
+		txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0

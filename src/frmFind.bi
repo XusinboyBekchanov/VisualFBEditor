@@ -41,7 +41,6 @@ Using My.Sys.Forms
 		Declare Sub Form_Show(ByRef Sender As Form)
 		Declare Sub ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As WString="", ByRef tn As TreeNode Ptr)
 		Declare Sub TrackBar1_Change(ByRef Sender As TrackBar, Position As Integer)
-		Declare Function IsValidWLetFormat(ByRef wstrInput As WString, ByRef txtFindText As WString) As Integer
 		Declare Constructor
 		Declare Destructor
 		
