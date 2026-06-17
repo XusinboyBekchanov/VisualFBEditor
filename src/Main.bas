@@ -1497,21 +1497,30 @@ End Function
 
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
-	Dim As TabWindow Ptr tb
-	For i As Integer = 0 To tn->Nodes.Count - 1
-		ClearTreeNode(tn->Nodes.Item(i))
-		For jj As Integer = 0 To TabPanels.Count - 1
-			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
-			For j As Integer = 0 To ptabCode->TabCount - 1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
-				If tb->tn = tn->Nodes.Item(i) Then
-					tb->tn = 0
-					Exit For
-				End If
-			Next j
-		Next jj
-		If tn->Nodes.Item(i)->Tag <> 0 Then _Delete( Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)): tn->Nodes.Item(i)->Tag = 0
-	Next
+    Dim As TabWindow Ptr tb
+    Dim As TreeNode Ptr childNode
+    Dim As ExplorerElement Ptr elemPtr
+    For i As Integer = tn->Nodes.Count - 1 To 0 Step -1
+        childNode = tn->Nodes.Item(i)
+        If childNode = 0 Then Continue For
+        ClearTreeNode(childNode)
+        For jj As Integer = 0 To TabPanels.Count - 1
+            Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+            For j As Integer = 0 To ptabCode->TabCount - 1
+                tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
+                If tb->tn = childNode Then
+                    tb->tn = 0
+                    Exit For
+                End If
+            Next j
+        Next jj
+        If childNode->Tag <> 0 Then
+            elemPtr = Cast(ExplorerElement Ptr, childNode->Tag)
+            childNode->Tag = 0 
+            If elemPtr = 0 Then Continue For
+            _Delete(elemPtr)
+        End If
+    Next i
 	tn->Nodes.Clear
 End Sub
 
