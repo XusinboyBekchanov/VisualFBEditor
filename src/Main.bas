@@ -7028,6 +7028,11 @@ Sub LoadSettings
 	LoadInterfaceTheme
 	LoadTheme
 	#ifdef __USE_WINAPI__
+		'Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & " (Line " & __LINE__ & ") " & "Initial DWriteFactory failure! pDWriteFactory =" & pDWriteFactory & " pD2D1Factory" &  pD2D1Factory 
+		If pDWriteFactory <> 0  AndAlso pD2D1Factory <> 0  Then
+			UnloadD2D1
+			g_Direct2DEnabled = True
+		End If
 		LoadD2D1
 	#endif
 	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
