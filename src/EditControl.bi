@@ -14,7 +14,7 @@
 #include once "mff/ListView.bi"
 #include once "mff/ToolTips.bi"
 #ifdef __USE_WINAPI__
-	#include once "mff/D2D1/D2D1.bi"
+	#include once "mff/D2D1/D2D1_MFF.bi"
 #endif
 '#include once "Main.bi"
 
@@ -388,8 +388,8 @@ Namespace My.Sys.Forms
 			Dim pTexture As ID3D11Texture2D Ptr = 0
 			Dim pFormat As IDWriteTextFormat Ptr = 0
 			Dim pp As DXGI_PRESENT_PARAMETERS
-			Dim pBrushForeground As ID2D1Brush Ptr = 0
-			Dim pBrushBackground As ID2D1Brush Ptr = 0
+			Dim pBrushForeground As ID2D1SolidColorBrush Ptr = 0
+			Dim pBrushBackground As ID2D1SolidColorBrush Ptr = 0
 			Dim pLayout As IDWriteTextLayout Ptr = 0
 			Dim Metrics As DWRITE_TEXT_METRICS
 		#endif
