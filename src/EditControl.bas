@@ -1594,7 +1594,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			If widget AndAlso cr Then
 		#else
-			If HANDLE Then
+			If Handle Then
 		#endif
 			ScrollToCaret
 		End If
@@ -1715,6 +1715,7 @@ Namespace My.Sys.Forms
 				FECLine->EndsCompleted = False
 				ChangeCollapsibility iSelStartLine
 			Else
+				If OnLineAdding Then OnLineAdding(*Designer, This, iSelStartLine + LineIdx - 1)
 				FECLine = _New( EditControlLine)
 				If FECLine = 0 Then Return
 				WLet(FECLine->Text, Mid(Value, p, LineLen))
@@ -1728,7 +1729,6 @@ Namespace My.Sys.Forms
 			FECLine->CommentIndex = iC
 			FECLine->InAsm = InAsm
 			If LineIdx > 1 Then
-				If OnLineAdding Then OnLineAdding(*Designer, This, iSelStartLine + LineIdx - 1)
 				Content.Lines.Insert iSelStartLine + LineIdx - 1, FECLine
 				If OnLineAdded Then OnLineAdded(*Designer, This, iSelStartLine + LineIdx - 1)
 				ChangeCollapsibility iSelStartLine + LineIdx - 1
@@ -2788,7 +2788,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.ShowCaretPos(Scroll As Boolean = False)
 		If FSelStartLine < 0 OrElse  FSelStartLine >= Content.Lines.Count Then Return
-		If FSelEndLine< 0 OrElse  FSelEndLine >= Content.Lines.Count Then Return
+		If FSelEndLine < 0 OrElse  FSelEndLine >= Content.Lines.Count Then Return
 		nCaretPosY = GetCaretPosY(FSelEndLine)
 		FCurLineCharIdx = FSelEndChar
 		nCaretPosX = TextWidth(GetTabbedText(.Left(Lines(FSelEndLine), FCurLineCharIdx)))
@@ -5516,7 +5516,7 @@ Namespace My.Sys.Forms
 											'SetPixel bufDC, LeftMargin + -HScrollPos * dwCharX + IIF(jPos = 0, 0, Sz.cx) + dwCharX / 2, (i - VScrollPos) * dwCharY + dwCharY / 2, clBtnShadow
 											SetPixel bufDC, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY), SpaceIdentifiers.Foreground
 										Else
-											pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX) + 1, ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY) + 1, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX) + 1, ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY) + 1), Cast(ID2D1Brush Ptr, pBrushForeground), 1, Null)
+											pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX) + 1, ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY) + 1, ScaleX(LeftMargin + -HScrollPos * dwCharX + (jPos - 1) * (dwCharX) + dwCharX / 2 + CodePaneX) + 1, ScaleY((i - VScrollPos) * dwCharY + Int(dwCharY / 2) + CodePaneY) + 1), Cast(ID2D1Brush Ptr, pBrushForeground), 1, NULL)
 										End If
 									#endif
 								End If
@@ -5578,7 +5578,7 @@ Namespace My.Sys.Forms
 					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
 					pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
 					pango_cairo_update_layout(cr, layout)
-					#ifdef PANGO_VERSION
+					#ifdef pango_version
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 					#else
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
@@ -6259,6 +6259,71 @@ Namespace My.Sys.Forms
 				#endif
 			End If
 		#endif
+		#ifdef __USE_GTK__
+			If FDropIndicatorActive AndAlso FDropIndicatorLine >= 0 AndAlso FDropIndicatorLine < Content.Lines.Count AndAlso FDropIndicatorPane = ActiveCodePane Then
+				Dim As Integer diCapY = GetCaretPosY(FDropIndicatorLine)
+				Dim As Integer diCapX = TextWidth(GetTabbedText(.Left(Lines(FDropIndicatorLine), FDropIndicatorChar)))
+				Dim As Integer diX = LeftMargin + diCapX - IIf(bDividedX AndAlso FDropIndicatorPane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX
+				Dim As Integer diY = (diCapY - IIf(FDropIndicatorPane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY
+				If FDropIndicatorPane = 1 Then
+					If bDividedX AndAlso diX >= 0 Then diX += iDividedX + 7
+					If bDividedY AndAlso diY >= 0 Then diY += iDividedY + 7
+				End If
+				If diY >= 0 AndAlso diY <= dwClientY - dwCharY AndAlso diX >= LeftMargin AndAlso diX <= dwClientX Then
+					cairo_set_source_rgb(cr, SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue)
+					.cairo_rectangle(cr, ScaleX(diX), ScaleY(diY), 2, ScaleY(dwCharY))
+					cairo_fill(cr)
+				End If
+			End If
+		#else
+			If FDropIndicatorActive AndAlso FDropIndicatorLine >= 0 AndAlso FDropIndicatorLine < Content.Lines.Count AndAlso FDropIndicatorPane = ActiveCodePane Then
+				Dim As Integer diCapY = GetCaretPosY(FDropIndicatorLine)
+				Dim As Integer diCapX = TextWidth(GetTabbedText(.Left(Lines(FDropIndicatorLine), FDropIndicatorChar)))
+				
+				Dim As Integer Ptr pDIHScrollPos, pDIVScrollPos
+				If bDividedX AndAlso FDropIndicatorPane = 0 Then
+					pDIHScrollPos = @HScrollPosLeft
+				Else
+					pDIHScrollPos = @HScrollPosRight
+				End If
+				If FDropIndicatorPane = 0 Then
+					pDIVScrollPos = @VScrollPosTop
+				Else
+					pDIVScrollPos = @VScrollPosBottom
+				End If
+				
+				Dim As Integer diX = LeftMargin + diCapX - *pDIHScrollPos * dwCharX
+				Dim As Integer diY = (diCapY - *pDIVScrollPos) * dwCharY
+				If FDropIndicatorPane = 1 Then
+					If bDividedX AndAlso diX >= 0 Then diX += iDividedX + 7
+					If bDividedY AndAlso diY >= 0 Then diY += iDividedY + 7
+				End If
+				
+				If diY >= 0 AndAlso diY <= dwClientY - dwCharY AndAlso diX >= LeftMargin AndAlso diX <= dwClientX Then
+					If pRenderTarget = 0 Then
+						This.Canvas.Pen.Color = SpaceIdentifiers.Foreground
+						This.Canvas.Brush.Color = SpaceIdentifiers.Foreground
+						Dim As Rect rcDrop
+						rcDrop.Left = ScaleX(diX)
+						rcDrop.Right = ScaleX(diX) + 2
+						rcDrop.Top = ScaleY(diY)
+						rcDrop.Bottom = ScaleY(diY + dwCharY)
+						FillRect bufDC, @rcDrop, This.Canvas.Brush.Handle
+					Else
+						Dim ClrDrop As D2D1_COLOR_F = Type<D2D1_COLOR_F>(SpaceIdentifiers.ForegroundRed, SpaceIdentifiers.ForegroundGreen, SpaceIdentifiers.ForegroundBlue, 1.0)
+						If pBrushForeground = 0 Then
+							pRenderTarget->lpVtbl->CreateSolidColorBrush(pRenderTarget, @ClrDrop, 0, @pBrushForeground)
+						Else
+							pBrushForeground->lpVtbl->SetColor(pBrushForeground, @ClrDrop)
+						End If
+						pRenderTarget->lpVtbl->DrawLine(pRenderTarget, _
+						Type<D2D1_POINT_2F>(ScaleX(diX) + 1, ScaleY(diY)), _
+						Type<D2D1_POINT_2F>(ScaleX(diX) + 1, ScaleY(diY + dwCharY)), _
+						Cast(ID2D1SolidColorBrush Ptr, pBrushForeground), 2)
+					End If
+				End If
+			End If
+		#endif
 		#ifdef __USE_WINAPI__
 			If pRenderTarget <> 0 Then
 				pRenderTarget->lpVtbl->EndDraw(pRenderTarget, 0, 0)
@@ -6415,6 +6480,337 @@ Namespace My.Sys.Forms
 		End If
 		Return False
 	End Function
+	
+	Function EditControl.HasRealSelection() As Boolean
+		Return (FSelStartLine <> FSelEndLine) OrElse (FSelStartChar <> FSelEndChar)
+	End Function
+	
+	Function EditControl.PointIsInsideSelection(X As Integer, Y As Integer) As Boolean
+		Dim As Integer ln = LineIndexFromPoint(X, Y)
+		Dim As Integer ch = CharIndexFromPoint(X, Y)
+		Dim As Integer sL, eL, sC, eC
+		GetSelection sL, eL, sC, eC
+		If ln < sL OrElse ln > eL Then Return False
+		If ln = sL AndAlso ch < sC Then Return False
+		If ln = eL AndAlso ch > eC Then Return False
+		Return True
+	End Function
+	
+	#ifdef __USE_GTK__
+		Sub EditControl.EC_HandleGtkDragDataGet(seldata As GtkSelectionData Ptr)
+			Dim As WString Ptr pSelText
+			WLet(pSelText, SelText)
+			If pSelText <> 0 AndAlso Len(*pSelText) > 0 Then
+				Dim As String pUtf8 = ToUtf8(*pSelText)
+				gtk_selection_data_set_text(seldata, StrPtr(pUtf8), Len(pUtf8))
+			End If
+			WDeAllocate(pSelText)
+		End Sub
+		
+		Sub EditControl.EC_HandleGtkDrop(CONTEXT As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, Time_ As guint)
+			If seldata = 0 OrElse gtk_selection_data_get_length(seldata) < 0 Then
+				gtk_drag_finish(CONTEXT, False, False, Time_)
+				Return
+			End If
+			
+			Dim As gchar Ptr pUtf8Text = gtk_selection_data_get_text(seldata)
+			If pUtf8Text = 0 Then
+				gtk_drag_finish(CONTEXT, False, False, Time_)
+				Return
+			End If
+			
+			Dim As WString Ptr pText = FromUtf8(pUtf8Text)
+			g_free(pUtf8Text)
+			
+			Dim As WString Ptr pNormText
+			WLet(pNormText, Replace(Replace(*pText, Chr(13, 10), Chr(13)), Chr(10), Chr(13)))
+			WDeAllocate(pText)
+			
+			Dim As Integer dropLine = LineIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+			Dim As Integer dropChar = CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
+			
+			Dim As Boolean bSelfDrag = (DragSourceECPtr = @This)
+			Dim As Boolean bIsMove   = (gdk_drag_context_get_selected_action(CONTEXT) = GDK_ACTION_MOVE)
+			
+			If bSelfDrag Then
+				Dim As Boolean bInsideOrig = (dropLine > DragOrigStartLine OrElse (dropLine = DragOrigStartLine AndAlso dropChar >= DragOrigStartChar)) AndAlso _
+					(dropLine < DragOrigEndLine   OrElse (dropLine = DragOrigEndLine   AndAlso dropChar <= DragOrigEndChar))
+				If bInsideOrig Then
+					WDeAllocate(pNormText)
+					gtk_drag_finish(CONTEXT, False, False, Time_)
+					Return
+				End If
+			End If
+			
+			Changing "Drag && Drop: matn qo`yildi"
+			
+			If bSelfDrag AndAlso bIsMove Then
+				' 1) Avval eski (manba) matnni o'chiramiz
+				Dim As Integer origSL = DragOrigStartLine, origSC = DragOrigStartChar
+				Dim As Integer origEL = DragOrigEndLine,   origEC = DragOrigEndChar
+				
+				FSelStartLine = origSL : FSelStartChar = origSC
+				FSelEndLine   = origEL : FSelEndChar   = origEC
+				ChangeText "", 0, "Drag && Drop: matn qo`yildi", , , True
+				
+				' 2) Drop nuqtasini o'chirilgan matnga nisbatan moslashtiramiz
+				Dim As Integer adjDropLine = dropLine, adjDropChar = dropChar
+				Dim As Boolean bDropAfter = (dropLine > origEL) OrElse (dropLine = origEL AndAlso dropChar > origEC)
+				If bDropAfter Then
+					Dim As Integer removedLines = origEL - origSL
+					adjDropLine -= removedLines
+					If dropLine = origEL Then
+						adjDropChar = dropChar - (origEC - origSC)
+					End If
+				End If
+				
+				' 3) Yangi matnni to'g'ridan-to'g'ri moslashtirilgan joyga qo'yamiz
+				FSelStartLine = adjDropLine : FSelStartChar = adjDropChar
+				FSelEndLine   = adjDropLine : FSelEndChar   = adjDropChar
+				ChangeText *pNormText, 0, "Drag && Drop: matn qo`yildi", , , True
+				
+				FGtkPendingDelete = False
+			Else
+				' Oddiy holat: boshqa dastur/controldan, yoki Copy
+				FSelStartLine = dropLine : FSelStartChar = dropChar
+				FSelEndLine   = dropLine : FSelEndChar   = dropChar
+				ChangeText *pNormText, 0, "Drag && Drop: matn qo`yildi", , , True
+			End If
+			
+			Changed "Drag && Drop: matn qo`yildi"
+			
+			WDeAllocate(pNormText)
+			EC_ClearDropIndicator()
+			PaintControl
+			
+			' Eski matn allaqachon o'chirilgan bo'lgani uchun, "drag-data-delete" ni chaqirtirmaymiz
+			gtk_drag_finish(CONTEXT, True, False, Time_)
+		End Sub
+		
+		Sub EditControl.EC_HandleGtkDragDataDelete()
+			If Not FGtkPendingDelete Then Return
+			FGtkPendingDelete = False
+			Dim As Integer OldSelStartLine = FSelStartLine, OldSelEndLine = FSelEndLine, OldSelStartChar = FSelStartChar, OldSelEndChar = FSelEndChar
+			FSelStartLine = FGtkPendingDeleteStartLine : FSelStartChar = FGtkPendingDeleteStartChar
+			FSelEndLine   = FGtkPendingDeleteEndLine   : FSelEndChar   = FGtkPendingDeleteEndChar
+			ChangeText "", 0, "Drag && Drop: matn ko`chirildi", , , True
+			'FSelStartLine = OldSelStartLine: FSelStartChar = OldSelStartChar
+			'FSelEndLine   = OldSelEndLine: FSelEndChar   = OldSelEndChar
+			DragSourceECPtr = 0
+		End Sub
+	#endif
+	
+	#ifdef __USE_WINAPI__
+		Sub EditControl.EC_BeginTextDrag()
+			Dim As Integer origSL, origSC, origEL, origEC
+			GetSelection origSL, origEL, origSC, origEC
+			
+			Dim As WString Ptr pSelText
+			WLet(pSelText, SelText)
+			
+			If pSelText = 0 OrElse Len(*pSelText) = 0 Then Return
+			
+			DragSourceECPtr   = @This
+			DragOrigStartLine = origSL : DragOrigStartChar = origSC
+			DragOrigEndLine   = origEL : DragOrigEndChar   = origEC
+			
+			Dim As DataObject oData
+			oData.SetData(dfUnicodeText, pSelText)
+			
+			Dim As DragDropEffects Effect
+			Effect = This.DoDragDrop(oData, deCopy Or deMove)
+			
+			DownButton = -1
+			DragSourceECPtr = 0
+			WDeAllocate(pSelText)
+			
+		End Sub
+	#endif
+	
+	Const DRAG_SCROLL_MARGIN = 24   ' pikselda - chetdan qancha yaqin bo`lsa autoscroll boshlanadi
+	Const DRAG_SCROLL_TIMER_ID = 3
+	
+	Sub EditControl.EC_UpdateDropIndicator(X As Integer, Y As Integer)
+		FDropIndicatorActive = True
+		FDropIndicatorLine   = LineIndexFromPoint(X, Y)
+		FDropIndicatorChar   = CharIndexFromPoint(X, Y)
+		FDropIndicatorPane   = ActiveCodePane
+		
+		FDragScrollDY = 0
+		If Y < DRAG_SCROLL_MARGIN Then
+			FDragScrollDY = -1
+		ElseIf dwClientY - Y < DRAG_SCROLL_MARGIN Then
+			FDragScrollDY = 1
+		End If
+		
+		FDragScrollDX = 0
+		If X - LeftMargin < DRAG_SCROLL_MARGIN Then
+			FDragScrollDX = -1
+		ElseIf dwClientX - X < DRAG_SCROLL_MARGIN Then
+			FDragScrollDX = 1
+		End If
+		
+		#ifdef __USE_WINAPI__
+			If FDragScrollDY <> 0 OrElse FDragScrollDX <> 0 Then
+				DragEC = @This
+				SetTimer FHandle, DRAG_SCROLL_TIMER_ID, 60, @EC_TimerProcDragScroll
+			Else
+				KillTimer FHandle, DRAG_SCROLL_TIMER_ID
+			End If
+		#endif
+		
+		PaintControl
+	End Sub
+	
+	Sub EditControl.EC_ClearDropIndicator()
+		FDropIndicatorActive = False
+		FDragScrollDX = 0
+		FDragScrollDY = 0
+		
+		#ifdef __USE_WINAPI__
+			KillTimer FHandle, DRAG_SCROLL_TIMER_ID
+		#endif
+		
+		PaintControl
+	End Sub
+	
+	#ifdef __USE_WINAPI__
+		Sub EditControl.EC_TimerProcDragScroll(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			If DragEC = 0 OrElse Not DragEC->FDropIndicatorActive Then
+				KillTimer HWND, idEvent
+				Return
+			End If
+			
+			Dim As Integer Ptr pVScrollPos, pHScrollPos
+			Dim As .HWND sbV, sbH
+			
+			If DragEC->FDropIndicatorPane = 0 Then
+				pVScrollPos = @DragEC->VScrollPosTop
+				sbV = DragEC->sbScrollBarvTop
+			Else
+				pVScrollPos = @DragEC->VScrollPosBottom
+				sbV = DragEC->sbScrollBarvBottom
+			End If
+			If DragEC->bDividedX AndAlso DragEC->FDropIndicatorPane = 0 Then
+				pHScrollPos = @DragEC->HScrollPosLeft
+				sbH = DragEC->sbScrollBarhLeft
+			Else
+				pHScrollPos = @DragEC->HScrollPosRight
+				sbH = DragEC->sbScrollBarhRight
+			End If
+			
+			Dim As Integer VScrollMax = IIf(DragEC->FDropIndicatorPane = 0, DragEC->VScrollMaxTop, DragEC->VScrollMaxBottom)
+			Dim As Integer HScrollMax = IIf(DragEC->bDividedX AndAlso DragEC->FDropIndicatorPane = 0, DragEC->HScrollMaxLeft, DragEC->HScrollMaxRight)
+			
+			Dim As Boolean bChanged = False
+			Dim As SCROLLINFO si
+			
+			If DragEC->FDragScrollDY <> 0 Then
+				Dim As Integer NewPos = Max(0, Min(VScrollMax, *pVScrollPos + DragEC->FDragScrollDY))
+				If NewPos <> *pVScrollPos Then
+					*pVScrollPos = NewPos
+					si.cbSize = SizeOf(si)
+					si.fMask  = SIF_POS
+					si.nPos   = NewPos
+					SetScrollInfo(sbV, SB_CTL, @si, True)
+					bChanged = True
+				End If
+			End If
+			
+			If DragEC->FDragScrollDX <> 0 Then
+				Dim As Integer NewPos = Max(0, Min(HScrollMax, *pHScrollPos + DragEC->FDragScrollDX))
+				If NewPos <> *pHScrollPos Then
+					*pHScrollPos = NewPos
+					si.cbSize = SizeOf(si)
+					si.fMask  = SIF_POS
+					si.nPos   = NewPos
+					SetScrollInfo(sbH, SB_CTL, @si, True)
+					bChanged = True
+				End If
+			End If
+			
+			If bChanged Then
+				DragEC->PaintControl
+			End If
+		End Sub
+		
+		Sub EditControl.EC_OnDragEnterOver(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			If Not DataObject.GetDataPresent(dfUnicodeText) Then Return
+			Var pt = Type<My.Sys.Drawing.Point>(X, Y)
+			ScreenToClient(pt)
+			EC_UpdateDropIndicator(pt.X, pt.Y)
+		End Sub
+		
+		Sub EditControl.EC_OnDragLeave(ByRef Sender As Control)
+			EC_ClearDropIndicator()
+		End Sub
+		
+		Sub EditControl.EC_OnDragDrop(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			If Not DataObject.GetDataPresent(dfUnicodeText) Then Return
+			
+			Var pt = Type<My.Sys.Drawing.Point>(X, Y)
+			ScreenToClient(pt)
+			
+			Dim As Integer dropLine = LineIndexFromPoint(pt.X, pt.Y)
+			Dim As Integer dropChar = CharIndexFromPoint(pt.X, pt.Y)
+			
+			Dim As Boolean bSelfDrag = (DragSourceECPtr = @This)
+			
+			Dim As WString Ptr pText = Cast(WString Ptr, DataObject.GetData(dfUnicodeText))
+			If pText = 0 Then Return
+			Dim As WString Ptr pNormText
+			WLet(pNormText, Replace(Replace(*pText, Chr(13, 10), Chr(13)), Chr(10), Chr(13)))
+			
+			If bSelfDrag Then
+				' Drop nuqtasi asl tanlov ICHIDA bo`lsa - hech narsa qilmaymiz
+				Dim As Boolean bInsideOrig = (dropLine > DragOrigStartLine OrElse (dropLine = DragOrigStartLine AndAlso dropChar >= DragOrigStartChar)) AndAlso _
+				(dropLine < DragOrigEndLine   OrElse (dropLine = DragOrigEndLine   AndAlso dropChar <= DragOrigEndChar))
+				If bInsideOrig Then
+					Effect = deNone
+					WDeAllocate(pNormText)
+					Return
+				End If
+			End If
+			
+			Changing "Drag && Drop: matn ko`chirildi"
+			
+			If bSelfDrag AndAlso Effect = deMove Then
+				Dim As Boolean bDropAfter = (dropLine > DragOrigEndLine) OrElse (dropLine = DragOrigEndLine AndAlso dropChar > DragOrigEndChar)
+				Dim As Integer adjDropLine = dropLine, adjDropChar = dropChar
+				
+				'' 1) asl (manba) matnni o`chiramiz
+				'FSelStartLine = DragOrigStartLine : FSelStartChar = DragOrigStartChar
+				'FSelEndLine   = DragOrigEndLine   : FSelEndChar   = DragOrigEndChar
+				ChangeText "", 0, "Drag && Drop: matn ko`chirildi", , , True
+				
+				' 2) agar drop nuqtasi o`chirilgan matndan KEYIN bo`lsa - manzilni moslashtiramiz
+				If bDropAfter Then
+					Dim As Integer removedLines = DragOrigEndLine - DragOrigStartLine
+					adjDropLine -= removedLines
+					If dropLine = DragOrigEndLine Then
+						adjDropChar = dropChar - (DragOrigEndChar - DragOrigStartChar)
+					End If
+				End If
+				
+				' 3) tashlangan matnni moslashtirilgan joyga qo`shamiz
+				FSelStartLine = adjDropLine : FSelStartChar = adjDropChar
+				FSelEndLine   = adjDropLine : FSelEndChar   = adjDropChar
+				ChangeText *pNormText, 0, "Drag && Drop: matn qo`yildi", , , True
+			Else
+				' oddiy COPY, yoki boshqa control/ilovadan MOVE - faqat qo`shib qo`yamiz
+				FSelStartLine = dropLine : FSelStartChar = dropChar
+				FSelEndLine   = dropLine : FSelEndChar   = dropChar
+				ChangeText *pNormText, 0, "Drag && Drop: matn qo`yildi", , , True
+			End If
+			
+			Changed "Drag && Drop: matn ko`chirildi"
+			
+			DownButton = -1
+			WDeAllocate(pNormText)
+			EC_ClearDropIndicator()
+			PaintControl
+		End Sub
+	#endif
 	
 	Function EditControl.GetLineIndex(Index As Integer, iTo As Integer = 0) As Integer
 		Var j = -1, iStep = IIf(iTo <= 0, -1, 1), k = Index
@@ -7149,6 +7545,9 @@ Namespace My.Sys.Forms
 					Return
 				ElseIf InCollapseRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
 					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
+					Return
+				ElseIf Not bShifted AndAlso HasRealSelection() AndAlso PointIsInsideSelection(UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
+					msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_ARROW)))
 					Return
 				Else
 					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y))
@@ -8090,18 +8489,17 @@ Namespace My.Sys.Forms
 			Case WM_LBUTTONDOWN
 			#endif
 			bInMiddleScroll = False
-			DownButton = 0
 			#ifdef __USE_GTK__
-				Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
+				Var X = UnScaleX(e->button.x), Y = UnScaleY(e->button.y)
 			#else
-				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
+				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
-			If (X > dwClientX - 17 AndAlso y < 7) OrElse (bDividedY AndAlso y >= iDividedY AndAlso y <= iDividedY + 7) Then
+			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
 				bInDivideY = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
 				#endif
-			ElseIf (y > dwClientY - 17 AndAlso X < 7) OrElse (bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7) Then
+			ElseIf (Y > dwClientY - 17 AndAlso X < 7) OrElse (bDividedX AndAlso X >= iDividedX AndAlso X <= iDividedX + 7) Then
 				bInDivideX = True
 				#ifndef __USE_GTK__
 					SetCapture FHandle
@@ -8110,12 +8508,39 @@ Namespace My.Sys.Forms
 				If bDividedX Then
 					ActiveCodePane = IIf(X <= iDividedX, 0, 1)
 				ElseIf bDividedY Then
-					ActiveCodePane = IIf(y <= iDividedY, 0, 1)
+					ActiveCodePane = IIf(Y <= iDividedY, 0, 1)
 				Else
 					ActiveCodePane = 1
 				End If
-				FSelEndLine = LineIndexFromPoint(X, y)
-				If InCollapseRect(FSelEndLine, X, y) Then
+				DownButton = 0
+				#ifdef __USE_GTK__
+					If Not bShifted AndAlso HasRealSelection() Then
+						If PointIsInsideSelection(X, Y) Then
+							FDragPending = True
+							FDragStartX = e->button.x
+							FDragStartY = e->button.y
+							Exit Select
+						End If
+					End If
+				#else
+					If Not bShifted AndAlso HasRealSelection() Then
+						If PointIsInsideSelection(X, Y) Then
+							FDragPending = True
+							Dim As Point pt
+							pt.X = msg.lParamLo : pt.Y = msg.lParamHi
+							.ClientToScreen(FHandle, @pt)
+							If DragDetect(FHandle, pt) Then
+								EC_BeginTextDrag()
+								EC_ClearDropIndicator
+								ReleaseCapture
+								FDragPending = False
+								Exit Sub
+							End If
+						End If
+					End If
+				#endif
+				FSelEndLine = LineIndexFromPoint(X, Y)
+				If InCollapseRect(FSelEndLine, X, Y) Then
 					FSelStartLine = FSelEndLine
 					FSelEndLine = FSelEndLine
 					FSelStartChar = 0
@@ -8127,7 +8552,7 @@ Namespace My.Sys.Forms
 					OldCharIndex = GetOldCharIndex
 				Else
 					Dim As Integer OldSelEndChar = FSelEndChar
-					FSelEndChar = CharIndexFromPoint(X, y)
+					FSelEndChar = CharIndexFromPoint(X, Y)
 					If Not bShifted Then
 						If FSelStartLine = FSelEndLine AndAlso FSelEndChar > FSelStartChar AndAlso FSelEndChar < OldSelEndChar Then
 							FSelStartChar = 0
@@ -8149,6 +8574,15 @@ Namespace My.Sys.Forms
 						SetCapture FHandle
 					#endif
 				End If
+				#ifdef __USE_WINAPI__
+					If FDragPending Then
+						FDragPending = False
+						DownButton = -1
+						LineIndex = FSelStartLine
+						ReleaseCapture
+						Exit Sub
+					End If
+				#endif
 			End If
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_RELEASE
@@ -8160,6 +8594,18 @@ Namespace My.Sys.Forms
 				Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
 			#else
 				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
+			#endif
+			#ifdef __USE_GTK__
+				If FDragPending Then
+					FDragPending = False
+					FSelEndLine   = LineIndexFromPoint(X, y)
+					FSelEndChar   = CharIndexFromPoint(X, y)
+					FSelStartLine = FSelEndLine
+					FSelStartChar = FSelEndChar
+					ScrollToCaret
+					OldnCaretPosX = nCaretPosX
+					OldCharIndex  = GetOldCharIndex
+				End If
 			#endif
 			If bInDivideY Then
 				bInDivideY = False
@@ -8194,6 +8640,9 @@ Namespace My.Sys.Forms
 					Breakpoint
 				End If
 			End If
+			#ifdef __USE_GTK__
+				FDragPending = False
+			#endif
 			DownButton = -1
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
@@ -8223,6 +8672,27 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEMOVE
 			#endif
 			#ifdef __USE_GTK__
+				If FDragPending Then
+					If gtk_drag_check_threshold(widget, CInt(FDragStartX), CInt(FDragStartY), CInt(e->button.x), CInt(e->button.y)) Then
+						FDragPending = False
+						DownButton = -1
+			
+						DragSourceECPtr = @This
+						Dim As Integer origSL, origSC, origEL, origEC
+						GetSelection origSL, origEL, origSC, origEC
+						DragOrigStartLine = origSL : DragOrigStartChar = origSC
+						DragOrigEndLine   = origEL : DragOrigEndChar   = origEC
+			
+						Dim As GtkTargetList Ptr tlist = gtk_target_list_new(@ECDragTargets(0), 1)
+						#ifdef __USE_GTK3__
+							gtk_drag_begin_with_coordinates(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e, -1, -1)
+						#else
+							gtk_drag_begin(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e)
+						#endif
+						gtk_target_list_unref(tlist)
+					End If
+					Exit Select
+				End If
 				iCursorLine = LineIndexFromPoint(e->button.x, e->button.y, IIf((bDividedY AndAlso e->button.y <= iDividedY) OrElse (bDividedX AndAlso e->button.x <= iDividedX), 0, 1))
 				If bDividedX AndAlso e->button.x >= iDividedX AndAlso e->button.x <= iDividedX + 7 Then
 					gdk_window_set_cursor(win, gdkCursorSIZEWE)
@@ -8240,6 +8710,8 @@ Namespace My.Sys.Forms
 					End If
 				ElseIf InCollapseRect(iCursorLine, e->button.x, e->button.y) Then
 					gdk_window_set_cursor(win, gdkCursorHand)
+				ElseIf CBool(DownButton = -1) AndAlso (Not bShifted) AndAlso HasRealSelection() AndAlso PointIsInsideSelection(e->button.x, e->button.y) Then
+					gdk_window_set_cursor(win, gdkCursorARROW)
 				Else
 					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
 					If bInIncludeFileRectOld <> bInIncludeFileRect OrElse iCursorLineOld <> iCursorLine Then PaintControl
@@ -8521,6 +8993,86 @@ Namespace My.Sys.Forms
 				ec->ChangeText *sStr
 			#endif
 		End Sub
+		
+		Function EditControl.EC_GtkDragScrollTimer(user_data As gpointer) As gboolean
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			If ec = 0 OrElse Not ec->FDropIndicatorActive Then
+				ec->FDragScrollTimerId = 0
+				Return False
+			End If
+			Dim As GtkAdjustment Ptr adjv, adjh
+			If ec->FDropIndicatorPane = 0 Then adjv = ec->adjustmentvTop Else adjv = ec->adjustmentvBottom
+			If ec->bDividedX AndAlso ec->FDropIndicatorPane = 0 Then adjh = ec->adjustmenthLeft Else adjh = ec->adjustmenthRight
+			If ec->FDragScrollDY <> 0 Then
+				gtk_adjustment_set_value(adjv, Max(gtk_adjustment_get_lower(adjv), Min(gtk_adjustment_get_upper(adjv), gtk_adjustment_get_value(adjv) + ec->FDragScrollDY)))
+			End If
+			If ec->FDragScrollDX <> 0 Then
+				gtk_adjustment_set_value(adjh, Max(gtk_adjustment_get_lower(adjh), Min(gtk_adjustment_get_upper(adjh), gtk_adjustment_get_value(adjh) + ec->FDragScrollDX)))
+			End If
+			ec->PaintControl
+			Return True
+		End Function
+		
+		Function EditControl.EditControl_OnDragMotion(widget As GtkWidget Ptr, context As GdkDragContext Ptr, X As gint, Y As gint, time_ As guint, user_data As Any Ptr) As gboolean
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			ec->EC_UpdateDropIndicator(ec->UnScaleX(X), ec->UnScaleY(Y))
+			If ec->FDragScrollTimerId = 0 AndAlso (ec->FDragScrollDX <> 0 OrElse ec->FDragScrollDY <> 0) Then
+				ec->FDragScrollTimerId = g_timeout_add(60, Cast(GSourceFunc, @EC_GtkDragScrollTimer), ec)
+			ElseIf ec->FDragScrollTimerId <> 0 AndAlso ec->FDragScrollDX = 0 AndAlso ec->FDragScrollDY = 0 Then
+				g_source_remove_(ec->FDragScrollTimerId)
+				ec->FDragScrollTimerId = 0
+			End If
+			Dim As GdkDragAction da = IIf(DragSourceECPtr = ec, GDK_ACTION_MOVE, GDK_ACTION_COPY)
+			#ifdef __USE_GTK3__
+				GDK_DRAG_STATUS(context, da, time_)
+			#else
+				GDK_DRAG_STATUS_(context, da, time_)
+			#endif
+			Return True
+		End Function
+		
+		Sub EditControl.EditControl_OnDragLeave_(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, Time_ As guint, user_data As Any Ptr)
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			If ec->FDragScrollTimerId <> 0 Then
+				g_source_remove_(ec->FDragScrollTimerId)
+				ec->FDragScrollTimerId = 0
+			End If
+			ec->EC_ClearDropIndicator()
+		End Sub
+		
+		Function EditControl_OnDragDrop_(widget As GtkWidget Ptr, context As GdkDragContext Ptr, X As gint, Y As gint, time_ As guint, user_data As Any Ptr) As gboolean
+			Dim As GdkAtom target = gtk_drag_dest_find_target(widget, context, NULL)
+			If target = GDK_NONE Then Return False
+			gtk_drag_get_data(widget, context, target, time_)
+			?45454
+			Return True
+		End Function
+		
+		Sub EditControl.EditControl_OnDragDataReceived(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			?5454545, *Cast(gchar Ptr, gtk_selection_data_get_data(seldata))
+			ec->EC_HandleGtkDrop(CONTEXT, X, Y, seldata, Time_)
+		End Sub
+		
+		Sub EditControl.EditControl_OnDragDataGet(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			ec->EC_HandleGtkDragDataGet(seldata)
+		End Sub
+		
+		Sub EditControl.EditControl_OnDragDataDelete(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, user_data As Any Ptr)
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			ec->EC_HandleGtkDragDataDelete()
+		End Sub
+		
+		Sub EditControl.EditControl_OnDragEnd(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, user_data As Any Ptr)
+			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			If ec->FDragScrollTimerId <> 0 Then
+				g_source_remove_(ec->FDragScrollTimerId)
+				ec->FDragScrollTimerId = 0
+			End If
+			ec->EC_ClearDropIndicator()
+			DragSourceECPtr = 0
+		End Sub
 	#endif
 	
 	Constructor EditControl
@@ -8580,6 +9132,19 @@ Namespace My.Sys.Forms
 			#else
 				g_signal_connect(widget, "expose-event", G_CALLBACK(@EditControl_OnExposeEvent), @This)
 			#endif
+			ECDragTargets(0).target = Cast(gchar Ptr, @Str("UTF8_STRING"))
+			ECDragTargets(0).flags  = 0
+			ECDragTargets(0).info   = 0
+		
+			gtk_drag_dest_set(widget, 0, @ECDragTargets(0), 1, GDK_ACTION_COPY Or GDK_ACTION_MOVE)
+			g_signal_connect(widget, "drag-motion",       G_CALLBACK(@EditControl_OnDragMotion),      @This)
+			g_signal_connect(widget, "drag-leave",        G_CALLBACK(@EditControl_OnDragLeave_),      @This)
+			g_signal_connect(widget, "drag-drop",         G_CALLBACK(@EditControl_OnDragDrop_),       @This)
+			g_signal_connect(widget, "drag-data-received",G_CALLBACK(@EditControl_OnDragDataReceived),@This)
+			g_signal_connect(widget, "drag-data-get",     G_CALLBACK(@EditControl_OnDragDataGet),     @This)
+			g_signal_connect(widget, "drag-data-delete",  G_CALLBACK(@EditControl_OnDragDataDelete),  @This)
+			g_signal_connect(widget, "drag-end",          G_CALLBACK(@EditControl_OnDragEnd),         @This)
+
 			PCONTEXT = gtk_widget_create_pango_context(widget)
 			layout = pango_layout_new(PCONTEXT)
 			Dim As PangoFontDescription Ptr desc
@@ -8685,6 +9250,14 @@ Namespace My.Sys.Forms
 		WLet(FClassName, "EditControl")
 		#ifndef __USE_GTK__
 			This.RegisterClass "EditControl", ""
+		#endif
+		This.Designer = @This
+		#ifdef __USE_WINAPI__
+			This.AllowDrop = True
+			This.OnDragDrop     = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer), @EC_OnDragDrop)
+			This.OnDragEnter    = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer), @EC_OnDragEnterOver)
+			This.OnDragOver     = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer), @EC_OnDragEnterOver)
+			This.OnDragLeave    = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As Control), @EC_OnDragLeave)
 		#endif
 		This.Canvas.Ctrl = @This
 		crRArrow.LoadFromResourceName("Select")

@@ -829,6 +829,14 @@ Namespace My.Sys.Forms
 					FCanInsert = False
 					FCanMove   = Not FLockControls
 					FCanSize   = False
+					' Ctrl+drag (mouse drag-and-drop copy/paste): duplicate the currently
+					' selected control(s) and drag the new copy instead of moving the originals,
+					' mirroring the classic VB/Delphi-style designer behavior.
+					If bCtrl AndAlso FCanMove AndAlso SelectedControl <> DesignControl Then
+						CopyControl
+						PasteControl
+						FSelControl = GetControlHandle(SelectedControl)
+					End If
 					#ifdef __USE_GTK__
 						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crSize))
 					#else

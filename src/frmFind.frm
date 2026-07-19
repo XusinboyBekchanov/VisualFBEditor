@@ -936,7 +936,6 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmFind.btnReplaceShow_Click(ByRef Sender As Control)
-	If Len(*gSearchSave) > 0 Then Clipboard.SetAsText *gSearchSave
 	If Sender.Name = btnReplaceShow.Name Then mFormFind = IIf(Height > 80, True, False)
 	This.Caption = IIf(mFormFind, ML("Find"), ML("Replace"))
 	btnReplaceShow.Caption = IIf(mFormFind, ">", "^")

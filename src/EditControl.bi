@@ -333,7 +333,7 @@ Namespace My.Sys.Forms
 	End Type
 	
 	Type EditControl Extends Control
-	Private:
+		Private:
 		Dim FHistory As List
 		Dim FVisibleLinesCount As Integer
 		Dim FECLine As EditControlLine Ptr
@@ -411,6 +411,20 @@ Namespace My.Sys.Forms
 		'Dim FListItems As WStringList
 		Dim As Integer lParamLo, lParamHi
 		Dim FCurLine As Integer = 0
+		Dim FDragPending As Boolean
+		Dim FDropIndicatorActive As Boolean = False
+		Dim FDropIndicatorLine As Integer = -1
+		Dim FDropIndicatorChar As Integer = -1
+		Dim FDropIndicatorPane As Integer = 0
+		Dim FDragScrollDX As Integer = 0
+		Dim FDragScrollDY As Integer = 0
+		#ifdef __USE_GTK__
+			Dim As gdouble FDragStartX, FDragStartY
+			Dim As guint FDragScrollTimerId = 0
+			Dim As Boolean FGtkPendingDelete = False
+			Dim As Integer FGtkPendingDeleteStartLine, FGtkPendingDeleteStartChar
+			Dim As Integer FGtkPendingDeleteEndLine, FGtkPendingDeleteEndChar
+		#endif
 		Dim FSelStartLine As Integer = 0
 		Dim FSelEndLine As Integer = 0
 		Dim FSelStartChar As Integer = 0
@@ -520,12 +534,32 @@ Namespace My.Sys.Forms
 		Declare Function InStartOfLine(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InCollapseRect(i As Integer, X As Integer, Y As Integer) As Boolean
 		Declare Function InIncludeFileRect(i As Integer, X As Integer, Y As Integer) As Boolean
+		Declare Function HasRealSelection() As Boolean
+		Declare Function PointIsInsideSelection(X As Integer, Y As Integer) As Boolean
+		#ifdef __USE_WINAPI__
+			Declare Sub EC_BeginTextDrag()
+			Declare Sub EC_OnDragDrop(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			Declare Sub EC_OnDragEnterOver(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
+			Declare Sub EC_OnDragLeave(ByRef Sender As Control)
+		#endif
+		Declare Sub EC_UpdateDropIndicator(X As Integer, Y As Integer)
+		Declare Sub EC_ClearDropIndicator()
 		Declare Sub ProcessMessage(ByRef MSG As Message)
 		Dim CaretPosShowed As Long
 		#ifdef __USE_GTK__
 			Declare Static Function Blink_cb(user_data As gpointer) As gboolean
 			Declare Static Function EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
 			Declare Static Function EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
+			Declare Sub EC_HandleGtkDrop(context As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, time_ As guint)
+			Declare Sub EC_HandleGtkDragDataGet(seldata As GtkSelectionData Ptr)
+			Declare Sub EC_HandleGtkDragDataDelete()
+			Declare Static Function EC_GtkDragScrollTimer(user_data As gpointer) As gboolean
+			Declare Static Function EditControl_OnDragMotion(widget As GtkWidget Ptr, context As GdkDragContext Ptr, X As gint, Y As gint, time_ As guint, user_data As Any Ptr) As gboolean
+			Declare Static Sub EditControl_OnDragLeave_(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, Time_ As guint, user_data As Any Ptr)
+			Declare Static Sub EditControl_OnDragEnd(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, user_data As Any Ptr)
+			Declare Static Sub EditControl_OnDragDataReceived(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
+			Declare Static Sub EditControl_OnDragDataGet(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
+			Declare Static Sub EditControl_OnDragDataDelete(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, user_data As Any Ptr)
 		#else
 			Dim lXOffset As Long
 			Dim lYOffset As Long
@@ -535,6 +569,7 @@ Namespace My.Sys.Forms
 			Dim As ..Point m_tP
 			Declare Static Sub EC_TimerProc(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Static Sub EC_TimerProcBlink(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
+			Declare Static Sub EC_TimerProcDragScroll(HWND As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 			Declare Sub SetDark(Value As Boolean)
 			Declare Sub ReleaseDirect2D
 			Declare Sub SetClientSize()
@@ -759,8 +794,13 @@ Namespace My.Sys.Forms
 	Dim Shared Constructions() As Construction
 	Dim Shared ElementTypeNames() As ElementType
 	Dim Shared As My.Sys.Drawing.BitmapType EditControlFrame
-	Common As EditControl Ptr CurEC, ScrEC, FocusEC
+	Common As EditControl Ptr CurEC, ScrEC, FocusEC, DragEC
 	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
+	Dim Shared As Any Ptr DragSourceECPtr
+	Dim Shared As Integer DragOrigStartLine, DragOrigStartChar, DragOrigEndLine, DragOrigEndChar
+	#ifdef __USE_GTK__
+		Dim Shared ECDragTargets(0) As GtkTargetEntry
+	#endif
 End Namespace
 
 Declare Sub LoadKeyWords
