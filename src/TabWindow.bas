@@ -1388,29 +1388,26 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 			Var Idx = Events.IndexOfKey(PropertyName, Obj)
 			If Idx <> -1 Then WLet(FLine, Events.Item(Idx)->Text)
 		Case E_Property, E_Field
-			Var Pos1 = InStr(PropertyName, ".")
-			If Des <> 0 AndAlso st->ReadPropertyFunc <> 0 Then
-				pTemp = st->ReadPropertyFunc(Obj, PropertyName)
-			Else
-				pTemp = 0
-			End If
+			'Var Pos1 = InStr(PropertyName, ".")
+			pTemp = st->ReadPropertyFunc(Obj, PropertyName)
 			If pTemp <> 0 Then
 				Select Case LCase(.TypeName)
 				Case "wstring", "wstring ptr", "wstringlist", "dictionary", "point", "size": WLet(FLine, QWString(pTemp))
 				Case "string", "zstring": WLet(FLine, QZString(pTemp))
 				Case "any", "any ptr": If AnyTexts.ContainsObject(pTemp) Then WLet(FLine, AnyTexts.Item(AnyTexts.IndexOfObject(pTemp))) Else WLet(FLine, "")
-				Case "control ptr", "control": WLet(FLine, QWString(st->ReadPropertyFunc(pTemp, "Name")))
+				Case "control ptr", "control": If st->ReadPropertyFunc <> 0 Then WLet(FLine, QWString(st->ReadPropertyFunc(pTemp, "Name")))
 				Case "integer": iTemp = QInteger(pTemp)
 					WLet(FLine, WStr(iTemp))
 					If (te->EnumTypeName <> "") AndAlso CInt(pGlobalEnums->Contains(te->EnumTypeName, , , , iIndex)) Then
 						tbi = pGlobalEnums->Object(iIndex)
 						If tbi Then
 							Dim As TypeElement Ptr te1
+							Dim As Integer enumIndex = -1
 							For i As Integer = 0 To tbi->Elements.Count - 1
 								te1 = tbi->Elements.Object(i)
-								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then enumIndex = i: Exit For
 							Next
-							If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+							If enumIndex >= 0 AndAlso enumIndex <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(enumIndex) & " - " & tbi->Elements.Item(enumIndex))
 						End If
 					End If
 				Case "long": iTemp = QLong(pTemp): WLet(FLine, WStr(iTemp))
@@ -1426,11 +1423,12 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 						tbi = pGlobalEnums->Object(iIndex)
 						If tbi Then
 							Dim As TypeElement Ptr te1
+							Dim As Integer enumIndex = -1
 							For i As Integer = 0 To tbi->Elements.Count - 1
 								te1 = tbi->Elements.Object(i)
-								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then iTemp = i: Exit For
+								If te1 <> 0 AndAlso te1->Value = Str(iTemp) Then enumIndex = i: Exit For
 							Next
-							If iTemp >= 0 AndAlso iTemp <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(iTemp) & " - " & tbi->Elements.Item(iTemp))
+							If enumIndex >= 0 AndAlso enumIndex <= tbi->Elements.Count - 1 Then WLet(FLine, WStr(enumIndex) & " - " & tbi->Elements.Item(enumIndex))
 						End If
 					End If
 				End Select
