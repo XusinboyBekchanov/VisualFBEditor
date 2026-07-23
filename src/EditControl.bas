@@ -1845,30 +1845,34 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Property EditControl.Text ByRef As WString
-		FText = ""
+		WLet(FText, "")
+		Dim As Integer Capacity
 		For i As Integer = 0 To Content.Lines.Count - 1
 			If i <> Content.Lines.Count - 1 Then
-				WAdd(FText.m_Data, Lines(i) + Chr(13) + Chr(10))
+				WAdd(FText, Lines(i) + Chr(13) + Chr(10), , Capacity)
 			Else
-				WAdd(FText.m_Data, Lines(i))
+				Capacity = 0
+				WAdd(FText, Lines(i), , Capacity)
 			End If
 		Next i
-		Return *FText.m_Data
+		If FText = 0 Then Return "" Else Return *FText
 	End Property
 	
 	Property EditControl.Text(ByRef Value As WString)
-		FText = ""
+		WLet(FText, "")
 		For i As Integer = Content.Lines.Count - 1 To 0 Step -1
 			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 			Content.Lines.Remove i
 		Next i
-		Dim j As Integer
-		For i As Integer = 0 To Len(Value)
-			WAdd(FText.m_Data, WChr(Value[i]))
+		Dim As Integer j, LenValue = Len(Value) - 1, Capacity
+		For i As Integer = 0 To LenValue
+			If i = LenValue Then Capacity = 0
+			WAdd(FText, WChr(Value[i]), , Capacity)
 			If Value[i] = 10 Or Value[i] = 0 Then
-				InsertLine(j, Trim(Mid(*FText.vptr, 1, Len(*FText.vptr) - 1), Any WChr(13)))
+				InsertLine(j, Trim(Mid(*FText, 1, Len(*FText) - 1), Any WChr(13)))
 				j = j + 1
-				FText = ""
+				WLet(FText, "")
+				Capacity = 0
 			End If
 		Next i
 	End Property
@@ -3119,15 +3123,16 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function EditControl.MaxLineWidth() As Integer
-		Dim As Integer Pos1 = InStr(FText, Chr(13)), l = Len(Chr(13)), c = 0, p = 1, MaxLW = 0, lw = 0
+		If FText = 0 Then Return 0
+		Dim As Integer Pos1 = InStr(*FText, Chr(13)), l = Len(Chr(13)), c = 0, p = 1, MaxLW = 0, lw = 0
 		While Pos1 > 0
 			c = c + 1
-			lw = TextWidth(Mid(FText, p, Pos1 - p))
+			lw = TextWidth(Mid(*FText, p, Pos1 - p))
 			If lw > MaxLW Then MaxLW = lw
 			p = Pos1 + l
-			Pos1 = InStr(p, FText, Chr(13))
+			Pos1 = InStr(p, *FText, Chr(13))
 		Wend
-		lw = TextWidth(Mid(FText, p, Len(FText) - p + 1))
+		lw = TextWidth(Mid(*FText, p, Len(*FText) - p + 1))
 		If lw > MaxLW Then MaxLW = lw
 		Return MaxLW
 	End Function
@@ -4369,9 +4374,6 @@ Namespace My.Sys.Forms
 				pRenderTarget->lpVtbl->BeginDraw(pRenderTarget)
 			End If
 		#endif
-		'iMin = Min(FSelEnd, FSelStart)
-		'iMax = Max(FSelEnd, FSelStart)
-		'iLineIndex = LineFromCharIndex(iMax)
 		GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
 		iCount = 0
 		BracketsStart = -1
