@@ -573,7 +573,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As WString Ptr MainFileNameOnly, MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeApplicationName, PipeCommand, fbcCommand1, PipeCommand1
 	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine, ProjectPath
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
-	Dim As WString * 2048 CompileLine
+	Dim As UString CompileLine
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	Dim As Boolean Bit32 = tbt32Bit->Checked
