@@ -640,7 +640,7 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 		Dim As Integer iStart, iEnd, LineToAdd, LineEndPublic = -1, LineEndProtected = -1, LineEndPrivate = -1, LineEndType = -1
 		Dim As EditControl Ptr ptxtCode, ptxtCodeBi, ptxtCodeType
 		Dim As EditControl txtCodeBi
-		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm") OrElse EndsWith(LCase(tb->FileName), ".rpt")
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd

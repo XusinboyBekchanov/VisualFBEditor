@@ -46,6 +46,7 @@ Namespace My.Sys.Forms
 		Handle As Any Ptr
 		Path As UString
 		CreateControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
+		CreateReportControlFunc As Function(ByRef ClassName As String, ByRef Name As WString, ByRef Text As WString, lLeft As Integer, lTop As Integer, lWidth As Integer, lHeight As Integer, Parent As Any Ptr) As Any Ptr
 		CreateComponentFunc As Function(ClassName As String, ByRef Name As WString, lLeft As Integer, lTop As Integer, Parent As Any Ptr) As Any Ptr
 		DeleteComponentFunc As Function(Cpnt As Any Ptr) As Boolean
 		DeleteAllObjectsFunc As Function() As Boolean
@@ -74,6 +75,11 @@ Namespace My.Sys.Forms
 		ToolBarRemoveButtonSub As Sub(tb As Any Ptr, Index As Integer)
 		StatusBarPanelByIndexFunc As Function(sb As Any Ptr, Index As Integer) As Any Ptr
 		StatusBarRemovePanelSub As Sub(sb As Any Ptr, Index As Integer)
+		'Band at Index (0-based, print order) of a Report control - Designer.DrawReport uses
+		'this (together with ReadPropertyFunc reading "BandCount"/"ActiveBand" on the Report
+		'itself and "BandType"/"Height"/"GroupField" on each band it returns) to paint the
+		'band-name strip and band backdrops itself, the same way DrawToolBar paints a ToolBar.
+		ReportBandByIndexFunc As Function(rpt As Any Ptr, Index As Integer) As Any Ptr
 		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		IconLoadFromFileFunc As Function(Ico As Any Ptr, ByRef FILE As WString, cx As Integer = 0, CY As Integer = 0) As Boolean
@@ -281,6 +287,14 @@ Namespace My.Sys.Forms
 		Declare Sub PasteControl()
 		Declare Sub DeleteControls(Ctrl As Any Ptr, EventOnly As Boolean = False)
 		Declare Sub DuplicateControl()
+		'Inserts a new ReportBand onto the current Report design surface via the "Insert Band"
+		'menu, positioned/re-stacked exactly the way dropping one from the toolbox would be (see
+		'Report.bi's ReportBand.RestackBands for the layout rule). BandType is an Integer, not
+		'My.Sys.Forms.ReportBandType, because - like every other control class - ReportBand is
+		'only ever known to the Designer generically through Symbols()/WritePropertyFunc; it
+		'mirrors ReportBand's own "bandtype" WriteProperty case: 0=ReportHeader, 1=PageHeader,
+		'2=GroupHeader, 3=Detail, 4=GroupFooter, 5=PageFooter, 6=ReportFooter.
+		Declare Sub InsertReportBand(BandType As Integer)
 		Declare Sub SelectAllControls()
 		Declare Sub DeleteMenuItems(pMenu As Any Ptr, mi As Any Ptr)
 		Declare Sub DeleteControl()
@@ -289,6 +303,9 @@ Namespace My.Sys.Forms
 		Declare Function GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
 		Declare Sub DrawTopMenu
 		Declare Sub DrawToolBar(Handle As Any Ptr)
+		'Draws a Report control's band-name strip + band backdrops at design time, exactly
+		'like DrawToolBar draws a ToolBar - see the WM_PAINT case in HookChildProc.
+		Declare Sub DrawReport()
 		Declare Sub DrawThis() 'DC as HDC, R as RECT)
 		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
 		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr

@@ -3866,7 +3866,7 @@ runtype = RTOFF
 		End If
 		
 		If filenumber=0 And (flaglog And 2) Then
-			filenumber=FreeFile:Open ExePath+"\dbg_log_file.txt"  For Append As filenumber
+			filenumber = FreeFile: Open GetSpecialPath("USERTEMP") + "\dbg_log_file.txt"  For Append As filenumber
 			Print #filenumber,Date,Time
 		End If
 		
@@ -8734,7 +8734,7 @@ End Sub
 				LastPath = dwln
 			End If
 			LastFolder = GetFolderName(LastPath)
-			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then
+			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".rpt") OrElse InStr(LCase(dwln), ".inc") Then
 				If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
 				dw_lastline_procs()
 			End If
@@ -8756,7 +8756,7 @@ End Sub
 				LastPath = dwln
 			End If
 			LastFolder = GetFolderName(LastPath)
-			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".inc") Then
+			If InStr(LCase(dwln), ".bas") OrElse InStr(LCase(dwln), ".bi") OrElse InStr(LCase(dwln), ".frm") OrElse InStr(LCase(dwln), ".rpt") OrElse InStr(LCase(dwln), ".inc") Then
 				If CInt(LimitDebug) AndAlso CInt(LastFolder <> "./") AndAlso CInt(Not EqualPaths(LastFolder, mainfolder)) Then Continue Do
 				dw_lines_parse(adrdiff)
 			End If
@@ -15140,7 +15140,8 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	'#endif
 		Dim As Integer Fn = FreeFile_
-		Open ExePath & "/Temp/GDBCommands.txt" For Output As #Fn
+		Dim As String TempFolder = GetSpecialPath("USERTEMP")
+		Open TempFolder & "/GDBCommands.txt" For Output As #Fn
 		'If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then
 		'	Print #Fn, "set environment " & Replace(*EnvironmentVariables, "=", " ")
 		'End If
@@ -15158,7 +15159,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		Next jj
 		Print #Fn, "r"
 		CloseFile_(Fn)
-		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & ExePath & "/Temp/GDBCommands.txt""")
+		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & TempFolder & "/GDBCommands.txt""")
 	Else
 		If Idx = -1 Then
 			WAdd(CmdL, " """ & GetFileName(exename) & """ " & *RunArguments)

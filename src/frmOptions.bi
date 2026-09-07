@@ -210,7 +210,7 @@ Common Shared As Integer oldIndex, newIndex
 Declare Sub FindCompilersSub(Param As Any Ptr)
 
 Declare Sub cboDefaultProjectFileCheckEnable
-Declare Sub HistoryCodeClean(ByRef Path As WString)
+Declare Sub HistoryCodeClean()
 Common Shared pfOptions As frmOptions Ptr
 
 #ifndef __USE_MAKE__

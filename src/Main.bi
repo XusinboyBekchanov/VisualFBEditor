@@ -339,6 +339,7 @@ Declare Function GetFullPathInSystem(ByRef Path As WString) As UString
 Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
 Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
+Declare Function GetSpecialPath(ByRef key As WString) As UString
 Declare Function GetXY(XorY As Integer) As Integer
 #ifndef __USE_GTK__
 	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_

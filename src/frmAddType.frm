@@ -375,7 +375,7 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 	Dim As EditControl Ptr ptxtCode, ptxtCodeBi, ptxtCodeType
 	Dim As EditControl txtCodeBi
 	Dim As Integer iStart, iEnd, j
-	Dim As Boolean t, b, bFind, bAddSpaces = True, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+	Dim As Boolean t, b, bFind, bAddSpaces = True, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm") OrElse EndsWith(LCase(tb->FileName), ".rpt")
 	tb->txtCode.Changing "Insert procedure"
 	If cboExtends.ItemIndex <> 0 Then
 		Dim te As TypeElement Ptr = cboExtends.ItemData(cboExtends.ItemIndex)
@@ -452,13 +452,13 @@ Private Sub frmAddTypeType.cmdOK_Click(ByRef Sender As Control)
 		Dim As TypeElement Ptr te = cboType.ItemData(cboType.ItemIndex)
 		Dim As String SpaceStr
 		Dim As Integer iStart, iEnd, LineToAdd, LineEndPublic = -1, LineEndProtected = -1, LineEndPrivate = -1, LineEndType = -1
-		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm")
+		Dim As Boolean bFind, b, bPublic = True, bPrivate, bProtected, IsBas = EndsWith(LCase(tb->FileName), ".bas") OrElse EndsWith(LCase(tb->FileName), ".frm") OrElse EndsWith(LCase(tb->FileName), ".rpt")
 		Dim As EditControlLine Ptr FLine
 		For i As Integer = 0 To tb->txtCode.LinesCount - 1
 			GetBiFile(ptxtCode, txtCodeBi, ptxtCodeBi, tb, IsBas, bFind, i, iStart, iEnd)
 			For k As Integer = iStart To iEnd
 				FLine = ptxtCode->Content.Lines.Item(k)
-				If (Not b) AndAlso Cbool(FLine->ConstructionIndex = C_Class OrElse FLine->ConstructionIndex = C_Type) AndAlso Cbool(FLine->ConstructionPart = 0) AndAlso CBool(FLine->InConstruction = te) Then '(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
+				If (Not b) AndAlso CBool(FLine->ConstructionIndex = C_Class OrElse FLine->ConstructionIndex = C_Type) AndAlso CBool(FLine->ConstructionPart = 0) AndAlso CBool(FLine->InConstruction = te) Then '(StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "type " & LCase(sTypeName) & " ") OrElse StartsWith(Trim(LCase(ptxtCode->Lines(k)), Any !"\t ") & " ", "class " & LCase(sTypeName) & " ")) Then
 					ptxtCodeType = ptxtCode
 					b = True
 				ElseIf b Then

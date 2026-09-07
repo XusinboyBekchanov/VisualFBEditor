@@ -513,7 +513,7 @@ Sub frmFind.FindInProj(ByRef lvSearchResult As ListView Ptr, ByRef tSearch As WS
 			If tn->Nodes.Item(i)->Tag <> 0 Then
 				f = *Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)->FileName
 				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
-					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".html") _
+					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".rpt") OrElse EndsWith(LCase(f), ".html") _
 					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") OrElse EndsWith(LCase(f), ".cs") OrElse EndsWith(LCase(f), ".vb")  _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".cxx") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".idl") OrElse EndsWith(LCase(f), ".cpp") OrElse EndsWith(LCase(f), ".java") Then
 					Result = -1: Fn = FreeFile_
@@ -584,7 +584,7 @@ Private Sub frmFind.ReplaceInProj(ByRef tSearch As WString="", ByRef tReplace As
 			If tn->Nodes.Item(i)->Tag <> 0 Then
 				f = *Cast(ExplorerElement Ptr, tn->Nodes.Item(i)->Tag)->FileName
 				If EndsWith(LCase(f), ".bas") OrElse EndsWith(LCase(f), ".bi") OrElse EndsWith(LCase(f), ".rc") OrElse EndsWith(LCase(f), ".inc") _
-					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".html") _
+					OrElse EndsWith(LCase(f), ".txt") OrElse EndsWith(LCase(f), ".frm") OrElse EndsWith(LCase(f), ".rpt") OrElse EndsWith(LCase(f), ".html") _
 					OrElse EndsWith(LCase(f), ".vfp") OrElse EndsWith(LCase(f), ".htm") OrElse EndsWith(LCase(f), ".xml") OrElse EndsWith(LCase(f), ".cs") OrElse EndsWith(LCase(f), ".vb") _
 					OrElse EndsWith(LCase(f), ".c") OrElse EndsWith(LCase(f), ".cxx") OrElse EndsWith(LCase(f), ".h") OrElse EndsWith(LCase(f), ".idl") OrElse EndsWith(LCase(f), ".cpp") OrElse EndsWith(LCase(f), ".java") Then
 					If LCase(tML) <> LCase(tReplace) Then
@@ -969,7 +969,7 @@ Private Sub frmFind.btnReplaceAll_Click(ByRef Sender As Control)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(2) = WStr(Pos1)
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Text(3) = tb->FileName
 				plvSearch->ListItems.Item(plvSearch->ListItems.Count - 1)->Tag = tb
-				WLet(ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
+				WLetEx(ECLine->Text, ..Left(*buff, Pos1 - 1) & *tReplace & Mid(*buff, Pos1 + Len(*Search)))
 				ECLine->Ends.Clear
 				ECLine->EndsCompleted = False
 				tb->txtCode.ChangeCollapsibility i

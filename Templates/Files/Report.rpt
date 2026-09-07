@@ -1,0 +1,114 @@
+﻿'#Region "Report"
+	#if defined(__FB_MAIN__) AndAlso Not defined(__MAIN_FILE__)
+		#define __MAIN_FILE__
+		#ifdef __FB_WIN32__
+			#cmdline "Form1.rc"
+		#endif
+		Const _MAIN_FILE_ = __FILE__
+	#endif
+	
+	#include once "mff/Report.bi"
+	#include once "mff/ReportDataBind.bi"
+	#include once "mff/Label.bi"
+	#include once "SQLite3Component.bi"
+	
+	Using My.Sys.Forms
+	Using My.Sys.ComponentModel
+	
+	Type Report1Type Extends Report
+		Declare Constructor
+		Declare Function GetFieldValue(ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
+		
+		Dim As ReportBand ReportHeader, PageHeader, Detail, PageFooter, ReportFooter
+		Dim As ReportLabel lblTitle, lblCol1Header, lblCol2Header
+		Dim As ReportField fldColumn1, fldColumn2
+		Dim As ReportRecordSet RS
+		Dim As SQLite3Component SQLite3Component1
+	End Type
+	
+	Constructor Report1Type
+		'Report1
+		With This
+			.Name = "Report1"
+			.Text = "Report1"
+			.Designer = @This
+			.OnGetFieldValue = Cast(Function(ByRef Designer As My.Sys.Object, ByRef FieldName As WString, RowIndex As Integer) ByRef As WString, @GetFieldValue)
+			.SetBounds 0, 0, 840, 300
+		End With
+		'ReportHeader
+		With ReportHeader
+			.BandType = ReportBandType.rbtReportHeader
+			.Height = 60
+			.Parent = @This
+		End With
+		'PageHeader
+		With PageHeader
+			.BandType = ReportBandType.rbtPageHeader
+			.Height = 60
+			.Parent = @This
+		End With
+		With Detail
+			.BandType = ReportBandType.rbtDetail
+			.Height = 60
+			.Parent = @This
+		End With
+		With PageFooter
+			.BandType = ReportBandType.rbtPageFooter
+			.Height = 60
+			.Parent = @This
+		End With
+		With ReportFooter
+			.BandType = ReportBandType.rbtReportFooter
+			.Height = 60
+			.Parent = @This
+		End With
+		
+		lblTitle.Name = "lblTitle"
+		lblTitle.Text = "Report Title"
+		lblTitle.Font.Bold = True
+		lblTitle.Font.Size = 16
+		lblTitle.SetBounds 30, 8, 410, 32
+		lblTitle.Parent = @ReportHeader
+		
+		lblCol1Header.Name = "lblCol1Header"
+		lblCol1Header.Text = "Column 1"
+		lblCol1Header.Font.Bold = True
+		lblCol1Header.SetBounds 30, 54, 200, 18
+		lblCol1Header.Parent = @PageHeader
+		
+		lblCol2Header.Name = "lblCol2Header"
+		lblCol2Header.Text = "Column 2"
+		lblCol2Header.Font.Bold = True
+		lblCol2Header.SetBounds 240, 54, 200, 18
+		lblCol2Header.Parent = @PageHeader
+		
+		fldColumn1.Name = "fldColumn1"
+		fldColumn1.DataField = "Column1"
+		fldColumn1.SetBounds 30, 78, 200, 20
+		fldColumn1.Parent = @Detail
+		
+		fldColumn2.Name = "fldColumn2"
+		fldColumn2.DataField = "Column2"
+		fldColumn2.SetBounds 240, 78, 200, 20
+		fldColumn2.Parent = @Detail
+		' SQLite3Component1
+		With SQLite3Component1
+			.Name = "SQLite3Component1"
+			.SetBounds 110, 130, 16, 16
+			.Designer = @This
+			.Parent = @This
+		End With
+	End Constructor
+	
+	Private Function Report1Type.GetFieldValue(ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
+		Return RS.Value(RowIndex, FieldName)
+	End Function
+	
+	Dim Shared Report1 As Report1Type
+	
+	#if _MAIN_FILE_ = __FILE__
+		App.DarkMode = True
+		Report1.PrintPreview
+		App.Run
+	#endif
+'#End Region

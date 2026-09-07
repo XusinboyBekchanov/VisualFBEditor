@@ -5,7 +5,7 @@
 @rem
 @rem ##########################################################################
 
-set FBC=D:\FreeBasic\fbc_win32_mingw_0840_2024-01-28\fbc_win32_mingw\fbc.exe
+set FBC=D:\FreeBasic\fbc-android\bin\fbc.exe
 set MFF=D:\GitHub\VisualFBEditor/./Controls/MyFbFramework
 set NDK=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b
 @rem make --directory ./app/src/main/bas
@@ -14,14 +14,14 @@ set AS=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.
 set LD=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-ld.exe
 "%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/x86/libmff-app.so" -target i686-linux-android -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-9/arch-x86" -Wl "-L %NDK%/platforms/android-9/arch-x86/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
-set GCC=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-gcc.exe
-set AS=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-as.exe
-set LD=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-ld.exe
+set GCC=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\aarch64-linux-android-4.9\prebuilt\windows\bin\aarch64-linux-android-gcc.exe
+set AS=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\aarch64-linux-android-4.9\prebuilt\windows\bin\aarch64-linux-android-as.exe
+set LD=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\aarch64-linux-android-4.9\prebuilt\windows\bin\aarch64-linux-android-ld.exe
 "%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/arm64-v8a/libmff-app.so" -target aarch64-linux-android -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-21/arch-arm64" -Wl "-L %NDK%/platforms/android-21/arch-arm64/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
-set GCC=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-gcc.exe
-set AS=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-as.exe
-set LD=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\x86-4.9\prebuilt\windows\bin\i686-linux-android-ld.exe
+set GCC=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\arm-linux-androideabi-4.9\prebuilt\windows\bin\arm-linux-androideabi-gcc.exe
+set AS=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\arm-linux-androideabi-4.9\prebuilt\windows\bin\arm-linux-androideabi-as.exe
+set LD=D:\GitHub\android-ndk-r12b-windows-x86\android-ndk-r12b\toolchains\arm-linux-androideabi-4.9\prebuilt\windows\bin\arm-linux-androideabi-ld.exe
 "%FBC%" ./app/src/main/bas/Form1.bas -x "./app/src/main/jniLibs/armeabi-v7a/libmff-app.so" -target arm-linux-androideabi -i "%MFF%" -v -dll -exx -sysroot "%NDK%/platforms/android-21/arch-arm" -Wl "-L %NDK%/platforms/android-9/arch-arm/usr/lib"
 if "%ERRORLEVEL%" == "1" goto omega
 

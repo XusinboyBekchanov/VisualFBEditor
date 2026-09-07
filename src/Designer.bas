@@ -495,8 +495,8 @@ Namespace My.Sys.Forms
 						If Width1 <> -1 Then iWidth = Width1
 						If Height1 <> -1 Then iHeight = Height1
 						'If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
-							'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
-							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
+						gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
 						'Else
 						'	'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
 						'	gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
@@ -1494,6 +1494,37 @@ Namespace My.Sys.Forms
 		PasteControl
 	End Sub
 	
+	Sub Designer.InsertReportBand(BandType As Integer)
+		If DesignControl = 0 Then Exit Sub
+		Dim As SymbolsType Ptr st = Symbols("ReportBand")
+		If st = 0 Then Exit Sub 'this build's Symbols table doesn't know ReportBand - Report.bi's
+		'DLL wasn't loaded/registered, so there is nothing to insert
+		
+		FClass = "ReportBand"
+		FName  = "ReportBand"
+		If OnInsertingControl Then OnInsertingControl(This, "ReportBand", FName)
+		
+		'Placeholder bounds only - ReportBand.Move (see Report.bas) clamps Left/Width to the
+		'surface's full width and ReportBand.RestackBands slots it into its correct Top the
+		'moment SetBounds/Move runs during creation, exactly like dragging one off the toolbox.
+		Dim As Any Ptr NewBand = This.CreateControl("ReportBand", FName, FName, DesignControl, 0, 0, 50, 24)
+		If NewBand = 0 Then Exit Sub
+		
+		If st->WritePropertyFunc Then
+			Dim As Integer iBandType = BandType
+			st->WritePropertyFunc(NewBand, "BandType", @iBandType)
+		End If
+		
+		SelectedControls.Clear
+		#ifdef __USE_GTK__
+			MoveDots(NewBand)
+		#else
+			MoveDots(NewBand)
+		#endif
+		If OnInsertControl Then OnInsertControl(This, "ReportBand", SelectedControl, 0, 0, 0, 0, 50, 24)
+		If Parent Then Parent->Repaint
+	End Sub
+	
 	#ifndef __USE_GTK__
 		Sub Designer.UnHookControl(Control As HWND)
 			If Control AndAlso IsWindow(Control) Then
@@ -1561,6 +1592,18 @@ Namespace My.Sys.Forms
 		If st Then
 			If st->CreateControlFunc <> 0 Then
 				ChDir GetFolderName(st->Path)
+				'If AClassName = "RichTextBox" Then
+				'	Ctrl = New RichTextBox
+				'	With *Cast(RichTextBox Ptr, Ctrl)
+				'		.Name = AName
+				'		.Text = AText
+				'		.Left = x
+				'		.Top = y
+				'		.Width = IIf(cx, cx, 50)
+				'		.Height = IIf(cy, cy, 50)
+				'		.Parent = AParent
+				'	End With
+				'Else
 				Ctrl = st->CreateControlFunc(AClassName, _
 				AName, _
 				AText, _
@@ -1569,6 +1612,17 @@ Namespace My.Sys.Forms
 				IIf(cx, cx, 50), _
 				IIf(cy, cy, 50), _
 				AParent)
+				'End If
+				If Ctrl = 0 AndAlso st->CreateReportControlFunc <> 0 Then
+					Ctrl = st->CreateReportControlFunc(AClassName, _
+					AName, _
+					AText, _
+					x, _
+					y, _
+					IIf(cx, cx, 50), _
+					IIf(cy, cy, 50), _
+					AParent)
+				End If
 				If Ctrl Then
 					Objects.Add Ctrl
 					CtrlSymbols.Add Ctrl, st
@@ -1628,7 +1682,7 @@ Namespace My.Sys.Forms
 					'SetProp(Control, "Name", ...)
 					'possibly using in propertylist inspector
 					Select Case GetClassNameOf(FSelControl)
-					Case "ToolBar", "ToolPalette"
+					Case "ToolBar", "ToolPalette", "Report"
 						RedrawWindow FSelControl, 0, 0, RDW_INVALIDATE
 						UpdateWindow FSelControl
 					End Select
@@ -1640,9 +1694,9 @@ Namespace My.Sys.Forms
 		Exit Function
 		ErrorHandler:
 		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
-	"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
-	"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
-	"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
 	End Function
 	
 	#ifdef __USE_GTK__
@@ -1708,6 +1762,7 @@ Namespace My.Sys.Forms
 					st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
 					st->Path = GetFullPath(CtlLib->Path)
 					st->CreateControlFunc = DyLibSymbol(st->Handle, "CreateControl")
+					st->CreateReportControlFunc = DyLibSymbol(st->Handle, "CreateReportControl")
 					st->CreateComponentFunc = DyLibSymbol(st->Handle, "CreateComponent")
 					st->ReadPropertyFunc = DyLibSymbol(st->Handle, "ReadProperty")
 					st->WritePropertyFunc = DyLibSymbol(st->Handle, "WriteProperty")
@@ -1736,6 +1791,7 @@ Namespace My.Sys.Forms
 					st->ToolBarRemoveButtonSub = DyLibSymbol(st->Handle, "ToolBarRemoveButton")
 					st->StatusBarPanelByIndexFunc = DyLibSymbol(st->Handle, "StatusBarPanelByIndex")
 					st->StatusBarRemovePanelSub = DyLibSymbol(st->Handle, "StatusBarRemovePanel")
+					st->ReportBandByIndexFunc = DyLibSymbol(st->Handle, "ReportBandByIndex")
 					st->GraphicTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "GraphicTypeLoadFromFile")
 					st->BitmapTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "BitmapTypeLoadFromFile")
 					st->IconLoadFromFileFunc = DyLibSymbol(st->Handle, "IconLoadFromFile")
@@ -2049,6 +2105,142 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	'Draws a Report control's design-time chrome directly onto its own DC: a left-hand
+	'band-name strip (Report Header/Page Header/Group Header/Body/Group Footer/Page Footer/
+	'Report Footer, Xojo/Crystal-Reports "section list" style) plus a faint tint + hairline
+	'behind each band's own area to its right - exactly the same visual DrawDesignSurface
+	'used to draw from inside Report itself, just now painted by Designer instead (see
+	'Report.ProcessMessage's WM_PAINT case for why: this avoids a paint-order race with
+	'Designer's own background/grid repaint of the surrounding design surface). Called from
+	'HookChildProc's WM_PAINT case, the same way DrawToolBar is.
+	Sub Designer.DrawReport()
+		#ifndef __USE_GTK__
+			Dim As ..Rect R
+			Dim As PAINTSTRUCT Ps
+			FHDC = BeginPaint(FDialog, @Ps)
+			GetClientRect(FDialog, @R)
+			If FGridBrush Then
+				DeleteObject(FGridBrush)
+			End If
+			Dim As HDC mDc
+			Dim As HBITMAP mBMP, pBMP
+			Dim As ..Rect BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
+			mDc   = CreateCompatibleDC(FHDC)
+			mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
+			pBMP  = SelectObject(mDc, mBMP)
+			FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
+			SetPixel(mDc, 0, 0, 0)
+			'for lines use MoveTo and LineTo or Rectangle function or whatever...
+			FGridBrush = CreatePatternBrush(mBMP)
+			FillRect(FHDC, @R, FGridBrush)
+			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			If st AndAlso st->ReadPropertyFunc AndAlso st->ReportBandByIndexFunc Then
+				Dim As Integer BandCount  = QInteger(st->ReadPropertyFunc(DesignControl, "BandCount"))
+				Dim As Integer ActiveBand = 0 'QInteger(st->ReadPropertyFunc(DesignControl, "ActiveBand"))
+				
+				'Mirrors Report.BAND_LIST_WIDTH/BAND_LIST_ROW_H (Report.bi) - kept as plain
+				'constants here rather than round-tripped through reflection, the same way
+				'DrawToolBar above doesn't reflect ToolBar's own layout constants either.
+				Const ListWidth As Integer = 20
+				Const RowH      As Integer = 24
+				
+				Dim As HBRUSH BrushActiveArea = CreateSolidBrush(BGR(240, 244, 255))
+				Dim As HBRUSH BrushArea       = CreateSolidBrush(BGR(250, 250, 253))
+				Dim As HBRUSH BrushListBg     = CreateSolidBrush(BGR(232, 234, 240))
+				Dim As HBRUSH BrushActiveRow  = CreateSolidBrush(BGR(202, 214, 244))
+				Dim As HPEN   PenLine         = CreatePen(PS_SOLID, 0, BGR(188, 190, 202))
+				Dim As HPEN   PenListLine     = CreatePen(PS_SOLID, 0, BGR(210, 212, 222))
+				Dim As HPEN   PenDivider      = CreatePen(PS_SOLID, 0, BGR(170, 172, 186))
+				Dim As HPEN   PrevPen
+				
+				'Vertikal yozuv uchun font (90 gradus buralgan).
+				Dim As LOGFONT LF
+				GetObject(Parent->Font.Handle, SizeOf(LF), @LF)
+				LF.lfEscapement  = 900
+				Dim As HFONT FontVert = CreateFontIndirect(@LF)
+				Dim As HFONT PrevFont
+				
+				'Band-name strip on the left (background).
+				Dim As ..Rect ListR = Type<..Rect>(0, 0, ScaleX(ListWidth), R.Bottom)
+				FillRect(FHDC, @ListR, BrushListBg)
+				SetBkMode(FHDC, TRANSPARENT)
+				
+				Dim As Integer y = 0
+				For i As Integer = 0 To BandCount - 1
+					Dim As Any Ptr Band = st->ReportBandByIndexFunc(DesignControl, i)
+					Dim As Integer h = QInteger(st->ReadPropertyFunc(Band, "Height"))
+					
+					PrevPen = SelectObject(FHDC, PenLine)
+					.MoveToEx FHDC, ScaleX(ListWidth), ScaleY(y + h) - 1, 0
+					.LineTo FHDC, R.Right, ScaleY(y + h) - 1
+					SelectObject(FHDC, PrevPen)
+					
+					'Active row highlight on the left strip.
+					If i = ActiveBand Then
+						Dim As ..Rect RowR = Type<..Rect>(0, ScaleY(y), ScaleX(ListWidth), ScaleY(y + h))
+						FillRect(FHDC, @RowR, BrushActiveRow)
+					End If
+					
+					Dim As Integer BandType = QInteger(st->ReadPropertyFunc(Band, "BandType"))
+					Dim As UString GroupField = WGet(st->ReadPropertyFunc(Band, "GroupField"))
+					Dim As String Caption
+					Select Case BandType
+					Case 0: Caption = ML("Report Header")
+					Case 1: Caption = ML("Page Header")
+					Case 2: Caption = ML("Group Header") & IIf(Len(GroupField) > 0, " (" & GroupField & ")", "")
+					Case 3: Caption = ML("Body")
+					Case 4: Caption = ML("Group Footer") & IIf(Len(GroupField) > 0, " (" & GroupField & ")", "")
+					Case 5: Caption = ML("Page Footer")
+					Case 6: Caption = ML("Report Footer")
+					End Select
+					SetTextColor(FHDC, BGR(40, 44, 70))
+					
+					'Caption endi vertikal, band balandligi ichida O'RTAGA joylashtiriladi
+					'va band chegarasidan tashqariga chiqmasligi uchun clip qilinadi.
+					Dim As Integer BandTopPx    = ScaleY(y)
+					Dim As Integer BandBottomPx = ScaleY(y + h)
+					Dim As Integer BandHeightPx = BandBottomPx - BandTopPx
+					
+					Dim As Integer ClipState = SaveDC(FHDC)
+					IntersectClipRect(FHDC, 0, BandTopPx, ScaleX(ListWidth), BandBottomPx)
+					
+					'Caption endi vertikal (pastdan yuqoriga o'sadi), qator ichida markazlashtirilgan.
+					PrevFont = SelectObject(FHDC, FontVert)
+					Dim As Size TextSz
+					GetTextExtentPoint32(FHDC, Caption, Len(Caption), @TextSz)
+					
+					Dim As Integer TextStartY = BandBottomPx - (BandHeightPx - TextSz.cx) \ 2
+					
+					.TextOut(FHDC, ScaleX(2), TextStartY, Caption, Len(Caption))
+					SelectObject(FHDC, PrevFont)
+					
+					RestoreDC(FHDC, ClipState)
+					
+					PrevPen = SelectObject(FHDC, PenListLine)
+					.MoveToEx FHDC, 0, ScaleY(y + h) - 1, 0
+					.LineTo FHDC, 0, ScaleY(y + h) - 1
+					SelectObject(FHDC, PrevPen)
+					
+					y += h
+				Next i
+				PrevPen = SelectObject(FHDC, PenDivider)
+				.MoveToEx FHDC, ScaleX(ListWidth), 0, 0
+				.LineTo FHDC, ScaleX(ListWidth), R.Bottom
+				SelectObject(FHDC, PrevPen)
+				
+				DeleteObject(FontVert)
+				DeleteObject(BrushActiveArea)
+				DeleteObject(BrushArea)
+				DeleteObject(BrushListBg)
+				DeleteObject(BrushActiveRow)
+				DeleteObject(PenLine)
+				DeleteObject(PenListLine)
+				DeleteObject(PenDivider)
+			End If
+			EndPaint FDialog, @Ps
+		#endif
+	End Sub
+	
 	Sub Designer.DrawThis()
 		FStepX = GridSize
 		FStepY = GridSize
@@ -2138,6 +2330,7 @@ Namespace My.Sys.Forms
 				FillRect(FHDC, @R, Brush) 'Cast(HBRUSH, 16))
 			End If
 			DeleteObject(Brush)
+			
 			For j As Integer = 0 To SelectedControls.Count - 1
 				GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
 				MapWindowPoints 0, FDialog, Cast(..Point Ptr, @R), 2
@@ -2991,8 +3184,14 @@ Namespace My.Sys.Forms
 					#ifndef __USE_GTK__
 					Case WM_PAINT, WM_ERASEBKGND
 						'Function = CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
-						.DrawThis
-						Return 1
+						Select Case GetClassNameOf(hDlg)
+						Case "Report"
+							.DrawReport
+							Return 1
+						Case Else
+							.DrawThis
+							Return 1
+						End Select
 						'Exit Function
 					Case WM_NCHITTEST
 						Return HTTRANSPARENT
@@ -4039,5 +4238,14 @@ mnuDesigner.Add(ML("Duplicate") & !"\t Ctrl+D", "", "Duplicate", @mClick)
 mnuDesigner.Add("-", "", "OrderSeparator")
 mnuDesigner.Add(ML("Bring to Front"), "BringToFront", "BringToFront", @PopupClick)
 mnuDesigner.Add(ML("Send to Back"), "SendToBack", "SendToBack", @PopupClick)
+mnuDesigner.Add("-", "", "InsertBandSeparator")
+Dim As MenuItem Ptr miInsertBand = mnuDesigner.Add(ML("Insert Band"), "", "InsertBand")
+miInsertBand->Add(ML("Report Header"), "", "InsertBand_0", @PopupClick)
+miInsertBand->Add(ML("Page Header"),   "", "InsertBand_1", @PopupClick)
+miInsertBand->Add(ML("Group Header"),  "", "InsertBand_2", @PopupClick)
+miInsertBand->Add(ML("Detail"),        "", "InsertBand_3", @PopupClick)
+miInsertBand->Add(ML("Group Footer"),  "", "InsertBand_4", @PopupClick)
+miInsertBand->Add(ML("Page Footer"),   "", "InsertBand_5", @PopupClick)
+miInsertBand->Add(ML("Report Footer"), "", "InsertBand_6", @PopupClick)
 mnuDesigner.Add("-")
 mnuDesigner.Add(ML("Properties"), "Property", "Properties", @PopupClick)

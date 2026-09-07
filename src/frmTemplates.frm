@@ -212,7 +212,7 @@
 		' txtSaveLocation
 		With txtSaveLocation
 			.Name = "txtSaveLocation"
-			.Text = "./Projects/Project1"
+			.Text = "%USERDOCUMENTS%/Visual FB Editor Projects/Project1"
 			.TabIndex = 19
 			.SetBounds 120, 1, 204, 20
 			.Parent = @pnlSaveLocation

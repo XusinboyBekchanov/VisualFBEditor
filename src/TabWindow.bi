@@ -20,6 +20,7 @@
 #include once "mff/ComboBoxEx.bi"
 #include once "mff/Splitter.bi"
 #include once "mff/ProgressBar.bi"
+#include once "mff/Ruler.bi"
 #include once "file.bi"
 #include once "mff/MD2RTF.bi"
 
@@ -212,6 +213,9 @@ Public:
 	lblLeft As Label
 	splCodeForm As Splitter
 	pnlForm As Panel
+	pnlDesign As Panel
+	rulH As Ruler
+	rulV As Ruler
 	tbrLeft As ToolBar
 	tbrTop As ToolBar
 	pnlToolbar As Panel

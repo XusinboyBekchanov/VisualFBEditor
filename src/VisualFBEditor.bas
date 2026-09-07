@@ -986,6 +986,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
 		#endif
 	Case "AddForm":                         AddFromTemplate ExePath + "/Templates/Files/Form.frm"
+	Case "AddReport":                       AddFromTemplate ExePath + "/Templates/Files/Report.rpt"
 	Case "AddModule":                       AddFromTemplate ExePath + "/Templates/Files/Module.bas"
 	Case "AddIncludeFile":                  AddFromTemplate ExePath + "/Templates/Files/Include File.bi"
 	Case "AddUserControl":                  AddFromTemplate ExePath + "/Templates/Files/User Control.bas"

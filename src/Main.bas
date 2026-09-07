@@ -502,16 +502,372 @@ Function GetFileName(ByRef FileName As WString, WithExtension As Boolean = True)
 	End If
 End Function
 
+'Based on Berkeley code: https://www.freebasic.net/forum/viewtopic.php?p=305321#p305321
+Function GetSpecialPath(ByRef key As WString) As UString
+	Dim As WString * MAX_PATH path
+	
+	#if defined(__FB_WIN32__)
+		Dim As WString * MAX_PATH userHome = Environ("HOMEDRIVE") + Environ("HOMEPATH")
+		
+		Select Case key
+		Case "USERHOME"
+			path = userHome
+			If path <> "" Then
+				path += "/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERTEMP"
+			path = Environ("TEMP")
+			If path = "" Then path = Environ("TMP")
+			If path <> "" Then
+				path += "/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDHOME"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERSETTINGS"
+			path = Environ("LOCALAPPDATA")
+			If path <> "" Then
+				path += "/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDSETTINGS"
+			path = Environ("ProgramData")
+			If path <> "" Then
+				path += "/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERDOCUMENTS"
+			path = userHome
+			If path <> "" Then
+				path += "/Documents/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDDOCUMENTS"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Documents/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERDESKTOP"
+			path = userHome
+			If path <> "" Then
+				path += "/Desktop/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDDESKTOP"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Desktop/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERDOWNLOADS"
+			path = userHome
+			If path <> "" Then
+				path += "/Downloads/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDDOWNLOADS"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Downloads/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERGRAPHICS"
+			path = userHome
+			If path <> "" Then
+				path += "/Pictures/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDGRAPHICS"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Pictures/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERAUDIOS"
+			path = userHome
+			If path <> "" Then
+				path += "/Music/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDAUDIOS"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Music/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERMEDIA"
+			path = userHome
+			If path <> "" Then
+				path += "/Videos/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDMEDIA"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Videos/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "USERSAVEGAMES"
+			path = userHome
+			If path <> "" Then
+				path += "/Saved Games/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "SHAREDSAVEGAMES"
+			path = Environ("PUBLIC")
+			If path <> "" Then
+				path += "/Saved Games/"
+				path = GetOSPath(path)
+			End If
+			
+		Case "APPDATA"
+			path = APP_TITLE
+			If Dir(path, 255) = "" Then
+				path += ".rsc"
+				If Dir(path, 255) = "" Then path = "" Else path += ":"
+			Else
+				path += "/"
+			End If
+			
+			If path = "" Then
+				path = Environ("LOCALAPPDATA")
+				If path <> "" Then
+					path += "/" + APP_TITLE
+					If Dir(path, 255) = "" Then
+						path += ".rsc"
+						If Dir(path, 255) = "" Then path = "" Else path += ":"
+					Else
+						path += "/"
+					End If
+				End If
+			End If
+			
+			If path = "" Then
+				path = Environ("ALLUSERSPROFILE")
+				If path <> "" Then
+					path += "/" + APP_TITLE
+					If Dir(path, 255) = "" Then
+						path += ".rsc"
+						If Dir(path, 255) = "" Then path = "" Else path += ":"
+					Else
+						path += "/"
+					End If
+				End If
+			End If
+			path = GetOSPath(path)
+			
+		Case "FBDATA"
+			path = "FreeBASIC.rsc"
+			If Dir(path, 255) = "" Then path = "" Else path += ":"
+			
+			If path = "" Then
+				path = Environ("LOCALAPPDATA")
+				If path <> "" Then
+					path += "/FreeBASIC.rsc"
+					If Dir(path, 255) = "" Then path = "" Else path += ":"
+				End If
+			End If
+			
+			If path = "" Then
+				path = Environ("ALLUSERSPROFILE")
+				If path <> "" Then
+					path += "/FreeBASIC.rsc"
+					If Dir(path, 255) = "" Then path = "" Else path += ":"
+				End If
+			End If
+			path = GetOSPath(path)
+			
+		Case Else
+			Return ""
+		End Select
+		
+	#else
+		Select Case key
+		Case "USERHOME"
+			path = Environ("HOME")
+			path = GetOSPath(path)
+			
+		Case "USERTEMP"
+			path = Environ("TMPDIR")
+			If path = "" Then path = "/tmp"
+			path = GetOSPath(path)
+			
+		Case "SHAREDHOME"
+			path = "/home/group/public/"
+			
+		Case "USERSETTINGS"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/.config/"
+			
+		Case "SHAREDSETTINGS"
+			path = "/home/group/public/.config/"
+			
+		Case "USERDOCUMENTS"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Documents/"
+			
+		Case "SHAREDDOCUMENTS"
+			path = "/home/group/public/Documents/"
+			
+		Case "USERDESKTOP"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Desktop/"
+			
+		Case "SHAREDDESKTOP"
+			path = "/home/group/public/Desktop/"
+			
+		Case "USERDOWNLOADS"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Downloads/"
+			
+		Case "SHAREDDOWNLOADS"
+			path = "/home/group/public/Downloads/"
+			
+		Case "USERGRAPHICS"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Pictures/"
+			
+		Case "SHAREDGRAPHICS"
+			path = "/home/group/public/Pictures/"
+			
+		Case "USERAUDIOS"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Music/"
+			
+		Case "SHAREDAUDIOS"
+			path = "/home/group/public/Music/"
+			
+		Case "USERMEDIA"
+			path = Environ("HOME")
+			path = GetOSPath(path) + "/Videos/"
+			
+		Case "SHAREDMEDIA"
+			path = "/home/group/public/Videos/"
+			
+		Case "USERSAVEGAMES"
+			path = Environ("HOME") + "/Savegames/"
+			
+		Case "SHAREDSAVEGAMES"
+			path = "/home/group/public/Savegames/"
+			
+		Case "APPDATA"
+			path = APP_TITLE
+			If Dir(path, 255) = "" Then
+				path += ".rsc"
+				If Dir(path, 255) = "" Then path = "" Else path += ":"
+			Else
+				path += "/"
+			End If
+			
+			If path = "" Then
+				path = "/usr/share/" + APP_TITLE
+				If Dir(path, 255) = "" Then
+					path += ".rsc"
+					If Dir(path, 255) = "" Then path = "" Else path += ":"
+				Else
+					path += "/"
+				End If
+			End If
+			path = GetOSPath(path)
+			
+		Case "FBDATA"
+			path = "FreeBASIC.rsc"
+			If Dir(path, 255) = "" Then path = "" Else path += ":"
+			
+			If path = "" Then
+				path = "/usr/share/FreeBASIC.rsc"
+				If Dir(path, 255) = "" Then path = "" Else path += ":"
+			End If
+			path = GetOSPath(path)
+			
+		Case Else
+			Return ""
+		End Select
+	#endif
+	
+	Return path
+End Function
+
+Private Function CollapseSlashes(ByRef p As WString) As UString
+	Dim As WString * 2 prefix = ""
+	Dim As WString * MAX_PATH rest = p
+	
+	' Boshidagi ikkita slash (masalan UNC yo'l \\server\share yoki //server/share)
+	' qasddan saqlanib qoladi, faqat bittasi emas, ikkitasi ham bo'lishi kerak.
+	If Left(rest, 2) = Slash & Slash Then
+		prefix = Slash & Slash
+		rest = Mid(rest, 3)
+	End If
+	
+	' Qolgan qismidagi barcha ketma-ket slashlar (3, 4 tasi bo'lsa ham) bittagacha
+	' siqiladi. Bitta Replace chaqiruvi buni to'liq bajarolmasligi mumkin edi,
+	' shuning uchun hech narsa o'zgarmay qolguncha takrorlanadi.
+	Do While InStr(rest, Slash & Slash) <> 0
+		rest = Replace(rest, Slash & Slash, Slash)
+	Loop
+	
+	Return prefix & rest
+End Function
+
+'Based on Berkeley code: https://www.freebasic.net/forum/viewtopic.php?p=305321#p305321
+Function GetFilePath(ByRef source As WString) As UString
+	Dim As Integer i
+	Dim As WString * MAX_PATH path
+	
+	If source = "" Then Return ""
+	
+	If source[0] = 37 Then
+		i = InStr(2, source, "%")
+		If i <> 0 Then
+			path = Mid(source, 2, i - 2)
+			path = GetSpecialPath(path) + Mid(source, i + 1)
+			path = CollapseSlashes(GetOSPath(path))
+		End If
+	Else
+		path = CollapseSlashes(GetOSPath(source))
+	End If
+	
+	Return path
+End Function
+
 Function GetBakFileName(ByRef FileName As WString) As UString
 	If FileName = "" Then Return ""
 	Dim As String BakDate = Format(Now, "yyyymmdd_hhmm") 'David Change ReplaceAny(__DATE_ISO__ & "_" & Time,":/\-","")
 	Dim As WString * MAX_PATH iFileName
 	Dim Pos1 As Long = InStrRev(FileName, ".")
 	If Pos1 = 0 Then Pos1 = Len(FileName)
+	Dim As WString * MAX_PATH Path = GetSpecialPath("USERDOCUMENTS") + "/" + APP_TITLE + " Projects/Backups"
+	If Not FolderExists(Path) Then
+		MkDir Path
+	End If
 	If Pos1 > 0 Then
-		Return ExePath + "/Temp/" + GetFileName(FileName) + "_" & BakDate & ".bak"
+		Return Path + "/" + GetFileName(FileName) + "_" & BakDate & ".bak"
 	Else
-		Return ExePath + "/Temp/" + BakDate & ".bak"
+		Return Path + "/" + BakDate & ".bak"
 	End If
 End Function
 
@@ -621,12 +977,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			ThreadsLeave()
 			CompileResult = 0
 			Continue For
-		'ElseIf InStr(GetFolderName(GetFullPathInSystem(*FbcExe)), " ") > 0 Then
-		'	ThreadsEnter()
-		'	ShowMessages ML("It is impossible to use a compiler that has a space in the paths.")
-		'	ThreadsLeave()
-		'	CompileResult = 0
-		'	Continue For
+			'ElseIf InStr(GetFolderName(GetFullPathInSystem(*FbcExe)), " ") > 0 Then
+			'	ThreadsEnter()
+			'	ShowMessages ML("It is impossible to use a compiler that has a space in the paths.")
+			'	ThreadsLeave()
+			'	CompileResult = 0
+			'	Continue For
 		Else
 			ChDir(ExePath)
 			#ifdef __USE_GTK__
@@ -887,14 +1243,14 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim Buff As ZString * 2048 ' for V1.07 Line Input not working fine
 		Dim As WString Ptr ErrLinePtr
 		#ifdef __USE_GTK__
-			WAdd(PipeCommand, " 2> """ + *LogFileName2 + """") 
+			WAdd(PipeCommand, " 2> """ + *LogFileName2 + """")
 		#else
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		#endif
 		'If Parameter <> "Check" Then
-			ThreadsEnter()
-			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
-			ThreadsLeave()
+		ThreadsEnter()
+		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+		ThreadsLeave()
 		'End If
 		Dim As Dictionary CompileCommands
 		If UseWasm Then
@@ -975,15 +1331,15 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							ErrLinePtr = FromUtf8(Buff)
 							If ErrLinePtr <> 0 Then
 								bFlagErr = SplitError(*ErrLinePtr, ErrFileName, ErrTitle, iLine)
-							If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
-								If bFlagErr = 2 Then
-									NumberErr += 1
-								ElseIf bFlagErr = 1 Then
-									NumberWarning += 1
-								Else
-									NumberInfo += 1
+								If iLine > 0 OrElse InStr(LCase(*ErrTitle), "runtime error") > 0 Then
+									If bFlagErr = 2 Then
+										NumberErr += 1
+									ElseIf bFlagErr = 1 Then
+										NumberWarning += 1
+									Else
+										NumberInfo += 1
+									End If
 								End If
-							End If
 							End If
 							If 	bFlagErr >= 0 Then
 								ThreadsEnter()
@@ -1488,7 +1844,7 @@ Function GetTreeNodeChild(tn As TreeNode Ptr, ByRef FileName As WString) As Tree
 	If tn->Tag AndAlso *Cast(ExplorerElement Ptr, tn->Tag) Is ProjectElement AndAlso Cast(ProjectElement Ptr, tn->Tag)->ProjectFolderType = ProjectFolderTypes.ShowWithFolders Then
 		If EndsWith(LCase(FileName), ".bi") Then
 			Return tn->Nodes.Item(0)
-		ElseIf EndsWith(LCase(FileName), ".frm") Then
+		ElseIf (EndsWith(LCase(FileName), ".frm") OrElse EndsWith(LCase(FileName), ".rpt")) Then
 			Return tn->Nodes.Item(1)
 		ElseIf EndsWith(LCase(FileName), ".bas") OrElse EndsWith(LCase(FileName), ".inc") Then
 			Return tn->Nodes.Item(2)
@@ -1504,30 +1860,30 @@ End Function
 
 Sub ClearTreeNode(ByRef tn As TreeNode Ptr)
 	If tn = 0 Then Exit Sub
-    Dim As TabWindow Ptr tb
-    Dim As TreeNode Ptr childNode
-    Dim As ExplorerElement Ptr elemPtr
-    For i As Integer = tn->Nodes.Count - 1 To 0 Step -1
-        childNode = tn->Nodes.Item(i)
-        If childNode = 0 Then Continue For
-        ClearTreeNode(childNode)
-        For jj As Integer = 0 To TabPanels.Count - 1
-            Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
-            For j As Integer = 0 To ptabCode->TabCount - 1
-                tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
-                If tb->tn = childNode Then
-                    tb->tn = 0
-                    Exit For
-                End If
-            Next j
-        Next jj
-        If childNode->Tag <> 0 Then
-            elemPtr = Cast(ExplorerElement Ptr, childNode->Tag)
-            childNode->Tag = 0 
-            If elemPtr = 0 Then Continue For
-            _Delete(elemPtr)
-        End If
-    Next i
+	Dim As TabWindow Ptr tb
+	Dim As TreeNode Ptr childNode
+	Dim As ExplorerElement Ptr elemPtr
+	For i As Integer = tn->Nodes.Count - 1 To 0 Step -1
+		childNode = tn->Nodes.Item(i)
+		If childNode = 0 Then Continue For
+		ClearTreeNode(childNode)
+		For jj As Integer = 0 To TabPanels.Count - 1
+			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+			For j As Integer = 0 To ptabCode->TabCount - 1
+				tb = Cast(TabWindow Ptr, ptabCode->Tab(j))
+				If tb->tn = childNode Then
+					tb->tn = 0
+					Exit For
+				End If
+			Next j
+		Next jj
+		If childNode->Tag <> 0 Then
+			elemPtr = Cast(ExplorerElement Ptr, childNode->Tag)
+			childNode->Tag = 0
+			If elemPtr = 0 Then Continue For
+			_Delete(elemPtr)
+		End If
+	Next i
 	tn->Nodes.Clear
 End Sub
 
@@ -1544,6 +1900,8 @@ Function GetIconName(ByRef FileName As WString, ppe As ProjectElement Ptr = 0) A
 		Return sMain & "Session"
 	ElseIf EndsWith(LCase(FileName), ".vfp") Then
 		Return sMain & "Project"
+	ElseIf EndsWith(LCase(FileName), ".rpt") Then
+		Return sMain & "Report"
 	ElseIf EndsWith(LCase(FileName), ".frm") Then
 		Return sMain & "Form"
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
@@ -1831,7 +2189,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							If bNew AndAlso IconName <> "MainRes" Then AddTab *ee->TemplateFileName, bNew, tn2
 						End If
 					End If
-					If EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
+					If EndsWith(LCase(*ee->FileName), ".bas") OrElse (EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".rpt")) OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
 						pFiles->Add *ee->FileName, ppe
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
 						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
@@ -2348,9 +2706,13 @@ End Function
 Sub SetSaveDialogParameters(ByRef FileName As WString)
 	pSaveD->Caption = ML("Save File As")
 	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	Dim As WString * MAX_PATH Path = GetFilePath(*ProjectsPath)
+	If Not FolderExists(Path) Then
+		MkDir Path
+	End If
 	If InStr(FileName, "/") = 0 AndAlso InStr(FileName, "\") = 0 Then
 		If *LastOpenPath = "" Then
-			pSaveD->InitialDir = *ProjectsPath
+			pSaveD->InitialDir = Path
 		Else
 			pSaveD->InitialDir = *LastOpenPath
 		End If
@@ -2360,7 +2722,7 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	pSaveD->FileName = FileName
 	If FileName = ML("Untitled") Then
 		'pSaveD->FileName = FileName & ".bas"
-		pSaveD->InitialDir = GetFullPath(*ProjectsPath)
+		pSaveD->InitialDir = Path
 		pSaveD->FilterIndex = 1
 	ElseIf EndsWith(LCase(FileName), ".bas") Then
 		pSaveD->FilterIndex = 1
@@ -2368,7 +2730,7 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 		pSaveD->FilterIndex = 2
 	ElseIf EndsWith(LCase(FileName), ".inc") Then
 		pSaveD->FilterIndex = 3
-	ElseIf EndsWith(LCase(FileName), ".frm") Then
+	ElseIf (EndsWith(LCase(FileName), ".frm") OrElse EndsWith(LCase(FileName), ".rpt")) Then
 		pSaveD->FilterIndex = 4
 	ElseIf EndsWith(LCase(FileName), ".rc") Then
 		pSaveD->FilterIndex = 5
@@ -3057,8 +3419,13 @@ Sub ReloadHistoryCode()
 	If tb->txtCode.Modified Then
 		tb->Save
 	End If
+	Dim As WString * MAX_PATH Path = GetOSPath(GetSpecialPath("USERDOCUMENTS") + APP_TITLE + " Projects/Backups/")
+	?Path
+	If Not FolderExists(Path) Then
+		MkDir Path
+	End If
 	Dim As OpenFileDialog OpenD
-	OpenD.InitialDir = ExePath & Slash & "Temp"
+	OpenD.InitialDir = Path
 	OpenD.Filter = ML("Backup Files") & " (*.bak)|" & GetFileName(tb->FileName) & "*.bak|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute AndAlso Trim(OpenD.FileName) <> "" Then
 		tb->txtCode.Changing "Reload"
@@ -3108,7 +3475,7 @@ Sub SetAsMain(IsTab As Boolean)
 			If ee <> 0 AndAlso ppe <> 0 Then
 				'David Change
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
-				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".frm") _
+				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse (EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".rpt")) _
 					OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse CBool(LCase(GetFileName(*ee->FileName)) = "makefile") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
 					Dim As TreeNode Ptr tn1, tn2
 					Dim As Integer tIndex
@@ -3535,7 +3902,7 @@ Sub ChangeFolderType(Value As ProjectFolderTypes)
 						tn1 = tnI
 					ElseIf EndsWith(LCase(*ee->FileName), ".bas") Then
 						tn1 = tnS
-					ElseIf EndsWith(LCase(*ee->FileName), ".frm") Then
+					ElseIf (EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".rpt")) Then
 						tn1 = tnF
 					ElseIf EndsWith(LCase(*ee->FileName), ".rc") Then
 						tn1 = tnR
@@ -3949,7 +4316,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		Else
 			Pos1 = MAX(InStrRev(b1, Chr(34)),1)
 			Pos1 = InStr(Pos1, b1, "'")
-			If Pos1 > 0 Then 
+			If Pos1 > 0 Then
 				Comment = Trim(Mid(b1, Pos1 + 1))
 				b1 = Mid(b1, 1, Pos1)
 			End If
@@ -5009,9 +5376,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							If StartsWith(LCase(*res1(n)), "byref") OrElse StartsWith(LCase(*res1(n)), "byval") Then
 								ct += Len(*res1(n)) - Len(Trim(Mid(*res1(n), 6)))
 								*res1(n) = Trim(Mid(*res1(n), 6))
-							'Else
-							'	Pos1 = InStrRev(*res1(n), " ") 'David Change,  a As WString*2
-							'	*res1(n) = Trim(Mid(*res1(n), Pos1 + 1))
+								'Else
+								'	Pos1 = InStrRev(*res1(n), " ") 'David Change,  a As WString*2
+								'	*res1(n) = Trim(Mid(*res1(n), Pos1 + 1))
 							End If
 							Pos1 = InStr(*res1(n), "(")
 							If Pos1 > 0 Then
@@ -6063,7 +6430,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							 If te = 0 OrElse (te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class) Then Continue For
+							If te = 0 OrElse (te->ElementType <> E_Type AndAlso te->ElementType <> E_TypeCopy AndAlso te->ElementType <> E_Union AndAlso te->ElementType <> E_Class) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""type"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6081,10 +6448,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						 If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							 If te = 0 OrElse te->ElementType <> E_Enum Then Continue For
+							If te = 0 OrElse te->ElementType <> E_Enum Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""enum"">"
 							Print #Fn, "<td><a href=""" & te->Name & """>" & te->Name & "</a></td>"
@@ -6102,10 +6469,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 					Print #Fn, "<tbody>"
 					For ii As Integer = 0 To Globals.Namespaces.Count - 1
 						tbi1 = Cast(TypeElement Ptr, Globals.Namespaces.Object(ii))
-						 If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
+						If tbi1 = 0 OrElse tbi1->Name <> tbi->Name Then Continue For
 						For j As Integer = 0 To tbi1->Elements.Count - 1
 							te = tbi1->Elements.Object(j)
-							 If te = 0 OrElse (te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro) Then Continue For
+							If te = 0 OrElse (te->ElementType <> E_Define AndAlso te->ElementType <> E_Macro) Then Continue For
 							If te->CtlLibrary <> MFFCtlLibrary Then Continue For
 							Print #Fn, "<tr class=""define"">"
 							Print #Fn, "<td><a href=""" & te->FullName & """>" & te->Name & "</a></td>"
@@ -6438,8 +6805,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			End If
 			'SaveToFile(wikiFolder & Comps.Item(i) & ".md", *FileContentPtr, FileEncoding, NewLineType)
 			'If tbi->ControlType <> 0 Then
-				'Debug.Print Comps.Item(i)
-				AIContext.Add(Comps.Item(i), *FileContentPtr)
+			'Debug.Print Comps.Item(i)
+			AIContext.Add(Comps.Item(i), *FileContentPtr)
 			'End If
 			_Deallocate(FileContentPtr ): FileContentPtr = 0
 		Next i
@@ -6470,7 +6837,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		WLet(FileContentPtr1, "## Globals Procedures")
 		WAdd(FileContentPtr1, Chr(13, 10) & "|Name|Type|Description|Syntax|")
 		WAdd(FileContentPtr1, Chr(13, 10) & "| :---- | :---- | :---- | :---- |")
-For i = 0 To Globals.Functions.Count - 1
+		For i = 0 To Globals.Functions.Count - 1
 			tbi = Cast(TypeElement Ptr, Globals.Functions.Object(i))
 			If tbi = 0 OrElse tbi->CtlLibrary <> MFFCtlLibrary Then Continue For
 			If tbi->ElementType <> ElementTypes.E_Define AndAlso tbi->ElementType <> ElementTypes.E_Macro AndAlso tbi->ElementType <> ElementTypes.E_Function AndAlso tbi->ElementType <> ElementTypes.E_Sub Then Continue For
@@ -6503,7 +6870,7 @@ For i = 0 To Globals.Functions.Count - 1
 		'Deallocate FileContentPtr1 : FileContentPtr1 = 0
 	#endif
 	
-
+	
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
@@ -6925,12 +7292,12 @@ Sub LoadSettings
 	CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt = iniSettings.ReadBool("Options", "CreateEventHandlersWithoutStaticEventHandlerIfEventAllowsIt", True)
 	CreateFormTypesWithoutTypeWord = iniSettings.ReadBool("Options", "CreateFormTypesWithoutTypeWord", False)
 	OpenCommandPromptInMainFileFolder = iniSettings.ReadBool("Options", "OpenCommandPromptInMainFileFolder", True)
-	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "./Projects"))
+	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "%USERDOCUMENTS%/Visual FB Editor Projects"))
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
 	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
-	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "./Projects"))
+	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects"))
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
@@ -6978,7 +7345,7 @@ Sub LoadSettings
 	IntellisenseLimit = iniSettings.ReadInteger("Options", "IntellisenseLimit", 100)
 	HistoryCodeDays = iniSettings.ReadInteger("Options", "HistoryCodeDays", 100)
 	HistoryCodeCleanDay = iniSettings.ReadInteger("Options", "HistoryCodeCleanDay", DateValue(Format(Now, "yyyy/mm/dd")))
-	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean(ExePath & "/Temp")
+	If HistoryCodeCleanDay <> DateValue(Format(Now, "yyyy/mm/dd")) Then HistoryCodeClean()
 	SyntaxHighlightingIdentifiers = iniSettings.ReadBool("Options", "SyntaxHighlightingIdentifiers", True)
 	ChangeIdentifiersCase = iniSettings.ReadBool("Options", "ChangeIdentifiersCase", True)
 	ChangeKeyWordsCase = iniSettings.ReadBool("Options", "ChangeKeyWordsCase", True)
@@ -7035,7 +7402,7 @@ Sub LoadSettings
 	LoadInterfaceTheme
 	LoadTheme
 	#ifdef __USE_WINAPI__
-		'Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & " (Line " & __LINE__ & ") " & "Initial DWriteFactory failure! pDWriteFactory =" & pDWriteFactory & " pD2D1Factory" &  pD2D1Factory 
+		'Print Date & " " & Time & Chr(9) & __FUNCTION__ & Chr(9) & " (Line " & __LINE__ & ") " & "Initial DWriteFactory failure! pDWriteFactory =" & pDWriteFactory & " pD2D1Factory" &  pD2D1Factory
 		If pDWriteFactory <> 0  AndAlso pD2D1Factory <> 0  Then
 			UnloadD2D1
 			g_Direct2DEnabled = True
@@ -7046,8 +7413,20 @@ Sub LoadSettings
 End Sub
 
 Sub LoadLanguageTexts
-	If FileExists(SettingsPath) Then
-		iniSettings.Load SettingsPath
+	Dim As WString * MAX_PATH appDataDir = GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/")
+	Dim As WString * MAX_PATH appDataSettingsDir = GetOSPath(appDataDir & "Settings/")
+	Dim As WString * MAX_PATH appDataSettings = appDataSettingsDir & GetFileName(SettingsPath)
+	If Not FileExists(appDataSettings) Then
+		If Not FolderExists(appDataDir) Then
+			MkDir(appDataDir)
+		End If
+		If Not FolderExists(appDataSettingsDir) Then
+			MkDir(appDataSettingsDir)
+		End If
+		FileCopy(SettingsPath, appDataSettings)
+	End If
+	If FileExists(appDataSettings) Then
+		iniSettings.Load appDataSettings
 	End If
 	App.CurLanguagePath = ExePath & "/Settings/Languages/"
 	App.CurLanguage = iniSettings.ReadString("Options", "Language", "english")
@@ -7066,10 +7445,10 @@ Sub LoadLanguageTexts
 		Dim As Integer Fn = FreeFile_, Result
 		Dim As WString * 2048 Buff, tKey
 		Dim As WString * MAX_PATH Filename = ExePath & "/Settings/Languages/" & App.CurLanguage & ".lng"
-		Result = Open(FileName For Input Encoding "utf-8" As #Fn)
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-16" As #Fn)
-		If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-32" As #Fn)
-		If Result <> 0 Then Result = Open(FileName For Input As #Fn)
+		Result = Open(Filename For Input Encoding "utf-8" As #Fn)
+		If Result <> 0 Then Result = Open(Filename For Input Encoding "utf-16" As #Fn)
+		If Result <> 0 Then Result = Open(Filename For Input Encoding "utf-32" As #Fn)
+		If Result <> 0 Then Result = Open(Filename For Input As #Fn)
 		If Result = 0 Then
 			Do Until EOF(Fn)
 				Line Input #Fn, Buff
@@ -7157,9 +7536,25 @@ Sub LoadLanguageTexts
 End Sub
 
 Sub LoadHotKeys
+	Dim As WString * MAX_PATH appDataDir = GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/")
+	Dim As WString * MAX_PATH appDataSettingsDir = GetOSPath(appDataDir & "Settings/")
+	Dim As WString * MAX_PATH appDataSettingsOthersDir = GetOSPath(appDataDir & "Settings/Others/")
+	Dim As WString * MAX_PATH appDataSettingsHotKeys = appDataSettingsOthersDir & "HotKeys.txt"
+	If Not FileExists(appDataSettingsHotKeys) Then
+		If Not FolderExists(appDataDir) Then
+			MkDir(appDataDir)
+		End If
+		If Not FolderExists(appDataSettingsDir) Then
+			MkDir(appDataSettingsDir)
+		End If
+		If Not FolderExists(appDataSettingsOthersDir) Then
+			MkDir(appDataSettingsOthersDir)
+		End If
+		FileCopy(ExePath & "/Settings/Others/HotKeys.txt", appDataSettingsHotKeys)
+	End If
 	Dim As Integer Fn = FreeFile_, Pos1
 	Dim As String Buff
-	If Open(ExePath & "/Settings/Others/HotKeys.txt" For Input As #Fn) = 0 Then
+	If Open(appDataSettingsHotKeys For Input As #Fn) = 0 Then
 		While Not EOF(Fn)
 			Line Input #Fn, Buff
 			Pos1 = InStr(Buff, "=")
@@ -7205,7 +7600,7 @@ End Sub
 Dim As Double tWidth = Max(8, DefaultFont.Size) * 0.85
 stBar.Align = DockStyle.alBottom
 stBar.Add ML("Press F1 for get more information"), tWidth * 25
-stBar.Add("", tWidth * 50) 'Row +Col 
+stBar.Add("", tWidth * 50) 'Row +Col
 stBar.Add ML("IntelliSense fully loaded"), tWidth * 27
 stBar.Add "UTF-8 (BOM)", tWidth * 11
 stBar.Add "CR+LF", tWidth * 6
@@ -7274,6 +7669,7 @@ Sub CreateMenusAndToolBars
 	imgList.Add "CompleteWord", "CompleteWord"
 	imgList.Add "Console", "Console"
 	imgList.Add "Form", "Form"
+	imgList.Add "Report", "Report"
 	imgList.Add "MainForm", "MainForm"
 	imgList.Add "Format", "Format"
 	imgList.Add "Unformat", "Unformat"
@@ -7664,8 +8060,9 @@ Sub CreateMenusAndToolBars
 	Var miProject = mnuMain.Add(ML("&Project"), "", "Project")
 	miProject->Add(ML("Add &Form") & HK("AddForm", "Ctrl+Alt+N"), "Form", "AddForm", @mClick)
 	miProject->Add(ML("Add &Module") & HK("AddModule","Ctrl+Alt+M"), "Module", "AddModule", @mClick)
-	miProject->Add(ML("Add &Include File") & HK("AddIncludeFile",""), "File", "AddIncludeFile", @mClick)
+	miProject->Add(ML("Add &Include File") & HK("AddIncludeFile", ""), "File", "AddIncludeFile", @mClick)
 	miProject->Add(ML("Add &User Control") & HK("AddUserControl", "Ctrl+Alt+U"), "UserControl", "AddUserControl", @mClick)
+	miProject->Add(ML("Add &Report") & HK("AddReport"), "Report", "AddReport", @mClick)
 	miProject->Add(ML("Add &Resource File") & HK("AddResoureFile",""), "Resource", "AddResourceFile", @mClick)
 	miProject->Add(ML("Add Ma&nifest File") & HK("AddManifestFile",""), "File", "AddManifestFile", @mClick)
 	miProject->Add(ML("Add From Templates") & "..." & HK("AddFromTemplates"), "Add", "AddFromTemplates", @mClick)
@@ -7903,6 +8300,7 @@ Sub CreateMenusAndToolBars
 	mnuExplorer.Add("-")
 	Var miAdd = mnuExplorer.Add(ML("&Add"), "Add", "Add", @mClick)
 	miAdd->Add(ML("Add &Form"), "Form", "AddForm", @mClick)
+	miAdd->Add(ML("Add &Report"), "Report", "AddReport", @mClick)
 	miAdd->Add(ML("Add &Module"), "Module", "AddModule", @mClick)
 	miAdd->Add(ML("Add &Include File"), "File", "AddIncludeFile", @mClick)
 	miAdd->Add(ML("Add &User Control"), "UserControl", "AddUserControl", @mClick)
@@ -8926,7 +9324,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		Return
 	End If
 	Dim As ModelInfo Ptr Info = Cast(ModelInfo Ptr, pAIAgents->Item(Index)->Object)
-	If bInAIThread Then ThreadsEnter 
+	If bInAIThread Then ThreadsEnter
 	If Info Then
 		WLet(DefaultAIAgent, Info->Name)
 		WLet(CurrentAIAgent, Info->Name)
@@ -9184,8 +9582,8 @@ AIContext.Add("MyFbFramework (MFF) GUI Form Interface Guidelines", *AIPostDataPt
 AIContext.Add("VisualFBEditor (VFBE) IDE Environment", *AIPostDataPtr_2nd)
 
 AIPostDataInitStr  = _
-	"{""model"": """ & AIAgentModelName & """, " & _
-	"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
+"{""model"": """ & AIAgentModelName & """, " & _
+"""stream"": " & IIf(AIAgentStream, "true", "false") & ", " & _
 """messages"": [" & "{""role"": ""system"", ""content"": """ & "Begin to send file in chunks." & """}"
 ' 定义各AI平台的最大分块大小常量
 Const OPENAI_MAX_CHUNK = 4096       ' OpenAI标准模型
@@ -9296,7 +9694,7 @@ End Sub
 
 Sub HTTPAIAgent_Complete(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Responce As HTTPResponce)
 	If Responce.StatusCode > 400 Then
-		ShowMessages(Responce.StatusCode & "  " & Responce.Body) 
+		ShowMessages(Responce.StatusCode & "  " & Responce.Body)
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		cboAIAgentModels.Enabled = True
@@ -9750,30 +10148,30 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 			End If
 			_Deallocate(ControlBIContentPtr ): ControlBIContentPtr = 0
 			Erase UserChunks
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
 		End If
-
-
+		
+		
 	Next
 	If AIMessages.Count > 0 Then
 		For j As Integer = 0 To AIMessages.Count - 1
@@ -9796,12 +10194,12 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 			End If
 		Next
 		Erase UserChunks
-
-
-
-
-
-
+		
+		
+		
+		
+		
+		
 	End If
 	If Len(txtAIRequest.Text) > MaxChunkSize Then
 		AISplitText(EscapeJsonForPrompt(txtAIRequest.Text), UserChunks(), ChunkThreshold, ChunkOverlap)
@@ -11087,14 +11485,16 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 	#else
 		bCtrl = GetKeyState(VK_CONTROL) And 8000
 	#endif
-	'
 	WLet(sLine, txtImmediate.Lines(iLine))
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
 		If Key = Keys.Key_Enter Then
-			'
+			Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE
+			If Not FolderExists(TempFolder) Then
+				MkDir TempFolder
+			End If
 			SaveAll
 			Dim As Integer Fn = FreeFile_
-			Open ExePath & "/Temp/FBTemp.bas" For Output Encoding "utf-8" As #Fn
+			Open TempFolder & "/FBTemp.bas" For Output Encoding "utf-8" As #Fn
 			'Print #Fn, "#Include Once " + Chr(34) + "mff/SysUtils.bas"+Chr(34)
 			For i As Integer =0 To iLine
 				If StartsWith(Trim(LCase(txtImmediate.Lines(i))),"import ") Then Print #Fn, Mid(Trim(txtImmediate.Lines(i)),7)
@@ -11113,7 +11513,7 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 			Else
 				WLet(FbcExe, GetFullPath(*Compiler32Path))
 			End If
-			PipeCmd "", """" & *FbcExe & """ -b """ & ExePath & "/Temp/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & ExePath & "/Temp/Compile1.log"" 2> """ & ExePath & "/Temp/Compile2.log"""
+			PipeCmd "", """" & *FbcExe & """ -b """ & TempFolder & "/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & TempFolder & "/Compile1.log"" 2> """ & TempFolder & "/Compile2.log"""
 			Dim As WString Ptr LogText
 			Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 			Dim As WString Ptr ErrFileName, ErrTitle
@@ -11121,10 +11521,10 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 			WLet(LogText, "")
 			Fn = FreeFile_
 			Dim Result As Integer=-1 '
-			Result = Open(ExePath & "/Temp/Compile1.log" For Input As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-16" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-32" As #Fn)
-			If Result <> 0 Then Result =  Open(ExePath & "/Temp/Compile1.log" For Input Encoding "utf-8" As #Fn)
+			Result = Open(TempFolder & "/Compile1.log" For Input As #Fn)
+			If Result <> 0 Then Result = Open(TempFolder & "/Compile1.log" For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(TempFolder & "/Compile1.log" For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result =  Open(TempFolder & "/Compile1.log" For Input Encoding "utf-8" As #Fn)
 			If Result = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
@@ -11132,15 +11532,15 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 					WAdd(LogText, *ErrTitle & !"\r")
 				Wend
 			Else
-				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/Compile1.log"
+				MsgBox ML("Open file failure!") & Chr(13, 10) & "  " & TempFolder & "/Compile1.log"
 			End If
 			CloseFile_(Fn)
 			Fn = FreeFile_
 			Result =-1
-			Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-8" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-16" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input Encoding "utf-32" As #Fn)
-			If Result <> 0 Then Result = Open(ExePath & "/Temp/Compile2.log" For Input As #Fn)
+			Result = Open(TempFolder & "/Compile2.log" For Input Encoding "utf-8" As #Fn)
+			If Result <> 0 Then Result = Open(TempFolder & "/Compile2.log" For Input Encoding "utf-16" As #Fn)
+			If Result <> 0 Then Result = Open(TempFolder & "/Compile2.log" For Input Encoding "utf-32" As #Fn)
+			If Result <> 0 Then Result = Open(TempFolder & "/Compile2.log" For Input As #Fn)
 			If Result = 0 Then
 				While Not EOF(Fn)
 					Line Input #Fn, Buff
@@ -11148,7 +11548,7 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 					WAdd(LogText, Trim(Buff) & !"\r")
 				Wend
 			Else
-				MsgBox ML("Open file failure!") & Chr(13,10) & "  " & ExePath & "/Temp/debug_compil2.log"
+				MsgBox ML("Open file failure!") & Chr(13, 10) & "  " & TempFolder & "/debug_compil2.log"
 			End If
 			CloseFile_(Fn)
 			Key = 0
@@ -11156,13 +11556,13 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 				MsgBox !"Compile error:\r\r" & *LogText, , mtWarning
 			Else
 				#ifdef __USE_GTK__
-					WLet(ExeName, ExePath & "/Temp/FBTemp")
+					WLet(ExeName, TempFolder & "/FBTemp")
 				#else
-					WLet(ExeName, ExePath & "\Temp\FBTemp.exe") ' > output.txt
+					WLet(ExeName, TempFolder & "\FBTemp.exe") ' > output.txt
 				#endif
-				PipeCmd "",  *ExeName
+				PipeCmd "", """" & *ExeName & """"
 				Fn = FreeFile_
-				If Open Pipe(*ExeName For Input Encoding "utf-8" As #Fn) = 0 Then '
+				If Open Pipe("""" & *ExeName & """" For Input Encoding "utf-8" As #Fn) = 0 Then '
 					Dim As Integer i
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
@@ -11197,7 +11597,7 @@ txtImmediate.OnKeyDown = @txtImmediate_KeyDown
 '
 'txtImmediate.BackColor = NormalText.Background
 'txtImmediate.Font.Color = NormalText.Foreground
-txtImmediate.Text = "import #Include Once " + Chr(34) + ".." + Slash + "Controls" + Slash + "MyFbFramework"+ Slash + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13,10) & Chr(13,10)
+txtImmediate.Text = "import #Include Once " + Chr(34) + "mff" + Slash + "SysUtils.bas" + Chr(34) & Chr(13, 10) & Chr(13, 10)
 txtImmediate.SetSel txtImmediate.GetTextLength, txtImmediate.GetTextLength
 
 Sub txtChangeLog_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
@@ -11771,7 +12171,7 @@ End Sub
 Sub frmMain_Resize(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifndef __USE_GTK__
 		stBar.Panels[0]->Width = Max(stBar.Width - 50 - stBar.Panels[1]->Width - stBar.Panels[2]->Width - stBar.Panels[3]->Width  - stBar.Panels[4]->Width - stBar.Panels[5]->Width, 20)
-		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width 
+		prProgress.Left = stBar.Panels[0]->Width + stBar.Panels[1]->Width
 		frmMain.RequestAlign
 	#endif
 End Sub
@@ -12404,7 +12804,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	End If
 	If Not CloseSession Then Action = 0: Return
 	FormClosing = True
-	If AIMessages.Count > 0 Then 
+	If AIMessages.Count > 0 Then
 		Dim As WString * MAX_PATH FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
 		If Not MRUAIChat.Contains(FileName) Then
 			MRUAIChat.Add FileName

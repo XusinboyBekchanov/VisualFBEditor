@@ -2181,7 +2181,7 @@ pfOptions = @fOptions
 		lblProjectsPath.Parent = @vbxGeneral
 		' txtProjectsPath
 		txtProjectsPath.Name = "txtProjectsPath"
-		txtProjectsPath.Text = "./Projects"
+		txtProjectsPath.Text = "%USERDOCUMENTS%/Visual FB Editor Projects"
 		txtProjectsPath.Align = DockStyle.alClient
 		txtProjectsPath.ExtraMargins.Bottom = 0
 		txtProjectsPath.ExtraMargins.Right = 0
@@ -2392,7 +2392,7 @@ pfOptions = @fOptions
 		' txtInFolder
 		With txtInFolder
 			.Name = "txtInFolder"
-			.Text = "./Projects"
+			.Text = "%USERDOCUMENTS%/Visual FB Editor Projects"
 			.TabIndex = 185
 			.SetBounds 140, 58, 240, 20
 			.Parent = @grbCommandPromptOptions
@@ -4212,7 +4212,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		IntellisenseLimit = Val(.txtIntellisenseLimit.Text)
 		If Val(.txtHistoryCodeDays.Text) < HistoryCodeDays Then
 			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
-			HistoryCodeClean(ExePath & "/Temp")
+			HistoryCodeClean()
 		Else
 			HistoryCodeDays = Val(.txtHistoryCodeDays.Text)
 		End If
@@ -4301,7 +4301,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			Dim As Integer Pos1, Fn = FreeFile_
 			Dim As MenuItem Ptr Item
 			Dim As String Key
-			Open ExePath & "/Settings/Others/HotKeys.txt" For Output As #Fn
+			Open GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/Settings/Others/HotKeys.txt") For Output As #Fn
 			For i As Integer = 0 To .lvShortcuts.ListItems.Count - 1
 				If .HotKeysPriv.Item(i) = "" Then Continue For
 				Item = .lvShortcuts.ListItems.Item(i)->Tag
@@ -6007,10 +6007,11 @@ Sub FindCompilersSub(Param As Any Ptr)
 	ThreadsLeave
 End Sub
 
-Sub HistoryCodeClean(ByRef Path As WString)
+Sub HistoryCodeClean()
 	Dim As WString * 1024 f, f1
 	Dim As Double d2
 	Dim As UInteger Attr, NameCount
+	Dim As WString * MAX_PATH Path = GetSpecialPath("USERDOCUMENTS") + "/" + APP_TITLE + " Projects/Backups"
 	If Trim(Path) = "" Then Exit Sub
 	If FormClosing OrElse bStop Then Exit Sub
 	If EndsWith(Path, "\Windows") Then Exit Sub
