@@ -11911,7 +11911,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 								If Not FolderExists(TempFolder) Then
 									MkDir TempFolder
 								End If
-								FFileName = TempFolder & "Untitled.bas")
+								FFileName = TempFolder & "Untitled.bas"
 								'If GetFolderName(tb->FileName) = "" Then
 								'	FFileName = GetOSPath(ExePath & "/Temp/Untitled.bas")
 								'Else
