@@ -10740,13 +10740,13 @@ Sub pnlForm_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 				End If
 			End If
 		End Select
+		'Keep the rulers' numbers in sync with the actual scrollbar position, regardless of which
+		'of the cases above changed it (resize, wheel, or the scrollbar itself) - GetScrollPos is
+		'cheap and always reflects the current position, so this is simpler and less error-prone
+		'than threading a running offset through every branch above.
+		tb->rulH.ZeroOffset = 20 - GetScrollPos(msg.hWnd, SB_HORZ)
+		tb->rulV.ZeroOffset = -GetScrollPos(msg.hWnd, SB_VERT)
 	#endif
-	'Keep the rulers' numbers in sync with the actual scrollbar position, regardless of which
-	'of the cases above changed it (resize, wheel, or the scrollbar itself) - GetScrollPos is
-	'cheap and always reflects the current position, so this is simpler and less error-prone
-	'than threading a running offset through every branch above.
-	tb->rulH.ZeroOffset = 20 - GetScrollPos(msg.hWnd, SB_HORZ)
-	tb->rulV.ZeroOffset = -GetScrollPos(msg.hWnd, SB_VERT)
 End Sub
 
 Private Sub OnSplitHorizontallyChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As EditControl, Splitted As Boolean)
@@ -11907,7 +11907,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 								tb->Save
 							Else
 								Dim As UString FFileName
-								Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE
+								Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE & "/"
 								If Not FolderExists(TempFolder) Then
 									MkDir TempFolder
 								End If
