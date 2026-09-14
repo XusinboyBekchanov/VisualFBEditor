@@ -73,7 +73,10 @@ End Function
 		Dim snewkey As String = ToUtf8(newkey)
 		If This.Exec("SET PASSWORD FOR 'root'@'localhost' = PASSWORD('" & newkey & "');") = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return False
 		End If
 	End Function
@@ -87,7 +90,10 @@ End Function
 		Dim res As MYSQL_RES Ptr = mysql_store_result(m_DB)
 		If res = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		
@@ -104,7 +110,10 @@ End Function
 			row = mysql_fetch_row(res)
 			If row = NULL Then
 				ErrStr = *mysql_error(m_DB)
-				ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+				Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+				ErrStr = *pErrStr
+				WDeallocate(pErrStr)
+				This.Event_Send(12, ErrStr)
 				Exit For
 			End If
 			For j As Integer = 0 To nColumns - 1
@@ -125,7 +134,10 @@ End Function
 		
 		If res = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		
@@ -141,7 +153,10 @@ End Function
 		row = mysql_fetch_row(res)
 		If row = NULL Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		For j As Integer = 0 To nColumns - 1
@@ -199,7 +214,10 @@ End Function
 		
 		If res = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		
@@ -268,7 +286,10 @@ End Function
 		
 		If res = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return 0
 		End If
 		
@@ -419,7 +440,10 @@ End Function
 		Dim r As Long = mysql_query(m_DB, StrPtr(Sql_Utf8))
 		If r <> 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return -1
 		End If
 		ErrStr = ""
@@ -463,7 +487,10 @@ End Function
 		Dim ppStmt As MYSQL_STMT Ptr = mysql_stmt_init(FMYSQL)
 		If ppStmt = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12,ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return -1
 		End If
 		Dim rr     As Long = mysql_stmt_prepare(ppStmt, StrPtr(Sql_Utf8), -1)
@@ -472,17 +499,26 @@ End Function
 		b[0].buffer_type = MYSQL_TYPE_BLOB
 		If mysql_stmt_bind_param(ppStmt, b) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		If mysql_stmt_send_long_data(ppStmt, 0, nByte, nLen) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		If mysql_stmt_execute(ppStmt) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		ErrStr = ""
@@ -503,7 +539,10 @@ End Function
 		Dim ppStmt As MYSQL_STMT Ptr = mysql_stmt_init(FMYSQL)
 		If ppStmt = 0 Then
 			ErrStr = *mysql_error(m_DB)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Return -1
 		End If
 		Dim rr     As Long = mysql_stmt_prepare(ppStmt, StrPtr(Sql_Utf8), -1)
@@ -514,17 +553,26 @@ End Function
 	 	b[0].is_null = 0
 		If mysql_stmt_bind_param(ppStmt, b) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		If mysql_stmt_send_long_data(ppStmt, 0, StrPtr(Text_Utf8), length) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		If mysql_stmt_execute(ppStmt) Then
 			ErrStr = *mysql_stmt_error(ppStmt)
-			ErrStr = FromUtf8(Str(ErrStr)) : This.Event_Send(12, ErrStr)
+			Dim As WString Ptr pErrStr = FromUtf8(Str(ErrStr))
+			ErrStr = *pErrStr
+			WDeallocate(pErrStr)
+			This.Event_Send(12, ErrStr)
 			Function = -1
 		End If
 		ErrStr = ""
@@ -585,7 +633,9 @@ End Function
 		Sql_Utf8 = ToUtf8("SELECT [Value] FROM [") & ToUtf8(lSection) & ToUtf8("] WHERE [Key]='") & tlKeyName & "' LIMIT 1"
 		EventsEn = 1
 		If This.SQLFindOne(Sql_Utf8,rs_Utf8()) > 0 Then
-			ot = FromUtf8(rs_Utf8(0))
+			Dim As WString Ptr pOt = FromUtf8(rs_Utf8(0))
+			ot = *pOt
+			WDeallocate(pOt)
 		End If
 		EventsEn = 0
 		If Len(ot) Then

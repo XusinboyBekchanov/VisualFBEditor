@@ -368,6 +368,7 @@ Sub ToolGroupsToCursor()
 	tbToolBox.Groups.Item(1)->Buttons.Item(0)->Checked = True
 	tbToolBox.Groups.Item(2)->Buttons.Item(0)->Checked = True
 	tbToolBox.Groups.Item(3)->Buttons.Item(0)->Checked = True
+	tbToolBox.Groups.Item(4)->Buttons.Item(0)->Checked = True
 End Sub
 
 Sub ClearMessages()
@@ -4055,6 +4056,7 @@ Function GetTypeControl(ControlType As String) As Integer
 		Case "containercontrol": Return 2
 		Case "component", "my.sys.componentmodel.component": Return 3
 		Case "dialog": Return 4
+		Case "reportcontrol": Return 5
 		Case "": Return 0
 		Case Else
 			If ControlType = tbi->TypeName Then Return 0 Else Return GetTypeControl(tbi->TypeName)
@@ -6059,7 +6061,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To Comps.Count - 1
 		tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If tbi=0 Then Continue For
-		If LCase(Comps.Item(i)) = "control" Or LCase(Comps.Item(i)) = "containercontrol" Or LCase(Comps.Item(i)) = "menu" Or LCase(Comps.Item(i)) = "component" Or LCase(Comps.Item(i)) = "dialog" Then Continue For
+		If LCase(Comps.Item(i)) = "control" OrElse LCase(Comps.Item(i)) = "containercontrol" OrElse LCase(Comps.Item(i)) = "menu" OrElse LCase(Comps.Item(i)) = "component" OrElse LCase(Comps.Item(i)) = "dialog" OrElse LCase(Comps.Item(i)) = "reportcontrol" Then Continue For
 		If tbi->ElementType = E_TypeCopy Then Continue For
 		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
@@ -6079,7 +6081,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	#if 0
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName
-		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
+		Dim As String ControlTypArr(0 To 5) = {"type", "Control", "Container Control", "Component", "Dialog", "Report Control"}
 		Dim As Integer Posi
 		Dim As Dictionary ControlParentDict
 		If Dir(ExePath & "/Controls/MyFbFramework/ControlParent.csv") <> "" Then
@@ -6681,7 +6683,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			End If
 			CloseFile_(Fn1)
 			For kk As Integer = 0 To UBound(Lines)
-				if Lines(kk) Then _Deallocate(*Lines(kk))
+				If Lines(kk) Then _Deallocate(*Lines(kk))
 			Next
 			Erase Lines
 		Next i
@@ -6716,7 +6718,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		'The Grid control is similar in functionality to the DataGridView in VB.Net but uses the syntax and conventions defined by the MyFbFramework.
 		If Dir(wikiFolder) = "" Then MkDir wikiFolder
 		Dim As String ControlParent, TmpControlName, TmpControlChildName, TmpControlSubName, StringToC, tmpDefinition
-		Dim As String ControlTypArr(0 To 4) = {"type", "Control", "Container Control", "component", "Dialog"}
+		Dim As String ControlTypArr(0 To 5) = {"Type", "Control", "Container Control", "Component", "Dialog", "Report Control"}
 		Dim As Integer Posi
 		Dim As Boolean bNotEmpty
 		Dim As Dictionary ControlParentDict
@@ -12426,10 +12428,12 @@ tbToolBox.Groups.Add ML("Controls")
 tbToolBox.Groups.Add ML("Containers")
 tbToolBox.Groups.Add ML("Components")
 tbToolBox.Groups.Add ML("Dialogs")
+tbToolBox.Groups.Add ML("Report Controls")
 tbToolBox.Groups.Item(0)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 tbToolBox.Groups.Item(1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 tbToolBox.Groups.Item(2)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 tbToolBox.Groups.Item(3)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
+tbToolBox.Groups.Item(4)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind

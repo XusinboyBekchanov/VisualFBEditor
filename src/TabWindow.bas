@@ -10139,6 +10139,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 											ArgName=tCtrlName & "(" & Str(i) & ")"
 											Ctrl = Des->CreateControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
 											If Ctrl = 0 Then
+												Ctrl = Des->CreateReportControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
+											End If
+											If Ctrl = 0 Then
 												Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
 											End If
 											If Ctrl = 0 Then
@@ -10148,6 +10151,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										Next
 									Else
 										Ctrl = Des->CreateControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
+										If Ctrl = 0 Then
+											Ctrl = Des->CreateReportControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
+										End If
 										If Ctrl = 0 Then
 											Ctrl = Des->CreateComponent(TypeName, ArgName, 0, 0, 0)
 										End If
@@ -10165,6 +10171,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									For i As Integer =0 To CtrlArrayNum
 										Ctrl = Des->CreateControl(TypeName, tCtrlName & "(" & Str(i) & ")", tCtrlName & "(" & Str(i) & ")", 0, 0, 0, 0, 0)
 										If Ctrl = 0 Then
+											Ctrl = Des->CreateReportControl(TypeName, tCtrlName & "(" & Str(i) & ")", tCtrlName & "(" & Str(i) & ")", 0, 0, 0, 0, 0)
+										End If
+										If Ctrl = 0 Then
 											Ctrl = Des->CreateComponent(TypeName, tCtrlName & "(" & Str(i) & ")", 0, 0, 0)
 										End If
 										If Ctrl = 0 Then
@@ -10174,6 +10183,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									Next
 								Else
 									Ctrl = Des->CreateControl(TypeName, sText, sText, 0, 0, 0, 0, 0)
+									If Ctrl = 0 Then
+										Ctrl = Des->CreateReportControl(TypeName, sText, sText, 0, 0, 0, 0, 0)
+									End If
 									If Ctrl = 0 Then
 										Ctrl = Des->CreateComponent(TypeName, sText, 0, 0, 0)
 									End If

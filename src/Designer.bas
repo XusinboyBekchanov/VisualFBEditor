@@ -938,8 +938,9 @@ Namespace My.Sys.Forms
 						Case 6: FLeftNew(j) = FLeft(j) + (FNewX - FBeginX): FWidthNew(j) = FWidth(j) - (FNewX - FBeginX): FHeightNew(j) = FHeight(j) + (FNewY - FBeginY)
 						Case 7: FLeftNew(j) = FLeft(j) - (FBeginX - FNewX): FWidthNew(j) = FWidth(j) + (FBeginX - FNewX)
 						End Select
+						SetControlBounds(SelectedControls.Items[j], FLeftNew(j), FTopNew(j), FWidthNew(j), FHeightNew(j))
 						'ComponentSetBoundsSub(Q_ComponentFunc(SelectedControl), FLeftNew, FTopNew, FWidthNew, FHeightNew)
-						MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeftNew(j)), ScaleY(FTopNew(j)), ScaleX(FWidthNew(j)), ScaleY(FHeightNew(j)), True)
+						'MoveWindow(GetControlHandle(SelectedControls.Items[j]), ScaleX(FLeftNew(j)), ScaleY(FTopNew(j)), ScaleX(FWidthNew(j)), ScaleY(FHeightNew(j)), True)
 					#endif
 				Next
 				#ifndef __USE_GTK__
@@ -1147,7 +1148,30 @@ Namespace My.Sys.Forms
 						'LockWindowUpdate(0)
 					#endif
 				Else
-					CreateControl(SelectedClass, FName, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
+					If SelectedType = 5 Then
+						Dim As Any Ptr RealParent = ctr
+						Dim As SymbolsType Ptr st = Symbols(SelectedClass)
+						If st AndAlso st->ReadPropertyFunc AndAlso st->ReportBandByIndexFunc AndAlso _
+							WGet(st->ReadPropertyFunc(ctr, "ClassName")) = "Report" Then
+							Dim As Integer BandCount = QInteger(st->ReadPropertyFunc(ctr, "BandCount"))
+							Dim As Integer BandTop   = 0
+							Dim As Any Ptr FoundBand = 0
+							For bi As Integer = 0 To BandCount - 1
+								Dim As Any Ptr Band       = st->ReportBandByIndexFunc(ctr, bi)
+								Dim As Integer BandHeight = QInteger(st->ReadPropertyFunc(Band, "Height"))
+								If Y >= BandTop AndAlso Y < BandTop + BandHeight Then
+									FoundBand = Band
+									Exit For
+								End If
+								BandTop += BandHeight
+							Next bi
+							If FoundBand = 0 AndAlso BandCount > 0 Then FoundBand = st->ReportBandByIndexFunc(ctr, BandCount - 1)
+							If FoundBand Then RealParent = FoundBand
+						End If
+						CreateReportControl(SelectedClass, FName, FName, RealParent, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
+					Else
+						CreateControl(SelectedClass, FName, FName, ctr, FBeginX - UnScaleX(R.Left), FBeginY - UnScaleY(R.Top), FNewX - FBeginX, FNewY - FBeginY)
+					End If
 					If FSelControl Then
 						SelectedControls.Clear
 						#ifdef __USE_GTK__
@@ -1613,22 +1637,22 @@ Namespace My.Sys.Forms
 				IIf(cy, cy, 50), _
 				AParent)
 				'End If
-				If Ctrl = 0 AndAlso st->CreateReportControlFunc <> 0 Then
-					Ctrl = st->CreateReportControlFunc(AClassName, _
-					AName, _
-					AText, _
-					x, _
-					y, _
-					IIf(cx, cx, 50), _
-					IIf(cy, cy, 50), _
-					AParent)
-				End If
 				If Ctrl Then
 					Objects.Add Ctrl
 					CtrlSymbols.Add Ctrl, st
 					Components.Add Ctrl
 					Controls.Add Ctrl
 					SelectedControl = Ctrl
+					If st->WritePropertyFunc Then
+						Dim As Boolean bTrue = True
+						st->WritePropertyFunc(Ctrl, "DesignMode", @bTrue)
+						st->WritePropertyFunc(Ctrl, "ControlDesigner", @This)
+						#ifdef __USE_GTK__
+							
+						#else
+							
+						#endif
+					End If
 					If st->ReadPropertyFunc Then
 						#ifdef __USE_GTK__
 							'g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookChildProc), Ctrl)
@@ -1639,16 +1663,6 @@ Namespace My.Sys.Forms
 							Dim As HWND Ptr hHandle = st->ReadPropertyFunc(Ctrl, "Handle")
 							If AParent <> 0 Then ParentHandle = *Cast(HWND Ptr, st->ReadPropertyFunc(AParent, "Handle"))
 							If hHandle <> 0 Then FSelControl = *hHandle
-						#endif
-					End If
-					If st->WritePropertyFunc Then
-						Dim As Boolean bTrue = True
-						st->WritePropertyFunc(Ctrl, "DesignMode", @bTrue)
-						st->WritePropertyFunc(Ctrl, "ControlDesigner", @This)
-						#ifdef __USE_GTK__
-							
-						#else
-							
 						#endif
 					End If
 				Else
@@ -1686,6 +1700,107 @@ Namespace My.Sys.Forms
 						RedrawWindow FSelControl, 0, 0, RDW_INVALIDATE
 						UpdateWindow FSelControl
 					End Select
+				End If
+			End If
+		#endif
+		'DyLibFree(MFF)
+		Return Ctrl
+		Exit Function
+		ErrorHandler:
+		MsgBox ErrDescription(Err) & " (" & Err & ") " & _
+		"in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
+		"in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
+		"in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+	End Function
+	
+	Function Designer.CreateReportControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
+		On Error Goto ErrorHandler
+		Dim As SymbolsType Ptr st = Symbols(AClassName)
+		Ctrl = 0
+		FSelControl = 0
+		#ifdef __USE_GTK__
+			Dim As GtkWidget Ptr EventBox
+		#else
+			Dim As HWND ParentHandle
+		#endif
+		If st Then
+			If st->CreateReportControlFunc <> 0 Then
+				ChDir GetFolderName(st->Path)
+				'If AClassName = "RichTextBox" Then
+				'	Ctrl = New RichTextBox
+				'	With *Cast(RichTextBox Ptr, Ctrl)
+				'		.Name = AName
+				'		.Text = AText
+				'		.Left = x
+				'		.Top = y
+				'		.Width = IIf(cx, cx, 50)
+				'		.Height = IIf(cy, cy, 50)
+				'		.Parent = AParent
+				'	End With
+				'Else
+				Ctrl = st->CreateReportControlFunc(AClassName, _
+				AName, _
+				AText, _
+				x, _
+				y, _
+				IIf(cx, cx, 50), _
+				IIf(cy, cy, 50), _
+				AParent)
+				'End If
+				If Ctrl Then
+					Objects.Add Ctrl
+					CtrlSymbols.Add Ctrl, st
+					Components.Add Ctrl
+					Controls.Add Ctrl
+					SelectedControl = Ctrl
+					If st->WritePropertyFunc Then
+						Dim As Boolean bTrue = True
+						st->WritePropertyFunc(Ctrl, "DesignMode", @bTrue)
+						st->WritePropertyFunc(Ctrl, "ControlDesigner", @This)
+						#ifdef __USE_GTK__
+							
+						#else
+							
+						#endif
+					End If
+					If st->ReadPropertyFunc Then
+						#ifdef __USE_GTK__
+							'g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookChildProc), Ctrl)
+							Dim As GtkWidget Ptr hHandle = st->ReadPropertyFunc(Ctrl, "Widget")
+							EventBox = st->ReadPropertyFunc(Ctrl, "EventBoxWidget")
+							If hHandle <> 0 Then FSelControl = hHandle
+						#else
+							Dim As HWND Ptr hHandle = st->ReadPropertyFunc(Ctrl, "Handle")
+							Dim As Any Ptr BandParent
+							If AParent <> 0 Then BandParent = st->ReadPropertyFunc(AParent, "Parent")
+							If BandParent <> 0 Then ParentHandle = *Cast(HWND Ptr, st->ReadPropertyFunc(BandParent, "Handle"))
+							If hHandle <> 0 Then FSelControl = *hHandle
+							?hHandle, FSelControl
+						#endif
+					End If
+				Else
+					
+				End If
+			End If
+		End If
+		SelectedClass = ""
+		#ifdef __USE_GTK__
+			If GTK_IS_WIDGET(FSelControl) Then
+				If Not bNotHook Then
+					If EventBox Then
+						HookControl(EventBox)
+					Else
+						HookControl(FSelControl)
+					End If
+					'AName = iif(AName="", AName = AClassName & ...)
+					'SetProp(Control, "Name", ...)
+					'possibly using in propertylist inspector
+				End If
+			End If
+		#else
+			If IsWindow(FSelControl) Then
+				If Not bNotHook Then
+					HookControl(FSelControl)
 				End If
 			End If
 		#endif
@@ -2117,6 +2232,10 @@ Namespace My.Sys.Forms
 		#ifndef __USE_GTK__
 			Dim As ..Rect R
 			Dim As PAINTSTRUCT Ps
+			Dim As Integer BackColor
+			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			If st AndAlso st->ReadPropertyFunc Then BackColor = QInteger(st->ReadPropertyFunc(DesignControl, "BackColor"))
+			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
 			FHDC = BeginPaint(FDialog, @Ps)
 			GetClientRect(FDialog, @R)
 			If FGridBrush Then
@@ -2133,7 +2252,9 @@ Namespace My.Sys.Forms
 			'for lines use MoveTo and LineTo or Rectangle function or whatever...
 			FGridBrush = CreatePatternBrush(mBMP)
 			FillRect(FHDC, @R, FGridBrush)
-			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			SelectObject(mDc, pBMP)
+			DeleteObject(mBMP)
+			DeleteDC(mDc)
 			If st AndAlso st->ReadPropertyFunc AndAlso st->ReportBandByIndexFunc Then
 				Dim As Integer BandCount  = QInteger(st->ReadPropertyFunc(DesignControl, "BandCount"))
 				Dim As Integer ActiveBand = 0 'QInteger(st->ReadPropertyFunc(DesignControl, "ActiveBand"))
@@ -2144,8 +2265,6 @@ Namespace My.Sys.Forms
 				Const ListWidth As Integer = 20
 				Const RowH      As Integer = 24
 				
-				Dim As HBRUSH BrushActiveArea = CreateSolidBrush(BGR(240, 244, 255))
-				Dim As HBRUSH BrushArea       = CreateSolidBrush(BGR(250, 250, 253))
 				Dim As HBRUSH BrushListBg     = CreateSolidBrush(BGR(232, 234, 240))
 				Dim As HBRUSH BrushActiveRow  = CreateSolidBrush(BGR(202, 214, 244))
 				Dim As HPEN   PenLine         = CreatePen(PS_SOLID, 0, BGR(188, 190, 202))
@@ -2171,7 +2290,7 @@ Namespace My.Sys.Forms
 					Dim As Integer h = QInteger(st->ReadPropertyFunc(Band, "Height"))
 					
 					PrevPen = SelectObject(FHDC, PenLine)
-					.MoveToEx FHDC, ScaleX(ListWidth), ScaleY(y + h) - 1, 0
+					.MoveToEx FHDC, 0, ScaleY(y + h) - 1, 0
 					.LineTo FHDC, R.Right, ScaleY(y + h) - 1
 					SelectObject(FHDC, PrevPen)
 					
@@ -2209,6 +2328,35 @@ Namespace My.Sys.Forms
 					Dim As Size TextSz
 					GetTextExtentPoint32(FHDC, Caption, Len(Caption), @TextSz)
 					
+					If TextSz.cx > BandHeightPx Then
+						Dim As String Initials
+						Dim As Integer p = 1
+						Do While p <= Len(Caption)
+							Do While p <= Len(Caption) AndAlso Mid(Caption, p, 1) = " "
+								p += 1
+							Loop
+							If p > Len(Caption) Then Exit Do
+							
+							Dim As Integer WStart = p
+							Do While p <= Len(Caption) AndAlso Mid(Caption, p, 1) <> " "
+								p += 1
+							Loop
+							Dim As Integer WEnds = p - 1
+							
+							'Shu so'z ichidan birinchi harfni topamiz (masalan "(Name)" ichidan "N"ni).
+							For k As Integer = WStart To WEnds
+								Dim As String c = Mid(Caption, k, 1)
+								If (c >= "A" AndAlso c <= "Z") OrElse (c >= "a" AndAlso c <= "z") Then
+									Initials &= UCase(c)
+									Exit For
+								End If
+							Next k
+						Loop
+						
+						If Len(Initials) > 0 Then Caption = Initials
+						GetTextExtentPoint32(FHDC, Caption, Len(Caption), @TextSz)
+					End If
+					
 					Dim As Integer TextStartY = BandBottomPx - (BandHeightPx - TextSz.cx) \ 2
 					
 					.TextOut(FHDC, ScaleX(2), TextStartY, Caption, Len(Caption))
@@ -2229,8 +2377,6 @@ Namespace My.Sys.Forms
 				SelectObject(FHDC, PrevPen)
 				
 				DeleteObject(FontVert)
-				DeleteObject(BrushActiveArea)
-				DeleteObject(BrushArea)
 				DeleteObject(BrushListBg)
 				DeleteObject(BrushActiveRow)
 				DeleteObject(PenLine)
