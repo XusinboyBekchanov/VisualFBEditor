@@ -1775,7 +1775,6 @@ Namespace My.Sys.Forms
 							If AParent <> 0 Then BandParent = st->ReadPropertyFunc(AParent, "Parent")
 							If BandParent <> 0 Then ParentHandle = *Cast(HWND Ptr, st->ReadPropertyFunc(BandParent, "Handle"))
 							If hHandle <> 0 Then FSelControl = *hHandle
-							?hHandle, FSelControl
 						#endif
 					End If
 				Else

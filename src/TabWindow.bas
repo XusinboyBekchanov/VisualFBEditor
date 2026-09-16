@@ -10918,7 +10918,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	pnlForm.Align = DockStyle.alRight
 	pnlCode.Align = DockStyle.alClient
 	pnlEdit.Align = DockStyle.alClient
-	pnlTopMenu.Parent = @pnlForm
+	pnlTopMenu.Parent = @pnlDesign
 	#ifndef __USE_GTK__
 		pnlTopMenu.Font.Name = "Tahoma"
 		pnlTopMenu.Font.Size = 8
