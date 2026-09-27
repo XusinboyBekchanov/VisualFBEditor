@@ -39,30 +39,35 @@
 		End With
 		' ReportHeader
 		With ReportHeader
+			.Name = "ReportHeader"
 			.BandType = ReportBandType.rbtReportHeader
 			.Height = 60
 			.Parent = @This
 		End With
 		' PageHeader
 		With PageHeader
+			.Name = "PageHeader"
 			.BandType = ReportBandType.rbtPageHeader
 			.Height = 60
 			.Parent = @This
 		End With
 		' Detail
 		With Detail
+			.Name = "Detail"
 			.BandType = ReportBandType.rbtDetail
 			.Height = 60
 			.Parent = @This
 		End With
 		' PageFooter
 		With PageFooter
+			.Name = "PageFooter"
 			.BandType = ReportBandType.rbtPageFooter
 			.Height = 60
 			.Parent = @This
 		End With
 		' ReportFooter
 		With ReportFooter
+			.Name = "ReportFooter"
 			.BandType = ReportBandType.rbtReportFooter
 			.Height = 60
 			.Parent = @This
