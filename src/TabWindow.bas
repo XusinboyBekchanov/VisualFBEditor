@@ -2405,7 +2405,7 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 				End If
 			End If
 		End If
-		If st->IsControlFunc <> 0 AndAlso CInt(st->IsControlFunc(Cpnt)) Then
+		If st->IsControlFunc <> 0 AndAlso CInt(st->IsControlFunc(Cpnt)) OrElse st->IsReportControlFunc <> 0 AndAlso CInt(st->IsReportControlFunc(Cpnt)) Then
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"

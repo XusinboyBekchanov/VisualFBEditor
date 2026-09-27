@@ -59,6 +59,7 @@ Namespace My.Sys.Forms
 		ComponentSetBoundsSub As Sub(Ctrl As Any Ptr, ALeft As Integer, ATop As Integer, AWidth As Integer, AHeight As Integer)
 		ControlIsContainerFunc As Function(Ctrl As Any Ptr) As Boolean
 		IsControlFunc As Function(Ctrl As Any Ptr) As Boolean
+		IsReportControlFunc As Function(Ctrl As Any Ptr) As Boolean
 		IsComponentFunc As Function(Ctrl As Any Ptr) As Boolean
 		ControlSetFocusSub As Sub(Ctrl As Any Ptr)
 		ControlFreeWndSub As Sub(Ctrl As Any Ptr)

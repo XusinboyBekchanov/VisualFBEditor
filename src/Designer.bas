@@ -1467,6 +1467,8 @@ Namespace My.Sys.Forms
 		Dim As Any Ptr NewCtrl
 		If st->IsControlFunc <> 0 AndAlso st->IsControlFunc(Ctrl) Then
 			NewCtrl = This.CreateControl(WGet(st->ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(st->ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
+		ElseIf st->IsReportControlFunc <> 0 AndAlso st->IsReportControlFunc(Ctrl) Then
+			NewCtrl = This.CreateReportControl(WGet(st->ReadPropertyFunc(Ctrl, "ClassName")), FName, WGet(st->ReadPropertyFunc(Ctrl, "Text")), ParentCtrl, FLeft + iStepX, FTop + iStepY, FWidth, FHeight)
 		Else
 			NewCtrl = This.CreateComponent(WGet(st->ReadPropertyFunc(Ctrl, "ClassName")), FName, ParentCtrl, FLeft + iStepX, FTop + iStepY)
 		End If
@@ -1910,6 +1912,7 @@ Namespace My.Sys.Forms
 					st->ComponentSetBoundsSub = DyLibSymbol(st->Handle, "ComponentSetBounds")
 					st->ControlIsContainerFunc = DyLibSymbol(st->Handle, "ControlIsContainer")
 					st->IsControlFunc = DyLibSymbol(st->Handle, "IsControl")
+					st->IsReportControlFunc = DyLibSymbol(st->Handle, "IsReportControl")
 					st->IsComponentFunc = DyLibSymbol(st->Handle, "IsComponent")
 					st->ControlSetFocusSub = DyLibSymbol(st->Handle, "ControlSetFocus")
 					st->ControlFreeWndSub = DyLibSymbol(st->Handle, "ControlFreeWnd")
