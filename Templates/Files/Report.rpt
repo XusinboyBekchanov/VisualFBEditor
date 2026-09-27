@@ -16,18 +16,20 @@
 	Using My.Sys.ComponentModel
 	
 	Type Report1Type Extends Report
+		Declare Static Sub _SQLite3Component1_ErrorOut(ByRef Sender As SQLite3Component, ErrorTxt As String)
+		Declare Sub SQLite3Component1_ErrorOut(ByRef Sender As SQLite3Component, ErrorTxt As String)
 		Declare Constructor
 		Declare Function GetFieldValue(ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
 		
 		Dim As ReportBand ReportHeader, PageHeader, Detail, PageFooter, ReportFooter
-		Dim As ReportLabel lblTitle, lblCol1Header, lblCol2Header
-		Dim As ReportField fldColumn1, fldColumn2
-		Dim As ReportRecordSet RS
+		Dim As ReportLabel lblTitle, lblCol1Header, lblCol2Header, lblCol3Header
+		Dim As ReportField fldColumn1, fldColumn2, fldColumn3
 		Dim As SQLite3Component SQLite3Component1
+		Dim As ReportRecordSet RecordSet
 	End Type
 	
 	Constructor Report1Type
-		'Report1
+		' Report1
 		With This
 			.Name = "Report1"
 			.Text = "Report1"
@@ -35,73 +37,101 @@
 			.OnGetFieldValue = Cast(Function(ByRef Designer As My.Sys.Object, ByRef FieldName As WString, RowIndex As Integer) ByRef As WString, @GetFieldValue)
 			.SetBounds 0, 0, 840, 300
 		End With
-		'ReportHeader
+		' ReportHeader
 		With ReportHeader
 			.BandType = ReportBandType.rbtReportHeader
 			.Height = 60
 			.Parent = @This
 		End With
-		'PageHeader
+		' PageHeader
 		With PageHeader
 			.BandType = ReportBandType.rbtPageHeader
 			.Height = 60
 			.Parent = @This
 		End With
+		' Detail
 		With Detail
 			.BandType = ReportBandType.rbtDetail
 			.Height = 60
 			.Parent = @This
 		End With
+		' PageFooter
 		With PageFooter
 			.BandType = ReportBandType.rbtPageFooter
 			.Height = 60
 			.Parent = @This
 		End With
+		' ReportFooter
 		With ReportFooter
 			.BandType = ReportBandType.rbtReportFooter
 			.Height = 60
 			.Parent = @This
 		End With
-		
+		' lblTitle
 		lblTitle.Name = "lblTitle"
 		lblTitle.Text = "Report Title"
 		lblTitle.Font.Bold = True
 		lblTitle.Font.Size = 16
 		lblTitle.SetBounds 30, 8, 410, 32
 		lblTitle.Parent = @ReportHeader
-		
+		' lblCol1Header
 		lblCol1Header.Name = "lblCol1Header"
-		lblCol1Header.Text = "Column 1"
+		lblCol1Header.Text = "Id"
 		lblCol1Header.Font.Bold = True
 		lblCol1Header.SetBounds 30, 85, 200, 18
 		lblCol1Header.Parent = @PageHeader
-		
+		' lblCol2Header
 		lblCol2Header.Name = "lblCol2Header"
-		lblCol2Header.Text = "Column 2"
+		lblCol2Header.Text = "Title"
 		lblCol2Header.Font.Bold = True
 		lblCol2Header.SetBounds 240, 85, 200, 18
 		lblCol2Header.Parent = @PageHeader
-		
+		' lblCol3Header
+		lblCol3Header.Name = "lblCol3Header"
+		lblCol3Header.Text = "Description"
+		lblCol3Header.Font.Bold = True
+		lblCol3Header.SetBounds 450, 85, 200, 18
+		lblCol3Header.Parent = @PageHeader
+		' fldColumn1
 		fldColumn1.Name = "fldColumn1"
-		fldColumn1.DataField = "Column1"
+		fldColumn1.DataField = "id"
 		fldColumn1.SetBounds 30, 138, 200, 20
 		fldColumn1.Parent = @Detail
-		
+		' fldColumn2
 		fldColumn2.Name = "fldColumn2"
-		fldColumn2.DataField = "Column2"
+		fldColumn2.DataField = "title"
 		fldColumn2.SetBounds 240, 138, 200, 20
 		fldColumn2.Parent = @Detail
+		' fldColumn3
+		fldColumn3.Name = "fldColumn3"
+		fldColumn3.DataField = "description"
+		fldColumn3.SetBounds 450, 138, 200, 20
+		fldColumn3.Parent = @Detail
 		' SQLite3Component1
 		With SQLite3Component1
 			.Name = "SQLite3Component1"
 			.SetBounds 110, 200, 16, 16
 			.Designer = @This
+			.OnErrorOut = @_SQLite3Component1_ErrorOut
 			.Parent = @This
 		End With
+		' Opening database
+		?ExePath & "/sqlite3_test.db"
+		If SQLite3Component1.Open(ExePath & "/sqlite3_test.db") Then
+			Dim rs() As String
+			If SQLite3Component1.Find("features", "", rs()) > 0 Then
+				RecordSet.Load(rs(), UBound(rs, 1), UBound(rs, 2))
+			End If
+		End If
+		This.RowCount = RecordSet.RowCount
 	End Constructor
 	
+	Private Sub Report1Type._SQLite3Component1_ErrorOut(ByRef Sender As SQLite3Component, ErrorTxt As String)
+		(*Cast(Report1Type Ptr, Sender.Designer)).SQLite3Component1_ErrorOut(Sender, ErrorTxt)
+	End Sub
+	
 	Private Function Report1Type.GetFieldValue(ByRef FieldName As WString, RowIndex As Integer) ByRef As WString
-		Return RS.Value(RowIndex, FieldName)
+		Return RecordSet.Value(RowIndex, FieldName)
 	End Function
 	
 	Dim Shared Report1 As Report1Type
@@ -112,3 +142,8 @@
 		App.Run
 	#endif
 '#End Region
+
+
+Private Sub Report1Type.SQLite3Component1_ErrorOut(ByRef Sender As SQLite3Component, ErrorTxt As String)
+	?ErrorTxt
+End Sub

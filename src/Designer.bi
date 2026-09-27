@@ -79,6 +79,7 @@ Namespace My.Sys.Forms
 		'this (together with ReadPropertyFunc reading "BandCount"/"ActiveBand" on the Report
 		'itself and "BandType"/"Height"/"GroupField" on each band it returns) to paint the
 		'band-name strip and band backdrops itself, the same way DrawToolBar paints a ToolBar.
+		RemoveReportBandSub As Sub(rpt As Any Ptr, Band As Any Ptr)
 		ReportBandByIndexFunc As Function(rpt As Any Ptr, Index As Integer) As Any Ptr
 		GraphicTypeLoadFromFileFunc As Function(Graphic As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean
 		BitmapTypeLoadFromFileFunc As Function(Bitm As Any Ptr, ByRef FILE As WString, cxDesired As Integer = 0, cyDesired As Integer = 0) As Boolean

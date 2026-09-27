@@ -8804,6 +8804,13 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						If stDesignControl->RemoveControlSub AndAlso stDesignControl->ControlByIndexFunc Then stDesignControl->RemoveControlSub(.DesignControl, stDesignControl->ControlByIndexFunc(.DesignControl, i))
 					Next i
 				End If
+				If .IsReportDesigner Then
+					If stDesignControl AndAlso iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "BandCount")) > 0 Then
+						For i As Integer = iGet(stDesignControl->ReadPropertyFunc(.DesignControl, "BandCount")) - 1 To 0 Step -1
+							If stDesignControl->RemoveReportBandSub AndAlso stDesignControl->ReportBandByIndexFunc Then stDesignControl->RemoveReportBandSub(.DesignControl, stDesignControl->ReportBandByIndexFunc(.DesignControl, i))
+						Next i
+					End If
+				End If
 				If stDesignControl AndAlso stDesignControl->WritePropertyFunc Then stDesignControl->WritePropertyFunc(Des->DesignControl, "Menu", 0)
 				For i As Integer = 2 To cboClass.Items.Count - 1
 					CurCtrl = 0

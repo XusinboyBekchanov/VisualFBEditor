@@ -1926,6 +1926,7 @@ Namespace My.Sys.Forms
 					st->ToolBarRemoveButtonSub = DyLibSymbol(st->Handle, "ToolBarRemoveButton")
 					st->StatusBarPanelByIndexFunc = DyLibSymbol(st->Handle, "StatusBarPanelByIndex")
 					st->StatusBarRemovePanelSub = DyLibSymbol(st->Handle, "StatusBarRemovePanel")
+					st->RemoveReportBandSub = DyLibSymbol(st->Handle, "RemoveReportBand")
 					st->ReportBandByIndexFunc = DyLibSymbol(st->Handle, "ReportBandByIndex")
 					st->GraphicTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "GraphicTypeLoadFromFile")
 					st->BitmapTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "BitmapTypeLoadFromFile")
