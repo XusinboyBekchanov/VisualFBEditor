@@ -889,6 +889,7 @@ Function GetUserTempPath(ByRef RelativePath As WString = "") As UString
 		MsgBox "Unable to locate the temporary folder."
 		Return ""
 	End If
+	If Not EndsWith(BasePath, "/") AndAlso Not EndsWith(BasePath, "\") Then BasePath &= Slash
 	BasePath = GetOSPath(BasePath & APP_TITLE & "/")
 	If Not EnsureFolderExists(BasePath) Then
 		MsgBox "Unable to create temporary folder: " & BasePath
@@ -2864,8 +2865,9 @@ Sub SetSaveDialogParameters(ByRef FileName As WString)
 	pSaveD->Caption = ML("Save File As")
 	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	Dim As WString * MAX_PATH Path = GetFilePath(*ProjectsPath)
-	If Not FolderExists(Path) Then
-		MkDir Path
+	If Not EnsureFolderExists(Path) Then
+		MsgBox "Unable to create projects folder: " & Path
+		Exit Sub
 	End If
 	If InStr(FileName, "/") = 0 AndAlso InStr(FileName, "\") = 0 Then
 		If *LastOpenPath = "" Then
@@ -7460,7 +7462,11 @@ Sub LoadSettings
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
 	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
-	WLet(ProjectsPath, iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects"))
+	Dim As UString LoadedProjectsPath = iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects")
+	#ifdef __USE_GTK__
+		If LoadedProjectsPath = "./Projects" Then LoadedProjectsPath = "%USERDOCUMENTS%/Visual FB Editor Projects"
+	#endif
+	WLet(ProjectsPath, LoadedProjectsPath)
 	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
