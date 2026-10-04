@@ -503,293 +503,208 @@ Function GetFileName(ByRef FileName As WString, WithExtension As Boolean = True)
 	End If
 End Function
 
+#ifdef __USE_GTK__
+Private Function GetGtkUserDirectory(ByVal Directory As GUserDirectory, ByRef FallbackName As WString) As UString
+	Dim As ZString Ptr SpecialDirectory = Cast(ZString Ptr, g_get_user_special_dir(Directory))
+	If SpecialDirectory Then Return GetOSPath(WStr(*SpecialDirectory)) & "/"
+	Return GetOSPath(Environ("HOME")) & "/" & FallbackName & "/"
+End Function
+#endif
+
 'Based on Berkeley code: https://www.freebasic.net/forum/viewtopic.php?p=305321#p305321
 Function GetSpecialPath(ByRef key As WString) As UString
 	Dim As WString * MAX_PATH path
-	
-	#if defined(__FB_WIN32__)
+	#ifdef __FB_WIN32__
 		Dim As WString * MAX_PATH userHome = Environ("HOMEDRIVE") + Environ("HOMEPATH")
-		
-		Select Case key
-		Case "USERHOME"
+	#endif
+
+	Select Case key
+	Case "USERHOME"
+		#ifdef __FB_WIN32__
 			path = userHome
-			If path <> "" Then
-				path += "/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERTEMP"
+		#else
+			path = Environ("HOME")
+		#endif
+		If path <> "" Then path = GetOSPath(path) & "/"
+
+	Case "USERTEMP"
+		#ifdef __FB_WIN32__
 			path = Environ("TEMP")
 			If path = "" Then path = Environ("TMP")
-			If path <> "" Then
-				path += "/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDHOME"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERSETTINGS"
-			If SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then
-				path = Environ("LOCALAPPDATA")
-			End If
-			If path <> "" Then
-				path += "/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDSETTINGS"
-			path = Environ("ProgramData")
-			If path <> "" Then
-				path += "/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERDOCUMENTS"
-			If SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then
-				path = userHome
-			End If
-			If path <> "" Then
-				path += "/Documents/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDDOCUMENTS"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Documents/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERDESKTOP"
-			path = userHome
-			If path <> "" Then
-				path += "/Desktop/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDDESKTOP"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Desktop/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERDOWNLOADS"
-			path = userHome
-			If path <> "" Then
-				path += "/Downloads/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDDOWNLOADS"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Downloads/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERGRAPHICS"
-			path = userHome
-			If path <> "" Then
-				path += "/Pictures/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDGRAPHICS"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Pictures/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERAUDIOS"
-			path = userHome
-			If path <> "" Then
-				path += "/Music/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDAUDIOS"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Music/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERMEDIA"
-			path = userHome
-			If path <> "" Then
-				path += "/Videos/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDMEDIA"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Videos/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "USERSAVEGAMES"
-			path = userHome
-			If path <> "" Then
-				path += "/Saved Games/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "SHAREDSAVEGAMES"
-			path = Environ("PUBLIC")
-			If path <> "" Then
-				path += "/Saved Games/"
-				path = GetOSPath(path)
-			End If
-			
-		Case "APPDATA"
-			path = APP_TITLE
-			If Dir(path, 255) = "" Then
-				path += ".rsc"
-				If Dir(path, 255) = "" Then path = "" Else path += ":"
-			Else
-				path += "/"
-			End If
-			
-			If path = "" Then
-				path = Environ("LOCALAPPDATA")
-				If path <> "" Then
-					path += "/" + APP_TITLE
-					If Dir(path, 255) = "" Then
-						path += ".rsc"
-						If Dir(path, 255) = "" Then path = "" Else path += ":"
-					Else
-						path += "/"
-					End If
-				End If
-			End If
-			
-			If path = "" Then
-				path = Environ("ALLUSERSPROFILE")
-				If path <> "" Then
-					path += "/" + APP_TITLE
-					If Dir(path, 255) = "" Then
-						path += ".rsc"
-						If Dir(path, 255) = "" Then path = "" Else path += ":"
-					Else
-						path += "/"
-					End If
-				End If
-			End If
-			path = GetOSPath(path)
-			
-		Case "FBDATA"
-			path = "FreeBASIC.rsc"
-			If Dir(path, 255) = "" Then path = "" Else path += ":"
-			
-			If path = "" Then
-				path = Environ("LOCALAPPDATA")
-				If path <> "" Then
-					path += "/FreeBASIC.rsc"
-					If Dir(path, 255) = "" Then path = "" Else path += ":"
-				End If
-			End If
-			
-			If path = "" Then
-				path = Environ("ALLUSERSPROFILE")
-				If path <> "" Then
-					path += "/FreeBASIC.rsc"
-					If Dir(path, 255) = "" Then path = "" Else path += ":"
-				End If
-			End If
-			path = GetOSPath(path)
-			
-		Case Else
-			Return ""
-		End Select
-		
-	#else
-		Select Case key
-		Case "USERHOME"
-			path = Environ("HOME")
-			path = GetOSPath(path)
-			
-		Case "USERTEMP"
+		#elseif defined(__USE_GTK__)
+			path = WStr(*g_get_tmp_dir())
+		#else
 			path = Environ("TMPDIR")
 			If path = "" Then path = "/tmp"
-			path = GetOSPath(path)
-			
-		Case "SHAREDHOME"
-			path = "/home/group/public/"
-			
-		Case "USERSETTINGS"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/.config/"
-			
-		Case "SHAREDSETTINGS"
+		#endif
+		If path <> "" Then path = GetOSPath(path) & "/"
+
+	Case "SHAREDHOME"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+		#else
+			path = "/home/group/public"
+		#endif
+		If path <> "" Then path = GetOSPath(path) & "/"
+
+	Case "USERSETTINGS"
+		#ifdef __FB_WIN32__
+			If SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then path = Environ("LOCALAPPDATA")
+			If path <> "" Then path = GetOSPath(path) & "/"
+		#elseif defined(__USE_GTK__)
+			path = WStr(*g_get_user_config_dir()) & "/"
+		#else
+			path = GetOSPath(Environ("HOME")) & "/.config/"
+		#endif
+
+	Case "SHAREDSETTINGS"
+		#ifdef __FB_WIN32__
+			path = Environ("ProgramData")
+			If path <> "" Then path = GetOSPath(path) & "/"
+		#else
 			path = "/home/group/public/.config/"
-			
-		Case "USERDOCUMENTS"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Documents/"
-			
-		Case "SHAREDDOCUMENTS"
+		#endif
+
+	Case "USERDOCUMENTS"
+		#ifdef __FB_WIN32__
+			If SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_DOCUMENTS, "Documents")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Documents/"
+		#endif
+
+	Case "SHAREDDOCUMENTS"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Documents/"
+		#else
 			path = "/home/group/public/Documents/"
-			
-		Case "USERDESKTOP"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Desktop/"
-			
-		Case "SHAREDDESKTOP"
+		#endif
+
+	Case "USERDESKTOP"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Desktop/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_DESKTOP, "Desktop")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Desktop/"
+		#endif
+
+	Case "SHAREDDESKTOP"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Desktop/"
+		#else
 			path = "/home/group/public/Desktop/"
-			
-		Case "USERDOWNLOADS"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Downloads/"
-			
-		Case "SHAREDDOWNLOADS"
+		#endif
+
+	Case "USERDOWNLOADS"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Downloads/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_DOWNLOAD, "Downloads")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Downloads/"
+		#endif
+
+	Case "SHAREDDOWNLOADS"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Downloads/"
+		#else
 			path = "/home/group/public/Downloads/"
-			
-		Case "USERGRAPHICS"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Pictures/"
-			
-		Case "SHAREDGRAPHICS"
+		#endif
+
+	Case "USERGRAPHICS"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Pictures/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_PICTURES, "Pictures")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Pictures/"
+		#endif
+
+	Case "SHAREDGRAPHICS"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Pictures/"
+		#else
 			path = "/home/group/public/Pictures/"
-			
-		Case "USERAUDIOS"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Music/"
-			
-		Case "SHAREDAUDIOS"
+		#endif
+
+	Case "USERAUDIOS"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Music/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_MUSIC, "Music")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Music/"
+		#endif
+
+	Case "SHAREDAUDIOS"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Music/"
+		#else
 			path = "/home/group/public/Music/"
-			
-		Case "USERMEDIA"
-			path = Environ("HOME")
-			path = GetOSPath(path) + "/Videos/"
-			
-		Case "SHAREDMEDIA"
+		#endif
+
+	Case "USERMEDIA"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Videos/"
+		#elseif defined(__USE_GTK__)
+			path = GetGtkUserDirectory(G_USER_DIRECTORY_VIDEOS, "Videos")
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Videos/"
+		#endif
+
+	Case "SHAREDMEDIA"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Videos/"
+		#else
 			path = "/home/group/public/Videos/"
-			
-		Case "USERSAVEGAMES"
-			path = Environ("HOME") + "/Savegames/"
-			
-		Case "SHAREDSAVEGAMES"
+		#endif
+
+	Case "USERSAVEGAMES"
+		#ifdef __FB_WIN32__
+			path = userHome
+			If path <> "" Then path = GetOSPath(path) & "/Saved Games/"
+		#else
+			path = GetOSPath(Environ("HOME")) & "/Savegames/"
+		#endif
+
+	Case "SHAREDSAVEGAMES"
+		#ifdef __FB_WIN32__
+			path = Environ("PUBLIC")
+			If path <> "" Then path = GetOSPath(path) & "/Saved Games/"
+		#else
 			path = "/home/group/public/Savegames/"
-			
-		Case "APPDATA"
-			path = APP_TITLE
-			If Dir(path, 255) = "" Then
-				path += ".rsc"
-				If Dir(path, 255) = "" Then path = "" Else path += ":"
-			Else
-				path += "/"
-			End If
-			
-			If path = "" Then
+		#endif
+
+	Case "APPDATA"
+		path = APP_TITLE
+		If Dir(path, 255) = "" Then
+			path += ".rsc"
+			If Dir(path, 255) = "" Then path = "" Else path += ":"
+		Else
+			path += "/"
+		End If
+		If path = "" Then
+			#ifdef __FB_WIN32__
+				path = Environ("LOCALAPPDATA")
+				If path <> "" Then path += "/" + APP_TITLE
+			#else
 				path = "/usr/share/" + APP_TITLE
+			#endif
+			If path <> "" Then
 				If Dir(path, 255) = "" Then
 					path += ".rsc"
 					If Dir(path, 255) = "" Then path = "" Else path += ":"
@@ -797,22 +712,48 @@ Function GetSpecialPath(ByRef key As WString) As UString
 					path += "/"
 				End If
 			End If
-			path = GetOSPath(path)
-			
-		Case "FBDATA"
-			path = "FreeBASIC.rsc"
-			If Dir(path, 255) = "" Then path = "" Else path += ":"
-			
+		End If
+		#ifdef __FB_WIN32__
 			If path = "" Then
+				path = Environ("ALLUSERSPROFILE")
+				If path <> "" Then
+					path += "/" + APP_TITLE
+					If Dir(path, 255) = "" Then
+						path += ".rsc"
+						If Dir(path, 255) = "" Then path = "" Else path += ":"
+					Else
+						path += "/"
+					End If
+				End If
+			End If
+		#endif
+		path = GetOSPath(path)
+
+	Case "FBDATA"
+		path = "FreeBASIC.rsc"
+		If Dir(path, 255) = "" Then path = "" Else path += ":"
+		If path = "" Then
+			#ifdef __FB_WIN32__
+				path = Environ("LOCALAPPDATA")
+				If path <> "" Then path += "/FreeBASIC.rsc"
+				If path <> "" AndAlso Dir(path, 255) = "" Then path = ""
+				If path <> "" Then path += ":"
+				If path = "" Then
+					path = Environ("ALLUSERSPROFILE")
+					If path <> "" Then path += "/FreeBASIC.rsc"
+					If path <> "" AndAlso Dir(path, 255) = "" Then path = ""
+					If path <> "" Then path += ":"
+				End If
+			#else
 				path = "/usr/share/FreeBASIC.rsc"
 				If Dir(path, 255) = "" Then path = "" Else path += ":"
-			End If
-			path = GetOSPath(path)
-			
-		Case Else
-			Return ""
-		End Select
-	#endif
+			#endif
+		End If
+		path = GetOSPath(path)
+
+	Case Else
+		Return ""
+	End Select
 	
 	Return path
 End Function
