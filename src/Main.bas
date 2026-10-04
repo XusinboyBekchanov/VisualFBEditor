@@ -11405,11 +11405,11 @@ txtEvents.OnChange = @txtEvents_Change
 'ptabCode->Images.AddIcon bmp
 
 Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, newIndex As Integer)
-	Static tbOld As TabWindow Ptr
+	'Static tbOld As TabWindow Ptr
 	If newIndex = -1 Then Exit Sub
 	Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, Sender.Tab(newIndex))
 	If tb = 0 Then tbFormat.Visible = False: Exit Sub
-	If tb = tbOld Then Exit Sub
+	'If tb = tbOld Then Exit Sub
 	'	pLocalTypes = @tb->Types
 	'	pLocalEnums = @tb->Enums
 	'	pLocalProcedures = @tb->Procedures
@@ -11423,18 +11423,17 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 	If tb->Des <> 0 Then
 		miLockControls->Checked = tb->Des->LockControls
 	End If
-	If tbOld AndAlso tb = tbOld Then Exit Sub
-	If tbOld > 0 Then
-		tbOld->lvPropertyWidth = tabRightWidth
-		tbOld->FindFormPosiLeft = pfFind->Left
-		tbOld->FindFormPosiTop = pfFind->Top
-	End If
+	'If tbOld AndAlso tb = tbOld Then Exit Sub
+	'If tbOld > 0 Then
+	'	tbOld->lvPropertyWidth = tabRightWidth
+	'	tbOld->FindFormPosiLeft = pfFind->Left
+	'	tbOld->FindFormPosiTop = pfFind->Top
+	'End If
 	If tb > 0 Then
 		'tabRightWidth = tb->lvPropertyWidth
 		If tb->FindFormPosiLeft > 0 Then pfFind->Left = tb->FindFormPosiLeft
 		If tb->FindFormPosiTop > 0 Then pfFind->Top = tb->FindFormPosiTop
 	End If
-	tbOld = tb
 	#ifndef __USE_GTK__
 		For i As Integer = 0 To sourcenb
 			If EqualPaths(tb->FileName, source(i)) Then shwtab = i: Exit For
@@ -11474,7 +11473,14 @@ Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabContro
 	End If
 	ChangeFileEncoding tb->FileEncoding
 	ChangeNewLineType tb->NewLineType
-	tbOld = tb
+End Sub
+
+Sub tabCode_SelChanging(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, ByRef Cancel As Boolean)
+	Dim tbOld As TabWindow Ptr = Cast(TabWindow Ptr, Sender.SelectedTab)
+	If tbOld = 0 Then Exit Sub
+	tbOld->lvPropertyWidth = tabRightWidth
+	tbOld->FindFormPosiLeft = pfFind->Left
+	tbOld->FindFormPosiTop = pfFind->Top
 End Sub
 
 Var ptabPanel = _New(TabPanel)
@@ -12610,7 +12616,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __FB_WIN32__
 		pfAbout->Label11.Text = ML("Version") & " " & pApp->Version
 	#else
-		pfAbout->Label11.Text = ML("Version") & " " & WStr(VERSION)
+		pfAbout->Label11.Text = ML("Version") & " " & WStr(Version)
 	#endif
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
 	

@@ -1733,10 +1733,13 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 					End If
 				Else
 					If StartsWith(*FLine3, "@") Then WLetEx(FLine3, Mid(*FLine3, 2))
-					If st AndAlso LCase(*FLine3) = "this" Then
-						Dim hTemp As Any Ptr
-						If st->ReadPropertyFunc <> 0 Then hTemp = st->ReadPropertyFunc(Des->DesignControl, "Name")
-						If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
+					If LCase(*FLine3) = "this" Then
+						Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
+						If stDesignControl Then
+							Dim hTemp As Any Ptr
+							If stDesignControl->ReadPropertyFunc <> 0 Then hTemp = stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name")
+							If hTemp <> 0 Then WLet(FLine3, QWString(hTemp))
+						End If
 					End If
 					If *FLine3 <> "" Then
 						iIndex = cboClass.Items.IndexOf(Trim(*FLine3))
@@ -1745,8 +1748,12 @@ Function TabWindow.WriteObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As 
 							If Des <> 0 AndAlso PropertyCtrl <> 0 AndAlso st->WritePropertyFunc <> 0 Then
 								Var te = GetPropertyType(QWString(st->ReadPropertyFunc(Obj, "ClassName")), PropertyName)
 								If te <> 0 Then
+									Dim As SymbolsType Ptr stPropertyCtrl = Des->Symbols(PropertyCtrl)
 									Dim As String PropertyType = GetOriginalType(te->TypeName)
-									Dim As String PropertyCtrlType = QWString(st->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+									Dim As String PropertyCtrlType
+									If stPropertyCtrl <> 0 AndAlso stPropertyCtrl->ReadPropertyFunc <> 0 Then
+										PropertyCtrlType = QWString(stPropertyCtrl->ReadPropertyFunc(PropertyCtrl, "ClassName"))
+									End If
 									If IsBase(PropertyCtrlType, PropertyType) Then
 										Result = st->WritePropertyFunc(Obj, PropertyName, PropertyCtrl)
 									ElseIf Cpnt = 0 Then
@@ -3998,6 +4005,7 @@ End Sub
 End Sub
 
 Declare Sub tabCode_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, newIndex As Integer)
+Declare Sub tabCode_SelChanging(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, ByRef Cancel As Boolean)
 
 Sub OnGotFocusEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
@@ -10848,6 +10856,7 @@ Constructor TabPanel
 	tabCode.Reorderable = True
 	tabCode.OnPaint = @tabCode_Paint
 	tabCode.OnSelChange = @tabCode_SelChange
+	tabCode.OnSelChanging = @tabCode_SelChanging
 	tabCode.OnMouseUp = @tabCode_MouseUp
 	tabCode.OnTabAdded = @tabCode_TabAdded
 	tabCode.OnTabRemoved = @tabCode_TabRemoved
