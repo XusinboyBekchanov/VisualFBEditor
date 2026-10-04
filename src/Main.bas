@@ -534,7 +534,9 @@ Function GetSpecialPath(ByRef key As WString) As UString
 			End If
 			
 		Case "USERSETTINGS"
-			path = Environ("LOCALAPPDATA")
+			If SHGetFolderPathW(NULL, CSIDL_LOCAL_APPDATA, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then
+				path = Environ("LOCALAPPDATA")
+			End If
 			If path <> "" Then
 				path += "/"
 				path = GetOSPath(path)
@@ -548,7 +550,9 @@ Function GetSpecialPath(ByRef key As WString) As UString
 			End If
 			
 		Case "USERDOCUMENTS"
-			path = userHome
+			If SHGetFolderPathW(NULL, CSIDL_PERSONAL, NULL, SHGFP_TYPE_CURRENT, @path) <> 0 Then
+				path = userHome
+			End If
 			If path <> "" Then
 				path += "/Documents/"
 				path = GetOSPath(path)
@@ -813,6 +817,150 @@ Function GetSpecialPath(ByRef key As WString) As UString
 	Return path
 End Function
 
+Function EnsureFolderExists(ByRef FolderName As WString) As Boolean
+	Dim As UString NormalizedPath = GetOSPath(FolderName)
+	While Len(NormalizedPath) > 3 AndAlso (EndsWith(NormalizedPath, "/") OrElse EndsWith(NormalizedPath, "\"))
+		NormalizedPath = Left(NormalizedPath, Len(NormalizedPath) - 1)
+	Wend
+	If NormalizedPath = "" Then Return False
+	If FolderExists(NormalizedPath) Then Return True
+	Dim As UString ParentFolder = GetFolderName(NormalizedPath, False)
+	If ParentFolder = "" OrElse ParentFolder = NormalizedPath Then Return False
+	If Not EnsureFolderExists(ParentFolder) Then Return False
+	If MkDir(NormalizedPath) <> 0 AndAlso Not FolderExists(NormalizedPath) Then Return False
+	Return True
+End Function
+
+Function CopyFileToPath(ByRef SourcePath As WString, ByRef DestinationPath As WString) As Boolean
+	#ifdef __USE_GTK__
+		Return FileCopy(SourcePath, DestinationPath) = 0
+	#else
+		Return CopyFileW(SourcePath, DestinationPath, True) <> 0
+	#endif
+End Function
+
+Function GetUserDataPath(ByRef RelativePath As WString = "") As UString
+	Dim As UString BasePath = GetSpecialPath("USERSETTINGS")
+	If BasePath = "" Then
+		MsgBox "Unable to locate the user settings folder."
+		Return ""
+	End If
+	BasePath = GetOSPath(BasePath & APP_TITLE & "/")
+	If Not EnsureFolderExists(BasePath) Then
+		MsgBox "Unable to create user settings folder: " & BasePath
+		Return ""
+	End If
+	Dim As UString FullPath = BasePath & Replace(RelativePath, "\", "/")
+	If RelativePath <> "" Then
+		Dim As UString ParentFolder = IIf(EndsWith(RelativePath, "/") OrElse EndsWith(RelativePath, "\"), FullPath, GetFolderName(FullPath))
+		If ParentFolder <> "" AndAlso Not EnsureFolderExists(ParentFolder) Then
+			MsgBox "Unable to create user settings folder: " & ParentFolder
+			Return ""
+		End If
+	End If
+	Return GetOSPath(FullPath)
+End Function
+
+Function GetUserDocumentsPath(ByRef RelativePath As WString = "") As UString
+	Dim As UString BasePath = GetSpecialPath("USERDOCUMENTS")
+	If BasePath = "" Then
+		MsgBox "Unable to locate the user documents folder."
+		Return ""
+	End If
+	BasePath = GetOSPath(BasePath & APP_TITLE & "/")
+	If Not EnsureFolderExists(BasePath) Then
+		MsgBox "Unable to create user documents folder: " & BasePath
+		Return ""
+	End If
+	Dim As UString FullPath = BasePath & Replace(RelativePath, "\", "/")
+	If RelativePath <> "" Then
+		Dim As UString ParentFolder = IIf(EndsWith(RelativePath, "/") OrElse EndsWith(RelativePath, "\"), FullPath, GetFolderName(FullPath))
+		If ParentFolder <> "" AndAlso Not EnsureFolderExists(ParentFolder) Then
+			MsgBox "Unable to create user documents folder: " & ParentFolder
+			Return ""
+		End If
+	End If
+	Return GetOSPath(FullPath)
+End Function
+
+Function GetUserTempPath(ByRef RelativePath As WString = "") As UString
+	Dim As UString BasePath = GetSpecialPath("USERTEMP")
+	If BasePath = "" Then
+		MsgBox "Unable to locate the temporary folder."
+		Return ""
+	End If
+	BasePath = GetOSPath(BasePath & APP_TITLE & "/")
+	If Not EnsureFolderExists(BasePath) Then
+		MsgBox "Unable to create temporary folder: " & BasePath
+		Return ""
+	End If
+	Dim As UString FullPath = BasePath & Replace(RelativePath, "\", "/")
+	If RelativePath <> "" Then
+		Dim As UString ParentFolder = IIf(EndsWith(RelativePath, "/") OrElse EndsWith(RelativePath, "\"), FullPath, GetFolderName(FullPath))
+		If ParentFolder <> "" AndAlso Not EnsureFolderExists(ParentFolder) Then
+			MsgBox "Unable to create temporary folder: " & ParentFolder
+			Return ""
+		End If
+	End If
+	Return GetOSPath(FullPath)
+End Function
+
+Function GetAIChatDirectory() As UString
+	Dim As UString Directory = GetUserDocumentsPath("AIChat/")
+	If Directory = "" Then Return ""
+	Dim As UString LegacyDirectory = GetOSPath(ExePath & "/AIChat/")
+	If FolderExists(LegacyDirectory) Then
+		Dim As String FileName = Dir(LegacyDirectory & "*.md")
+		While FileName <> ""
+			If Not FileExists(Directory & FileName) Then
+				If Not CopyFileToPath(LegacyDirectory & FileName, Directory & FileName) Then
+					MsgBox "Unable to move saved AI chat: " & FileName
+				End If
+			End If
+			FileName = Dir()
+		Wend
+	End If
+	Return Directory
+End Function
+
+Function GetUserChangeLogPath(ByRef FileName As WString) As UString
+	Dim As UString UserPath = GetUserDocumentsPath("ChangeLogs/" & FileName)
+	If UserPath = "" Then Return ""
+	Dim As UString LegacyPath = GetOSPath(ExePath & Slash & FileName)
+	If Not FileExists(UserPath) AndAlso FileExists(LegacyPath) Then
+		If Not CopyFileToPath(LegacyPath, UserPath) Then
+			MsgBox "Unable to migrate change log to: " & UserPath
+			Return ""
+		End If
+	End If
+	Return UserPath
+End Function
+
+Function GetUserThemePath(ByRef ThemeName As WString, IsInterfaceTheme As Boolean = False) As UString
+	Dim As UString ThemeFolder
+	Dim As UString RelativePath
+	If IsInterfaceTheme Then
+		ThemeFolder = "Settings/Themes/Interface/"
+	Else
+		ThemeFolder = "Settings/Themes/"
+	End If
+	RelativePath = ThemeFolder & ThemeName & ".ini"
+	Dim As UString UserPath = GetUserDataPath(RelativePath)
+	If UserPath = "" Then Return ""
+	If Not FileExists(UserPath) Then
+		Dim As UString SourcePath = GetOSPath(ExePath & "/" & RelativePath)
+		If FileExists(SourcePath) Then
+			Dim As Boolean CopySucceeded = CopyFileToPath(SourcePath, UserPath)
+			If Not CopySucceeded AndAlso FileExists(UserPath) Then CopySucceeded = True
+			If Not CopySucceeded Then
+				MsgBox "Unable to copy default theme to user settings: " & UserPath
+				Return ""
+			End If
+		End If
+	End If
+	Return UserPath
+End Function
+
 Private Function CollapseSlashes(ByRef p As WString) As UString
 	Dim As WString * 2 prefix = ""
 	Dim As WString * MAX_PATH rest = p
@@ -858,10 +1006,8 @@ End Function
 Function GetBakFileName(ByRef FileName As WString) As UString
 	Dim As String BakDate = Format(Now, "yyyymmdd_hhmm") 'David Change ReplaceAny(__DATE_ISO__ & "_" & Time,":/\-","")
 	If FileName = "" Then
-		Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE & "/"
-		If Not FolderExists(TempFolder) Then
-			MkDir TempFolder
-		End If
+		Dim As String TempFolder = GetUserTempPath()
+		If TempFolder = "" Then Return ""
 		Return TempFolder + "Temp_" & BakDate & ".bak"
 	End If
 	Dim Pos1 As Long = InStrRev(FileName, ".")
@@ -1129,7 +1275,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Next
 		WAdd(CompileWith, " -d _DebugWindow_=" & Str(txtImmediate.Handle))
 		'WLet LogFileName, ExePath & "/Temp/debug_compil.log"
-		WLet(LogFileName2, ExePath & "/Temp/Compile.log")
+		WLet(LogFileName2, GetUserTempPath("Compile.log"))
 		Dim As UString OtherModuleFiles
 		If CInt(ProjectNode <> 0) AndAlso CInt(Project <> 0) AndAlso CInt(Project->PassAllModuleFilesToCompiler) Then
 			For i As Integer = 0 To ProjectNode->Nodes.Count - 1
@@ -3350,7 +3496,12 @@ Sub RemoveFileFromProject
 			ee = tn->Tag
 			If ee->FileName> 0 AndAlso Dir(*ee->FileName) <> "" Then
 				'Move the file to temp folds.
-				FileCopy(*ee->FileName, ExePath + "/Temp/" + GetFileName(*ee->FileName))
+				Dim As UString TempFile = GetUserTempPath(GetFileName(*ee->FileName))
+				If TempFile = "" Then Exit Sub
+				If FileCopy(*ee->FileName, TempFile) <> 0 Then
+					MsgBox "Unable to move file to temporary storage: " & TempFile
+					Exit Sub
+				End If
 				Kill *ee->FileName
 			End If
 		End If
@@ -6897,7 +7048,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 End Sub
 
 Sub LoadInterfaceTheme
-	iniInterfaceTheme.Load ExePath & "/Settings/Themes/Interface/Dark.ini"
+	iniInterfaceTheme.Load GetUserThemePath("Dark", True)
 	darkBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackground", darkBkColor)
 	darkHlBkColor = iniInterfaceTheme.ReadInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor)
 	darkTextColor = iniInterfaceTheme.ReadInteger("Colors", "Text", darkTextColor)
@@ -6910,7 +7061,7 @@ Sub LoadInterfaceTheme
 End Sub
 
 Sub LoadTheme
-	iniTheme.Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
+	iniTheme.Load GetUserThemePath(*CurrentTheme)
 	#ifdef __USE_GTK__
 		NormalText.ForegroundOption = iniTheme.ReadInteger("Colors", "NormalTextForeground", clBlack)
 		NormalText.BackgroundOption = iniTheme.ReadInteger("Colors", "NormalTextBackground", clWhite)
@@ -7425,17 +7576,13 @@ Sub LoadSettings
 End Sub
 
 Sub LoadLanguageTexts
-	Dim As WString * MAX_PATH appDataDir = GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/")
-	Dim As WString * MAX_PATH appDataSettingsDir = GetOSPath(appDataDir & "Settings/")
-	Dim As WString * MAX_PATH appDataSettings = appDataSettingsDir & GetFileName(SettingsPath)
+	Dim As UString appDataSettings = GetUserDataPath("Settings/" & GetFileName(SettingsPath))
+	If appDataSettings = "" Then Exit Sub
 	If Not FileExists(appDataSettings) Then
-		If Not FolderExists(appDataDir) Then
-			MkDir(appDataDir)
+		If Not CopyFileToPath(SettingsPath, appDataSettings) Then
+			MsgBox "Unable to copy settings to: " & appDataSettings
+			Exit Sub
 		End If
-		If Not FolderExists(appDataSettingsDir) Then
-			MkDir(appDataSettingsDir)
-		End If
-		FileCopy(SettingsPath, appDataSettings)
 	End If
 	If FileExists(appDataSettings) Then
 		iniSettings.Load appDataSettings
@@ -7548,21 +7695,13 @@ Sub LoadLanguageTexts
 End Sub
 
 Sub LoadHotKeys
-	Dim As WString * MAX_PATH appDataDir = GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/")
-	Dim As WString * MAX_PATH appDataSettingsDir = GetOSPath(appDataDir & "Settings/")
-	Dim As WString * MAX_PATH appDataSettingsOthersDir = GetOSPath(appDataDir & "Settings/Others/")
-	Dim As WString * MAX_PATH appDataSettingsHotKeys = appDataSettingsOthersDir & "HotKeys.txt"
+	Dim As UString appDataSettingsHotKeys = GetUserDataPath("Settings/Others/HotKeys.txt")
+	If appDataSettingsHotKeys = "" Then Exit Sub
 	If Not FileExists(appDataSettingsHotKeys) Then
-		If Not FolderExists(appDataDir) Then
-			MkDir(appDataDir)
+		If Not CopyFileToPath(ExePath & "/Settings/Others/HotKeys.txt", appDataSettingsHotKeys) Then
+			MsgBox "Unable to copy default hotkeys to: " & appDataSettingsHotKeys
+			Exit Sub
 		End If
-		If Not FolderExists(appDataSettingsDir) Then
-			MkDir(appDataSettingsDir)
-		End If
-		If Not FolderExists(appDataSettingsOthersDir) Then
-			MkDir(appDataSettingsOthersDir)
-		End If
-		FileCopy(ExePath & "/Settings/Others/HotKeys.txt", appDataSettingsHotKeys)
 	End If
 	Dim As Integer Fn = FreeFile_, Pos1
 	Dim As String Buff
@@ -7927,7 +8066,7 @@ Sub CreateMenusAndToolBars
 	miRecentAIChat = mnuAIChat.Add(ML("Recent Files"), "", "RecentFiles", @mClickAIChat)
 	For i As Integer = 0 To miRecentMax
 		sTmp = iniSettings.ReadString("MRUAIChat", "MRUAIChat_0" & WStr(i), "")
-		If Trim(sTmp) <> "" AndAlso Dir(ExePath & "/AIChat/" & sTmp) <> "" Then
+		If Trim(sTmp) <> "" AndAlso Dir(GetAIChatDirectory() & sTmp) <> "" Then
 			MRUAIChat.Add sTmp
 			miRecentAIChat->Add(sTmp, "", sTmp, @mClickAIChat)
 		End If
@@ -8184,12 +8323,19 @@ Sub CreateMenusAndToolBars
 	Dim As WString * 1024 Buff
 	Dim As MenuItem Ptr mi
 	Dim As UserToolType Ptr tt
-	Dim As WString * 260 ToolsINI
+	Dim As UString ToolsINI, LegacyToolsINI
 	#ifdef __USE_GTK__
-		ToolsINI = ExePath & "/Tools/ToolsX.ini"
+		ToolsINI = GetUserDataPath("Tools/ToolsX.ini")
+		LegacyToolsINI = ExePath & "/Tools/ToolsX.ini"
 	#else
-		ToolsINI = ExePath & "/Tools/Tools.ini"
+		ToolsINI = GetUserDataPath("Tools/Tools.ini")
+		LegacyToolsINI = ExePath & "/Tools/Tools.ini"
 	#endif
+	If ToolsINI = "" Then
+		ToolsINI = LegacyToolsINI
+	ElseIf Not FileExists(ToolsINI) AndAlso FileExists(LegacyToolsINI) Then
+		If Not CopyFileToPath(LegacyToolsINI, ToolsINI) Then MsgBox "Unable to migrate tools configuration to: " & ToolsINI
+	End If
 	If FileExists(ToolsINI) Then
 		Dim As Integer Fn = FreeFile_
 		Open ToolsINI For Input Encoding "utf8" As #Fn
@@ -8975,7 +9121,7 @@ Sub tvExplorer_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeVi
 						txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 						mChangeLogEdited = False
 					End If
-					mChangelogName = ExePath & Slash & StringExtract(ptn->Text, ".") & "_Change.log"
+					mChangelogName = GetUserChangeLogPath(StringExtract(ptn->Text, ".") & "_Change.log")
 					txtChangeLog.Text = "Waiting...... "
 					If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
 						txtChangeLog.LoadFromFile(mChangelogName) ' David Change
@@ -10334,12 +10480,14 @@ Public Sub AIResetContext()
 			End If
 		End If
 		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		Dim As UString ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Exit Sub
+		AIMessages.SaveToFile(ChatDirectory & FileName)
 		If Not MRUAIChat.Contains(FileName) Then
 			MRUAIChat.Add FileName
 			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
 		End If
-		ShowMessages(ML("The conversation context was saved to") & " " & ExePath & "/AIChat/" & FileName)
+		ShowMessages(ML("The conversation context was saved to") & " " & ChatDirectory & FileName)
 		AIMessages.Clear
 	End If
 	_Deallocate((RecentAIChat)): RecentAIChat = 0
@@ -11506,10 +11654,8 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 	WLet(sLine, txtImmediate.Lines(iLine))
 	If CInt(Not bCtrl) AndAlso CInt(WGet(sLine) <> "") AndAlso CInt(Not StartsWith(Trim(WGet(sLine)),"'")) Then
 		If Key = Keys.Key_Enter Then
-			Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE
-			If Not FolderExists(TempFolder) Then
-				MkDir TempFolder
-			End If
+			Dim As String TempFolder = GetUserTempPath()
+			If TempFolder = "" Then Exit Sub
 			SaveAll
 			Dim As Integer Fn = FreeFile_
 			Open TempFolder & "/FBTemp.bas" For Output Encoding "utf-8" As #Fn
@@ -11845,7 +11991,7 @@ Sub tabBottom_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
 			End If
-			mChangelogName = ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log"
+			mChangelogName = GetUserChangeLogPath(StringExtract(MainNode->Text, ".") & "_Change.log")
 			txtChangeLog.Text = "Waiting...... "
 			If Dir(mChangelogName)<>"" AndAlso mChangelogName<> "" Then
 				txtChangeLog.LoadFromFile(mChangelogName) ' David Change
@@ -12826,11 +12972,13 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	FormClosing = True
 	If AIMessages.Count > 0 Then
 		Dim As WString * MAX_PATH FileName = IIf(RecentAIChat, *RecentAIChat, Mid(FormatFileName(Left(AIMessages.Item(0)->Key, 50)) & Format(Now, "yyyymmdd_hhmm") & ".md", 16))
+		Dim As UString ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Action = 0: Return
 		If Not MRUAIChat.Contains(FileName) Then
 			MRUAIChat.Add FileName
 			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
 		End If
-		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		AIMessages.SaveToFile(ChatDirectory & FileName)
 		AIMessages.Clear
 	End If
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
@@ -12904,7 +13052,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	iniSettings.WriteString("MainWindow", "RecentProject", *RecentProject)
 	iniSettings.WriteString("MainWindow", "RecentFolder", *RecentFolder)
 	iniSettings.WriteString("MainWindow", "RecentSession", *RecentSession)
-	If mChangeLogEdited Then txtChangeLog.SaveToFile(ExePath & Slash & StringExtract(MainNode->Text, ".") & "_Change.log") '
+	If mChangeLogEdited Then txtChangeLog.SaveToFile(GetUserChangeLogPath(StringExtract(MainNode->Text, ".") & "_Change.log")) '
 	UnLoadAddins
 	Exit Sub
 	ErrorHandler:

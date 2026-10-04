@@ -8,6 +8,7 @@
 #ifdef __FB_WIN32__
 	#define UNICODE
 	#include once "windows.bi"
+	#include once "win/shlobj.bi"
 #endif
 #include once "mff/WStringList.bi"
 #include once "mff/Dictionary.bi"
@@ -340,6 +341,14 @@ Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = 
 Declare Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
 Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetSpecialPath(ByRef key As WString) As UString
+Declare Function EnsureFolderExists(ByRef FolderName As WString) As Boolean
+Declare Function CopyFileToPath(ByRef SourcePath As WString, ByRef DestinationPath As WString) As Boolean
+Declare Function GetUserDataPath(ByRef RelativePath As WString = "") As UString
+Declare Function GetUserDocumentsPath(ByRef RelativePath As WString = "") As UString
+Declare Function GetUserTempPath(ByRef RelativePath As WString = "") As UString
+Declare Function GetAIChatDirectory() As UString
+Declare Function GetUserChangeLogPath(ByRef FileName As WString) As UString
+Declare Function GetUserThemePath(ByRef ThemeName As WString, IsInterfaceTheme As Boolean = False) As UString
 Declare Function GetXY(XorY As Integer) As Integer
 #ifndef __USE_GTK__
 	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_

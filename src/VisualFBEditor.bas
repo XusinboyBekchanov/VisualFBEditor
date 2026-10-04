@@ -154,6 +154,7 @@ Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 End Sub
 Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As WString * MAX_PATH FileName
+	Dim As UString ChatDirectory
 	Select Case Sender.ToString
 	Case "AIChatEdit"
 		If Trim(txtAIAgent.SelText) = "" Then
@@ -161,7 +162,8 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			txtAIAgent.SelEnd = InStr(txtAIAgent.SelStart + 3, txtAIAgent.Text, "```")
 		End If
 		If Trim(txtAIAgent.SelText) = "" Then Exit Sub
-		FileName= GetFullPath(ExePath & Slash & "Temp" & Slash & ML("Untitled") & ".bas")
+		FileName= GetUserTempPath(ML("Untitled") & ".bas")
+		If FileName = "" Then Exit Sub
 		SaveToFile(FileName, txtAIAgent.SelText)
 		AddTab FileName, True
 	Case "AIChatPaste"
@@ -170,7 +172,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		AIChatPaste(True)
 	Case "AIChatOpen"
 		Dim As OpenFileDialog OpenD
-		OpenD.InitialDir = ExePath & Slash & "AIChat"
+		ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Exit Sub
+		OpenD.InitialDir = ChatDirectory
 		OpenD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
 		If OpenD.Execute Then
 			frmMain.Cursor = crWait
@@ -221,9 +225,11 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		ShowMessages(ExePath & "/AIChat/" & FileName)
+		ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Exit Sub
+		ShowMessages(ChatDirectory & FileName)
 		frmMain.Cursor = crWait
-		AIMessages.SaveToFile(ExePath & "/AIChat/" & FileName)
+		AIMessages.SaveToFile(ChatDirectory & FileName)
 		WLet(RecentAIChat, FileName)
 		frmMain.Cursor = 0
 	Case "AIChatSaveAs"
@@ -232,7 +238,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			Exit Sub
 		End If
 		Dim As OpenFileDialog OpenD
-		SaveD.InitialDir = ExePath & "/AIChat/"
+		ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Exit Sub
+		SaveD.InitialDir = ChatDirectory
 		SaveD.Caption = "Save AIChat Files"
 		SaveD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
 		Dim As WString * 260 tmpName = Left(AIMessages.Item(0)->Key, 200)
@@ -255,7 +263,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		ShowMessages(ExePath & "/AIChat/" & FileName)
+		ShowMessages(ChatDirectory & FileName)
 		SaveD.FileName = FileName
 		If Not SaveD.Execute Then Exit Sub
 		AIMessages.SaveToFile(SaveD.FileName)
@@ -268,7 +276,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		MRUAIChat.Clear
 		_Deallocate(RecentAIChat): RecentAIChat = 0
 	Case Else
-		FileName= ExePath & "/AIChat/" & Sender.ToString
+		ChatDirectory = GetAIChatDirectory()
+		If ChatDirectory = "" Then Exit Sub
+		FileName= ChatDirectory & Sender.ToString
 		AIMessages.LoadFromFile(FileName)
 		If AIMessages.Count < 1 Then Exit Sub
 		AddMRUAIChat Sender.ToString

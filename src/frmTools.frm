@@ -245,15 +245,22 @@ Destructor frmTools
 End Destructor
 
 Private Sub frmTools.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	Var Fn = FreeFile_
+	Dim As Integer Fn = FreeFile_, Result
+	Dim As UString ToolsINI
 	Dim As UserToolType Ptr Tool, tt
 	Dim As MenuItem Ptr mi
 	Dim As Integer ToolsIndex
 	#ifdef __USE_GTK__
-		Open ExePath & "/Tools/ToolsX.ini" For Output Encoding "utf8" As #Fn
+		ToolsINI = GetUserDataPath("Tools/ToolsX.ini")
 	#else
-		Open ExePath & "/Tools/Tools.ini" For Output Encoding "utf8" As #Fn
+		ToolsINI = GetUserDataPath("Tools/Tools.ini")
 	#endif
+	If ToolsINI = "" Then Exit Sub
+	Result = Open(ToolsINI For Output Encoding "utf8" As #Fn)
+	If Result <> 0 Then
+		MsgBox "Unable to save tools configuration to: " & ToolsINI
+		Exit Sub
+	End If
 	With fTools
 		For i As Integer = 0 To Tools.Count - 1
 			_Delete( Cast(UserToolType Ptr, pTools->Item(i)))

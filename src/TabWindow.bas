@@ -11910,11 +11910,8 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 							If tb AndAlso tb->ptn = Node AndAlso tb->FileName = WGet(Project->MainFileName) Then
 								If tb->Modified Then
 									Dim As UString FFileName
-									'If GetFolderName(tb->FileName) = "" Then
-										FFileName = GetOSPath(ExePath & "/Temp/Untitled.bas")
-									'Else
-									'	FFileName = GetFolderName(tb->FileName) & "Temp.bas"
-									'End If
+									FFileName = GetUserTempPath("Untitled.bas")
+									If FFileName = "" Then Return ""
 									tb->txtCode.SaveToFile(FFileName, tb->FileEncoding, tb->NewLineType)
 									Return FFileName
 								End If
@@ -11938,10 +11935,8 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 								tb->Save
 							Else
 								Dim As UString FFileName
-								Dim As String TempFolder = GetSpecialPath("USERTEMP") & APP_TITLE & "/"
-								If Not FolderExists(TempFolder) Then
-									MkDir TempFolder
-								End If
+								Dim As String TempFolder = GetUserTempPath()
+								If TempFolder = "" Then Return ""
 								FFileName = TempFolder & "Untitled.bas"
 								'If GetFolderName(tb->FileName) = "" Then
 								'	FFileName = GetOSPath(ExePath & "/Temp/Untitled.bas")
@@ -11986,11 +11981,8 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 					tb->Save
 				Else
 					Dim As UString FFileName
-					'If GetFolderName(tb->FileName) = "" Then
-						FFileName = GetOSPath(ExePath & "/Temp/Untitled.bas")
-					'Else
-					'	FFileName = GetFolderName(tb->FileName) & "Temp.bas"
-					'End If
+					FFileName = GetUserTempPath("Untitled.bas")
+					If FFileName = "" Then Return ""
 					tb->txtCode.SaveToFile(FFileName, tb->FileEncoding, tb->NewLineType)
 					Return FFileName
 				End If
@@ -12037,7 +12029,7 @@ Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As 
 				If EndsWith(LCase(*File), ".rc") Then
 					ResourceFile = *File
 					FolderNameRes = GetFolderName(ResourceFile)
-					If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
+					If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", GetFullPath(*ProjectsPath) & Slash, FolderName) & ResourceFile
 					Exit For
 				End If
 			End If
@@ -12052,7 +12044,7 @@ Function GetResourceFile(WithoutMainNode As Boolean = False, ByRef FirstLine As 
 		Var Pos1 = InStrRev(MainFile, ".")
 		ResourceFile = IIf(Pos1 = 0, MainFile & ".rc", ..Left(MainFile, Pos1 - 1) & ".rc")
 		FolderNameRes = GetFolderName(ResourceFile)
-		If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ResourceFile
+		If FolderNameRes = "" Then ResourceFile = IIf(FolderName = "", GetFullPath(*ProjectsPath) & Slash, FolderName) & ResourceFile
 	End If
 	Return ResourceFile
 End Function

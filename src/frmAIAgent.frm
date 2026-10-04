@@ -513,11 +513,19 @@ Private Sub frmAIAgentType.cmdOK_Click(ByRef Sender As Control)
 	If Not cboAIAgentProvider.Contains(cboAIAgentProvider.Text) Then cboAIAgentProvider.AddItem cboAIAgentProvider.Text
 	If Not cboAIAgentModelName.Contains(cboAIAgentModelName.Text) Then cboAIAgentModelName.AddItem cboAIAgentModelName.Text
 	If Not cboAIAgentAddress.Contains(cboAIAgentModelName.Text) Then cboAIAgentAddress.AddItem cboAIAgentAddress.Text
-	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
-	If Dir(tmpName) = "" Then MkDir tmpName
-	cboAIAgentModelName.SaveToFile(ExePath & "/Resources/AIAgent/ModelName.ini")
-	cboAIAgentHost.SaveToFile(ExePath & "/Resources/AIAgent/Host.ini")
-	cboAIAgentAddress.SaveToFile(ExePath & "/Resources/AIAgent/Address.ini")
+	Dim As UString FileName
+	FileName = GetUserDataPath("AIAgent/ModelName.ini")
+	If FileName = "" Then Exit Sub
+	cboAIAgentModelName.SaveToFile(FileName)
+	FileName = GetUserDataPath("AIAgent/Host.ini")
+	If FileName = "" Then Exit Sub
+	cboAIAgentHost.SaveToFile(FileName)
+	FileName = GetUserDataPath("AIAgent/Address.ini")
+	If FileName = "" Then Exit Sub
+	cboAIAgentAddress.SaveToFile(FileName)
+	FileName = GetUserDataPath("AIAgent/Provider.ini")
+	If FileName = "" Then Exit Sub
+	cboAIAgentProvider.SaveToFile(FileName)
 	This.ModalResult = ModalResults.OK
 	This.CloseForm
 End Sub
@@ -551,9 +559,12 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	cboAIAgentContentSize.AddItem "128"
 	cboAIAgentPort.Text = Temp
 	Temp = cboAIAgentModelName.Text
-	Dim As WString * 260 tmpName = ExePath & "/Resources/AIAgent"
-	If Dir(tmpName) = "" Then MkDir tmpName
-	tmpName = ExePath & "/Resources/AIAgent/ModelName.ini"
+	Dim As UString tmpName = GetUserDataPath("AIAgent/ModelName.ini")
+	If tmpName = "" Then Exit Sub
+	Dim As UString legacyName = ExePath & "/Resources/AIAgent/ModelName.ini"
+	If Not FileExists(tmpName) AndAlso FileExists(legacyName) Then
+		If FileCopy(legacyName, tmpName) <> 0 Then MsgBox "Unable to migrate AI model list to: " & tmpName
+	End If
 	If Dir(tmpName) <> "" Then
 		cboAIAgentModelName.LoadFromFile(tmpName)
 	Else
@@ -568,7 +579,11 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	End If
 	cboAIAgentModelName.Text = Temp
 	Temp = cboAIAgentHost.Text
-	tmpName = ExePath & "/Resources/AIAgent/Host.ini"
+	tmpName = GetUserDataPath("AIAgent/Host.ini")
+	legacyName = ExePath & "/Resources/AIAgent/Host.ini"
+	If Not FileExists(tmpName) AndAlso FileExists(legacyName) Then
+		If FileCopy(legacyName, tmpName) <> 0 Then MsgBox "Unable to migrate AI host list to: " & tmpName
+	End If
 	If Dir(tmpName) <> "" Then
 		cboAIAgentHost.LoadFromFile(tmpName)
 	Else
@@ -591,7 +606,11 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	End If
 	cboAIAgentHost.Text = Temp
 	Temp = cboAIAgentAddress.Text
-	tmpName = ExePath & "/Resources/AIAgent/Address.ini"
+	tmpName = GetUserDataPath("AIAgent/Address.ini")
+	legacyName = ExePath & "/Resources/AIAgent/Address.ini"
+	If Not FileExists(tmpName) AndAlso FileExists(legacyName) Then
+		If FileCopy(legacyName, tmpName) <> 0 Then MsgBox "Unable to migrate AI address list to: " & tmpName
+	End If
 	If Dir(tmpName) <> "" Then
 		cboAIAgentAddress.LoadFromFile(tmpName)
 	Else
@@ -606,7 +625,11 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 	End If
 	cboAIAgentAddress.Text = Temp
 	Temp = cboAIAgentProvider.Text
-	tmpName = ExePath & "/Resources/AIAgent/Provider.ini"
+	tmpName = GetUserDataPath("AIAgent/Provider.ini")
+	legacyName = ExePath & "/Resources/AIAgent/Provider.ini"
+	If Not FileExists(tmpName) AndAlso FileExists(legacyName) Then
+		If FileCopy(legacyName, tmpName) <> 0 Then MsgBox "Unable to migrate AI provider list to: " & tmpName
+	End If
 	If Dir(tmpName) <> "" Then
 		cboAIAgentProvider.LoadFromFile(tmpName)
 	Else

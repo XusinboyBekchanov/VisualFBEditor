@@ -3831,6 +3831,8 @@ runtype = RTOFF
 		Dim As CONSOLE_SCREEN_BUFFER_INFO csbi
 		Dim As SMALL_RECT disparea=Type(0,0,0,0)
 		Dim As Short maxcoordysav
+		Dim As UString LogPath
+		Dim As Integer OpenResult
 		If t=" $$$$___CLOSE ALL___$$$$ " Then
 			If scrnnumber<>0 And (flaglog And 1)=0 Then FreeConsole():scrnnumber=0
 			If filenumber And (flaglog And 2)=0 Then Close filenumber:filenumber=0
@@ -3866,12 +3868,24 @@ runtype = RTOFF
 		End If
 		
 		If filenumber=0 And (flaglog And 2) Then
-			filenumber = FreeFile: Open GetSpecialPath("USERTEMP") + "\dbg_log_file.txt"  For Append As filenumber
-			Print #filenumber,Date,Time
+			LogPath = GetUserTempPath("dbg_log_file.txt")
+			If LogPath <> "" Then
+				filenumber = FreeFile
+				OpenResult = Open(LogPath For Append As filenumber)
+			Else
+				OpenResult = -1
+			End If
+			If OpenResult = 0 Then
+				Print #filenumber,Date,Time
+			Else
+				filenumber = 0
+				flaglog = flaglog And 1
+				MsgBox("Unable to open debugger log file: " & LogPath, "Debugger")
+			End If
 		End If
 		
 		If (flaglog And 1) Then libel=t+Chr(13)+Chr(10):WriteConsole(scrnnumber, StrPtr(libel),Len(libel),@cpt,0)
-		If (flaglog And 2) Then Print # filenumber,t
+		If (flaglog And 2) AndAlso filenumber <> 0 Then Print # filenumber,t
 		
 	End Sub
 	
@@ -15140,8 +15154,12 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	'#endif
 		Dim As Integer Fn = FreeFile_
-		Dim As String TempFolder = GetSpecialPath("USERTEMP")
-		Open TempFolder & "/GDBCommands.txt" For Output As #Fn
+		Dim As UString GDBCommandsPath = GetUserTempPath("GDBCommands.txt")
+		If GDBCommandsPath = "" Then Exit Sub
+		If Open(GDBCommandsPath For Output As #Fn) <> 0 Then
+			MsgBox "Unable to create GDB command file: " & GDBCommandsPath
+			Exit Sub
+		End If
 		'If TurnOnEnvironmentVariables AndAlso *EnvironmentVariables <> "" Then
 		'	Print #Fn, "set environment " & Replace(*EnvironmentVariables, "=", " ")
 		'End If
@@ -15159,7 +15177,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		Next jj
 		Print #Fn, "r"
 		CloseFile_(Fn)
-		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & TempFolder & "/GDBCommands.txt""")
+		WAdd(CmdL, IIf(WGet(DebuggerPath) = "", "gdb", "") & " -x """ & GDBCommandsPath & """")
 	Else
 		If Idx = -1 Then
 			WAdd(CmdL, " """ & GetFileName(exename) & """ " & *RunArguments)

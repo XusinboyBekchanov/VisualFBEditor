@@ -511,8 +511,11 @@ Private Sub frmFindInFiles.ReplaceInFile(ByRef Path As WString ="", ByRef tSearc
 	txtReplace.Text = ""
 	If LCase(tML) = LCase(tReplace) Then
 		Fn = FreeFile_
-		If Open(ExePath & "\Languages.txt" For Output Encoding "utf-8" As #Fn) = 0 Then
+		Dim As UString LanguagePath = GetUserDataPath("Languages.txt")
+		If LanguagePath <> "" AndAlso Open(LanguagePath For Output Encoding "utf-8" As #Fn) = 0 Then
 			Print #Fn, *BuffOut
+		ElseIf LanguagePath <> "" Then
+			MsgBox "Unable to save language data to: " & LanguagePath
 		End If
 		CloseFile_(Fn)
 	End If

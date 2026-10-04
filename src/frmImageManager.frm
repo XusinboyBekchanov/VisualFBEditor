@@ -711,7 +711,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 	ResourceFile = GetResourceFile(WithoutMainNode)
 	ExeFileName = GetFullPath(GetExeFileName(MainFile, CompileLine & " " & sFirstLine), MainFile)
 	FolderName = GetFolderName(ExeFileName)
-	If FolderName = "" Then ExeFileName = IIf(FolderName = "", ExePath & Slash & "Projects" & Slash, FolderName) & ExeFileName
+	If FolderName = "" Then ExeFileName = GetFullPath(*ProjectsPath) & Slash & ExeFileName
 	Dim As Dictionary ResNamePaths
 	If CurrentImageList = 0 Then
 		Var Fn = FreeFile_, Pos1 = 0, Result = 0

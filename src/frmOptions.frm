@@ -3582,11 +3582,21 @@ Sub frmOptions.LoadSettings()
 			If ..Left(f, Len(f) - 4) <> "" Then .cboInterfaceTheme.AddItem ..Left(f, Len(f) - 4)
 			f = Dir()
 		Wend
+		f = Dir(GetUserDataPath("Settings/Themes/Interface/") & "*.ini")
+		While f <> ""
+			If ..Left(f, Len(f) - 4) <> "" AndAlso .cboInterfaceTheme.IndexOf(..Left(f, Len(f) - 4)) = -1 Then .cboInterfaceTheme.AddItem ..Left(f, Len(f) - 4)
+			f = Dir()
+		Wend
 		.cboInterfaceTheme.ItemIndex = .cboInterfaceTheme.IndexOf(*CurrentInterfaceTheme)
 		.cboTheme.Clear
 		f = Dir(ExePath & "/Settings/Themes/*.ini")
 		While f <> ""
 			If ..Left(f, Len(f) - 4) <> "" Then .cboTheme.AddItem ..Left(f, Len(f) - 4)
+			f = Dir()
+		Wend
+		f = Dir(GetUserDataPath("Settings/Themes/") & "*.ini")
+		While f <> ""
+			If ..Left(f, Len(f) - 4) <> "" AndAlso .cboTheme.IndexOf(..Left(f, Len(f) - 4)) = -1 Then .cboTheme.AddItem ..Left(f, Len(f) - 4)
 			f = Dir()
 		Wend
 		.cboTheme.ItemIndex = .cboTheme.IndexOf(*CurrentTheme)
@@ -4298,10 +4308,16 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		darkTextColor = .InterfaceColors(2)
 		SetColors
 		If .HotKeysChanged Then
-			Dim As Integer Pos1, Fn = FreeFile_
+			Dim As Integer Pos1, Fn = FreeFile_, Result
 			Dim As MenuItem Ptr Item
 			Dim As String Key
-			Open GetOSPath(GetSpecialPath("USERSETTINGS") & APP_TITLE & "/Settings/Others/HotKeys.txt") For Output As #Fn
+			Dim As UString HotKeysPath = GetUserDataPath("Settings/Others/HotKeys.txt")
+			If HotKeysPath = "" Then Exit Sub
+			Result = Open(HotKeysPath For Output As #Fn)
+			If Result <> 0 Then
+				MsgBox "Unable to save hotkeys to: " & HotKeysPath
+				Exit Sub
+			End If
 			For i As Integer = 0 To .lvShortcuts.ListItems.Count - 1
 				If .HotKeysPriv.Item(i) = "" Then Continue For
 				Item = .lvShortcuts.ListItems.Item(i)->Tag
@@ -4565,12 +4581,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			Next i
 		#endif
 		
-		iniInterfaceTheme.Load ExePath & "/Settings/Themes/Interface/" & *CurrentInterfaceTheme & ".ini"
+		iniInterfaceTheme.Load GetUserThemePath(*CurrentInterfaceTheme, True)
 		iniInterfaceTheme.WriteInteger("Colors", "DarkBackground", darkBkColor, True)
 		iniInterfaceTheme.WriteInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor, True)
 		iniInterfaceTheme.WriteInteger("Colors", "Text", darkTextColor, True)
 		
-		piniTheme->Load ExePath & "/Settings/Themes/" & *CurrentTheme & ".ini"
+		piniTheme->Load GetUserThemePath(*CurrentTheme)
 		piniTheme->WriteInteger("Colors", "BookmarksForeground", Bookmarks.ForegroundOption, True)
 		piniTheme->WriteInteger("Colors", "BookmarksBackground", Bookmarks.BackgroundOption, True)
 		piniTheme->WriteInteger("Colors", "BookmarksFrame", Bookmarks.FrameOption, True)
@@ -5018,7 +5034,7 @@ End Sub
 Private Sub frmOptions.cboTheme_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If UBound(.Colors) = -1 Then Exit Sub
-		piniTheme->Load ExePath & "/Settings/Themes/" & fOptions.cboTheme.Text & ".ini"
+		piniTheme->Load GetUserThemePath(fOptions.cboTheme.Text)
 		#ifdef __USE_GTK__
 			.Colors(30 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", clBlack)
 			.Colors(30 + UBound(Keywords), 1) = piniTheme->ReadInteger("Colors", "NormalTextBackground", clWhite)
@@ -5325,7 +5341,7 @@ End Sub
 
 Private Sub frmOptions.cmdRemove_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
-		Kill ExePath & "/Settings/Themes/" & .cboTheme.Text & ".ini"
+		Kill GetUserDataPath("Settings/Themes/" & .cboTheme.Text & ".ini")
 		.cboTheme.RemoveItem .cboTheme.ItemIndex
 		.cboTheme.ItemIndex = 0
 		.cboTheme_Change(Designer, Sender)
@@ -6974,7 +6990,7 @@ End Sub
 
 Private Sub frmOptions.cboInterfaceTheme_Change(ByRef Sender As ComboBoxEdit)
 	If UBound(InterfaceColors) = -1 Then Exit Sub
-	iniInterfaceTheme.Load ExePath & "/Settings/Themes/Interface/" & fOptions.cboInterfaceTheme.Text & ".ini"
+	iniInterfaceTheme.Load GetUserThemePath(fOptions.cboInterfaceTheme.Text, True)
 	InterfaceColors(0) = iniInterfaceTheme.ReadInteger("Colors", "DarkBackground", darkBkColor)
 	InterfaceColors(1) = iniInterfaceTheme.ReadInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor)
 	InterfaceColors(2) = iniInterfaceTheme.ReadInteger("Colors", "Text", darkTextColor)
@@ -7001,7 +7017,7 @@ Private Sub frmOptions.cmdInterfaceThemeAdd_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmOptions.cmdInterfaceThemeRemove_Click(ByRef Sender As Control)
-	Kill ExePath & "/Settings/Themes/Interface/" & cboInterfaceTheme.Text & ".ini"
+	Kill GetUserDataPath("Settings/Themes/Interface/" & cboInterfaceTheme.Text & ".ini")
 	cboInterfaceTheme.RemoveItem cboInterfaceTheme.ItemIndex
 	cboInterfaceTheme.ItemIndex = 0
 	cboInterfaceTheme_Change(cboInterfaceTheme)
