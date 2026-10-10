@@ -167,6 +167,8 @@ Namespace My.Sys.Forms
 		FReportDragStartH    As Integer
 		
 		Declare Function ReportBandEdgeAt(Y As Integer) As Integer
+		Declare Function ReportBandAt(Y As Integer) As Any Ptr
+		Declare Sub SelectReportBand(Band As Any Ptr)
 		As Any Ptr OldCtrl
 		As String OldClassName
 		As Library Ptr OldLibrary
@@ -315,6 +317,10 @@ Namespace My.Sys.Forms
 		'Draws a Report control's band-name strip + band backdrops at design time, exactly
 		'like DrawToolBar draws a ToolBar - see the WM_PAINT case in HookChildProc.
 		Declare Sub DrawReport()
+		#ifndef __USE_GTK__
+			Declare Function ReportSurfaceBrush(hCtl As HWND, hdcCtl As HDC) As HBRUSH
+			Declare Sub DrawReportItem(hCtl As HWND, Ctl As Any Ptr, ByRef ItemClass As String)
+		#endif
 		Declare Sub DrawThis() 'DC as HDC, R as RECT)
 		Declare Function Symbols(AClassName As String) As SymbolsType Ptr
 		Declare Function Symbols(Ctrl As Any Ptr) As SymbolsType Ptr

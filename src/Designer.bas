@@ -27,6 +27,9 @@ Namespace My.Sys.Forms
 		End Function
 	#endif
 	
+	'Report dizaynerida chapdagi band nomlari ustunining kengligi (DrawReport chizadi).
+	Const RPT_BAND_LIST_WIDTH As Integer = 20
+
 	'Y koordinatasi biror band chegarasining RPT_EDGE_ZONE atrofida bo'lsa, o'sha band indeksini,
 	'aks holda -1 ni qaytaradi.
 	Function Designer.ReportBandEdgeAt(Y As Integer) As Integer
@@ -40,6 +43,7 @@ Namespace My.Sys.Forms
 		Dim As Integer Top = 0
 		For i As Integer = 0 To BandCount - 1
 			Dim As Any Ptr Band = st->ReportBandByIndexFunc(DesignControl, i)
+			If Band = 0 OrElse st->ReadPropertyFunc(Band, "Height") = 0 Then Continue For
 			Dim As Integer h    = QInteger(st->ReadPropertyFunc(Band, "Height"))
 			Dim As Integer Edge = Top + h
 			If Y >= Edge - EdgeZone AndAlso Y <= Edge + EdgeZone Then Return i
@@ -47,7 +51,44 @@ Namespace My.Sys.Forms
 		Next i
 		Return -1
 	End Function
-	
+
+	'Y koordinatasi tushgan bandni (ReportBand Ptr) qaytaradi, Report dizayneri bo'lmasa
+	'yoki Y hech bir band ichida bo'lmasa 0.
+	Function Designer.ReportBandAt(Y As Integer) As Any Ptr
+		If Not IsReportDesigner Then Return 0
+		Dim As SymbolsType Ptr st = Symbols(DesignControl)
+		If st = 0 OrElse st->ReadPropertyFunc = 0 OrElse st->ReportBandByIndexFunc = 0 Then Return 0
+		If WGet(st->ReadPropertyFunc(DesignControl, "ClassName")) <> "Report" Then Return 0
+
+		Dim As Integer BandCount = QInteger(st->ReadPropertyFunc(DesignControl, "BandCount"))
+		Dim As Integer Top = 0
+		For i As Integer = 0 To BandCount - 1
+			Dim As Any Ptr Band = st->ReportBandByIndexFunc(DesignControl, i)
+			If Band = 0 OrElse st->ReadPropertyFunc(Band, "Height") = 0 Then Continue For
+			Dim As Integer h    = QInteger(st->ReadPropertyFunc(Band, "Height"))
+			If Y >= Top AndAlso Y < Top + h Then Return Band
+			Top += h
+		Next i
+		Return 0
+	End Function
+
+	'Bandning o'z oynasi (HWND) yo'q, shuning uchun MoveDots uni tanlay olmaydi - bu yerda
+	'uni to'g'ridan-to'g'ri tanlangan qilib, xossalar oynasiga uzatamiz.
+	Sub Designer.SelectReportBand(Band As Any Ptr)
+		If Band = 0 Then Exit Sub
+		HideDots
+		SelectedControls.Clear
+		SelectedControls.Add Band
+		SelectedControl = Band
+		FSelControl     = FDialog
+		#ifdef __USE_GTK__
+			If GTK_IS_WIDGET(layoutwidget) Then gtk_widget_queue_draw(layoutwidget)
+		#else
+			RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
+		#endif
+		If OnChangeSelection Then OnChangeSelection(This, SelectedControl)
+	End Sub
+
 	Function Designer.GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
 		If iControl = 0 Then Return iControl
 		Dim As Any Ptr iParentControl, iParentControlSave
@@ -764,6 +805,16 @@ Namespace My.Sys.Forms
 		HideDots
 		Dim As Any Ptr SelCtrl = ControlAt(DesignControl, X, Y, Ctrl)
 		FDotIndex   = IsDot(FOverControl)
+		'Report dizaynerida chapdagi band nomlari ustuniga bosilsa - darhol o'sha bandni
+		'tanlaymiz (aks holda tugma qo'yib yuborilguncha Report xossalari ko'rinib turadi).
+		If CBool(FDotIndex = -1) AndAlso CBool(SelCtrl = DesignControl) AndAlso CBool(X < RPT_BAND_LIST_WIDTH) AndAlso CBool(Not bCtrl) AndAlso CBool(Not bShift) AndAlso CBool(Not ClassExists) Then
+			Dim As Any Ptr ClickedBand = ReportBandAt(Y)
+			If ClickedBand Then
+				FDown = False
+				SelectReportBand(ClickedBand)
+				Exit Sub
+			End If
+		End If
 		If FDotIndex = -1 Then
 			If bCtrl Or bShift Then
 				If SelectedControls.Contains(SelCtrl) Then
@@ -1628,6 +1679,9 @@ Namespace My.Sys.Forms
 	
 	Function Designer.CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
 		On Error Goto ErrorHandler
+		If LCase(AClassName) = "report" Then
+			Return This.CreateReportControl(AClassName, AName, AText, AParent, x, y, cx, cy, bNotHook)
+		End If
 		Dim As SymbolsType Ptr st = Symbols(AClassName)
 		Ctrl = 0
 		FSelControl = 0
@@ -1778,6 +1832,18 @@ Namespace My.Sys.Forms
 					SelectedControl = Ctrl
 					If st->WritePropertyFunc Then
 						Dim As Boolean bTrue = True
+						If LCase(AClassName) = "report" AndAlso AParent <> 0 Then
+							#ifdef __USE_GTK__
+								Dim As GtkWidget Ptr hostWidget = st->ReadPropertyFunc(AParent, "Widget")
+								st->WritePropertyFunc(Ctrl, "ParentWidget", hostWidget)
+							#else
+								Dim As HWND Ptr hostHandle = st->ReadPropertyFunc(AParent, "Handle")
+								If hostHandle <> 0 Then
+									ParentHandle = *hostHandle
+									st->WritePropertyFunc(Ctrl, "ParentHandle", @ParentHandle)
+								End If
+							#endif
+						End If
 						st->WritePropertyFunc(Ctrl, "DesignMode", @bTrue)
 						st->WritePropertyFunc(Ctrl, "ControlDesigner", @This)
 						#ifdef __USE_GTK__
@@ -1795,8 +1861,10 @@ Namespace My.Sys.Forms
 						#else
 							Dim As HWND Ptr hHandle = st->ReadPropertyFunc(Ctrl, "Handle")
 							Dim As Any Ptr BandParent
-							If AParent <> 0 Then BandParent = st->ReadPropertyFunc(AParent, "Parent")
-							If BandParent <> 0 Then ParentHandle = *Cast(HWND Ptr, st->ReadPropertyFunc(BandParent, "Handle"))
+							If LCase(AClassName) <> "report" Then
+								If AParent <> 0 Then BandParent = st->ReadPropertyFunc(AParent, "Parent")
+								If BandParent <> 0 Then ParentHandle = *Cast(HWND Ptr, st->ReadPropertyFunc(BandParent, "Handle"))
+							End If
 							If hHandle <> 0 Then FSelControl = *hHandle
 						#endif
 					End If
@@ -2258,35 +2326,61 @@ Namespace My.Sys.Forms
 			Dim As PAINTSTRUCT Ps
 			Dim As Integer BackColor
 			Dim As SymbolsType Ptr st = Symbols(DesignControl)
-			If st AndAlso st->ReadPropertyFunc Then BackColor = QInteger(st->ReadPropertyFunc(DesignControl, "BackColor"))
+			BackColor = -1
+			If st AndAlso st->ReadPropertyFunc Then
+				Dim As Any Ptr pBackColor = st->ReadPropertyFunc(DesignControl, "BackColor")
+				If pBackColor Then BackColor = QInteger(pBackColor)
+			End If
+			'Report.BackColor defaults to -1 (not set) - CreateSolidBrush(-1) paints
+			'black and hides the grid dots, so fall back to a white "paper" background.
+			If BackColor < 0 Then BackColor = BGR(255, 255, 255)
 			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
+			FStepX = GridSize
+			FStepY = GridSize
 			FHDC = BeginPaint(FDialog, @Ps)
 			GetClientRect(FDialog, @R)
-			If FGridBrush Then
-				DeleteObject(FGridBrush)
+			If ShowAlignmentGrid AndAlso FStepX > 0 AndAlso FStepY > 0 Then
+				If FGridBrush Then
+					DeleteObject(FGridBrush)
+				End If
+				Dim As HDC mDc
+				Dim As HBITMAP mBMP, pBMP
+				Dim As ..Rect BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
+				mDc   = CreateCompatibleDC(FHDC)
+				mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
+				pBMP  = SelectObject(mDc, mBMP)
+				FillRect(mDc, @BrushRect, Brush)
+				SetPixel(mDc, 0, 0, 0)
+				FGridBrush = CreatePatternBrush(mBMP)
+				FillRect(FHDC, @R, FGridBrush)
+				SelectObject(mDc, pBMP)
+				DeleteObject(mBMP)
+				DeleteDC(mDc)
+			Else
+				FillRect(FHDC, @R, Brush)
 			End If
-			Dim As HDC mDc
-			Dim As HBITMAP mBMP, pBMP
-			Dim As ..Rect BrushRect = Type(0, 0, ScaleX(FStepX), ScaleY(FStepY))
-			mDc   = CreateCompatibleDC(FHDC)
-			mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
-			pBMP  = SelectObject(mDc, mBMP)
-			FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
-			SetPixel(mDc, 0, 0, 0)
-			'for lines use MoveTo and LineTo or Rectangle function or whatever...
-			FGridBrush = CreatePatternBrush(mBMP)
-			FillRect(FHDC, @R, FGridBrush)
-			SelectObject(mDc, pBMP)
-			DeleteObject(mBMP)
-			DeleteDC(mDc)
-			If st AndAlso st->ReadPropertyFunc AndAlso st->ReportBandByIndexFunc Then
-				Dim As Integer BandCount  = QInteger(st->ReadPropertyFunc(DesignControl, "BandCount"))
-				Dim As Integer ActiveBand = 0 'QInteger(st->ReadPropertyFunc(DesignControl, "ActiveBand"))
+			DeleteObject(Brush)
+			Dim As Any Ptr pBandCount
+			If st AndAlso st->ReadPropertyFunc AndAlso st->ReportBandByIndexFunc Then pBandCount = st->ReadPropertyFunc(DesignControl, "BandCount")
+			If pBandCount Then
+				Dim As Integer BandCount  = QInteger(pBandCount)
+				'Faol band - tanlangan bandning o'zi yoki tanlangan control joylashgan band.
+				Dim As Any Ptr ActiveBandPtr
+				If SelectedControl <> 0 AndAlso SelectedControl <> DesignControl Then
+					Dim As SymbolsType Ptr stSel = Symbols(SelectedControl)
+					If stSel AndAlso stSel->ReadPropertyFunc Then
+						If WGet(stSel->ReadPropertyFunc(SelectedControl, "ClassName")) = "ReportBand" Then
+							ActiveBandPtr = SelectedControl
+						Else
+							ActiveBandPtr = stSel->ReadPropertyFunc(SelectedControl, "Parent")
+						End If
+					End If
+				End If
 				
 				'Mirrors Report.BAND_LIST_WIDTH/BAND_LIST_ROW_H (Report.bi) - kept as plain
 				'constants here rather than round-tripped through reflection, the same way
 				'DrawToolBar above doesn't reflect ToolBar's own layout constants either.
-				Const ListWidth As Integer = 20
+				Const ListWidth As Integer = RPT_BAND_LIST_WIDTH
 				Const RowH      As Integer = 24
 				
 				Dim As HBRUSH BrushListBg     = CreateSolidBrush(BGR(232, 234, 240))
@@ -2298,7 +2392,7 @@ Namespace My.Sys.Forms
 				
 				'Vertikal yozuv uchun font (90 gradus buralgan).
 				Dim As LOGFONT LF
-				GetObject(Parent->Font.Handle, SizeOf(LF), @LF)
+				If Parent Then GetObject(Parent->Font.Handle, SizeOf(LF), @LF)
 				LF.lfEscapement  = 900
 				Dim As HFONT FontVert = CreateFontIndirect(@LF)
 				Dim As HFONT PrevFont
@@ -2311,20 +2405,27 @@ Namespace My.Sys.Forms
 				Dim As Integer y = 0
 				For i As Integer = 0 To BandCount - 1
 					Dim As Any Ptr Band = st->ReportBandByIndexFunc(DesignControl, i)
-					Dim As Integer h = QInteger(st->ReadPropertyFunc(Band, "Height"))
-					
+					If Band = 0 Then Continue For
+					Dim As Any Ptr pH = st->ReadPropertyFunc(Band, "Height")
+					Dim As Integer h = IIf(pH, QInteger(pH), 0)
+
 					PrevPen = SelectObject(FHDC, PenLine)
 					.MoveToEx FHDC, 0, ScaleY(y + h) - 1, 0
 					.LineTo FHDC, R.Right, ScaleY(y + h) - 1
 					SelectObject(FHDC, PrevPen)
 					
 					'Active row highlight on the left strip.
-					If i = ActiveBand Then
+					If Band = ActiveBandPtr Then
 						Dim As ..Rect RowR = Type<..Rect>(0, ScaleY(y), ScaleX(ListWidth), ScaleY(y + h))
 						FillRect(FHDC, @RowR, BrushActiveRow)
+						'Band o'zi tanlangan bo'lsa, uning butun maydonini nuqtali ramka bilan belgilaymiz.
+						If Band = SelectedControl Then
+							Dim As ..Rect BandR = Type<..Rect>(ScaleX(ListWidth) + 1, ScaleY(y), R.Right, ScaleY(y + h) - 1)
+							DrawFocusRect(FHDC, @BandR)
+						End If
 					End If
 					
-					Dim As Integer BandType = QInteger(st->ReadPropertyFunc(Band, "BandType"))
+					Dim As Any Ptr pBT = st->ReadPropertyFunc(Band, "BandType") : Dim As Integer BandType = IIf(pBT, QInteger(pBT), -1)
 					Dim As UString GroupField = WGet(st->ReadPropertyFunc(Band, "GroupField"))
 					Dim As String Caption
 					Select Case BandType
@@ -2411,6 +2512,153 @@ Namespace My.Sys.Forms
 		#endif
 	End Sub
 	
+	#ifndef __USE_GTK__
+		'Report yuzasining hCtl ostidagi qismiga mos mo'yqalam: to'r yoqilgan bo'lsa nuqtali
+		'pattern (boshi hCtl joyiga surilgan, nuqtalar yuzadagi to'r bilan bir chiziqda),
+		'aks holda Report fon rangi (-1 bo'lsa oq). Shaffof report elementlari uchun.
+		Function Designer.ReportSurfaceBrush(hCtl As HWND, hdcCtl As HDC) As HBRUSH
+			If ShowAlignmentGrid AndAlso FGridBrush <> 0 Then
+				Dim As ..Rect RC
+				GetWindowRect(hCtl, @RC)
+				MapWindowPoints(0, FDialog, Cast(..Point Ptr, @RC), 2)
+				Dim As Integer sx = Max(1, ScaleX(GridSize)), sy = Max(1, ScaleY(GridSize))
+				SetBrushOrgEx(hdcCtl, ((-RC.Left) Mod sx + sx) Mod sx, ((-RC.Top) Mod sy + sy) Mod sy, 0)
+				Return FGridBrush
+			End If
+			Dim As Integer RepBack = -1
+			Dim As SymbolsType Ptr stRep = Symbols(DesignControl)
+			If stRep AndAlso stRep->ReadPropertyFunc Then
+				Dim As Any Ptr pRepBack = stRep->ReadPropertyFunc(DesignControl, "BackColor")
+				If pRepBack Then RepBack = QInteger(pRepBack)
+			End If
+			If RepBack < 0 Then RepBack = BGR(255, 255, 255)
+			SetDCBrushColor(hdcCtl, RepBack)
+			Return Cast(HBRUSH, GetStockObject(DC_BRUSH))
+		End Function
+
+		'ReportLine/ReportShape'ni dizaynerda chizadi - Report.DrawReportControlContent chop
+		'etishda qanday chizsa, shunday (chiziq yuqori/chap chetda LineWidth qalinlikda).
+		Sub Designer.DrawReportItem(hCtl As HWND, Ctl As Any Ptr, ByRef ItemClass As String)
+			Dim As SymbolsType Ptr st = Symbols(Ctl)
+			If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
+			Dim As PAINTSTRUCT Ps
+			Dim As ..Rect R
+			Dim As HDC hdcCtl = BeginPaint(hCtl, @Ps)
+			GetClientRect(hCtl, @R)
+			FillRect(hdcCtl, @R, ReportSurfaceBrush(hCtl, hdcCtl))
+
+			Dim As Any Ptr p
+			If ItemClass = "ReportImage" Then
+				'Graphic (GraphicType) - Image (HBITMAP/HICON) va ImageType'ni ham reflection
+				'orqali o'qiymiz. Chop etishdagidek butun maydonga cho'zib chiziladi.
+				Dim As Any Ptr hImg
+				Dim As Integer ImgType
+				Dim As Any Ptr pGraphic = st->ReadPropertyFunc(Ctl, "Graphic")
+				If pGraphic Then
+					hImg = st->ReadPropertyFunc(pGraphic, "Image")
+					p = st->ReadPropertyFunc(pGraphic, "ImageType"): If p Then ImgType = QInteger(p)
+				End If
+				If hImg Then
+					If ImgType = 0 Then
+						Dim As BITMAP bm
+						GetObject(hImg, SizeOf(bm), @bm)
+						Dim As HDC hdcImg = CreateCompatibleDC(hdcCtl)
+						Dim As HGDIOBJ PrevBmp = SelectObject(hdcImg, hImg)
+						'32 bitli rasmda alfa kanali haqiqatan ishlatilganmi (hammasi 0 bo'lsa -
+						'AlphaBlend rasmni butunlay ko'rinmas qilib qo'yardi).
+						Dim As Boolean HasAlpha
+						If bm.bmBitsPixel = 32 AndAlso bm.bmBits <> 0 Then
+							Dim As UByte Ptr px = bm.bmBits
+							For k As Integer = 3 To bm.bmWidthBytes * Abs(bm.bmHeight) - 1 Step 4
+								If px[k] <> 0 Then HasAlpha = True: Exit For
+							Next
+						End If
+						If HasAlpha Then
+							'PNG va boshqa alfa kanalli rasmlar - shaffof joylari fonni ko'rsatadi.
+							Dim As BLENDFUNCTION bf = Type(AC_SRC_OVER, 0, 255, AC_SRC_ALPHA)
+							AlphaBlend(hdcCtl, 0, 0, R.Right, R.Bottom, hdcImg, 0, 0, bm.bmWidth, bm.bmHeight, bf)
+						Else
+							SetStretchBltMode(hdcCtl, HALFTONE)
+							SetBrushOrgEx(hdcCtl, 0, 0, 0)
+							StretchBlt(hdcCtl, 0, 0, R.Right, R.Bottom, hdcImg, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY)
+						End If
+						SelectObject(hdcImg, PrevBmp)
+						DeleteDC(hdcImg)
+					Else
+						DrawIconEx(hdcCtl, 0, 0, hImg, R.Right, R.Bottom, 0, 0, DI_NORMAL)
+					End If
+				Else
+					'Rasm yo'q - elementni ko'rinadigan qilish uchun punktir ramka va DataField nomi.
+					Dim As HPEN Pen = CreatePen(PS_DOT, 1, BGR(150, 150, 160))
+					Dim As HGDIOBJ PrevPen = SelectObject(hdcCtl, Pen)
+					Dim As HGDIOBJ PrevBrush = SelectObject(hdcCtl, GetStockObject(NULL_BRUSH))
+					.Rectangle(hdcCtl, R.Left, R.Top, R.Right, R.Bottom)
+					SelectObject(hdcCtl, PrevPen)
+					SelectObject(hdcCtl, PrevBrush)
+					DeleteObject(Pen)
+					Dim As WString * 256 Caption = "(Image)"
+					p = st->ReadPropertyFunc(Ctl, "DataField")
+					If p AndAlso Len(QWString(p)) > 0 Then Caption = "[" & QWString(p) & "]"
+					SetBkMode(hdcCtl, TRANSPARENT)
+					SetTextColor(hdcCtl, BGR(110, 110, 120))
+					Dim As HGDIOBJ PrevFont
+					If Parent Then PrevFont = SelectObject(hdcCtl, Parent->Font.Handle)
+					DrawTextW(hdcCtl, @Caption, -1, @R, DT_CENTER Or DT_VCENTER Or DT_SINGLELINE Or DT_END_ELLIPSIS)
+					If PrevFont Then SelectObject(hdcCtl, PrevFont)
+				End If
+			ElseIf ItemClass = "ReportLine" Then
+				Dim As Integer LineColor, LineWidth = 1
+				Dim As Boolean IsVertical
+				p = st->ReadPropertyFunc(Ctl, "LineColor"): If p Then LineColor = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "LineWidth"): If p Then LineWidth = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "Vertical"):  If p Then IsVertical = QBoolean(p)
+				If LineWidth < 1 Then LineWidth = 1
+				Dim As ..Rect LR = R
+				If IsVertical Then
+					LR.Right = Min(R.Right, Max(1, ScaleX(LineWidth)))
+				Else
+					LR.Bottom = Min(R.Bottom, Max(1, ScaleY(LineWidth)))
+				End If
+				SetDCBrushColor(hdcCtl, LineColor)
+				FillRect(hdcCtl, @LR, Cast(HBRUSH, GetStockObject(DC_BRUSH)))
+			Else
+				Dim As Integer ShapeKind, BorderColor, BorderWidth = 1, FillColor = BGR(255, 255, 255)
+				Dim As Boolean Filled
+				p = st->ReadPropertyFunc(Ctl, "ShapeKind"):   If p Then ShapeKind = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "BorderColor"): If p Then BorderColor = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "BorderWidth"): If p Then BorderWidth = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "FillColor"):   If p Then FillColor = QInteger(p)
+				p = st->ReadPropertyFunc(Ctl, "Filled"):      If p Then Filled = QBoolean(p)
+				If FillColor = -1 Then Filled = False 'FillColor berilmagan - ichi bo'yalmaydi
+				'PS_INSIDEFRAME: qalin chegara ham control chegarasidan tashqariga chiqmaydi.
+				Dim As HPEN Pen
+				If BorderWidth > 0 Then
+					Pen = CreatePen(PS_INSIDEFRAME, Max(1, ScaleX(BorderWidth)), BorderColor)
+				Else
+					Pen = CreatePen(PS_NULL, 1, BorderColor)
+				End If
+				Dim As HBRUSH Brush
+				If Filled Then
+					Brush = CreateSolidBrush(FillColor)
+				Else
+					Brush = Cast(HBRUSH, GetStockObject(NULL_BRUSH))
+				End If
+				Dim As HGDIOBJ PrevPen = SelectObject(hdcCtl, Pen)
+				Dim As HGDIOBJ PrevBrush = SelectObject(hdcCtl, Brush)
+				If ShapeKind = 1 Then 'rshEllipse
+					.Ellipse(hdcCtl, R.Left, R.Top, R.Right, R.Bottom)
+				Else
+					.Rectangle(hdcCtl, R.Left, R.Top, R.Right, R.Bottom)
+				End If
+				SelectObject(hdcCtl, PrevPen)
+				SelectObject(hdcCtl, PrevBrush)
+				DeleteObject(Pen)
+				If Filled Then DeleteObject(Brush)
+			End If
+			EndPaint(hCtl, @Ps)
+		End Sub
+	#endif
+
 	Sub Designer.DrawThis()
 		FStepX = GridSize
 		FStepY = GridSize
@@ -2588,6 +2836,20 @@ Namespace My.Sys.Forms
 						Case "ToolBar", "ToolPalette"
 							.DrawToolBar hDlg
 							Return 1
+						Case "Static", "STATIC", "static"
+							'ReportLine/ReportShape oddiy STATIC oynalar - ularni o'zimiz chizamiz.
+							If .IsReportDesigner Then
+								Dim As Any Ptr Ctl = .GetControl(hDlg)
+								Dim As SymbolsType Ptr stCtl = .Symbols(Ctl)
+								If stCtl AndAlso stCtl->ReadPropertyFunc Then
+									Dim As String ItemClass = WGet(stCtl->ReadPropertyFunc(Ctl, "ClassName"))
+									If ItemClass = "ReportLine" OrElse ItemClass = "ReportShape" OrElse ItemClass = "ReportImage" Then
+										'Fon ham WM_PAINT ichida chiziladi - alohida o'chirish shart emas.
+										If uMsg = WM_PAINT Then .DrawReportItem(hDlg, Ctl, ItemClass)
+										Return 1
+									End If
+								End If
+							End If
 						End Select
 					#endif
 					#ifdef __USE_GTK__
@@ -3352,17 +3614,47 @@ Namespace My.Sys.Forms
 					Select Case uMsg
 				#endif
 					#ifndef __USE_GTK__
-					Case WM_PAINT, WM_ERASEBKGND
+					Case WM_ERASEBKGND
+						'WM_PAINT below repaints the whole client area - erasing here too would
+						'paint everything twice per update and make the surface flicker.
+						Return 1
+					Case WM_PAINT
 						'Function = CallWindowProc(GetProp(hDlg, "@@@Proc"), hDlg, uMsg, wParam, lParam)
-						Select Case GetClassNameOf(hDlg)
-						Case "Report"
-							.DrawReport
+						Select Case hDlg
+						Case .FDialog
+							'Oddiy Form dizaynerida ham shu yerga keladi - u yerda bandlar yo'q.
+							If .IsReportDesigner Then .DrawReport Else .DrawThis
 							Return 1
 						Case Else
 							.DrawThis
 							Return 1
 						End Select
 						'Exit Function
+					Case WM_CTLCOLORSTATIC
+						'ReportField/ReportLabel: Transparent = True bo'lsa fon sifatida Report yuzasining
+						'o'zi (nuqtali to'r bilan) ko'rinadi, aks holda BackColor bilan bo'yaladi.
+						If .IsReportDesigner Then
+							Dim As HWND hCtl = Cast(HWND, lParam)
+							Dim As HDC hdcCtl = Cast(HDC, wParam)
+							Dim As Any Ptr Ctl = .GetControl(hCtl)
+							Dim As SymbolsType Ptr stCtl = .Symbols(Ctl)
+							Dim As Any Ptr pTransparent
+							If stCtl AndAlso stCtl->ReadPropertyFunc Then pTransparent = stCtl->ReadPropertyFunc(Ctl, "Transparent")
+							If pTransparent Then
+								Dim As Integer CtlBack = -1
+								Dim As Any Ptr pCtlBack = stCtl->ReadPropertyFunc(Ctl, "BackColor")
+								If pCtlBack Then CtlBack = QInteger(pCtlBack)
+								If QBoolean(pTransparent) OrElse CtlBack = -1 Then
+									SetBkMode(hdcCtl, TRANSPARENT)
+									Return Cast(LRESULT, .ReportSurfaceBrush(hCtl, hdcCtl))
+								Else
+									SetBkMode(hdcCtl, OPAQUE)
+									SetBkColor(hdcCtl, CtlBack)
+									SetDCBrushColor(hdcCtl, CtlBack)
+									Return Cast(LRESULT, GetStockObject(DC_BRUSH))
+								End If
+							End If
+						End If
 					Case WM_NCHITTEST
 						Return HTTRANSPARENT
 					Case WM_NCCALCSIZE
@@ -3731,7 +4023,9 @@ Namespace My.Sys.Forms
 							.FReportDragBandIndex = BandIdx
 							.FReportDragStartY    = .UnScaleY(HiWord(lParam))
 							.FReportDragStartH    = QInteger(st->ReadPropertyFunc(Band, "Height"))
-							
+
+							'Balandligi o'zgartirilayotgan band tanlanadi - xossalarda Height jonli ko'rinadi.
+							.SelectReportBand(Band)
 							SetCapture(hDlg)
 							SetCursor(LoadCursor(0, IDC_SIZENS))
 							Return 0
@@ -3796,8 +4090,16 @@ Namespace My.Sys.Forms
 					
 							Dim As SymbolsType Ptr st = .Symbols(.DesignControl)
 							Dim As Any Ptr Band       = st->ReportBandByIndexFunc(.DesignControl, .FReportDragBandIndex)
-							st->WritePropertyFunc(Band, "height", @NewHeight) 'endi ShiftControlsFrom bilan reflow qiladi
-					
+							If NewHeight <> QInteger(st->ReadPropertyFunc(Band, "Height")) Then
+								'Bandlar va ularning ichidagi controllar birin-ketin siljiydi - har bir
+								'qadamda qayta chizilmasligi uchun chizishni vaqtincha to'xtatib, oxirida
+								'hammasini bir marta chizamiz.
+								SendMessage(.FDialog, WM_SETREDRAW, False, 0)
+								st->WritePropertyFunc(Band, "height", @NewHeight) 'endi ShiftControlsFrom bilan reflow qiladi
+								SendMessage(.FDialog, WM_SETREDRAW, True, 0)
+								RedrawWindow(.FDialog, NULL, NULL, RDW_INVALIDATE Or RDW_ALLCHILDREN Or RDW_UPDATENOW)
+							End If
+
 							SetCursor(LoadCursor(0, IDC_SIZENS))
 							Return 0
 						ElseIf .ReportBandEdgeAt(.UnScaleY(P.Y)) >= 0 Then
@@ -3862,6 +4164,9 @@ Namespace My.Sys.Forms
 				g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookDialogProc), @This)
 			#else
 				SetProp(FDialog, "@@@Designer", @This)
+				'DrawReport paints the whole surface - clip the field controls out of it so they
+				'don't flicker whenever the Report or one of its bands is resized.
+				SetWindowLongPtr(FDialog, GWL_STYLE, GetWindowLongPtr(FDialog, GWL_STYLE) Or WS_CLIPCHILDREN)
 				If GetWindowLongPtr(FDialog, GWLP_WNDPROC) <> @HookDialogProc Then
 					SetProp(FDialog, "@@@Proc", Cast(Any Ptr, SetWindowLongPtr(FDialog, GWLP_WNDPROC, CInt(@HookDialogProc))))
 				End If

@@ -3529,6 +3529,25 @@ Namespace My.Sys.Forms
 						
 						Var hr = pDXGIFactory2->lpVtbl->CreateSwapChainForHwnd(pDXGIFactory2, Cast(IUnknown Ptr, pD3D11Device), FHandle, @swapChainDesc, 0, 0, @pSwapChain)
 						
+						If pSwapChain = 0 Then
+							ReleaseDirect2D
+							KillTimer FHandle, 2
+							Var b = Focused
+							DestroyWindow(sbScrollBarvTop)
+							DestroyWindow(sbScrollBarvBottom)
+							DestroyWindow(sbScrollBarhLeft)
+							DestroyWindow(sbScrollBarhRight)
+							hwndTT = 0
+							hwndTTDropDown = 0
+							hwndTTMouseHover = 0
+							Var pmnuCode = ContextMenu
+							ContextMenu = 0
+							RecreateWnd
+							ContextMenu = pmnuCode
+							Width = Width - 1
+							Width = Width + 1
+							SetScrollsInfo True
+						End If
 						hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_ID3D11Texture2D, @pTexture)
 						'If hr = 0 Then Print __FUNCTION__ & " Line:" & __LINE__ & ". ERROR in function GetBuffer. pTexture = " & pTexture
 						hr = pSwapChain->lpVtbl->GetBuffer(pSwapChain, 0, @IID_IDXGISurface, @pSurface)
@@ -3576,7 +3595,7 @@ Namespace My.Sys.Forms
 			Dim As PangoRectangle extend
 			pango_layout_set_text(layout, ToUtf8("|"), 1)
 			pango_cairo_update_layout(cr, layout)
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(layout, 0)
