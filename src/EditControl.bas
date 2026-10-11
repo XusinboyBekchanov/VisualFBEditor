@@ -220,10 +220,13 @@ Namespace My.Sys.Forms
 				ec->CaretOn = Not ec->CaretOn
 				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
 				'gdk_threads_add_timeout(ec->BlinkTime, @Blink_cb, ec)
-				Return ec->CaretPosShowed < 4
+				If ec->CaretPosShowed < 4 Then Return True
+				ec->FBlinkTimerId = 0
+				Return False
 			Else
 				ec->CaretOn = False
 				If GTK_IS_WIDGET(ec->widget) Then gtk_widget_queue_draw(ec->widget)
+				ec->FBlinkTimerId = 0
 				Return False
 			End If
 		End Function
@@ -2929,7 +2932,7 @@ Namespace My.Sys.Forms
 		OldLine = FSelEndLine
 		OldChar = FSelEndChar
 		#ifdef __USE_GTK__
-			If CaretPosShowed >= 4 Then gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
+			If CaretPosShowed >= 4 AndAlso FBlinkTimerId = 0 Then FBlinkTimerId = gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
 		#endif
 		CaretPosShowed = 0
 	End Sub
@@ -7678,7 +7681,7 @@ Namespace My.Sys.Forms
 			Case GDK_FOCUS_CHANGE
 				InFocus = Cast(GdkEventFocus Ptr, e)->in
 				If InFocus Then
-					gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
+					If FBlinkTimerId = 0 Then FBlinkTimerId = gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
 				Else
 					If DropDownShowed Then CloseDropDown
 					If ToolTipShowed Then CloseToolTip
@@ -9370,6 +9373,9 @@ Namespace My.Sys.Forms
 			_Delete( Cast(EditControlLine Ptr, Content.Lines.Items[i]))
 		Next i
 		#ifdef __USE_GTK__
+			' Remove pending timers so their callbacks are not called with a freed EditControl
+			If FBlinkTimerId <> 0 Then g_source_remove_(FBlinkTimerId): FBlinkTimerId = 0
+			If FDragScrollTimerId <> 0 Then g_source_remove_(FDragScrollTimerId): FDragScrollTimerId = 0
 			lvIntellisense.ListItems.Clear
 		#else
 			cboIntellisense.Items.Clear

@@ -25,12 +25,10 @@
 #include once "mff/StatusBar.bi" 'David Change
 #include once "mff/IniFile.bi"
 #include once "mff/HTTP.bi"
-#ifndef __USE_GTK__
-	#include once "mff/PageSetupDialog.bi"
-	#include once "mff/PrintDialog.bi"
-	#include once "mff/PrintPreviewDialog.bi"
-	#include once "mff/Printer.bi"
-#endif
+#include once "mff/PageSetupDialog.bi"
+#include once "mff/PrintDialog.bi"
+#include once "mff/PrintPreviewDialog.bi"
+#include once "mff/Printer.bi"
 
 #ifndef __USE_GTK__
 	#ifdef __FB_64BIT__

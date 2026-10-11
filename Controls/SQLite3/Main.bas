@@ -1,8 +1,39 @@
-﻿#ifdef __FB_64BIT__
-	#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x64.dll"
+﻿#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
+	#ifdef __FB_64BIT__
+		#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x64.dll"
+	#else
+		#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x32.dll"
+	#endif
+#elseif defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
+	#ifdef __FB_64BIT__
+		#ifdef __USE_GTK3__
+			#cmdline "-dll -x SQLite3Component_x64_gtk3.so"
+		#else
+			#cmdline "-dll -x SQLite3Component_x64_gtk2.so"
+		#endif
+	#else
+		#ifdef __USE_GTK3__
+			#cmdline "-dll -x SQLite3Component_x32_gtk3.so"
+		#else
+			#cmdline "-dll -x SQLite3Component_x64_gtk2.so"
+		#endif
+	#endif
 #else
-	#cmdline "SQLite3Component.rc -dll -x SQLite3Component_x32.dll"
+	#ifdef __FB_64BIT__
+		#ifdef __USE_GTK3__
+			#cmdline "-dll -x SQLite3Component_x64_gtk3.so"
+		#else
+			#cmdline "-dll -x SQLite3Component_x64_gtk2.so"
+		#endif
+	#else
+		#ifdef __USE_GTK3__
+			#cmdline "-dll -x SQLite3Component_x32_gtk3.so"
+		#else
+			#cmdline "-dll -x SQLite3Component_x32_gtk2.so"
+		#endif
+	#endif
 #endif
+
 #define __EXPORT_PROCS__
 
 #include once "SQLite3Component.bi"

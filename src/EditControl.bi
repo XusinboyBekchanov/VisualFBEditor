@@ -421,6 +421,7 @@ Namespace My.Sys.Forms
 		#ifdef __USE_GTK__
 			Dim As gdouble FDragStartX, FDragStartY
 			Dim As guint FDragScrollTimerId = 0
+			Dim As guint FBlinkTimerId = 0
 			Dim As Boolean FGtkPendingDelete = False
 			Dim As Integer FGtkPendingDeleteStartLine, FGtkPendingDeleteStartChar
 			Dim As Integer FGtkPendingDeleteEndLine, FGtkPendingDeleteEndChar

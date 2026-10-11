@@ -10,10 +10,41 @@
 '################################################################################
 
 #include once "SQLite3Component.bi"
-Extern "C"
-	Declare Function sqlite3_key Lib "sqlite3" Alias "sqlite3_key" (ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
-	Declare Function sqlite3_rekey Lib "sqlite3" Alias "sqlite3_rekey" (ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
-End Extern
+#ifndef __USE_WASM__
+	#include once "crt/string.bi"
+#endif
+#ifdef __FB_LINUX__
+	' sqlite3_key/sqlite3_rekey exist only in encryption-enabled builds (SQLCipher, SEE),
+	' the system libsqlite3 does not export them, so look them up at runtime
+	Type sqlite3_key_proc As Function Cdecl(ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Long) As Long
+
+	Private Function sqlite3_codec_symbol(ByRef SymbolName As String) As Any Ptr
+		Static As Any Ptr hLib
+		If hLib = 0 Then hLib = DyLibLoad("libsqlite3.so.0")
+		If hLib = 0 Then hLib = DyLibLoad("sqlite3")
+		If hLib = 0 Then Return 0
+		Return DyLibSymbol(hLib, SymbolName)
+	End Function
+
+	Private Function sqlite3_key(ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
+		Static As sqlite3_key_proc p
+		If p = 0 Then p = sqlite3_codec_symbol("sqlite3_key")
+		If p = 0 Then Print "sqlite3_key is not supported by this SQLite library": Return 1 ' SQLITE_ERROR
+		Return p(db, pKey, nKey)
+	End Function
+
+	Private Function sqlite3_rekey(ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
+		Static As sqlite3_key_proc p
+		If p = 0 Then p = sqlite3_codec_symbol("sqlite3_rekey")
+		If p = 0 Then Print "sqlite3_rekey is not supported by this SQLite library": Return 1 ' SQLITE_ERROR
+		Return p(db, pKey, nKey)
+	End Function
+#else
+	Extern "C"
+		Declare Function sqlite3_key Lib "sqlite3" Alias "sqlite3_key" (ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
+		Declare Function sqlite3_rekey Lib "sqlite3" Alias "sqlite3_rekey" (ByVal db As Any Ptr, ByVal pKey As Const ZString Ptr, ByVal nKey As Integer) As Integer
+	End Extern
+#endif
 
 Private Function SQLite3Component.ReadProperty(PropertyName As String) As Any Ptr
 	Select Case LCase(PropertyName)

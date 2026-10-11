@@ -112,13 +112,11 @@ Dim Shared As ToolButton Ptr tbtAlignLefts, tbtAlignCenters, tbtAlignRights, tbt
 Dim Shared As ToolButton Ptr tbtSave, tbtSaveAll, tbtSyntaxCheck, tbtSuggestions, tbtCompile, tbtUndo, tbtRedo, tbtCut, tbtCopy, tbtPaste, tbtBlockComment, tbtSingleComment, tbtUncommentBlock, tbtFormat, tbtUnformat, tbtCompleteWord, tbtParameterInfo, tbtFind, tbtUseDirect2D, tbtRemoveFileFromProject, tbtStartWithCompile, tbtStart, tbtBreak, tbtEnd, tbt32Bit, tbt64Bit, tbtUseDebugger, tbtNotSetted, tbtConsole, tbtGUI, tbtStepInto, tbtStepOver, tbtStepOut, tbtRunToCursor, tbtToggleBreakpoint, tbtSetNextStatement, tbtShowNextStatement
 Dim Shared As SaveFileDialog SaveD
 Dim Shared As ReBar MainReBar, rbLeft, rbRight, rbBottom
-#ifndef __USE_GTK__
-	Dim Shared As ScrollBarControl scrTool
-	Dim Shared As PageSetupDialog PageSetupD
-	Dim Shared As PrintDialog PrintD
-	Dim Shared As PrintPreviewDialog PrintPreviewD
-	Dim Shared As My.Sys.ComponentModel.Printer pPrinter
-#endif
+Dim Shared As ScrollBarControl scrTool
+Dim Shared As PageSetupDialog PageSetupD
+Dim Shared As PrintDialog PrintD
+Dim Shared As PrintPreviewDialog PrintPreviewD
+Dim Shared As My.Sys.ComponentModel.Printer pPrinter
 Dim Shared As List Tools, TabPanels, ControlLibraries
 Dim Shared As WStringOrStringList Comps, GlobalAsmFunctionsHelp, GlobalFunctionsHelp, Snippets, TypesInFunc, EnumsInFunc
 'Dim Shared As WStringOrStringList GlobalNamespaces, GlobalTypes, GlobalEnums, GlobalDefines, GlobalFunctions, GlobalTypeProcedures, GlobalArgs
@@ -3100,21 +3098,15 @@ Function SaveAllBeforeCompile() As Boolean
 End Function
 
 Sub PrintThis()
-	#ifndef __USE_GTK__
-		PrintD.Execute
-	#endif
+	PrintD.Execute
 End Sub
 
 Sub PrintPreview()
-	#ifndef __USE_GTK__
-		PrintPreviewD.Execute
-	#endif
+	PrintPreviewD.Execute
 End Sub
 
 Sub PageSetup()
-	#ifndef __USE_GTK__
-		PageSetupD.Execute
-	#endif
+	PageSetupD.Execute
 End Sub
 
 Sub CloseAllTabs(WithoutCurrent As Boolean = False)
