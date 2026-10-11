@@ -1155,7 +1155,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		'	WAdd CompileWith, " -Wl ""--post-js " & *MFFPathC & "\mff\Web\mff.js"""
 		'End If
 		If Project Then
-			Select Case Project->CompileTo
+			Select Case IIf(UseGen <> "", ByDefault, Project->CompileTo)
 			Case ByDefault: 'WAdd(CompileWith, " -gen gas" & IIf(Bit32, "32", "64"))
 			Case ToGAS: WAdd(CompileWith, " -gen gas" & IIf(Bit32, "", "64"))
 			Case ToLLVM: WAdd(CompileWith, " -gen llvm")
@@ -8574,7 +8574,8 @@ Sub CreateMenusAndToolBars
 		tbt32Bit->Checked = True
 	#endif
 	tbProject.Buttons.Add tbsSeparator
-	tbButton = tbProject.Buttons.Add(Cast(ToolButtonStyle, tbsWholeDropdown Or tbsAutosize), "Apply", , @mClick, "Use", ML("Use"), ML("Use"), True)
+	tbtUseDefine = tbProject.Buttons.Add(Cast(ToolButtonStyle, tbsWholeDropdown Or tbsAutosize), "Apply", , @mClick, "Use", ML("Use") & ": " & ML("Default"), ML("Use"), True)
+	tbButton = tbtUseDefine
 	Var mnuDefault = tbButton->DropDownMenu.Add(ML("Default"), "", "Default:", @mClickUseDefine, True)
 	tbButton->DropDownMenu.Add "-"
 	Var mnuWinAPI = tbButton->DropDownMenu.Add("WinAPI", "", "WinAPI", @mClickUseDefine)
@@ -8604,6 +8605,16 @@ Sub CreateMenusAndToolBars
 	Var mnuWASM = tbButton->DropDownMenu.Add("WASM", "", "WASM:__USE_WASM__ -target js-asmjs -r", @mClickUseDefine)
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
+	tbtUseGen = tbProject.Buttons.Add(Cast(ToolButtonStyle, tbsWholeDropdown Or tbsAutosize), "Apply", , @mClick, "Gen", ML("Backend") & ": " & ML("Default"), ML("Backend") & " (-gen)", True)
+	tbButton = tbtUseGen
+	Var mnuGenDefault = tbButton->DropDownMenu.Add(ML("Default"), "", "GenDefault:", @mClickUseGen, True)
+	tbButton->DropDownMenu.Add "-"
+	tbButton->DropDownMenu.Add "GAS", "", "GenGAS:gas", @mClickUseGen, True
+	tbButton->DropDownMenu.Add "GCC", "", "GenGCC:gcc", @mClickUseGen, True
+	tbButton->DropDownMenu.Add "LLVM", "", "GenLLVM:llvm", @mClickUseGen, True
+	tbButton->DropDownMenu.Add "CLANG", "", "GenCLANG:clang", @mClickUseGen, True
+	mnuGenDefault->Checked = True
+	miUseGen = mnuGenDefault
 	tbProject.Buttons.Add tbsSeparator
 	tbButton = tbProject.Buttons.Add(tbsCustom)
 	tbButton->Width = 170
@@ -12085,7 +12096,7 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-#ifdef __USE_WINAPI__
+#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__)
 	Dim Shared As Integer iLine, iChar, CanvasHeight, CanvasWidth
 	Sub Document_PrintPage(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)

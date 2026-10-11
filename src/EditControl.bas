@@ -8894,13 +8894,21 @@ Namespace My.Sys.Forms
 				
 				ec->pdisplay = gtk_widget_get_display(widget)
 				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
-				ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
-				ec->gdkCursorSIZENS = gdk_cursor_new_from_name(ec->pdisplay, crSizeNS)
-				ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(ec->pdisplay, crSizeWE)
-				ec->gdkCursorARROW = gdk_cursor_new_from_name(ec->pdisplay, crArrow)
 				#ifdef __USE_GTK3__
-					ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
+					ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
+					ec->gdkCursorSIZENS = gdk_cursor_new_from_name(ec->pdisplay, crSizeNS)
+					ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(ec->pdisplay, crSizeWE)
+					ec->gdkCursorARROW = gdk_cursor_new_from_name(ec->pdisplay, crArrow)
+				#else
+					' GTK2 looks names up in the X cursor theme, CSS names like "default"/"pointer"
+					' are often missing there (NULL cursor), the core X cursors always exist
+					ec->gdkCursorHand = gdk_cursor_new_for_display(ec->pdisplay, GDK_HAND2)
+					ec->gdkCursorSIZENS = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_V_DOUBLE_ARROW)
+					ec->gdkCursorSIZEWE = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_H_DOUBLE_ARROW)
+					ec->gdkCursorARROW = gdk_cursor_new_for_display(ec->pdisplay, GDK_LEFT_PTR)
 				#endif
+				' The text is drawn on the bin window of the layout, the cursor belongs there
+				ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
 				
 				ec->ShowCaretPos False
@@ -8975,7 +8983,8 @@ Namespace My.Sys.Forms
 		Function EditControl.EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
 			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
-			ec->win = Event->window
+			' Event->window can also be the outer window of the layout, keep the cursor on the bin window
+			ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 			ec->EditControl_OnDraw widget, cr, data1
 			cairo_destroy(cr)
 			Return False

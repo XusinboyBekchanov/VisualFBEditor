@@ -126,6 +126,7 @@ Declare Sub mClickHelp(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickTool(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickWindow(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+Declare Sub mClickUseGen(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 Declare Sub LoadSettings
 Declare Sub LoadLanguageTexts
 
@@ -140,12 +141,12 @@ Common Shared As ProgressBar Ptr pprProgress
 Common Shared As CommandButton Ptr pbtnPropertyValue
 Common Shared As TextBox Ptr ptxtPropertyValue, ptxtAIRequest
 Common Shared As ToolBar Ptr ptbStandard
-Common Shared As ToolButton Ptr SelectedTool
+Common Shared As ToolButton Ptr SelectedTool, tbtUseDefine, tbtUseGen
 Common Shared As TabControl Ptr ptabCode, ptabLeft, ptabBottom, ptabRight
 Common Shared As TreeView Ptr ptvExplorer
 Common Shared As IniFile Ptr piniSettings, piniTheme
 Common Shared As MenuItem Ptr mnuUseDebugger, mnuUseProfiler, miHelps, miXizmat, miWindow
-Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine
+Common Shared As MenuItem Ptr miPlainText, miUtf8, miUtf8BOM, miUtf16BOM, miUtf32BOM, miWindowsCRLF, miLinuxLF, miMacOSCR, miUseDefine, miUseGen
 Common Shared As HTTPConnection Ptr pHTTPAIAgent
 Common Shared As FileEncodings DefaultFileFormat
 Common Shared As NewLineTypes DefaultNewLineFormat
@@ -179,7 +180,7 @@ Common Shared As Integer LastOpenedFileType
 Common Shared As Integer LoadFunctionsCount, AIAgentPort, AIAgentContentSize
 Common Shared As Boolean AIAgentStream
 Common Shared As Double  AIAgentTop_P, AIAgentTemperature '介于 0 和 2 之间.
-Common Shared As String  UseDefine, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName, AIRTF_HEADER, AIEditorFontName
+Common Shared As String  UseDefine, UseGen, AIAgentHost, AIAgentAddress, AIAgentAPIKey, AIAgentModelName, AIAgentProvider, AIAgentName, AIRTF_HEADER, AIEditorFontName
 Common Shared As WString Ptr DefaultProjectFile
 Common Shared As WString Ptr InterfaceFontName
 Common Shared As WString Ptr gSearchSave, EnvironmentVariables

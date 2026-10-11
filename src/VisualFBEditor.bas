@@ -151,6 +151,24 @@ Sub mClickUseDefine(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	UseDefine = Mid(MenuName, Pos1 + 1)
 	miUseDefine = Cast(MenuItem Ptr, @Sender)
 	miUseDefine->Checked = True
+	If tbtUseDefine <> 0 Then
+		' "Default" inside a submenu (WinAPI, GTK, JNI) shows the submenu name instead
+		If miUseDefine->ParentMenuItem <> 0 AndAlso miUseDefine->Caption = ML("Default") Then
+			tbtUseDefine->Caption = ML("Use") & ": " & Replace(miUseDefine->ParentMenuItem->Caption, "&", "")
+		Else
+			tbtUseDefine->Caption = ML("Use") & ": " & Replace(miUseDefine->Caption, "&", "")
+		End If
+	End If
+End Sub
+Sub mClickUseGen(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+	Dim As String MenuName = Sender.ToString
+	Dim As Integer Pos1 = InStr(MenuName, ":")
+	If Pos1 = 0 Then Exit Sub
+	If miUseGen <> 0 Then miUseGen->Checked = False
+	UseGen = Mid(MenuName, Pos1 + 1)
+	miUseGen = Cast(MenuItem Ptr, @Sender)
+	miUseGen->Checked = True
+	If tbtUseGen <> 0 Then tbtUseGen->Caption = ML("Backend") & ": " & Replace(miUseGen->Caption, "&", "")
 End Sub
 Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As WString * MAX_PATH FileName

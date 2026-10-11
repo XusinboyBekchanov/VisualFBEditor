@@ -1000,7 +1000,7 @@ pfOptions = @fOptions
 			.ExtraMargins.Top = 0
 			.Constraints.Height = 21
 			.AutoSize = True
-			.SetBounds 0, 254, 171, 21
+			.SetBounds 0, 0, 171, 21
 			.Designer = @This
 			.Parent = @pnlChangeIdentifiersCase
 		End With

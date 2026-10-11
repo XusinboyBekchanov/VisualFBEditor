@@ -418,10 +418,10 @@ Namespace My.Sys.Forms
 				gtk_widget_realize(FDots(0, i))
 				pdisplay = gtk_widget_get_display(FDots(0, i))
 				Select Case i
-				Case 0, 4 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNWSE)
-				Case 1, 5 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNS)
-				Case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
-				Case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
+				Case 0, 4 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNWSE)
+				Case 1, 5 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNS)
+				Case 2, 6 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNESW)
+				Case 3, 7 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeWE)
 				End Select
 				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
 			#else
@@ -632,10 +632,10 @@ Namespace My.Sys.Forms
 						gtk_widget_realize(FDots(j, i))
 						pdisplay = gtk_widget_get_display(FDots(j, i))
 						Select Case i
-						Case 0, 4 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNWSE)
-						Case 1, 5 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNS)
-						Case 2, 6 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeNESW)
-						Case 3, 7 : gcurs = gdk_cursor_new_from_name(pdisplay, crSizeWE)
+						Case 0, 4 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNWSE)
+						Case 1, 5 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNS)
+						Case 2, 6 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNESW)
+						Case 3, 7 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeWE)
 						End Select
 						gdk_window_set_cursor(gtk_widget_get_window(FDots(j, i)), gcurs)
 						g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Control", ControlHandle2)
@@ -893,7 +893,7 @@ Namespace My.Sys.Forms
 					FCanMove   = False
 					FCanSize   = False
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crCross))
+						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
 					#else
 						SetCursor(crCross)
 					#endif
@@ -910,7 +910,7 @@ Namespace My.Sys.Forms
 						FSelControl = GetControlHandle(SelectedControl)
 					End If
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crSize))
+						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crSize))
 					#else
 						SetCursor(crSize) :SetCapture(FDialog)
 					#endif
@@ -940,7 +940,7 @@ Namespace My.Sys.Forms
 				FCanSize   = False
 				If FCanInsert Then
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crCross))
+						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
 					#else
 						SetCursor(crCross)
 					#endif
@@ -1304,14 +1304,14 @@ Namespace My.Sys.Forms
 			FNewX   = FBeginX
 			FNewY   = FBeginY
 			#ifdef __USE_GTK__
-				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crArrow))
+				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
 			#else
 				ClipCursor(0)
 				ReleaseCapture
 			#endif
 		Else
 			#ifdef __USE_GTK__
-				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), gdk_cursor_new_from_name(gtk_widget_get_display(layoutwidget), crArrow))
+				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
 			#else
 				ClipCursor(0)
 			#endif

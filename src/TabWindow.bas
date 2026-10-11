@@ -12394,7 +12394,8 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			Case 2: Result += " -s gui"
 			End Select
 		End If
-		If Project->CompileTo = ToGAS Then
+		If UseGen <> "" Then
+		ElseIf Project->CompileTo = ToGAS Then
 			Result += " -gen gas" & IIf(Not Bit32, "64", "")
 		ElseIf Project->CompileTo = ToLLVM Then
 			Result += " -gen llvm"
@@ -12407,6 +12408,11 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			IIf(Project->ShowUnusedLabelWarnings, " -Wc -Wunused-label", "") & IIf(Project->ShowUnusedFunctionWarnings, " -Wc -Wunused-function", "") & IIf(Project->ShowUnusedVariableWarnings, " -Wc -Wunused-variable", "") & _
 			IIf(Project->ShowUnusedButSetVariableWarnings, " -Wc -Wunused-but-set-variable", "") & IIf(Project->ShowMainWarnings, " -Wc -Wmain", "")
 		End If
+	End If
+	If UseGen = "gas" Then
+		Result += " -gen gas" & IIf(Not Bit32, "64", "")
+	ElseIf UseGen <> "" Then
+		Result += " -gen " & UseGen
 	End If
 	If UseDefine <> "" Then Result += " -d " & UseDefine
 	If cboBuildConfiguration.ItemIndex > 0 Then
