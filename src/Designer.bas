@@ -10,6 +10,16 @@
 #include once "EditControl.bi"
 
 #ifdef __USE_GTK__
+	' GTK3 sets the cursor of the GdkWindow of the widget. GTK4 has no window per widget: the cursor of the
+	' surface became the default of the whole IDE window (the designer cursors stayed), the widget gets it
+	#ifdef __USE_GTK4__
+		#define DesignerSetCursor(w, c) gtk_widget_set_cursor(w, c)
+	#else
+		#define DesignerSetCursor(w, c) gdk_window_set_cursor(gtk_widget_get_window(w), c)
+	#endif
+#endif
+
+#ifdef __USE_GTK__
 	#define CtrlHandle GtkWindow Ptr
 #else
 	#define CtrlHandle HWND
@@ -329,6 +339,8 @@ Namespace My.Sys.Forms
 				Ctrl = Objects.Item(i)
 				If Ctrl Then
 					Dim As SymbolsType Ptr st = Symbols(Ctrl)
+					' A ReportBand has no bounds: ReportBandAt finds it
+					If IsReportBand(Ctrl) Then Continue For
 					If st AndAlso st->ComponentGetBoundsSub AndAlso st->Q_ComponentFunc Then
 						st->ComponentGetBoundsSub(st->Q_ComponentFunc(Ctrl), ALeft, ATop, AWidth, AHeight)
 						If (X > ALeft And X < ALeft + AWidth) And (Y > ATop And Y < ATop + AHeight) Then
@@ -392,7 +404,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Function Dot_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			Dot_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -410,8 +426,12 @@ Namespace My.Sys.Forms
 				'g_object_ref(FDots(i))
 				If GTK_IS_WIDGET(FDots(0, i)) Then gtk_layout_put(GTK_LAYOUT(ParentCtrl->layoutwidget), FDots(0, i), 0, 0)
 				gtk_widget_set_size_request(FDots(0, i), FDotSize, FDotSize)
-				#ifdef __USE_GTK3__
-					g_signal_connect(FDots(0, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect(FDots(0, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+					#else
+						g_signal_connect(FDots(0, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+					#endif
 				#else
 					g_signal_connect(FDots(0, i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
 				#endif
@@ -423,7 +443,7 @@ Namespace My.Sys.Forms
 				Case 2, 6 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNESW)
 				Case 3, 7 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeWE)
 				End Select
-				gdk_window_set_cursor(gtk_widget_get_window(FDots(0, i)), gcurs)
+				DesignerSetCursor(FDots(0, i), gcurs)
 			#else
 				If ParentCtrl > 0 AndAlso ParentCtrl->Handle > 0 Then FDots(0, i) = CreateWindowEx(0, "DOT", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN, 0, 0, ScaleX(FDotSize), ScaleY(FDotSize), ParentCtrl->Handle, 0, Instance, 0)
 				If IsWindow(FDots(0, i)) Then
@@ -451,6 +471,10 @@ Namespace My.Sys.Forms
 		For j As Integer = 0 To UBound(FDots)
 			For i As Integer = 0 To 7
 				#ifdef __USE_GTK__
+					#ifdef __USE_GTK4__
+						' GTK4 keeps the pointer grab of the pressed dot only while it is mapped
+						If FDown AndAlso FDots(j, i) = FOverControl AndAlso GTK_IS_WIDGET(FDots(j, i)) Then gtk_widget_set_opacity(FDots(j, i), 0): Continue For
+					#endif
 					If GTK_IS_WIDGET(FDots(j, i)) Then gtk_widget_set_visible(FDots(j, i), False)
 				#else
 					ShowWindow(FDots(j, i), SW_HIDE)
@@ -520,7 +544,7 @@ Namespace My.Sys.Forms
 				For i As Integer = 7 To 0 Step -1
 					#ifdef __USE_GTK__
 						If FDots(j, i) > 0 AndAlso GTK_IS_WIDGET(FDots(j, i)) Then
-							#ifdef __USE_GTK3__
+							#ifndef __USE_GTK2__
 								gtk_widget_destroy(FDots(j, i))
 							#else
 								gtk_container_remove(GTK_CONTAINER(FDialogParent), FDots(j, i))
@@ -543,7 +567,7 @@ Namespace My.Sys.Forms
 				For j As Integer = 0 To SelectedControls.Count - 1
 					ControlHandle2 = GetControlHandle(SelectedControls.Items[j])
 					gtk_widget_realize(ControlHandle2)
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						iWidth = gtk_widget_get_allocated_width(ControlHandle2)
 						iHeight = gtk_widget_get_allocated_height(ControlHandle2)
 					#else
@@ -558,13 +582,21 @@ Namespace My.Sys.Forms
 						If Height1 <> -1 Then iHeight = Height1
 						'If ReadPropertyFunc(SelectedControls.Items[j], "Parent") Then
 						'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, ReadPropertyFunc(ReadPropertyFunc(SelectedControls.Items[j], "Parent"), "layoutwidget")
-						gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#ifdef __USE_GTK4__
+							gtk4compat_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#else
+							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#endif
 						'Else
 						'	'GetPosToClient ControlHandle2, FDialogParent, @x, @y, Left1, Top1, 0
 						'	gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
 						'End If
 					Else
-						gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#ifdef __USE_GTK4__
+							gtk4compat_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#else
+							gtk_widget_translate_coordinates(ControlHandle2, FDialogParent, x, y, @NewX, @NewY)
+						#endif
 						'GetPosToClient ControlHandle2, FDialogParent, @x, @y
 					End If
 					P.X     = NewX
@@ -596,9 +628,17 @@ Namespace My.Sys.Forms
 						GDK_BUTTON_RELEASE_MASK Or _
 						GDK_POINTER_MOTION_MASK Or _
 						GDK_POINTER_MOTION_HINT_MASK)
-						g_signal_connect(FDots(j, i), "event", G_CALLBACK(@DotWndProc), @This)
-						#ifdef __USE_GTK3__
-							g_signal_connect(FDots(j, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+						#ifdef __USE_GTK4__
+							gtk4compat_signal_connect(FDots(j, i), "event", G_CALLBACK(@DotWndProc), @This)
+						#else
+							g_signal_connect(FDots(j, i), "event", G_CALLBACK(@DotWndProc), @This)
+						#endif
+						#ifndef __USE_GTK2__
+							#ifdef __USE_GTK4__
+								gtk4compat_signal_connect(FDots(j, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+							#else
+								g_signal_connect(FDots(j, i), "draw", G_CALLBACK(@Dot_Draw), @This)
+							#endif
 						#else
 							g_signal_connect(FDots(j, i), "expose-event", G_CALLBACK(@Dot_ExposeEvent), @This)
 						#endif
@@ -613,7 +653,7 @@ Namespace My.Sys.Forms
 						Case 6: iLeft = P.X - FDotSize: iTop = P.Y + iHeight
 						Case 7: iLeft = P.X - FDotSize: iTop = P.Y + iHeight / 2 - 3
 						End Select
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							If GTK_IS_WIDGET(FDots(j, i)) Then 'gtk_layout_put(gtk_layout(layout), FDots(j, i), iLeft, iTop) Then
 								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Left", Cast(gpointer, iLeft))
 								g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Top", Cast(gpointer, iTop))
@@ -637,14 +677,14 @@ Namespace My.Sys.Forms
 						Case 2, 6 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeNESW)
 						Case 3, 7 : gcurs = My.Sys.Drawing.Cursor.NewFromName(pdisplay, crSizeWE)
 						End Select
-						gdk_window_set_cursor(gtk_widget_get_window(FDots(j, i)), gcurs)
+						DesignerSetCursor(FDots(j, i), gcurs)
 						g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Control", ControlHandle2)
 						g_object_set_data(G_OBJECT(FDots(j, i)), "@@@Control2", SelectedControls.Items[j])
 						'SetParent(FDots(i), GetParent(Control))
 						'SetProp(FDots(i),"@@@Control", Control)
 						'BringWindowToTop FDots(i)
 						'gdk_window_raise(gtk_widget_get_window(FDots(i)))
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							If iLeft < 0 OrElse iTop < 0 OrElse iLeft > Parent->Width OrElse iTop > Parent->Height Then
 								gtk_widget_hide(FDots(j, i))
 							Else
@@ -714,8 +754,15 @@ Namespace My.Sys.Forms
 		End If
 	End Sub
 	
+	Function Designer.IsReportBand(Ctrl As Any Ptr) As Boolean
+		If Ctrl = 0 Then Return False
+		Dim As SymbolsType Ptr st = Symbols(Ctrl)
+		Return st <> 0 AndAlso st->ReadPropertyFunc <> 0 AndAlso WGet(st->ReadPropertyFunc(Ctrl, "ClassName")) = "ReportBand"
+	End Function
+	
 	Sub Designer.GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Dim As SymbolsType Ptr st = Symbols(Control)
+		If IsReportBand(Control) Then Exit Sub
 		If st AndAlso st->ComponentGetBoundsSub AndAlso st->Q_ComponentFunc Then
 			st->ComponentGetBoundsSub(st->Q_ComponentFunc(Control), iLeft, iTop, iWidth, iHeight)
 		End If
@@ -723,6 +770,7 @@ Namespace My.Sys.Forms
 	
 	Sub Designer.SetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Dim As SymbolsType Ptr st = Symbols(Control)
+		If IsReportBand(Control) Then Exit Sub
 		If st AndAlso st->ComponentSetBoundsSub AndAlso st->Q_ComponentFunc Then
 			st->ComponentSetBoundsSub(st->Q_ComponentFunc(Control), iLeft, iTop, iWidth, iHeight)
 		End If
@@ -893,7 +941,7 @@ Namespace My.Sys.Forms
 					FCanMove   = False
 					FCanSize   = False
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
+						DesignerSetCursor(layoutwidget, My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
 					#else
 						SetCursor(crCross)
 					#endif
@@ -910,7 +958,7 @@ Namespace My.Sys.Forms
 						FSelControl = GetControlHandle(SelectedControl)
 					End If
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crSize))
+						DesignerSetCursor(layoutwidget, My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crSize))
 					#else
 						SetCursor(crSize) :SetCapture(FDialog)
 					#endif
@@ -940,7 +988,7 @@ Namespace My.Sys.Forms
 				FCanSize   = False
 				If FCanInsert Then
 					#ifdef __USE_GTK__
-						gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
+						DesignerSetCursor(layoutwidget, My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crCross))
 					#else
 						SetCursor(crCross)
 					#endif
@@ -1128,6 +1176,7 @@ Namespace My.Sys.Forms
 					For i As Integer = Objects.Count - 1 To 0 Step -1
 						Ctrl = Objects.Item(i)
 						Dim As SymbolsType Ptr st = Symbols(Ctrl)
+						If IsReportBand(Ctrl) Then Continue For
 						If Ctrl AndAlso st AndAlso st->ReadPropertyFunc <> 0 Then
 							GetControlBounds(Ctrl, ALeft, ATop, AWidth, AHeight)
 							If Not (ALeft + AWidth < FBeginX OrElse ALeft > FNewX OrElse ATop > FNewY OrElse ATop + AHeight < FBeginY) Then
@@ -1195,7 +1244,11 @@ Namespace My.Sys.Forms
 				Dim As ..Rect R
 				If SelectedControl <> DesignControl Then
 					#ifdef __USE_GTK__
-						gtk_widget_translate_coordinates(FSelControl, layoutwidget, 0, 0, Cast(gint Ptr, @R.Left), Cast(gint Ptr, @R.Top))
+						#ifdef __USE_GTK4__
+							gtk4compat_translate_coordinates(FSelControl, layoutwidget, 0, 0, Cast(gint Ptr, @R.Left), Cast(gint Ptr, @R.Top))
+						#else
+							gtk_widget_translate_coordinates(FSelControl, layoutwidget, 0, 0, Cast(gint Ptr, @R.Left), Cast(gint Ptr, @R.Top))
+						#endif
 					#else
 						GetWindowRect FSelControl, @R
 						MapWindowPoints 0, FDialog, Cast(..Point Ptr, @R), 2
@@ -1304,14 +1357,14 @@ Namespace My.Sys.Forms
 			FNewX   = FBeginX
 			FNewY   = FBeginY
 			#ifdef __USE_GTK__
-				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
+				DesignerSetCursor(layoutwidget, My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
 			#else
 				ClipCursor(0)
 				ReleaseCapture
 			#endif
 		Else
 			#ifdef __USE_GTK__
-				gdk_window_set_cursor(gtk_widget_get_window(layoutwidget), My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
+				DesignerSetCursor(layoutwidget, My.Sys.Drawing.Cursor.NewFromName(gtk_widget_get_display(layoutwidget), crArrow))
 			#else
 				ClipCursor(0)
 			#endif
@@ -1650,12 +1703,25 @@ Namespace My.Sys.Forms
 	#endif
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(Control) Then
-				g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
+				#ifdef __USE_GTK4__
+					' Before the handlers of the control (e.g. the click gesture of a button), like the "event" signal of GTK3
+					gtk4compat_signal_connect_capture(Control, "event", G_CALLBACK(@HookChildProc), @This)
+				#else
+					g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
+				#endif
 				If GTK_IS_BIN(Control) AndAlso gtk_bin_get_child(GTK_BIN(Control)) <> 0 Then
-					g_signal_connect(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
+					#ifdef __USE_GTK4__
+						gtk4compat_signal_connect_capture(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
+					#else
+						g_signal_connect(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
+					#endif
 				End If
-				#ifdef __USE_GTK3__
-					g_signal_connect_after(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						gtk_widget_add_tick_callback(Control, Cast(GtkTickCallback, @HookChildTick), @This, NULL)
+					#else
+						g_signal_connect_after(Control, "draw", G_CALLBACK(@HookChildDraw), @This)
+					#endif
 				#endif
 			End If
 		#else
@@ -1906,7 +1972,7 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Function DrawComponentBorder(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
 			#else
 				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
@@ -1918,7 +1984,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Function ComponentExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			DrawComponentBorder(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -2050,8 +2120,12 @@ Namespace My.Sys.Forms
 							st->WritePropertyFunc(Cpnt, "widget", FSelControl)
 							gtk_image_set_from_pixbuf(GTK_IMAGE(FSelControl), pBitmap.Handle)
 							gtk_widget_set_size_request(FSelControl, 16, 16)
-							#ifdef __USE_GTK3__
-								g_signal_connect(FSelControl, "draw", G_CALLBACK(@DrawComponentBorder), @This)
+							#ifndef __USE_GTK2__
+								#ifdef __USE_GTK4__
+									gtk4compat_signal_connect(FSelControl, "draw", G_CALLBACK(@DrawComponentBorder), @This)
+								#else
+									g_signal_connect(FSelControl, "draw", G_CALLBACK(@DrawComponentBorder), @This)
+								#endif
 							#else
 								g_signal_connect(FSelControl, "expose-event", G_CALLBACK(@ComponentExposeEvent), @This)
 							#endif
@@ -2320,6 +2394,10 @@ Namespace My.Sys.Forms
 	'Report.ProcessMessage's WM_PAINT case for why: this avoids a paint-order race with
 	'Designer's own background/grid repaint of the surrounding design surface). Called from
 	'HookChildProc's WM_PAINT case, the same way DrawToolBar is.
+	#ifdef __USE_GTK__
+		Declare Function DesignBackIsDark(Des As Designer Ptr) As Boolean
+	#endif
+
 	Sub Designer.DrawReport()
 		#ifndef __USE_GTK__
 			Dim As ..Rect R
@@ -2509,6 +2587,129 @@ Namespace My.Sys.Forms
 				DeleteObject(PenDivider)
 			End If
 			EndPaint FDialog, @Ps
+		#else
+			' The band-name strip on the left and the lines between the bands (the grid and the selection are drawn by DrawThis)
+			If Not IsReportDesigner Then Exit Sub
+			Dim As Boolean bDark = DesignBackIsDark(@This)
+			Dim As SymbolsType Ptr st = Symbols(DesignControl)
+			If st = 0 OrElse st->ReadPropertyFunc = 0 OrElse st->ReportBandByIndexFunc = 0 Then Exit Sub
+			Dim As Any Ptr pBandCount = st->ReadPropertyFunc(DesignControl, "BandCount")
+			If pBandCount = 0 Then Exit Sub
+			Dim As Integer BandCount = QInteger(pBandCount)
+			Dim As Integer SurfW, SurfH
+			#ifndef __USE_GTK2__
+				SurfW = gtk_widget_get_allocated_width(layoutwidget): SurfH = gtk_widget_get_allocated_height(layoutwidget)
+			#else
+				SurfW = layoutwidget->allocation.width: SurfH = layoutwidget->allocation.height
+			#endif
+			'The active band - the selected band itself or the band of the selected control
+			Dim As Any Ptr ActiveBandPtr
+			If SelectedControl <> 0 AndAlso SelectedControl <> DesignControl Then
+				Dim As SymbolsType Ptr stSel = Symbols(SelectedControl)
+				If stSel AndAlso stSel->ReadPropertyFunc Then
+					If WGet(stSel->ReadPropertyFunc(SelectedControl, "ClassName")) = "ReportBand" Then
+						ActiveBandPtr = SelectedControl
+					Else
+						ActiveBandPtr = stSel->ReadPropertyFunc(SelectedControl, "Parent")
+					End If
+				End If
+			End If
+			Dim As Double ListW = ScaleX(RPT_BAND_LIST_WIDTH)
+			'Band-name strip on the left (background)
+			If bDark Then cairo_set_source_rgb(cr, 0.22, 0.23, 0.26) Else cairo_set_source_rgb(cr, 232 / 255.0, 234 / 255.0, 240 / 255.0)
+			.cairo_rectangle(cr, 0, 0, ListW, SurfH)
+			cairo_fill(cr)
+			cairo_set_line_width(cr, 1)
+			cairo_select_font_face(cr, "Sans", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL)
+			cairo_set_font_size(cr, ScaleY(12))
+			Dim As cairo_font_extents_t FontExt
+			cairo_font_extents(cr, @FontExt)
+			Dim As Integer y = 0
+			For i As Integer = 0 To BandCount - 1
+				Dim As Any Ptr Band = st->ReportBandByIndexFunc(DesignControl, i)
+				If Band = 0 Then Continue For
+				Dim As Any Ptr pH = st->ReadPropertyFunc(Band, "Height")
+				Dim As Integer h = IIf(pH, QInteger(pH), 0)
+				Dim As Double BandTop = ScaleY(y), BandBottom = ScaleY(y + h), BandHeight = BandBottom - BandTop
+				'Active row highlight on the left strip
+				If Band = ActiveBandPtr Then
+					If bDark Then cairo_set_source_rgb(cr, 0.27, 0.34, 0.52) Else cairo_set_source_rgb(cr, 202 / 255.0, 214 / 255.0, 244 / 255.0)
+					.cairo_rectangle(cr, 0, BandTop, ListW, BandHeight)
+					cairo_fill(cr)
+					'A selected band is framed with a dotted line like DrawFocusRect
+					If Band = SelectedControl Then
+						Dim As Const Double dashed = 1
+						If bDark Then cairo_set_source_rgb(cr, 0.85, 0.85, 0.85) Else cairo_set_source_rgb(cr, 0, 0, 0)
+						cairo_set_dash(cr, @dashed, 1, 0)
+						.cairo_rectangle(cr, ListW + 1.5, BandTop + 0.5, SurfW - ListW - 2, BandHeight - 2)
+						cairo_stroke(cr)
+						cairo_set_dash(cr, NULL, 0, 0)
+					End If
+				End If
+				'The line below the band
+				If bDark Then cairo_set_source_rgb(cr, 0.42, 0.43, 0.48) Else cairo_set_source_rgb(cr, 188 / 255.0, 190 / 255.0, 202 / 255.0)
+				cairo_move_to(cr, 0, BandBottom - 0.5)
+				cairo_line_to(cr, SurfW, BandBottom - 0.5)
+				cairo_stroke(cr)
+				'The caption is vertical (from bottom to top), centered in the band and clipped to it
+				Dim As Any Ptr pBT = st->ReadPropertyFunc(Band, "BandType")
+				Dim As Integer BandType = IIf(pBT, QInteger(pBT), -1)
+				Dim As UString GroupField = WGet(st->ReadPropertyFunc(Band, "GroupField"))
+				Dim As UString Caption
+				Select Case BandType
+				Case 0: Caption = ML("Report Header")
+				Case 1: Caption = ML("Page Header")
+				Case 2: Caption = ML("Group Header") & IIf(Len(GroupField) > 0, " (" & GroupField & ")", "")
+				Case 3: Caption = ML("Body")
+				Case 4: Caption = ML("Group Footer") & IIf(Len(GroupField) > 0, " (" & GroupField & ")", "")
+				Case 5: Caption = ML("Page Footer")
+				Case 6: Caption = ML("Report Footer")
+				End Select
+				Dim As cairo_text_extents_t TextExt
+				Dim As String CaptionUtf8 = ToUtf8(Caption)
+				cairo_text_extents(cr, StrPtr(CaptionUtf8), @TextExt)
+				'Too long for the band: only the initials of the words
+				If TextExt.x_advance > BandHeight Then
+					Dim As String Initials
+					Dim As Integer p = 1
+					Do While p <= Len(Caption)
+						Do While p <= Len(Caption) AndAlso Mid(Caption, p, 1) = " "
+							p += 1
+						Loop
+						If p > Len(Caption) Then Exit Do
+						Dim As Integer WStart = p
+						Do While p <= Len(Caption) AndAlso Mid(Caption, p, 1) <> " "
+							p += 1
+						Loop
+						For k As Integer = WStart To p - 1
+							Dim As String c = Mid(Caption, k, 1)
+							If (c >= "A" AndAlso c <= "Z") OrElse (c >= "a" AndAlso c <= "z") Then
+								Initials &= UCase(c)
+								Exit For
+							End If
+						Next k
+					Loop
+					If Len(Initials) > 0 Then
+						CaptionUtf8 = Initials
+						cairo_text_extents(cr, StrPtr(CaptionUtf8), @TextExt)
+					End If
+				End If
+				cairo_save(cr)
+				.cairo_rectangle(cr, 0, BandTop, ListW, BandHeight)
+				cairo_clip(cr)
+				If bDark Then cairo_set_source_rgb(cr, 0.85, 0.85, 0.88) Else cairo_set_source_rgb(cr, 40 / 255.0, 44 / 255.0, 70 / 255.0)
+				cairo_translate(cr, ScaleX(2) + FontExt.ascent, BandBottom - (BandHeight - TextExt.x_advance) / 2)
+				cairo_rotate(cr, -1.5707963267949)
+				cairo_move_to(cr, 0, 0)
+				cairo_show_text(cr, StrPtr(CaptionUtf8))
+				cairo_restore(cr)
+				y += h
+			Next i
+			'The divider between the strip and the bands
+			If bDark Then cairo_set_source_rgb(cr, 0.5, 0.5, 0.56) Else cairo_set_source_rgb(cr, 170 / 255.0, 172 / 255.0, 186 / 255.0)
+			cairo_move_to(cr, ListW + 0.5, 0)
+			cairo_line_to(cr, ListW + 0.5, SurfH)
+			cairo_stroke(cr)
 		#endif
 	End Sub
 	
@@ -2659,14 +2860,77 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 
+	#ifdef __USE_GTK__
+		' The grid and the frames are drawn with a color contrasting with the background of the designed form
+		Private Function DesignBackIsDark(Des As Designer Ptr) As Boolean
+			Dim As Integer BackColor = -1
+			Dim As SymbolsType Ptr st = Des->Symbols(Des->DesignControl)
+			If st AndAlso st->ReadPropertyFunc Then
+				Dim As Any Ptr pBackColor = st->ReadPropertyFunc(Des->DesignControl, "BackColor")
+				If pBackColor Then BackColor = QInteger(pBackColor)
+			End If
+			If BackColor >= 0 Then Return GetRed(BackColor) * 299 + GetGreen(BackColor) * 587 + GetBlue(BackColor) * 114 < 128000
+			#ifdef __USE_GTK2__
+				Return g_darkModeEnabled
+			#else
+				' The background of the theme: a light text is on a dark background
+				If Des->Dialog = 0 Then Return g_darkModeEnabled
+				Dim As GdkRGBA FgColor
+				#ifdef __USE_GTK4__
+					gtk_widget_get_color(Des->Dialog, @FgColor)
+				#else
+					gtk_style_context_get_color(gtk_widget_get_style_context(Des->Dialog), GTK_STATE_FLAG_NORMAL, @FgColor)
+				#endif
+				Return FgColor.red * 0.299 + FgColor.green * 0.587 + FgColor.blue * 0.114 > 0.5
+			#endif
+		End Function
+
+		#ifndef __USE_GTK2__
+			' The designed form is a box without a frame on the background of the panel: a frame and a darker surface
+			Private Sub DesignFormInstallCss(DesignForm As GtkWidget Ptr)
+				Dim As GtkWidget Ptr Surface = gtk_widget_get_parent(DesignForm)
+				#ifdef __USE_GTK4__
+					Dim As GdkDisplay Ptr display = gdk_display_get_default()
+					If display <> 0 AndAlso g_object_get_data(G_OBJECT(display), "vfbe-design-css") = 0 Then
+						g_object_set_data(G_OBJECT(display), "vfbe-design-css", Cast(gpointer, 1))
+				#else
+					Dim As GdkScreen Ptr DefScreen = gdk_screen_get_default()
+					If DefScreen <> 0 AndAlso g_object_get_data(G_OBJECT(DefScreen), "vfbe-design-css") = 0 Then
+						g_object_set_data(G_OBJECT(DefScreen), "vfbe-design-css", Cast(gpointer, 1))
+				#endif
+						Dim As GtkCssProvider Ptr Provider = gtk_css_provider_new()
+						Dim As String Css = ".vfbe-design-surface { background-color: alpha(black, 0.18); }" & _
+							".vfbe-design-form { background-color: @theme_bg_color; box-shadow: 0 0 0 1px alpha(currentColor, 0.3), 0 2px 8px alpha(black, 0.45); }"
+						#ifdef __USE_GTK4__
+							gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
+							gtk_style_context_add_provider_for_display(display, GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+						#else
+							gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1, NULL)
+							gtk_style_context_add_provider_for_screen(DefScreen, GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+						#endif
+						g_object_unref(Provider)
+					End If
+				#ifdef __USE_GTK4__
+					gtk_widget_add_css_class(DesignForm, "vfbe-design-form")
+					If Surface Then gtk_widget_add_css_class(Surface, "vfbe-design-surface")
+				#else
+					gtk_style_context_add_class(gtk_widget_get_style_context(DesignForm), "vfbe-design-form")
+					If Surface Then gtk_style_context_add_class(gtk_widget_get_style_context(Surface), "vfbe-design-surface")
+				#endif
+			End Sub
+		#endif
+	#endif
+
 	Sub Designer.DrawThis()
 		FStepX = GridSize
 		FStepY = GridSize
 		#ifdef __USE_GTK__
+			' The grid and the frames contrast with the form
+			Dim As Double LineShade = IIf(DesignBackIsDark(@This), 0.85, 0.0)
 			Dim As GtkWidget Ptr CtrlParent = gtk_widget_get_parent(layoutwidget)
 			If GTK_IS_BOX(CtrlParent) = 0 Then CtrlParent = layoutwidget
 			Dim As Integer iWidth, iHeight
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As Integer iWidthOverlay, iHeightOverlay
 				iWidth = gtk_widget_get_allocated_width(CtrlParent): iHeight = gtk_widget_get_allocated_height(CtrlParent)
 				iWidthOverlay = gtk_widget_get_allocated_width(overlay): iHeightOverlay = gtk_widget_get_allocated_height(overlay)
@@ -2675,12 +2939,12 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 			If ShowAlignmentGrid Then
-				#ifdef __USE_GTK3__
+				#ifndef __USE_GTK2__
 					iWidth = gtk_widget_get_allocated_width(layoutwidget): iHeight = gtk_widget_get_allocated_height(layoutwidget)
 				#else
 					iWidth = layoutwidget->allocation.width: iHeight = layoutwidget->allocation.height
 				#endif
-				cairo_set_source_rgb(cr, 0, 0, 0)
+				cairo_set_source_rgb(cr, LineShade * 0.65, LineShade * 0.65, LineShade * 0.65)
 				For i As Integer = 0 To iWidth Step FStepX
 					For j As Integer = 0 To iHeight Step FStepY
 						.cairo_rectangle(cr, i, j, 1, 1)
@@ -2688,20 +2952,23 @@ Namespace My.Sys.Forms
 					Next j
 				Next i
 			End If
+			If IsReportDesigner Then DrawReport
 			Dim As Integer FLeft, FTop, FWidth, FHeight
-			Dim As Const Double dashed = 0.85
-			cairo_set_source_rgb(cr, 0, 0, 0)
-			cairo_set_line_width (cr, 0.1)
-			cairo_set_dash(cr, @dashed, 0.5, 1.5)
+			' A dotted frame of 1 pixel like DrawFocusRect (the line is in the middle of the pixels)
+			Dim As Const Double dashed = 1
+			cairo_set_source_rgb(cr, LineShade, LineShade, LineShade)
+			cairo_set_line_width (cr, 1)
+			cairo_set_dash(cr, @dashed, 1, 0)
 			For j As Integer = 0 To SelectedControls.Count - 1
 				Dim As SymbolsType Ptr st = Symbols(SelectedControls.Items[j])
 				If st AndAlso st->ReadPropertyFunc(SelectedControls.Items[j], "Parent") = DesignControl Then
 					GetControlBounds(SelectedControls.Items[j], FLeft, FTop, FWidth, FHeight)
 					'GetPosToClient ReadPropertyFunc(SelectedControls.Items[j], "widget"), layoutwidget, @FLeft, @FTop
-					.cairo_rectangle(cr, ScaleX(FLeft - 2), ScaleY(FTop - 2), ScaleX(FWidth + 4), ScaleY(FHeight + 4))
+					.cairo_rectangle(cr, ScaleX(FLeft - 2) + 0.5, ScaleY(FTop - 2) + 0.5, ScaleX(FWidth + 4) - 1, ScaleY(FHeight + 4) - 1)
 					cairo_stroke(cr)
 				End If
 			Next j
+			cairo_set_dash(cr, NULL, 0, 0)
 		#else
 			Dim As HDC mDc
 			Dim As HBITMAP mBMP, pBMP
@@ -2764,6 +3031,16 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
+		#ifdef __USE_GTK4__
+			' GTK4 has no "draw" signal for all widgets (and MoveDots must not run while GTK draws): the dots are moved
+			' in the first frame in which the control has its size, like after the first drawing in GTK3
+			Function Designer.HookChildTick CDecl(ByVal widget As GtkWidget Ptr, ByVal frame_clock As GdkFrameClock Ptr, ByVal user_data As gpointer) As gboolean
+				If gtk_widget_get_width(widget) <= 0 AndAlso gtk_widget_get_height(widget) <= 0 Then Return G_SOURCE_CONTINUE
+				If FormClosing = False Then HookChildDraw widget, NULL, user_data
+				Return G_SOURCE_REMOVE
+			End Function
+		#endif
+
 		Function Designer.HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			#ifdef __USE_GTK__
 				Static As My.Sys.Forms.Designer Ptr Des
@@ -2801,7 +3078,11 @@ Namespace My.Sys.Forms
 			With *Des
 				#ifdef __USE_GTK__
 					Static LeavesCount As Integer
-					Select Case Event->type
+					#ifdef __USE_GTK4__
+						Select Case gtk4compat_event_type(Event)
+					#else
+						Select Case Event->type
+					#endif
 					Case GDK_ENTER_NOTIFY
 						If GTK_IS_EVENT_BOX(widget) Then
 							LeavesCount += 1
@@ -2856,7 +3137,11 @@ Namespace My.Sys.Forms
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.DblClick(.UnScaleX(Event->motion.x + x), .UnScaleY(Event->motion.y + y), Event->motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#ifdef __USE_GTK4__
+							.DblClick(.UnScaleX(gtk4compat_event_x(Event) + x), .UnScaleY(gtk4compat_event_y(Event) + y), gdk_event_get_modifier_state(Event), g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#else
+							.DblClick(.UnScaleX(Event->motion.x + x), .UnScaleY(Event->motion.y + y), Event->motion.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#endif
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -2874,8 +3159,16 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.MouseDown(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
-						If GTK_IS_NOTEBOOK(widget) AndAlso Event->button.y < 20 Then
+						#ifdef __USE_GTK4__
+							.MouseDown(.UnScaleX(gtk4compat_event_x(Event) + x), .UnScaleY(gtk4compat_event_y(Event) + y), gdk_event_get_modifier_state(Event), g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#else
+							.MouseDown(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#endif
+						#ifdef __USE_GTK4__
+							If GTK_IS_NOTEBOOK(widget) AndAlso gtk4compat_event_y(Event) < 20 Then
+						#else
+							If GTK_IS_NOTEBOOK(widget) AndAlso Event->button.y < 20 Then
+						#endif
 							Return False
 						Else
 							Return True
@@ -2895,12 +3188,30 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
-						.MouseUp(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
-						If Event->button.button = 3 Then
+						#ifdef __USE_GTK4__
+							.MouseUp(.UnScaleX(gtk4compat_event_x(Event) + x), .UnScaleY(gtk4compat_event_y(Event) + y), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseUp(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
+						#endif
+						#ifdef __USE_GTK4__
+							If gtk4compat_event_button(Event) = 3 Then
+						#else
+							If Event->button.button = 3 Then
+						#endif
 							.ChangeFirstMenuItem
-							mnuDesigner.Popup(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), @Type<Message>(Des, widget, Event, False))
+							#ifdef __USE_GTK4__
+								' The menu belongs to the form: a popover of a control (e.g. of the label of a button)
+								' blocks the events of the designer after it is closed
+								mnuDesigner.Popup(.UnScaleX(gtk4compat_event_x(Event) + x), .UnScaleY(gtk4compat_event_y(Event) + y), @Type<Message>(Des, .layoutwidget, Event, False))
+							#else
+								mnuDesigner.Popup(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), @Type<Message>(Des, widget, Event, False))
+							#endif
 						End If
-						If GTK_IS_NOTEBOOK(widget) AndAlso .UnScaleY(Event->button.y) < 20 Then
+						#ifdef __USE_GTK4__
+							If GTK_IS_NOTEBOOK(widget) AndAlso .UnScaleY(gtk4compat_event_y(Event)) < 20 Then
+						#else
+							If GTK_IS_NOTEBOOK(widget) AndAlso .UnScaleY(Event->button.y) < 20 Then
+						#endif
 							Return False
 						Else
 							Return True
@@ -2921,7 +3232,11 @@ Namespace My.Sys.Forms
 						Dim As Integer x, y
 						GetPosToClient widget, .layoutwidget, @x, @y
 						.FOverControl = widget
-						.MouseMove(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
+						#ifdef __USE_GTK4__
+							.MouseMove(.UnScaleX(gtk4compat_event_x(Event) + x), .UnScaleY(gtk4compat_event_y(Event) + y), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseMove(.UnScaleX(Event->button.x + x), .UnScaleY(Event->button.y + y), Event->button.state)
+						#endif
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
@@ -2949,7 +3264,11 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->key.keyval, Event->key.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#ifdef __USE_GTK4__
+							.KeyDown(gtk4compat_event_keyval(Event), gdk_event_get_modifier_state(Event), g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#else
+							.KeyDown(Event->key.keyval, Event->key.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+						#endif
 					#else
 						.KeyDown(wParam, 0)
 					#endif
@@ -3597,8 +3916,16 @@ Namespace My.Sys.Forms
 		Static As Any Ptr Ctrl
 		Static As My.Sys.Forms.Designer Ptr Des
 		#ifdef __USE_GTK__
-			bShift = Event->key.state And GDK_SHIFT_MASK
-			bCtrl = Event->key.state And GDK_CONTROL_MASK
+			#ifdef __USE_GTK4__
+				bShift = gdk_event_get_modifier_state(Event) And GDK_SHIFT_MASK
+			#else
+				bShift = Event->key.state And GDK_SHIFT_MASK
+			#endif
+			#ifdef __USE_GTK4__
+				bCtrl = gdk_event_get_modifier_state(Event) And GDK_CONTROL_MASK
+			#else
+				bCtrl = Event->key.state And GDK_CONTROL_MASK
+			#endif
 			Des = user_data
 			'If ReadPropertyFunc Then Des = ReadPropertyFunc(Ctrl, "ControlDesigner")
 		#else
@@ -3609,7 +3936,11 @@ Namespace My.Sys.Forms
 		If Des Then
 			With *Des
 				#ifdef __USE_GTK__
-					Select Case Event->type
+					#ifdef __USE_GTK4__
+						Select Case gtk4compat_event_type(Event)
+					#else
+						Select Case Event->type
+					#endif
 				#else
 					Select Case uMsg
 				#endif
@@ -3676,7 +4007,11 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
+						#ifdef __USE_GTK4__
+							.DblClick(.UnScaleX(gtk4compat_event_x(Event)), .UnScaleY(gtk4compat_event_y(Event)), gdk_event_get_modifier_state(Event))
+						#else
+							.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
+						#endif
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -3685,7 +4020,11 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_BUTTON_PRESS
-						.MouseDown(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
+						#ifdef __USE_GTK4__
+							.MouseDown(.UnScaleX(gtk4compat_event_x(Event)), .UnScaleY(gtk4compat_event_y(Event)), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseDown(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
+						#endif
 						Return True
 					#else
 					Case WM_LBUTTONDOWN
@@ -3694,10 +4033,22 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_BUTTON_RELEASE
-						.MouseUp(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
-						If Event->button.button = 3 Then
+						#ifdef __USE_GTK4__
+							.MouseUp(.UnScaleX(gtk4compat_event_x(Event)), .UnScaleY(gtk4compat_event_y(Event)), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseUp(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
+						#endif
+						#ifdef __USE_GTK4__
+							If gtk4compat_event_button(Event) = 3 Then
+						#else
+							If Event->button.button = 3 Then
+						#endif
 							.ChangeFirstMenuItem
-							mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							#ifdef __USE_GTK4__
+								mnuDesigner.Popup(gtk4compat_event_x(Event), gtk4compat_event_y(Event), @Type<Message>(Des, widget, Event, False))
+							#else
+								mnuDesigner.Popup(Event->button.x, Event->button.y, @Type<Message>(Des, widget, Event, False))
+							#endif
 						End If
 						Return True
 					#else
@@ -3708,7 +4059,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 					Case GDK_MOTION_NOTIFY
 						.FOverControl = widget
-						.MouseMove(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
+						#ifdef __USE_GTK4__
+							.MouseMove(.UnScaleX(gtk4compat_event_x(Event)), .UnScaleY(gtk4compat_event_y(Event)), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseMove(.UnScaleX(Event->button.x), .UnScaleY(Event->button.y), Event->button.state)
+						#endif
 						Return True
 					#else
 					Case WM_MOUSEMOVE
@@ -3729,7 +4084,11 @@ Namespace My.Sys.Forms
 					#endif
 					#ifdef __USE_GTK__
 					Case GDK_KEY_PRESS
-						.KeyDown(Event->key.keyval, Event->key.state)
+						#ifdef __USE_GTK4__
+							.KeyDown(gtk4compat_event_keyval(Event), gdk_event_get_modifier_state(Event))
+						#else
+							.KeyDown(Event->key.keyval, Event->key.state)
+						#endif
 						Return True
 						'Select Case event->Key.keyval
 					#else
@@ -3970,7 +4329,11 @@ Namespace My.Sys.Forms
 					Dim As ..Point P
 				#endif
 				#ifdef __USE_GTK__
-					Select Case Event->type
+					#ifdef __USE_GTK4__
+						Select Case gtk4compat_event_type(Event)
+					#else
+						Select Case Event->type
+					#endif
 				#else
 					Select Case uMsg
 					Case WM_NCHITTEST
@@ -3978,7 +4341,11 @@ Namespace My.Sys.Forms
 				#endif
 					#ifdef __USE_GTK__
 					Case GDK_2BUTTON_PRESS ', GDK_DOUBLE_BUTTON_PRESS
-						.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
+						#ifdef __USE_GTK4__
+							.DblClick(.UnScaleX(gtk4compat_event_x(Event)), .UnScaleY(gtk4compat_event_y(Event)), gdk_event_get_modifier_state(Event))
+						#else
+							.DblClick(.UnScaleX(Event->motion.x), .UnScaleY(Event->motion.y), Event->motion.state)
+						#endif
 						Return True
 					#else
 					Case WM_LBUTTONDBLCLK
@@ -4008,7 +4375,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseDown(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
+						#ifdef __USE_GTK4__
+							.MouseDown(.UnScaleX(gtk4compat_event_x(Event) - x), .UnScaleY(gtk4compat_event_y(Event) - y), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseDown(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
+						#endif
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
@@ -4041,7 +4412,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseUp(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
+						#ifdef __USE_GTK4__
+							.MouseUp(.UnScaleX(gtk4compat_event_x(Event) - x), .UnScaleY(gtk4compat_event_y(Event) - y), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseUp(.UnScaleX(Event->button.x - x), .UnScaleY(Event->button.y - y), Event->button.state)
+						#endif
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
@@ -4077,7 +4452,11 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						Dim As Integer x, y
 						GetPosToClient(.layoutwidget, widget, @x, @y)
-						.MouseMove(.UnScaleX(Event->motion.x - x), .UnScaleY(Event->motion.y - y), Event->motion.state)
+						#ifdef __USE_GTK4__
+							.MouseMove(.UnScaleX(gtk4compat_event_x(Event) - x), .UnScaleY(gtk4compat_event_y(Event) - y), gdk_event_get_modifier_state(Event))
+						#else
+							.MouseMove(.UnScaleX(Event->motion.x - x), .UnScaleY(Event->motion.y - y), Event->motion.state)
+						#endif
 						Return True
 					#else
 						P = Type<..Point>(LoWord(lParam), HiWord(lParam))
@@ -4115,7 +4494,11 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->key.keyval, Event->key.state)
+						#ifdef __USE_GTK4__
+							.KeyDown(gtk4compat_event_keyval(Event), gdk_event_get_modifier_state(Event))
+						#else
+							.KeyDown(Event->key.keyval, Event->key.state)
+						#endif
 					#else
 						.KeyDown(wParam, 0)
 					#endif
@@ -4161,7 +4544,11 @@ Namespace My.Sys.Forms
 			If IsWindow(FDialog) Then
 		#endif
 			#ifdef __USE_GTK__
-				g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookDialogProc), @This)
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect_capture(layoutwidget, "event", G_CALLBACK(@HookDialogProc), @This)
+				#else
+					g_signal_connect(layoutwidget, "event", G_CALLBACK(@HookDialogProc), @This)
+				#endif
 			#else
 				SetProp(FDialog, "@@@Designer", @This)
 				'DrawReport paints the whole surface - clip the field controls out of it so they
@@ -4197,7 +4584,11 @@ Namespace My.Sys.Forms
 	Sub Designer.HookParent
 		#ifdef __USE_GTK__
 			If GTK_IS_WIDGET(FDialogParent) Then
-				g_signal_connect(FDialogParent, "event", G_CALLBACK(@HookDialogParentProc), @This)
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(FDialogParent, "event", G_CALLBACK(@HookDialogParentProc), @This)
+				#else
+					g_signal_connect(FDialogParent, "event", G_CALLBACK(@HookDialogParentProc), @This)
+				#endif
 				'				#ifdef __USE_GTK3__
 				'					gtk_widget_set_events(layout, _
 				'					GDK_EXPOSURE_MASK Or _
@@ -4340,7 +4731,11 @@ Namespace My.Sys.Forms
 		If Des Then
 			With *Des
 				#ifdef __USE_GTK__
-					Select Case Event->type
+					#ifdef __USE_GTK4__
+						Select Case gtk4compat_event_type(Event)
+					#else
+						Select Case Event->type
+					#endif
 				#else
 					Select Case uMsg
 					Case WM_PAINT
@@ -4362,6 +4757,15 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 					Case GDK_MOTION_NOTIFY
 						.FOverControl = widget
+						#ifdef __USE_GTK4__
+							' The pressed dot keeps the pointer during the sizing (HideDots)
+							If .FDown Then
+								Dim As gint x1, y1
+								gtk4compat_translate_coordinates(widget, .layoutwidget, gtk4compat_event_x(Event), gtk4compat_event_y(Event), @x1, @y1)
+								.MouseMove(x1, y1, gdk_event_get_modifier_state(Event))
+								Return True
+							End If
+						#endif
 					#else
 					Case WM_MOUSEMOVE
 						'.MouseMove(loWord(lParam), hiWord(lParam),wParam and &HFFFF )
@@ -4383,15 +4787,27 @@ Namespace My.Sys.Forms
 					Case WM_LBUTTONDOWN
 					#endif
 					#ifdef __USE_GTK__
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							Dim As gint x1, y1
-							gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
-							.MouseDown(x1, y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#ifdef __USE_GTK4__
+								gtk4compat_translate_coordinates(widget, .layoutwidget, gtk4compat_event_x(Event), gtk4compat_event_y(Event), @x1, @y1)
+							#else
+								gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
+							#endif
+							#ifdef __USE_GTK4__
+								.MouseDown(x1, y1, gdk_event_get_modifier_state(Event), g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#else
+								.MouseDown(x1, y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#endif
 						#else
 							Dim As Integer x, y, x1, y1
 							GetPosToClient(widget, .FDialogParent, @x, @y)
 							GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
-							.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#ifdef __USE_GTK4__
+								.MouseDown(gtk4compat_event_x(Event) + x - x1, gtk4compat_event_y(Event) + y - y1, gdk_event_get_modifier_state(Event), g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#else
+								.MouseDown(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state, g_object_get_data(G_OBJECT(widget), "@@@Control2"))
+							#endif
 						#endif
 						Return True
 					#else
@@ -4408,15 +4824,27 @@ Namespace My.Sys.Forms
 					Case WM_LBUTTONUP
 					#endif
 					#ifdef __USE_GTK__
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							Dim As gint x1, y1
-							gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
-							.MouseUp(x1, y1, Event->button.state)
+							#ifdef __USE_GTK4__
+								gtk4compat_translate_coordinates(widget, .layoutwidget, gtk4compat_event_x(Event), gtk4compat_event_y(Event), @x1, @y1)
+							#else
+								gtk_widget_translate_coordinates(widget, .layoutwidget, Event->button.x, Event->button.y, @x1, @y1)
+							#endif
+							#ifdef __USE_GTK4__
+								.MouseUp(x1, y1, gdk_event_get_modifier_state(Event))
+							#else
+								.MouseUp(x1, y1, Event->button.state)
+							#endif
 						#else
 							Dim As Integer x, y, x1, y1
 							GetPosToClient(widget, .FDialogParent, @x, @y)
 							GetPosToClient(.layoutwidget, .FDialogParent, @x1, @y1)
-							.MouseUp(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
+							#ifdef __USE_GTK4__
+								.MouseUp(gtk4compat_event_x(Event) + x - x1, gtk4compat_event_y(Event) + y - y1, gdk_event_get_modifier_state(Event))
+							#else
+								.MouseUp(Event->button.x + x - x1, Event->button.y + y - y1, Event->button.state)
+							#endif
 						#endif
 						Return True
 					#else
@@ -4433,7 +4861,11 @@ Namespace My.Sys.Forms
 					Case WM_KEYDOWN
 					#endif
 					#ifdef __USE_GTK__
-						.KeyDown(Event->key.keyval, Event->key.state)
+						#ifdef __USE_GTK4__
+							.KeyDown(gtk4compat_event_keyval(Event), gdk_event_get_modifier_state(Event))
+						#else
+							.KeyDown(Event->key.keyval, Event->key.state)
+						#endif
 					#else
 						.KeyDown(wParam, wParam And &HFFFF)
 					#endif
@@ -4475,8 +4907,11 @@ Namespace My.Sys.Forms
 	Sub Designer.PaintControl()
 		If FDown AndAlso ((FCanInsert) OrElse (FCanMove = False AndAlso FCanSize = False)) Then
 			#ifdef __USE_GTK__
-				cairo_set_source_rgb(cr, 0.0, 0.0, 0.0)
-				.cairo_rectangle(cr, FBeginX, FBeginY, FNewX - FBeginX, FNewY - FBeginY)
+				Dim As Double LineShade = IIf(DesignBackIsDark(@This), 0.85, 0.0)
+				cairo_set_source_rgb(cr, LineShade, LineShade, LineShade)
+				cairo_set_line_width(cr, 1)
+				cairo_set_dash(cr, NULL, 0, 0)
+				.cairo_rectangle(cr, Min(FBeginX, FNewX) + 0.5, Min(FBeginY, FNewY) + 0.5, Abs(FNewX - FBeginX), Abs(FNewY - FBeginY))
 				cairo_stroke(cr)
 			#endif
 		End If
@@ -4493,7 +4928,11 @@ Namespace My.Sys.Forms
 		End Function
 		
 		Function Dialog_ExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As Any Ptr) As Boolean
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			Dialog_Draw(widget, cr, data1)
 			cairo_destroy(cr)
 			Return False
@@ -4504,11 +4943,18 @@ Namespace My.Sys.Forms
 				UnHook
 				FDialog = value
 				If value <> 0 Then
+					#ifndef __USE_GTK2__
+						DesignFormInstallCss(value)
+					#endif
 					gtk_widget_set_can_focus(layoutwidget, True)
 					'CreateDots(gtk_widget_get_parent(FDialog))
 					If layoutwidget Then
-						#ifdef __USE_GTK3__
-							g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+						#ifndef __USE_GTK2__
+							#ifdef __USE_GTK4__
+								gtk4compat_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+							#else
+								g_signal_connect(layoutwidget, "draw", G_CALLBACK(@Dialog_Draw), @This)
+							#endif
 						#else
 							g_signal_connect(layoutwidget, "expose-event", G_CALLBACK(@Dialog_ExposeEvent), @This)
 						#endif

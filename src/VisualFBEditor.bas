@@ -21,13 +21,17 @@
 	#endif
 #elseif defined(__USE_GTK__) AndAlso defined(__FB_WIN32__)
 	#ifdef __FB_64BIT__
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../VisualFBEditor64_gtk4.exe"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../VisualFBEditor64_gtk3.exe"
 		#else
 			#cmdline "-x ../VisualFBEditor64_gtk2.exe"
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../VisualFBEditor32_gtk4.exe"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../VisualFBEditor32_gtk3.exe"
 		#else
 			#cmdline "-x ../VisualFBEditor32_gtk2.exe"
@@ -35,13 +39,17 @@
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../VisualFBEditor64_gtk4"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../VisualFBEditor64_gtk3"
 		#else
 			#cmdline "-x ../VisualFBEditor64_gtk2"
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-x ../VisualFBEditor32_gtk4"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-x ../VisualFBEditor32_gtk3"
 		#else
 			#cmdline "-x ../VisualFBEditor32_gtk2"

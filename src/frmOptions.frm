@@ -4292,8 +4292,9 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		ChoosedKeyWordsCase = .cboCase.ItemIndex
 		ChoosedConstructions = .cboConstructions.ItemIndex
 		AddSpacesToOperators = .chkAddSpacesToOperators.Checked
-		WLet(CurrentInterfaceTheme, .cboInterfaceTheme.Text)
-		WLet(CurrentTheme, .cboTheme.Text)
+		' An empty name (no selected item) would load the theme ".ini"
+		If .cboInterfaceTheme.Text <> "" Then WLet(CurrentInterfaceTheme, .cboInterfaceTheme.Text)
+		If .cboTheme.Text <> "" Then WLet(CurrentTheme, .cboTheme.Text)
 		WLet(EditorFontName, * (.EditFontName))
 		EditorFontSize = .EditFontSize
 		WLet(InterfaceFontName, * (.InterfFontName))
@@ -5034,6 +5035,7 @@ End Sub
 Private Sub frmOptions.cboTheme_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	With fOptions
 		If UBound(.Colors) = -1 Then Exit Sub
+		If fOptions.cboTheme.Text = "" Then Exit Sub
 		piniTheme->Load GetUserThemePath(fOptions.cboTheme.Text)
 		#ifdef __USE_GTK__
 			.Colors(30 + UBound(Keywords), 0) = piniTheme->ReadInteger("Colors", "NormalTextForeground", clBlack)
@@ -6990,6 +6992,7 @@ End Sub
 
 Private Sub frmOptions.cboInterfaceTheme_Change(ByRef Sender As ComboBoxEdit)
 	If UBound(InterfaceColors) = -1 Then Exit Sub
+	If fOptions.cboInterfaceTheme.Text = "" Then Exit Sub
 	iniInterfaceTheme.Load GetUserThemePath(fOptions.cboInterfaceTheme.Text, True)
 	InterfaceColors(0) = iniInterfaceTheme.ReadInteger("Colors", "DarkBackground", darkBkColor)
 	InterfaceColors(1) = iniInterfaceTheme.ReadInteger("Colors", "DarkBackgroundHighlight", darkHlBkColor)

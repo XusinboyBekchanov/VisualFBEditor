@@ -37,16 +37,24 @@
 		#define SettingsPath ExePath & "/Settings/VisualFBEditor32.ini"
 	#endif
 #else
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		#ifdef __FB_WIN32__
 			#ifdef __FB_64BIT__
-				#define SettingsPath ExePath & "/Settings/VisualFBEditor64_gtk3.ini"
+				#ifdef __USE_GTK4__
+					#define SettingsPath ExePath & "/Settings/VisualFBEditor64_gtk4.ini"
+				#else
+					#define SettingsPath ExePath & "/Settings/VisualFBEditor64_gtk3.ini"
+				#endif
 			#else
 				#define SettingsPath ExePath & "/Settings/VisualFBEditor32_gtk3.ini"
 			#endif
 		#else
 			#ifdef __FB_64BIT__
-				#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk3.ini"
+				#ifdef __USE_GTK4__
+					#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk4.ini"
+				#else
+					#define SettingsPath ExePath & "/Settings/VisualFBEditorX64_gtk3.ini"
+				#endif
 			#else
 				#define SettingsPath ExePath & "/Settings/VisualFBEditorX32_gtk3.ini"
 			#endif

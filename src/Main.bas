@@ -484,7 +484,7 @@ Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As U
 End Function
 
 Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
-	Dim Posi As Long = InStrRev(FileName, Any "\/", Len(FileName) - 1)
+	Dim Posi As Long = InStrRev(FileName, Any "\/", Len((FileName)) - 1)
 	If Posi <= 0 Then Return ""
 	If Not WithSlash Then Posi -= 1
 	Return Left(FileName, Posi)
@@ -493,7 +493,7 @@ End Function
 Function GetFileName(ByRef FileName As WString, WithExtension As Boolean = True) As UString
 	Dim As Long nPos, Posi = InStrRev(FileName, Any "\/:")
 	nPos = InStrRev(FileName, ".")
-	If nPos < 1 OrElse nPos < Posi Then nPos = Len(FileName)
+	If nPos < 1 OrElse nPos < Posi Then nPos = Len((FileName))
 	If Posi > 0 Then
 		Return IIf(WithExtension, Mid(FileName, Posi + 1), Mid(FileName, Posi + 1, nPos - Posi - 1))
 	Else
@@ -951,7 +951,7 @@ Function GetBakFileName(ByRef FileName As WString) As UString
 		Return TempFolder + "Temp_" & BakDate & ".bak"
 	End If
 	Dim Pos1 As Long = InStrRev(FileName, ".")
-	If Pos1 = 0 Then Pos1 = Len(FileName)
+	If Pos1 = 0 Then Pos1 = Len((FileName))
 	Dim As WString * MAX_PATH iFileName
 	Dim As WString * MAX_PATH UserProjectsPath = GetSpecialPath("USERDOCUMENTS") + APP_TITLE + " Projects"
 	Dim As WString * MAX_PATH Path = UserProjectsPath + "/Backups"
@@ -6058,16 +6058,24 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			MFF = IIf(i = 0, "Controls\MyFbFramework\mff32.dll", "")
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			#ifdef __FB_WIN32__
 				#ifdef __FB_64BIT_
-					MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk3.dll", "")
+					#ifdef __USE_GTK4__
+						MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk4.dll", "")
+					#else
+						MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk3.dll", "")
+					#endif
 				#else
 					MFF = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk3.dll", "")
 				#endif
 			#else
 				#ifdef __FB_64BIT__
-					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk3.so", "")
+					#ifdef __USE_GTK4__
+						MFF = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk4.so", "")
+					#else
+						MFF = IIf(i = 0, "Controls/MyFbFramework/libmff64_gtk3.so", "")
+					#endif
 				#else
 					MFF = IIf(i = 0, "Controls/MyFbFramework/libmff32_gtk3.so", "")
 				#endif
@@ -9322,11 +9330,15 @@ pnlAIAgent.Align = DockStyle.alClient
 pnlAIAgent.Width = tabLeftWidth
 'pnlAIAgent.OnResize = @pnlAIAgent_Resize
 #ifdef __USE_GTK__
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y
 			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
-			gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
+			#ifdef __USE_GTK4__
+				gtk4compat_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
+			#else
+				gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
+			#endif
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
 			tbExplorer.ExtraMargins.Right = tbLeft.Width - 10
 			tbForm.ExtraMargins.Right = tbLeft.Width - 10
@@ -9346,7 +9358,7 @@ pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
 pnlLeftPin.Height = tbLeft.Height
 pnlLeftPin.Parent = @pnlLeft
 #ifdef __USE_GTK__
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		Dim As GtkWidget Ptr overlayLeft = gtk_overlay_new()
 		gtk_container_add(GTK_CONTAINER(overlayLeft), pnlLeft.Handle)
 		g_object_ref(pnlLeftPin.Handle)
@@ -11418,13 +11430,21 @@ pnlRight.Add @tabRight
 #endif
 
 #ifdef __USE_GTK__
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		Function OverlayRight_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y, x1, y1
 			Dim As Control Ptr tb = IIf(tabRight.SelectedTab = tpProperties, @tbProperties, @tbEvents)
-			gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.ScaleX(pnlRight.Width), 0, @x, @y)
+			#ifdef __USE_GTK4__
+				gtk4compat_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.ScaleX(pnlRight.Width), 0, @x, @y)
+			#else
+				gtk_widget_translate_coordinates(tb->Handle, pnlRight.Handle, pnlRight.ScaleX(pnlRight.Width), 0, @x, @y)
+			#endif
 			Dim As Control Ptr lv = IIf(tabRight.SelectedTab = tpProperties, @lvProperties, @lvEvents)
-			gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
+			#ifdef __USE_GTK4__
+				gtk4compat_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
+			#else
+				gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
+			#endif
 			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
 			tbProperties.ExtraMargins.Right = tbRight.Width - 10
 			tbEvents.ExtraMargins.Right = tbRight.Width - 10
@@ -11443,7 +11463,7 @@ pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 pnlRightPin.Height = tbRight.Height
 pnlRightPin.Parent = @pnlRight
 #ifdef __USE_GTK__
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		Dim As GtkWidget Ptr overlayRight = gtk_overlay_new()
 		gtk_container_add(GTK_CONTAINER(overlayRight), pnlRight.Handle)
 		g_object_ref(pnlRightPin.Handle)
@@ -11925,18 +11945,19 @@ Sub tabBottom_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control
 		'		splBottom.Visible = True
 		'		frmMain.RequestAlign '<bp>
 	End If
-	Dim As TabPage Ptr tp = ptabBottom->SelectedTab
+	' On GTK the event comes before the page is switched (SelectedTab is still the previous page)
+	Dim As TabPage Ptr tp = IIf(newIndex >= 0 AndAlso newIndex < ptabBottom->TabCount, ptabBottom->Tabs[newIndex], ptabBottom->SelectedTab)
 	tbBottom.Buttons.Item("EraseOutputWindow")->Visible = tp = tpOutput
 	tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = tp = tpImmediate
 	tbBottom.Buttons.Item("AddWatch")->Visible = tp = tpWatches
 	tbBottom.Buttons.Item("RemoveWatch")->Visible = tp = tpWatches
 	tbBottom.Buttons.Item("Update")->Visible = tp = tpGlobals
 	If newIndex = 9 Then tbBottom.Buttons.Item("AddWatch")->State = Cast(ToolButtonState, tbBottom.Buttons.Item("AddWatch")->State Or ToolButtonState.tstWrap)
-	If ptabBottom->SelectedTab = tpProcedures Then
+	If tp = tpProcedures Then
 		proc_sh
 	End If
 	If MainNode <> 0 AndAlso MainNode->Text <> "" AndAlso InStr(MainNode->Text, ".") Then
-		If ptabBottom->SelectedTab = tpChangeLog AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
+		If tp = tpChangeLog AndAlso CInt(Not mLoadLog) Then ' AndAlso CInt(Not mLoadToDo)
 			If mChangeLogEdited AndAlso mChangelogName<> "" Then
 				txtChangeLog.SaveToFile(mChangelogName)  ' David Change
 				mChangeLogEdited = False
@@ -11952,7 +11973,7 @@ Sub tabBottom_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As Control
 				txtChangeLog.Text = ""
 			End If
 			mLoadLog = True
-		ElseIf ptabBottom->SelectedTab = tpToDo AndAlso Not mLoadToDo Then
+		ElseIf tp = tpToDo AndAlso Not mLoadToDo Then
 			WLet(gSearchSave, WChr(84) + "ODO")
 			ThreadCounter(ThreadCreate_(@FindSubProj, MainNode))
 			mLoadToDo = True
@@ -11977,7 +11998,7 @@ End Sub
 
 Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 	If ChangeTab Then
-		tabBottom_SelChange(*ptabBottom->Designer, *ptabBottom, 0)
+		tabBottom_SelChange(*ptabBottom->Designer, *ptabBottom, ptabBottom->IndexOfTab(tpOutput))
 		tpOutput->SelectTab
 	End If
 	Dim As Integer AddingTextLength = Len(msg & WChr(13) & WChr(10))
@@ -12714,6 +12735,14 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#else
 		pfAbout->Label11.Text = ML("Version") & " " & WStr(Version)
 	#endif
+	#ifdef __USE_GTK__
+		' The version of the GTK library loaded at runtime
+		#ifdef __USE_GTK2__
+			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_major_version & "." & gtk_minor_version & "." & gtk_micro_version & ")"
+		#else
+			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_get_major_version() & "." & gtk_get_minor_version() & "." & gtk_get_micro_version() & ")"
+		#endif
+	#endif
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
 	
 	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins")
@@ -12776,6 +12805,19 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
 		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
 		pnlBottomPin.Width = tabItemHeight
+		#ifndef __USE_GTK2__
+			' The buttons of GTK3 and GTK4 (with the padding of the toolbar) are wider than the tab height:
+			' the toolbar aligned to the right of the narrower pin panel is cut off on the left
+			Dim As gint tbBottomMinWidth
+			gtk_widget_set_size_request(tbBottom.Handle, -1, -1)
+			#ifdef __USE_GTK4__
+				gtk_widget_measure(tbBottom.Handle, GTK_ORIENTATION_HORIZONTAL, -1, @tbBottomMinWidth, NULL, NULL, NULL)
+			#else
+				gtk_widget_get_preferred_width(tbBottom.Handle, @tbBottomMinWidth, NULL)
+			#endif
+			pnlBottomPin.Width = Max(tabItemHeight, tbBottom.UnScaleX(tbBottomMinWidth))
+			tbBottom.Width = pnlBottomPin.Width
+		#endif
 		pnlPropertyValue.Visible = False
 		tbBottom.Buttons.Item("EraseImmediateWindow")->Visible = False
 		tbBottom.Buttons.Item("AddWatch")->Visible = False

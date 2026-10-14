@@ -827,7 +827,7 @@ End Sub
 		#endif
 		cairo_set_font_size(cr, 11)
 		
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			Var width1 = gtk_widget_get_allocated_width (widget)
 			Var height1 = gtk_widget_get_allocated_height (widget)
 		#else
@@ -858,7 +858,11 @@ End Sub
 	End Function
 	
 	Function CloseButton_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
-		Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+		#ifdef __USE_GTK4__
+			Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+		#else
+			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+		#endif
 		CloseButton_OnDraw(widget, cr, data1)
 		cairo_destroy(cr)
 		Return False
@@ -872,8 +876,12 @@ Constructor CloseButton
 	OldBackColor = This.BackColor
 	OldForeColor = This.Font.Color
 	#ifdef __USE_GTK__
-		#ifdef __USE_GTK3__
-			g_signal_connect(widget, "draw", G_CALLBACK(@CloseButton_OnDraw), @This)
+		#ifndef __USE_GTK2__
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@CloseButton_OnDraw), @This)
+			#else
+				g_signal_connect(widget, "draw", G_CALLBACK(@CloseButton_OnDraw), @This)
+			#endif
 		#else
 			g_signal_connect(widget, "expose-event", G_CALLBACK(@CloseButton_OnExposeEvent), @This)
 		#endif
@@ -3076,7 +3084,7 @@ Sub ConvertHToBi(ByRef FileName As WString)
 	If Result <> 0 Then Result = Open(FileName For Input Encoding "utf-8" As #fr)
 	If Result <> 0 Then Result = Open(FileName For Input As #fr)
 	If Result = 0 Then
-		Open Left(FileName, Len(FileName) - 2) & ".bi" For Output Encoding "utf-8" As #fw
+		Open Left(FileName, Len((FileName)) - 2) & ".bi" For Output Encoding "utf-8" As #fw
 		Do Until EOF(fr)
 			Line Input #fr, b
 			i = 0
@@ -6257,7 +6265,7 @@ Sub TabWindow.SetGraphicProperty(Ctrl As Any Ptr, PropertyName As String, TypeNa
 End Sub
 
 #ifdef __USE_GTK__
-	#ifdef __USE_GTK3__
+	#ifndef __USE_GTK2__
 		Function Overlay_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As Designer Ptr Des = user_data
 			allocation->x = Cast(Integer, g_object_get_data(G_OBJECT(widget), "@@@Left"))
@@ -7660,7 +7668,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 	Dim As Boolean IncludesChanged
 	Dim As List Constructs, ConstructBlocks
 	If IsBas Then
-		WLet(FLine1, ..Left(FileName, Len(FileName) - 4) & ".bi")
+		WLet(FLine1, ..Left(FileName, Len((FileName)) - 4) & ".bi")
 		WLet(FLine2, GetFileName(*FLine1))
 	Else
 		WLet(FLine1, "")
@@ -10045,7 +10053,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						Des->OnModified = @DesignerModified
 						'Des->MFF = DyLibLoad(*MFFDll)
 						Des->TopMenu = @pnlTopMenu
-						#ifdef __USE_GTK3__
+						#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 							Des->overlay = pnlDesign.overlaywidget
 							If Des->overlay Then
 								g_signal_connect(Des->overlay, "get-child-position", G_CALLBACK(@Overlay_get_child_position), Des)
@@ -10957,7 +10965,7 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	'cboClass.Width = tbrTop.Width *.4
 	#ifdef __USE_GTK__
 		'cboClass.Top = 0
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			cboClass.Height = 20
 			cboFunction.Height = 20
 		#else
@@ -11025,10 +11033,14 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	IsNew = bNew OrElse wFileName = ""
 	pnlForm.Top = -500
 	#ifdef __USE_GTK__
-		#ifdef __USE_GTK3__
+		#ifndef __USE_GTK2__
 			pnlDesign.overlaywidget = gtk_overlay_new()
 			gtk_container_add(GTK_CONTAINER(pnlDesign.overlaywidget), pnlDesign.Handle)
-			pnlDesign.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#ifdef __USE_GTK4__
+				pnlDesign.scrolledwidget = gtk_scrolled_window_new()
+			#else
+				pnlDesign.scrolledwidget = gtk_scrolled_window_new(NULL, NULL)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(pnlDesign.scrolledwidget), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC)
 			gtk_container_add(GTK_CONTAINER(pnlDesign.scrolledwidget), pnlDesign.overlaywidget)
 			'layout = gtk_layout_new(NULL, NULL)

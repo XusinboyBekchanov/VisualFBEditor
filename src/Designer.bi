@@ -175,6 +175,9 @@ Namespace My.Sys.Forms
 		As SymbolsType Ptr OldSymbols, OldCtrlSymbols
 		#ifdef __USE_GTK__
 			Declare Static Function HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			#ifdef __USE_GTK4__
+				Declare Static Function HookChildTick CDecl(ByVal widget As GtkWidget Ptr, ByVal frame_clock As GdkFrameClock Ptr, ByVal user_data As gpointer) As gboolean
+			#endif
 			Declare Static Function HookChildProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function HookDialogProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
 			Declare Static Function HookDialogParentProc(widget As GtkWidget Ptr, Event As GdkEvent Ptr, user_data As Any Ptr) As Boolean
@@ -339,6 +342,8 @@ Namespace My.Sys.Forms
 			Declare Sub MoveDots(Control As Any Ptr, bSetFocus As Boolean = True)
 		#endif
 		Declare Sub MoveControl(Control As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
+		'A band of a Report is not a Component: it has no bounds of its own
+		Declare Function IsReportBand(Ctrl As Any Ptr) As Boolean
 		Declare Sub GetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Declare Sub SetControlBounds(Control As Any Ptr, ByRef iLeft As Integer, ByRef iTop As Integer, ByRef iWidth As Integer, ByRef iHeight As Integer)
 		Declare Function CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr

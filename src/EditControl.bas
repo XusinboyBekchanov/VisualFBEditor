@@ -3205,8 +3205,9 @@ Namespace My.Sys.Forms
 		
 		If CBool(OldVScrollMaxBottom <> VScrollMaxBottom) OrElse CBool(OldVScrollVCBottom <> VScrollVCBottom) OrElse WithChange Then
 			#ifdef __USE_GTK__
-				gtk_adjustment_set_upper(adjustmentvBottom, VScrollMaxBottom)
-				gtk_adjustment_set_page_size(adjustmentvBottom, 0)
+				' Like nPage of SetScrollInfo: the page size is the count of visible lines, so the value stops when the
+				' last line is at the bottom (upper - page_size) instead of scrolling the text out of the editor
+				gtk_adjustment_configure(adjustmentvBottom, gtk_adjustment_get_value(adjustmentvBottom), 0, VScrollMaxBottom, 1, Max(1, VScrollVCBottom), Max(1, VScrollVCBottom))
 				'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 			#else
 				If VScrollEnabledBottom Then
@@ -3235,8 +3236,7 @@ Namespace My.Sys.Forms
 			
 			If CBool(OldVScrollMaxTop <> VScrollMaxTop) OrElse CBool(OldVScrollVCTop <> VScrollVCTop) OrElse WithChange Then
 				#ifdef __USE_GTK__
-					gtk_adjustment_set_upper(adjustmentvTop, VScrollMaxTop)
-					gtk_adjustment_set_page_size(adjustmentvTop, 0)
+					gtk_adjustment_configure(adjustmentvTop, gtk_adjustment_get_value(adjustmentvTop), 0, VScrollMaxTop, 1, Max(1, VScrollVCTop), Max(1, VScrollVCTop))
 					'gtk_adjustment_configure(adjustmentv, gtk_adjustment_get_value(adjustmentv), 0, VScrollMax, 1, 10, VScrollMax / 10)
 				#else
 					If VScrollEnabledTop Then
@@ -4498,13 +4498,13 @@ Namespace My.Sys.Forms
 				Dim As Double iRED, iGREEN, iBLUE
 				If bDividedY Then
 					If zz = 0 Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							cairo_rectangle (cr, ScaleX(LeftMargin), 0.0, ScaleX(gtk_widget_get_allocated_width (widget)), ScaleY(iDividedY), True)
 						#else
 							cairo_rectangle (cr, ScaleX(LeftMargin), 0.0, ScaleX(widget->allocation.Width), ScaleY(iDividedY), True)
 						#endif
 					Else
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							cairo_rectangle (cr, ScaleX(LeftMargin), ScaleY(iDividedY + 7), ScaleX(gtk_widget_get_allocated_width (widget)), ScaleY(gtk_widget_get_allocated_height(widget)), True)
 						#else
 							cairo_rectangle (cr, ScaleX(LeftMargin), ScaleY(iDividedY + 7), ScaleX(widget->allocation.Width), ScaleY(widget->allocation.Height), True)
@@ -4512,20 +4512,20 @@ Namespace My.Sys.Forms
 					End If
 				ElseIf bDividedX Then
 					If zz = 0 Then
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							cairo_rectangle (cr, ScaleX(LeftMargin), 0, ScaleX(iDividedX), ScaleY(gtk_widget_get_allocated_height(widget)), True)
 						#else
 							cairo_rectangle (cr, ScaleX(LeftMargin), 0, ScaleX(iDividedX), ScaleY(widget->allocation.Height), True)
 						#endif
 					Else
-						#ifdef __USE_GTK3__
+						#ifndef __USE_GTK2__
 							cairo_rectangle (cr, ScaleX(iDividedX + 7 + LeftMargin), 0, ScaleX(gtk_widget_get_allocated_width (widget)), ScaleY(gtk_widget_get_allocated_height(widget)), True)
 						#else
 							cairo_rectangle (cr, ScaleX(iDividedX + 7 + LeftMargin), 0, ScaleX(widget->allocation.Width), ScaleY(widget->allocation.Height), True)
 						#endif
 					End If
 				Else
-					#ifdef __USE_GTK3__
+					#ifndef __USE_GTK2__
 						cairo_rectangle (cr, ScaleX(LeftMargin), 0.0, ScaleX(gtk_widget_get_allocated_width (widget)), ScaleY(gtk_widget_get_allocated_height (widget)), True)
 					#else
 						cairo_rectangle (cr, ScaleX(LeftMargin), 0.0, ScaleX(widget->allocation.Width), ScaleY(widget->allocation.height), True)
@@ -6522,29 +6522,40 @@ Namespace My.Sys.Forms
 	
 	#ifdef __USE_GTK__
 		Sub EditControl.EC_HandleGtkDragDataGet(seldata As GtkSelectionData Ptr)
-			Dim As WString Ptr pSelText
-			WLet(pSelText, SelText)
-			If pSelText <> 0 AndAlso Len(*pSelText) > 0 Then
-				Dim As String pUtf8 = ToUtf8(*pSelText)
-				gtk_selection_data_set_text(seldata, StrPtr(pUtf8), Len(pUtf8))
-			End If
-			WDeAllocate(pSelText)
+			#ifndef __USE_GTK4__
+				Dim As WString Ptr pSelText
+				WLet(pSelText, SelText)
+				If pSelText <> 0 AndAlso Len(*pSelText) > 0 Then
+					Dim As String pUtf8 = ToUtf8(*pSelText)
+					gtk_selection_data_set_text(seldata, StrPtr(pUtf8), Len(pUtf8))
+				End If
+				WDeAllocate(pSelText)
+			#endif
 		End Sub
 		
 		Sub EditControl.EC_HandleGtkDrop(CONTEXT As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, Time_ As guint)
-			If seldata = 0 OrElse gtk_selection_data_get_length(seldata) < 0 Then
-				gtk_drag_finish(CONTEXT, False, False, Time_)
-				Return
-			End If
-			
-			Dim As gchar Ptr pUtf8Text = gtk_selection_data_get_text(seldata)
-			If pUtf8Text = 0 Then
-				gtk_drag_finish(CONTEXT, False, False, Time_)
-				Return
-			End If
-			
+			#ifndef __USE_GTK4__
+				If seldata = 0 OrElse gtk_selection_data_get_length(seldata) < 0 Then
+					gtk_drag_finish(CONTEXT, False, False, Time_)
+					Return
+				End If
+
+				Dim As gchar Ptr pUtf8Text = gtk_selection_data_get_text(seldata)
+				If pUtf8Text = 0 Then
+					gtk_drag_finish(CONTEXT, False, False, Time_)
+					Return
+				End If
+				Dim As Boolean bIsMove = (gdk_drag_context_get_selected_action(CONTEXT) = GDK_ACTION_MOVE)
+				Dim As Boolean bResult = EC_InsertDroppedText(pUtf8Text, X, Y, bIsMove)
+				g_free(pUtf8Text)
+				' Eski matn allaqachon o'chirilgan bo'lgani uchun, "drag-data-delete" ni chaqirtirmaymiz
+				gtk_drag_finish(CONTEXT, bResult, False, Time_)
+			#endif
+		End Sub
+
+		' Inserts the dropped text at the point (GTK3 and GTK4)
+		Function EditControl.EC_InsertDroppedText(pUtf8Text As gchar Ptr, X As gint, Y As gint, bIsMove As Boolean) As Boolean
 			Dim As WString Ptr pText = FromUtf8(pUtf8Text)
-			g_free(pUtf8Text)
 			
 			Dim As WString Ptr pNormText
 			WLet(pNormText, Replace(Replace(*pText, Chr(13, 10), Chr(13)), Chr(10), Chr(13)))
@@ -6554,15 +6565,13 @@ Namespace My.Sys.Forms
 			Dim As Integer dropChar = CharIndexFromPoint(UnScaleX(X), UnScaleY(Y))
 			
 			Dim As Boolean bSelfDrag = (DragSourceECPtr = @This)
-			Dim As Boolean bIsMove   = (gdk_drag_context_get_selected_action(CONTEXT) = GDK_ACTION_MOVE)
 			
 			If bSelfDrag Then
 				Dim As Boolean bInsideOrig = (dropLine > DragOrigStartLine OrElse (dropLine = DragOrigStartLine AndAlso dropChar >= DragOrigStartChar)) AndAlso _
 					(dropLine < DragOrigEndLine   OrElse (dropLine = DragOrigEndLine   AndAlso dropChar <= DragOrigEndChar))
 				If bInsideOrig Then
 					WDeAllocate(pNormText)
-					gtk_drag_finish(CONTEXT, False, False, Time_)
-					Return
+					Return False
 				End If
 			End If
 			
@@ -6608,8 +6617,8 @@ Namespace My.Sys.Forms
 			PaintControl
 			
 			' Eski matn allaqachon o'chirilgan bo'lgani uchun, "drag-data-delete" ni chaqirtirmaymiz
-			gtk_drag_finish(CONTEXT, True, False, Time_)
-		End Sub
+			Return True
+		End Function
 		
 		Sub EditControl.EC_HandleGtkDragDataDelete()
 			If Not FGtkPendingDelete Then Return
@@ -7223,8 +7232,17 @@ Namespace My.Sys.Forms
 		Static bCtrl As Boolean
 		Static scrStyle As Integer, scrDirection As Integer
 		#ifdef __USE_GTK__
-			bShifted = msg.Event->button.state And GDK_SHIFT_MASK
-			bCtrl = msg.Event->button.state And GDK_CONTROL_MASK
+			#ifdef __USE_GTK4__
+				' Pseudo events (map, unmap, destroy) have no GdkEvent
+				If msg.Event Then bShifted = gdk_event_get_modifier_state(msg.Event) And GDK_SHIFT_MASK
+			#else
+				bShifted = msg.Event->button.state And GDK_SHIFT_MASK
+			#endif
+			#ifdef __USE_GTK4__
+				If msg.Event Then bCtrl = gdk_event_get_modifier_state(msg.Event) And GDK_CONTROL_MASK
+			#else
+				bCtrl = msg.Event->button.state And GDK_CONTROL_MASK
+			#endif
 		#else
 			bShifted = GetKeyState(VK_SHIFT) And 8000
 			bCtrl = GetKeyState(VK_CONTROL) And 8000
@@ -7232,7 +7250,11 @@ Namespace My.Sys.Forms
 		'Base.ProcessMessage(msg)
 		#ifdef __USE_GTK__
 			Dim As GdkEvent Ptr e = msg.Event
-			Select Case msg.Event->type
+			#ifdef __USE_GTK4__
+				Select Case gtk4compat_event_type(msg.Event)
+			#else
+				Select Case msg.Event->type
+			#endif
 		#else
 			Select Case msg.Msg
 			Case CM_CREATE
@@ -7319,8 +7341,12 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						adjustmenth = IIf(ActiveCodePane = 0, adjustmenthLeft, adjustmenthRight)
 						OldPos = gtk_adjustment_get_value(adjustmenth)
-						#ifdef __USE_GTK3__
-							scrDirection = e->scroll.delta_y
+						#ifndef __USE_GTK2__
+							#ifdef __USE_GTK4__
+								scrDirection = gtk4compat_event_delta_y(e)
+							#else
+								scrDirection = e->scroll.delta_y
+							#endif
 						#else
 							scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
 						#endif
@@ -7351,8 +7377,12 @@ Namespace My.Sys.Forms
 					#ifdef __USE_GTK__
 						adjustmentv = IIf(ActiveCodePane = 0, adjustmentvTop, adjustmentvBottom)
 						OldPos = gtk_adjustment_get_value(adjustmentv)
-						#ifdef __USE_GTK3__
-							scrDirection = e->scroll.delta_y
+						#ifndef __USE_GTK2__
+							#ifdef __USE_GTK4__
+								scrDirection = gtk4compat_event_delta_y(e)
+							#else
+								scrDirection = e->scroll.delta_y
+							#endif
 						#else
 							scrDirection = IIf(e->scroll.direction = GDK_SCROLL_UP, -1, 1)
 						#endif
@@ -7407,9 +7437,21 @@ Namespace My.Sys.Forms
 								ShowCaretPos False
 								If DownButton = 0 Then
 									#ifdef __USE_GTK__
-										FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-										FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-										If e->button.x < LeftMargin Then
+										#ifdef __USE_GTK4__
+											FSelEndLine = LineIndexFromPoint(IIf(gtk4compat_event_x(e) > 60000, 0, gtk4compat_event_x(e)), IIf(gtk4compat_event_y(e) > 60000, 0, gtk4compat_event_y(e)))
+										#else
+											FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+										#endif
+										#ifdef __USE_GTK4__
+											FSelEndChar = CharIndexFromPoint(IIf(gtk4compat_event_x(e) > 60000, 0, gtk4compat_event_x(e)), IIf(gtk4compat_event_y(e) > 60000, 0, gtk4compat_event_y(e)))
+										#else
+											FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+										#endif
+										#ifdef __USE_GTK4__
+											If gtk4compat_event_x(e) < LeftMargin Then
+										#else
+											If e->button.x < LeftMargin Then
+										#endif
 									#else
 										dwTemp = GetMessagePos
 										psPoints = MAKEPOINTS(dwTemp)
@@ -7454,9 +7496,21 @@ Namespace My.Sys.Forms
 								ShowCaretPos False
 								If DownButton = 0 Then
 									#ifdef __USE_GTK__
-										FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-										FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
-										If e->button.x < LeftMargin Then
+										#ifdef __USE_GTK4__
+											FSelEndLine = LineIndexFromPoint(IIf(gtk4compat_event_x(e) > 60000, 0, gtk4compat_event_x(e)), IIf(gtk4compat_event_y(e) > 60000, 0, gtk4compat_event_y(e)))
+										#else
+											FSelEndLine = LineIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+										#endif
+										#ifdef __USE_GTK4__
+											FSelEndChar = CharIndexFromPoint(IIf(gtk4compat_event_x(e) > 60000, 0, gtk4compat_event_x(e)), IIf(gtk4compat_event_y(e) > 60000, 0, gtk4compat_event_y(e)))
+										#else
+											FSelEndChar = CharIndexFromPoint(IIf(e->button.x > 60000, 0, e->button.x), IIf(e->button.y > 60000, 0, e->button.y))
+										#endif
+										#ifdef __USE_GTK4__
+											If gtk4compat_event_x(e) < LeftMargin Then
+										#else
+											If e->button.x < LeftMargin Then
+										#endif
 									#else
 										dwTemp = GetMessagePos
 										psPoints = MAKEPOINTS(dwTemp)
@@ -7679,7 +7733,11 @@ Namespace My.Sys.Forms
 			#endif
 			#ifdef __USE_GTK__
 			Case GDK_FOCUS_CHANGE
-				InFocus = Cast(GdkEventFocus Ptr, e)->in
+				#ifdef __USE_GTK4__
+					InFocus = gtk4compat_event_focus_in(e)
+				#else
+					InFocus = Cast(GdkEventFocus Ptr, e)->in
+				#endif
 				If InFocus Then
 					If FBlinkTimerId = 0 Then FBlinkTimerId = gdk_threads_add_timeout(This.BlinkTime, Cast(GSourceFunc, @Blink_cb), @This)
 				Else
@@ -7722,14 +7780,34 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_KEY_PRESS
 				'bInMButtonClicked = False
-				bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
-				bShifted = msg.Event->key.state And GDK_SHIFT_MASK
-				If dead_key <> 0 OrElse (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
-					If gtk_im_context_filter_keypress(im_context, @e->key) Then
+				#ifdef __USE_GTK4__
+					bCtrl = gdk_event_get_modifier_state(msg.Event) And GDK_CONTROL_MASK
+				#else
+					bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
+				#endif
+				#ifdef __USE_GTK4__
+					bShifted = gdk_event_get_modifier_state(msg.Event) And GDK_SHIFT_MASK
+				#else
+					bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+				#endif
+				#ifdef __USE_GTK4__
+					If dead_key <> 0 OrElse (GDK_KEY_dead_grave <= gtk4compat_event_keyval(msg.Event)) AndAlso (gtk4compat_event_keyval(msg.Event) <= GDK_KEY_dead_greek) Then
+				#else
+					If dead_key <> 0 OrElse (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
+				#endif
+					#ifdef __USE_GTK4__
+						If gtk_im_context_filter_keypress(im_context, e) Then
+					#else
+						If gtk_im_context_filter_keypress(im_context, @e->key) Then
+					#endif
 						Return
 					End If
 				End If
-				Select Case e->key.keyval
+				#ifdef __USE_GTK4__
+					Select Case gtk4compat_event_keyval(e)
+				#else
+					Select Case e->key.keyval
+				#endif
 			#else
 			Case WM_KEYDOWN
 				bInMiddleScroll = False
@@ -8159,7 +8237,11 @@ Namespace My.Sys.Forms
 							Indent
 						Else
 							#ifdef __USE_GTK__
-								ChangeText !"\t" '*e->Key.string
+								#ifdef __USE_GTK4__
+									ChangeText !"\t" 'gtk4compat_event_string(e)
+								#else
+									ChangeText !"\t" '*e->Key.string
+								#endif
 							#else
 								ChangeText WChr(msg.wParam)
 							#endif
@@ -8173,7 +8255,11 @@ Namespace My.Sys.Forms
 				#endif
 				#ifdef __USE_GTK__
 				Case Else
-					Select Case (Asc(*e->key.string))
+					#ifdef __USE_GTK4__
+						Select Case (Asc(gtk4compat_event_string(e)))
+					#else
+						Select Case (Asc(*e->key.string))
+					#endif
 				#else
 				End Select
 			Case WM_CHAR
@@ -8239,7 +8325,11 @@ Namespace My.Sys.Forms
 						Indent
 					Else
 						#ifdef __USE_GTK__
-							ChangeText *e->key.string
+							#ifdef __USE_GTK4__
+								ChangeText gtk4compat_event_string(e)
+							#else
+								ChangeText *e->key.string
+							#endif
 						#else
 							ChangeText WChr(msg.wParam)
 						#endif
@@ -8384,7 +8474,11 @@ Namespace My.Sys.Forms
 				'End If
 			Case Else:    ' отображаемые символы
 				#ifdef __USE_GTK__
-					If CInt(Not bCtrl) AndAlso CInt(WChr(gdk_keyval_to_unicode(e->key.keyval)) <> "") Then
+					#ifdef __USE_GTK4__
+						If CInt(Not bCtrl) AndAlso CInt(WChr(gdk_keyval_to_unicode(gtk4compat_event_keyval(e))) <> "") Then
+					#else
+						If CInt(Not bCtrl) AndAlso CInt(WChr(gdk_keyval_to_unicode(e->key.keyval)) <> "") Then
+					#endif
 				#else
 					If GetKeyState(VK_CONTROL) >= 0 OrElse GetKeyState(VK_RMENU) < 0 Then
 				#endif
@@ -8404,42 +8498,70 @@ Namespace My.Sys.Forms
 					'End If
 					bAddText = True
 					#ifdef __USE_GTK__
-						ChangeText WChr(gdk_keyval_to_unicode(e->key.keyval))
+						#ifdef __USE_GTK4__
+							ChangeText WChr(gdk_keyval_to_unicode(gtk4compat_event_keyval(e)))
+						#else
+							ChangeText WChr(gdk_keyval_to_unicode(e->key.keyval))
+						#endif
 					#else
 						ChangeText WChr(msg.wParam)
 					#endif
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 26 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 26 Then
+					#else
+						ElseIf Asc(*e->key.string) = 26 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 26 Then
 					#endif
 					Undo
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 25 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 25 Then
+					#else
+						ElseIf Asc(*e->key.string) = 25 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 25 Then
 					#endif
 					Redo
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 24 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 24 Then
+					#else
+						ElseIf Asc(*e->key.string) = 24 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 24 Then
 					#endif
 					CutToClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 3 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 3 Then
+					#else
+						ElseIf Asc(*e->key.string) = 3 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 3 Then
 					#endif
 					CopyToClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 22 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 22 Then
+					#else
+						ElseIf Asc(*e->key.string) = 22 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 22 Then
 					#endif
 					PasteFromClipboard
 					#ifdef __USE_GTK__
-					ElseIf Asc(*e->key.string) = 127 Then
+					#ifdef __USE_GTK4__
+						ElseIf Asc(gtk4compat_event_string(e)) = 127 Then
+					#else
+						ElseIf Asc(*e->key.string) = 127 Then
+					#endif
 					#else
 					ElseIf msg.wParam = 127 Then
 					#endif
@@ -8450,16 +8572,36 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			End Select
 		Case GDK_KEY_RELEASE
-			bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
-			bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+			#ifdef __USE_GTK4__
+				bCtrl = gdk_event_get_modifier_state(msg.Event) And GDK_CONTROL_MASK
+			#else
+				bCtrl = msg.Event->key.state And GDK_CONTROL_MASK
+			#endif
+			#ifdef __USE_GTK4__
+				bShifted = gdk_event_get_modifier_state(msg.Event) And GDK_SHIFT_MASK
+			#else
+				bShifted = msg.Event->key.state And GDK_SHIFT_MASK
+			#endif
 			Dim As Integer OldDeadKey = dead_key
-			If (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
-				dead_key = msg.Event->key.keyval
+			#ifdef __USE_GTK4__
+				If (GDK_KEY_dead_grave <= gtk4compat_event_keyval(msg.Event)) AndAlso (gtk4compat_event_keyval(msg.Event) <= GDK_KEY_dead_greek) Then
+			#else
+				If (GDK_KEY_dead_grave <= msg.Event->key.keyval) AndAlso (msg.Event->key.keyval <= GDK_KEY_dead_greek) Then
+			#endif
+				#ifdef __USE_GTK4__
+					dead_key = gtk4compat_event_keyval(msg.Event)
+				#else
+					dead_key = msg.Event->key.keyval
+				#endif
 			Else
 				dead_key = 0
 			End If
 			If OldDeadKey <> 0 OrElse dead_key <> 0 Then
-				If gtk_im_context_filter_keypress(im_context, @e->key) Then
+				#ifdef __USE_GTK4__
+					If gtk_im_context_filter_keypress(im_context, e) Then
+				#else
+					If gtk_im_context_filter_keypress(im_context, @e->key) Then
+				#endif
 					Return
 				End If
 			End If
@@ -8474,7 +8616,11 @@ Namespace My.Sys.Forms
 			#endif
 			bInMiddleScroll = False
 			#ifdef __USE_GTK__
-				Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
+				#ifdef __USE_GTK4__
+					Var X = UnScaleX(gtk4compat_event_x(e)), y = UnScaleY(gtk4compat_event_y(e))
+				#else
+					Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
+				#endif
 			#else
 				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
 			#endif
@@ -8508,13 +8654,21 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 			Case GDK_BUTTON_PRESS
 				gtk_widget_grab_focus(widget)
-				If e->button.button - 1 <> 0 Then Exit Select
+				#ifdef __USE_GTK4__
+					If gtk4compat_event_button(e) - 1 <> 0 Then Exit Select
+				#else
+					If e->button.button - 1 <> 0 Then Exit Select
+				#endif
 			#else
 			Case WM_LBUTTONDOWN
 			#endif
 			bInMiddleScroll = False
 			#ifdef __USE_GTK__
-				Var X = UnScaleX(e->button.x), Y = UnScaleY(e->button.y)
+				#ifdef __USE_GTK4__
+					Var X = UnScaleX(gtk4compat_event_x(e)), Y = UnScaleY(gtk4compat_event_y(e))
+				#else
+					Var X = UnScaleX(e->button.x), Y = UnScaleY(e->button.y)
+				#endif
 			#else
 				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
@@ -8541,8 +8695,16 @@ Namespace My.Sys.Forms
 					If Not bShifted AndAlso HasRealSelection() Then
 						If PointIsInsideSelection(X, Y) Then
 							FDragPending = True
-							FDragStartX = e->button.x
-							FDragStartY = e->button.y
+							#ifdef __USE_GTK4__
+								FDragStartX = gtk4compat_event_x(e)
+							#else
+								FDragStartX = e->button.x
+							#endif
+							#ifdef __USE_GTK4__
+								FDragStartY = gtk4compat_event_y(e)
+							#else
+								FDragStartY = e->button.y
+							#endif
 							Exit Select
 						End If
 					End If
@@ -8615,7 +8777,11 @@ Namespace My.Sys.Forms
 				ReleaseCapture
 			#endif
 			#ifdef __USE_GTK__
-				Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
+				#ifdef __USE_GTK4__
+					Var X = UnScaleX(gtk4compat_event_x(e)), y = UnScaleY(gtk4compat_event_y(e))
+				#else
+					Var X = UnScaleX(e->button.x), y = UnScaleY(e->button.y)
+				#endif
 			#else
 				Var X = UnScaleX(msg.lParamLo), y = UnScaleY(msg.lParamHi)
 			#endif
@@ -8697,7 +8863,11 @@ Namespace My.Sys.Forms
 			#endif
 			#ifdef __USE_GTK__
 				If FDragPending Then
-					If gtk_drag_check_threshold(widget, CInt(FDragStartX), CInt(FDragStartY), CInt(e->button.x), CInt(e->button.y)) Then
+					#ifdef __USE_GTK4__
+						If gtk_drag_check_threshold(widget, CInt(FDragStartX), CInt(FDragStartY), CInt(gtk4compat_event_x(e)), CInt(gtk4compat_event_y(e))) Then
+					#else
+						If gtk_drag_check_threshold(widget, CInt(FDragStartX), CInt(FDragStartY), CInt(e->button.x), CInt(e->button.y)) Then
+					#endif
 						FDragPending = False
 						DownButton = -1
 			
@@ -8707,37 +8877,98 @@ Namespace My.Sys.Forms
 						DragOrigStartLine = origSL : DragOrigStartChar = origSC
 						DragOrigEndLine   = origEL : DragOrigEndChar   = origEC
 			
-						Dim As GtkTargetList Ptr tlist = gtk_target_list_new(@ECDragTargets(0), 1)
-						#ifdef __USE_GTK3__
-							gtk_drag_begin_with_coordinates(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e, -1, -1)
+						#ifdef __USE_GTK4__
+							' Starts the drag of the selected text from the surface
+							Dim As String SelUtf8 = ToUtf8(SelText)
+							Dim As GValue TextValue
+							g_value_init(@TextValue, G_TYPE_STRING)
+							g_value_set_string(@TextValue, StrPtr(SelUtf8))
+							Dim As GdkContentProvider Ptr content = gdk_content_provider_new_for_value(@TextValue)
+							g_value_unset(@TextValue)
+							Dim As gdouble sx, sy
+							gdk_event_get_position(e, @sx, @sy)
+							Dim As GdkDrag Ptr drag = gdk_drag_begin(gtk_native_get_surface(gtk_widget_get_native(widget)), gdk_event_get_device(e), content, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 0, 0)
+							g_object_unref(content)
+							If drag Then
+								g_signal_connect(drag, "dnd-finished", G_CALLBACK(@EditControl_OnGtk4DragFinished), @This)
+								g_signal_connect(drag, "cancel", G_CALLBACK(@EditControl_OnGtk4DragFinished), @This)
+								g_object_unref(drag)
+							Else
+								DragSourceECPtr = 0
+							End If
 						#else
-							gtk_drag_begin(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e)
+							Dim As GtkTargetList Ptr tlist = gtk_target_list_new(@ECDragTargets(0), 1)
+							#ifndef __USE_GTK2__
+								gtk_drag_begin_with_coordinates(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e, -1, -1)
+							#else
+								gtk_drag_begin(widget, tlist, GDK_ACTION_COPY Or GDK_ACTION_MOVE, 1, e)
+							#endif
+							gtk_target_list_unref(tlist)
 						#endif
-						gtk_target_list_unref(tlist)
 					End If
 					Exit Select
 				End If
-				iCursorLine = LineIndexFromPoint(e->button.x, e->button.y, IIf((bDividedY AndAlso e->button.y <= iDividedY) OrElse (bDividedX AndAlso e->button.x <= iDividedX), 0, 1))
-				If bDividedX AndAlso e->button.x >= iDividedX AndAlso e->button.x <= iDividedX + 7 Then
+				#ifdef __USE_GTK4__
+					iCursorLine = LineIndexFromPoint(gtk4compat_event_x(e), gtk4compat_event_y(e), IIf((bDividedY AndAlso gtk4compat_event_y(e) <= iDividedY) OrElse (bDividedX AndAlso gtk4compat_event_x(e) <= iDividedX), 0, 1))
+				#else
+					iCursorLine = LineIndexFromPoint(e->button.x, e->button.y, IIf((bDividedY AndAlso e->button.y <= iDividedY) OrElse (bDividedX AndAlso e->button.x <= iDividedX), 0, 1))
+				#endif
+				#ifdef __USE_GTK4__
+					If bDividedX AndAlso gtk4compat_event_x(e) >= iDividedX AndAlso gtk4compat_event_x(e) <= iDividedX + 7 Then
+				#else
+					If bDividedX AndAlso e->button.x >= iDividedX AndAlso e->button.x <= iDividedX + 7 Then
+				#endif
 					gdk_window_set_cursor(win, gdkCursorSIZEWE)
-				ElseIf bDividedY AndAlso e->button.y >= iDividedY AndAlso e->button.y <= iDividedY + 7 Then
+				#ifdef __USE_GTK4__
+					ElseIf bDividedY AndAlso gtk4compat_event_y(e) >= iDividedY AndAlso gtk4compat_event_y(e) <= iDividedY + 7 Then
+				#else
+					ElseIf bDividedY AndAlso e->button.y >= iDividedY AndAlso e->button.y <= iDividedY + 7 Then
+				#endif
 					gdk_window_set_cursor(win, gdkCursorSIZENS)
-				ElseIf bDividedX AndAlso e->button.x >= iDividedX - verticalScrollBarWidth AndAlso e->button.x <= iDividedX Then
+				#ifdef __USE_GTK4__
+					ElseIf bDividedX AndAlso gtk4compat_event_x(e) >= iDividedX - verticalScrollBarWidth AndAlso gtk4compat_event_x(e) <= iDividedX Then
+				#else
+					ElseIf bDividedX AndAlso e->button.x >= iDividedX - verticalScrollBarWidth AndAlso e->button.x <= iDividedX Then
+				#endif
 					gdk_window_set_cursor(win, gdkCursorARROW)
-				ElseIf e->button.x > dwClientX - verticalScrollBarWidth OrElse e->button.y > dwClientY - horizontalScrollBarHeight Then
-					If e->button.x < 7 AndAlso Not bDividedX Then
+				#ifdef __USE_GTK4__
+					ElseIf gtk4compat_event_x(e) > dwClientX - verticalScrollBarWidth OrElse gtk4compat_event_y(e) > dwClientY - horizontalScrollBarHeight Then
+				#else
+					ElseIf e->button.x > dwClientX - verticalScrollBarWidth OrElse e->button.y > dwClientY - horizontalScrollBarHeight Then
+				#endif
+					#ifdef __USE_GTK4__
+						If gtk4compat_event_x(e) < 7 AndAlso Not bDividedX Then
+					#else
+						If e->button.x < 7 AndAlso Not bDividedX Then
+					#endif
 						gdk_window_set_cursor(win, gdkCursorSIZEWE)
-					ElseIf e->button.y < 7 AndAlso Not bDividedY Then
+					#ifdef __USE_GTK4__
+						ElseIf gtk4compat_event_y(e) < 7 AndAlso Not bDividedY Then
+					#else
+						ElseIf e->button.y < 7 AndAlso Not bDividedY Then
+					#endif
 						gdk_window_set_cursor(win, gdkCursorSIZENS)
 					Else
 						gdk_window_set_cursor(win, gdkCursorARROW)
 					End If
-				ElseIf InCollapseRect(iCursorLine, e->button.x, e->button.y) Then
+				#ifdef __USE_GTK4__
+					ElseIf InCollapseRect(iCursorLine, gtk4compat_event_x(e), gtk4compat_event_y(e)) Then
+				#else
+					ElseIf InCollapseRect(iCursorLine, e->button.x, e->button.y) Then
+				#endif
 					gdk_window_set_cursor(win, gdkCursorHand)
-				ElseIf CBool(DownButton = -1) AndAlso (Not bShifted) AndAlso HasRealSelection() AndAlso PointIsInsideSelection(e->button.x, e->button.y) Then
+				#ifdef __USE_GTK4__
+					ElseIf CBool(DownButton = -1) AndAlso (Not bShifted) AndAlso HasRealSelection() AndAlso PointIsInsideSelection(gtk4compat_event_x(e), gtk4compat_event_y(e)) Then
+				#else
+					ElseIf CBool(DownButton = -1) AndAlso (Not bShifted) AndAlso HasRealSelection() AndAlso PointIsInsideSelection(e->button.x, e->button.y) Then
+				#endif
 					gdk_window_set_cursor(win, gdkCursorARROW)
 				Else
-					bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
+					#ifdef __USE_GTK4__
+						bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, gtk4compat_event_x(e), gtk4compat_event_y(e))
+					#else
+						bInIncludeFileRect = bCtrl AndAlso InIncludeFileRect(iCursorLine, e->button.x, e->button.y)
+					#endif
 					If bInIncludeFileRectOld <> bInIncludeFileRect OrElse iCursorLineOld <> iCursorLine Then PaintControl
 					iCursorLineOld = iCursorLine
 					bInIncludeFileRectOld = bInIncludeFileRect
@@ -8757,8 +8988,16 @@ Namespace My.Sys.Forms
 			'			bInIncludeFileRectOld = bInIncludeFileRect
 			If DownButton = 0 Then
 				#ifdef __USE_GTK__
-					lParamLo = IIf(e->button.x > 60000, e->button.x - 65535, e->button.x)
-					lParamHi = IIf(e->button.y > 60000, e->button.y - 65535, e->button.y)
+					#ifdef __USE_GTK4__
+						lParamLo = IIf(gtk4compat_event_x(e) > 60000, gtk4compat_event_x(e) - 65535, gtk4compat_event_x(e))
+					#else
+						lParamLo = IIf(e->button.x > 60000, e->button.x - 65535, e->button.x)
+					#endif
+					#ifdef __USE_GTK4__
+						lParamHi = IIf(gtk4compat_event_y(e) > 60000, gtk4compat_event_y(e) - 65535, gtk4compat_event_y(e))
+					#else
+						lParamHi = IIf(e->button.y > 60000, e->button.y - 65535, e->button.y)
+					#endif
 				#else
 					lParamLo = IIf(msg.lParamLo > 60000, msg.lParamLo - 65535, msg.lParamLo)
 					lParamHi = IIf(msg.lParamHi > 60000, msg.lParamHi - 65535, msg.lParamHi)
@@ -8864,77 +9103,9 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifdef __USE_GTK__
-		Function EditControl.EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
-			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
-			If ec->cr = 0 Then
-				ec->cr = cr
-				#ifdef __FB_WIN32__
-					cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-				#else
-					cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
-				#endif
-				cairo_set_font_size(cr, 11)
-				
-				Dim As PangoRectangle extend
-				pango_layout_set_text(ec->layout, ToUtf8("|"), 1)
-				pango_cairo_update_layout(cr, ec->layout)
-				#ifdef pango_version
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(ec->layout, 0)
-				#else
-					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(ec->layout, 0)
-				#endif
-				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
-				ec->dwCharX = ec->UnScaleX(extend.width)
-				ec->dwCharY = ec->UnScaleY(extend.height)
-				
-				'Dim extend As cairo_text_extents_t
-				'cairo_text_extents (cr, "|", @extend)
-				
-				ec->CalculateLeftMargin
-				
-				ec->pdisplay = gtk_widget_get_display(widget)
-				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
-				#ifdef __USE_GTK3__
-					ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
-					ec->gdkCursorSIZENS = gdk_cursor_new_from_name(ec->pdisplay, crSizeNS)
-					ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(ec->pdisplay, crSizeWE)
-					ec->gdkCursorARROW = gdk_cursor_new_from_name(ec->pdisplay, crArrow)
-				#else
-					' GTK2 looks names up in the X cursor theme, CSS names like "default"/"pointer"
-					' are often missing there (NULL cursor), the core X cursors always exist
-					ec->gdkCursorHand = gdk_cursor_new_for_display(ec->pdisplay, GDK_HAND2)
-					ec->gdkCursorSIZENS = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_V_DOUBLE_ARROW)
-					ec->gdkCursorSIZEWE = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_H_DOUBLE_ARROW)
-					ec->gdkCursorARROW = gdk_cursor_new_for_display(ec->pdisplay, GDK_LEFT_PTR)
-				#endif
-				' The text is drawn on the bin window of the layout, the cursor belongs there
-				ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
-				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
-				
-				ec->ShowCaretPos False
-				ec->HScrollPosRight = 0
-				If ec->VScrollPosBottom <> 0 Then
-					ec->ShowCaretPos True
-				End If
-				'ec->VScrollPos = 0
-				
-				gtk_window_set_transient_for(GTK_WINDOW(ec->winIntellisense), GTK_WINDOW(pfrmMain->Handle))
-				gtk_window_set_transient_for(GTK_WINDOW(ec->winTooltip), GTK_WINDOW(pfrmMain->Handle))
-				gtk_window_set_transient_for(GTK_WINDOW(ec->winDropDownTooltip), GTK_WINDOW(pfrmMain->Handle))
-				gtk_window_set_transient_for(GTK_WINDOW(ec->winMouseHoverTooltip), GTK_WINDOW(pfrmMain->Handle))
-				
-			End If
-			#ifdef __USE_GTK3__
-			#else
-				ec->cr = cr
-			#endif
-			'If ec->bChanged Then
-			'ec->bChanged = False
-			#ifdef __USE_GTK3__
-				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
-			#else
-				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
-			#endif
+		' Places the scroll bars when the size of the editor changed
+		Sub EditControl.UpdateClientSize(AllocatedWidth As Integer, AllocatedHeight As Integer)
+			Dim As EditControl Ptr ec = @This
 			If AllocatedWidth <> ec->dwClientX Or AllocatedHeight <> ec->dwClientY Then
 				Var dDividedX = ec->iDividedX / ec->dwClientX
 				Var dDividedY = ec->iDividedY / ec->dwClientY
@@ -8974,15 +9145,131 @@ Namespace My.Sys.Forms
 				'Ctrl->RequestAlign AllocatedWidth, AllocatedHeight
 				ec->SetScrollsInfo
 			End If
+		End Sub
+		
+		Function EditControl.EditControl_OnDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As gpointer) As Boolean
+			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
+			If ec->cr = 0 Then
+				ec->cr = cr
+				#ifdef __FB_WIN32__
+					cairo_select_font_face(cr, "Courier", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				#else
+					cairo_select_font_face(cr, "Noto Mono", CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_BOLD)
+				#endif
+				cairo_set_font_size(cr, 11)
+				
+				Dim As PangoRectangle extend
+				pango_layout_set_text(ec->layout, ToUtf8("|"), 1)
+				pango_cairo_update_layout(cr, ec->layout)
+				#ifdef pango_version
+					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(ec->layout, 0)
+				#else
+					Dim As PangoLayoutLine Ptr pl = pango_layout_get_line(ec->layout, 0)
+				#endif
+				pango_layout_line_get_pixel_extents(pl, NULL, @extend)
+				ec->dwCharX = ec->UnScaleX(extend.width)
+				ec->dwCharY = ec->UnScaleY(extend.height)
+				
+				'Dim extend As cairo_text_extents_t
+				'cairo_text_extents (cr, "|", @extend)
+				
+				ec->CalculateLeftMargin
+				
+				ec->pdisplay = gtk_widget_get_display(widget)
+				ec->gdkCursorIBeam = gdk_cursor_new_for_display(ec->pdisplay, GDK_XTERM)
+				#ifndef __USE_GTK2__
+					#ifdef __USE_GTK4__
+						ec->gdkCursorHand = gdk_cursor_new_from_name("pointer", NULL)
+					#else
+						ec->gdkCursorHand = gdk_cursor_new_from_name(ec->pdisplay, "pointer")
+					#endif
+					#ifdef __USE_GTK4__
+						ec->gdkCursorSIZENS = gdk_cursor_new_from_name(crSizeNS, NULL)
+					#else
+						ec->gdkCursorSIZENS = gdk_cursor_new_from_name(ec->pdisplay, crSizeNS)
+					#endif
+					#ifdef __USE_GTK4__
+						ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(crSizeWE, NULL)
+					#else
+						ec->gdkCursorSIZEWE = gdk_cursor_new_from_name(ec->pdisplay, crSizeWE)
+					#endif
+					#ifdef __USE_GTK4__
+						ec->gdkCursorARROW = gdk_cursor_new_from_name(crArrow, NULL)
+					#else
+						ec->gdkCursorARROW = gdk_cursor_new_from_name(ec->pdisplay, crArrow)
+					#endif
+				#else
+					' GTK2 looks names up in the X cursor theme, CSS names like "default"/"pointer"
+					' are often missing there (NULL cursor), the core X cursors always exist
+					ec->gdkCursorHand = gdk_cursor_new_for_display(ec->pdisplay, GDK_HAND2)
+					ec->gdkCursorSIZENS = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_V_DOUBLE_ARROW)
+					ec->gdkCursorSIZEWE = gdk_cursor_new_for_display(ec->pdisplay, GDK_SB_H_DOUBLE_ARROW)
+					ec->gdkCursorARROW = gdk_cursor_new_for_display(ec->pdisplay, GDK_LEFT_PTR)
+				#endif
+				' The text is drawn on the bin window of the layout, the cursor belongs there
+				ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
+				gdk_window_set_cursor(ec->win, ec->gdkCursorIBeam)
+				
+				ec->ShowCaretPos False
+				ec->HScrollPosRight = 0
+				If ec->VScrollPosBottom <> 0 Then
+					ec->ShowCaretPos True
+				End If
+				'ec->VScrollPos = 0
+				
+				#ifdef __USE_GTK4__
+					' The popovers get their parent in the constructor
+				#else
+					gtk_window_set_transient_for(GTK_WINDOW(ec->winIntellisense), GTK_WINDOW(pfrmMain->Handle))
+					gtk_window_set_transient_for(GTK_WINDOW(ec->winTooltip), GTK_WINDOW(pfrmMain->Handle))
+					gtk_window_set_transient_for(GTK_WINDOW(ec->winDropDownTooltip), GTK_WINDOW(pfrmMain->Handle))
+					gtk_window_set_transient_for(GTK_WINDOW(ec->winMouseHoverTooltip), GTK_WINDOW(pfrmMain->Handle))
+				#endif
+				
+			End If
+			#ifndef __USE_GTK2__
+				#ifdef __USE_GTK4__
+					' The context of GTK4 belongs to this snapshot only (it is destroyed afterwards)
+					ec->cr = cr
+				#endif
+			#else
+				ec->cr = cr
+			#endif
+			'If ec->bChanged Then
+			'ec->bChanged = False
+			#ifndef __USE_GTK2__
+				Dim As Integer AllocatedWidth = gtk_widget_get_allocated_width(widget), AllocatedHeight = gtk_widget_get_allocated_height(widget)
+			#else
+				Dim As Integer AllocatedWidth = widget->allocation.width, AllocatedHeight = widget->allocation.height
+			#endif
+			#ifndef __USE_GTK4__
+				ec->UpdateClientSize AllocatedWidth, AllocatedHeight
+			#endif
 			
 			ec->PaintControlPriv
-			
+
+			#ifdef __USE_GTK4__
+				' Outside of drawing cr is used for measuring the text (and as a sign of the first drawing):
+				' a context of its own instead of the destroyed one
+				Static As cairo_t Ptr crMeasure
+				If crMeasure = 0 Then
+					Dim As cairo_surface_t Ptr MeasureSurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+					crMeasure = cairo_create(MeasureSurface)
+					cairo_surface_destroy(MeasureSurface)
+				End If
+				ec->cr = crMeasure
+			#endif
+
 			Return False
 		End Function
 		
 		Function EditControl.EditControl_OnExposeEvent(widget As GtkWidget Ptr, Event As GdkEventExpose Ptr, data1 As gpointer) As Boolean
 			Dim As EditControl Ptr ec = Cast(Any Ptr, data1)
-			Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#ifdef __USE_GTK4__
+				Dim As cairo_t Ptr cr = gdk_cairo_create(NULL)
+			#else
+				Dim As cairo_t Ptr cr = gdk_cairo_create(Event->window)
+			#endif
 			' Event->window can also be the outer window of the layout, keep the cursor on the bin window
 			ec->win = gtk_layout_get_bin_window(GTK_LAYOUT(widget))
 			ec->EditControl_OnDraw widget, cr, data1
@@ -8992,6 +9279,12 @@ Namespace My.Sys.Forms
 		
 		Sub EditControl_SizeAllocate(widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr)
 			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+			#ifdef __USE_GTK4__
+				' GTK4: moving the scroll bars while drawing left them without an allocation, the size callback
+				' runs after the allocation (in idle)
+				ec->UpdateClientSize allocation->width, allocation->height
+				gtk_widget_queue_draw(widget)
+			#endif
 			
 			'	ec->PaintControl
 			'	'gtk_fixed_move(gtk_fixed(ec->fixedwidget), ec->scrollbarv, ec->dwClientX - ec->verticalScrollBarWidth, 0)
@@ -9011,7 +9304,7 @@ Namespace My.Sys.Forms
 			Case ec->adjustmenthRight: ec->HScrollPosRight = gtk_adjustment_get_value(ec->adjustmenthRight)
 			Case ec->adjustmentvBottom: ec->VScrollPosBottom = gtk_adjustment_get_value(ec->adjustmentvBottom)
 			End Select
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				ec->ShowCaretPos False
 				ec->PaintControl
 			#endif
@@ -9056,7 +9349,8 @@ Namespace My.Sys.Forms
 				ec->FDragScrollTimerId = 0
 			End If
 			Dim As GdkDragAction da = IIf(DragSourceECPtr = ec, GDK_ACTION_MOVE, GDK_ACTION_COPY)
-			#ifdef __USE_GTK3__
+			#ifdef __USE_GTK4__
+			#elseif Not defined(__USE_GTK2__)
 				GDK_DRAG_STATUS(context, da, time_)
 			#else
 				GDK_DRAG_STATUS_(context, da, time_)
@@ -9074,17 +9368,23 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Function EditControl_OnDragDrop_(widget As GtkWidget Ptr, context As GdkDragContext Ptr, X As gint, Y As gint, time_ As guint, user_data As Any Ptr) As gboolean
-			Dim As GdkAtom target = gtk_drag_dest_find_target(widget, context, NULL)
-			If target = GDK_NONE Then Return False
-			gtk_drag_get_data(widget, context, target, time_)
-			?45454
-			Return True
+			#ifndef __USE_GTK4__
+				Dim As GdkAtom target = gtk_drag_dest_find_target(widget, context, NULL)
+				If target = GDK_NONE Then Return False
+				gtk_drag_get_data(widget, context, target, time_)
+				?45454
+				Return True
+			#else
+				Return False
+			#endif
 		End Function
 		
 		Sub EditControl.EditControl_OnDragDataReceived(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
-			Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
-			?5454545, *Cast(gchar Ptr, gtk_selection_data_get_data(seldata))
-			ec->EC_HandleGtkDrop(CONTEXT, X, Y, seldata, Time_)
+			#ifndef __USE_GTK4__
+				Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+				?5454545, *Cast(gchar Ptr, gtk_selection_data_get_data(seldata))
+				ec->EC_HandleGtkDrop(CONTEXT, X, Y, seldata, Time_)
+			#endif
 		End Sub
 		
 		Sub EditControl.EditControl_OnDragDataGet(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, seldata As GtkSelectionData Ptr, Info As guint, Time_ As guint, user_data As Any Ptr)
@@ -9106,6 +9406,46 @@ Namespace My.Sys.Forms
 			ec->EC_ClearDropIndicator()
 			DragSourceECPtr = 0
 		End Sub
+
+		#ifdef __USE_GTK4__
+			' GtkDropTarget: text dropped into the editor
+			Function EditControl.EditControl_OnGtk4Drop(target As GtkDropTarget Ptr, value As Const GValue Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As Boolean
+				Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+				If ec->FDragScrollTimerId <> 0 Then
+					g_source_remove_(ec->FDragScrollTimerId)
+					ec->FDragScrollTimerId = 0
+				End If
+				If G_VALUE_HOLDS(value, G_TYPE_STRING) = 0 Then ec->EC_ClearDropIndicator(): Return False
+				Dim As Const gchar Ptr pUtf8Text = g_value_get_string(value)
+				If pUtf8Text = 0 Then ec->EC_ClearDropIndicator(): Return False
+				' Inside the same editor the text is moved
+				Dim As Boolean bResult = ec->EC_InsertDroppedText(Cast(gchar Ptr, pUtf8Text), x, y, DragSourceECPtr = ec)
+				ec->EC_ClearDropIndicator()
+				Return bResult
+			End Function
+
+			Function EditControl.EditControl_OnGtk4DropMotion(target As GtkDropTarget Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As GdkDragAction
+				Dim As EditControl Ptr ec = Cast(Any Ptr, user_data)
+				ec->EC_UpdateDropIndicator(ec->UnScaleX(x), ec->UnScaleY(y))
+				If ec->FDragScrollTimerId = 0 AndAlso (ec->FDragScrollDX <> 0 OrElse ec->FDragScrollDY <> 0) Then
+					ec->FDragScrollTimerId = g_timeout_add(60, Cast(GSourceFunc, @EC_GtkDragScrollTimer), ec)
+				ElseIf ec->FDragScrollTimerId <> 0 AndAlso ec->FDragScrollDX = 0 AndAlso ec->FDragScrollDY = 0 Then
+					g_source_remove_(ec->FDragScrollTimerId)
+					ec->FDragScrollTimerId = 0
+				End If
+				Return IIf(DragSourceECPtr = ec, GDK_ACTION_MOVE, GDK_ACTION_COPY)
+			End Function
+
+			Sub EditControl.EditControl_OnGtk4DropLeave(target As GtkDropTarget Ptr, user_data As Any Ptr)
+				EditControl_OnDragLeave_(NULL, NULL, 0, user_data)
+			End Sub
+
+			' GdkDrag "dnd-finished" and "cancel" of a drag from the editor
+			Sub EditControl.EditControl_OnGtk4DragFinished(drag As GdkDrag Ptr, user_data As Any Ptr)
+				EditControl_OnDragEnd(NULL, NULL, user_data)
+				g_signal_handlers_disconnect_matched(drag, G_SIGNAL_MATCH_DATA, 0, 0, NULL, NULL, user_data)
+			End Sub
+		#endif
 	#endif
 	
 	Constructor EditControl
@@ -9114,7 +9454,7 @@ Namespace My.Sys.Forms
 			widget = gtk_layout_new(NULL, NULL)
 			layoutwidget = widget
 			'tooltip = gtk_tooltip_new()
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				scontext = gtk_widget_get_style_context (widget)
 			#endif
 			'gtk_layout_set_size(gtk_layout(widget), 1000, 1000)
@@ -9131,6 +9471,10 @@ Namespace My.Sys.Forms
 			'gtk_widget_show(wText)
 			'gtk_widget_set_events(wText, GDK_EXPOSURE_MASK)
 			gtk_widget_set_can_focus(widget, True)
+			#ifdef __USE_GTK4__
+				' can-focus only allows the focus inside the widget, the editor itself takes the keyboard focus
+				gtk_widget_set_focusable(widget, True)
+			#endif
 			'gtk_widget_set_focus_on_click(widget, True)
 			'gtk_widget_set_events(widget, _
 			'            GDK_EXPOSURE_MASK Or _
@@ -9156,27 +9500,63 @@ Namespace My.Sys.Forms
 			GDK_BUTTON_RELEASE_MASK Or _
 			GDK_POINTER_MOTION_MASK Or _
 			GDK_POINTER_MOTION_HINT_MASK)
-			g_signal_connect(widget, "size-allocate", G_CALLBACK(@EditControl_SizeAllocate), @This)
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "size-allocate", G_CALLBACK(@EditControl_SizeAllocate), @This)
+			#else
+				g_signal_connect(widget, "size-allocate", G_CALLBACK(@EditControl_SizeAllocate), @This)
+			#endif
 			'g_signal_connect(widget, "event", G_CALLBACK(@EventProc), @This)
 			'g_signal_connect(widget, "event-after", G_CALLBACK(@EventAfterProc), @This)
 			'g_signal_connect(wText, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
-			#ifdef __USE_GTK3__
-				g_signal_connect(widget, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
+			#ifndef __USE_GTK2__
+				#ifdef __USE_GTK4__
+					gtk4compat_signal_connect(widget, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
+				#else
+					g_signal_connect(widget, "draw", G_CALLBACK(@EditControl_OnDraw), @This)
+				#endif
 			#else
 				g_signal_connect(widget, "expose-event", G_CALLBACK(@EditControl_OnExposeEvent), @This)
 			#endif
+			#ifdef __USE_GTK4__
+				Dim As GtkDropTarget Ptr TextDropTarget = gtk_drop_target_new(G_TYPE_STRING, GDK_ACTION_COPY Or GDK_ACTION_MOVE)
+				g_signal_connect(TextDropTarget, "drop", G_CALLBACK(@EditControl_OnGtk4Drop), @This)
+				g_signal_connect(TextDropTarget, "motion", G_CALLBACK(@EditControl_OnGtk4DropMotion), @This)
+				g_signal_connect(TextDropTarget, "leave", G_CALLBACK(@EditControl_OnGtk4DropLeave), @This)
+				gtk_widget_add_controller(widget, GTK_EVENT_CONTROLLER(TextDropTarget))
+			#else
 			ECDragTargets(0).target = Cast(gchar Ptr, @Str("UTF8_STRING"))
 			ECDragTargets(0).flags  = 0
 			ECDragTargets(0).info   = 0
-		
+
 			gtk_drag_dest_set(widget, 0, @ECDragTargets(0), 1, GDK_ACTION_COPY Or GDK_ACTION_MOVE)
-			g_signal_connect(widget, "drag-motion",       G_CALLBACK(@EditControl_OnDragMotion),      @This)
-			g_signal_connect(widget, "drag-leave",        G_CALLBACK(@EditControl_OnDragLeave_),      @This)
-			g_signal_connect(widget, "drag-drop",         G_CALLBACK(@EditControl_OnDragDrop_),       @This)
-			g_signal_connect(widget, "drag-data-received",G_CALLBACK(@EditControl_OnDragDataReceived),@This)
-			g_signal_connect(widget, "drag-data-get",     G_CALLBACK(@EditControl_OnDragDataGet),     @This)
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "drag-motion",       G_CALLBACK(@EditControl_OnDragMotion),      @This)
+			#else
+				g_signal_connect(widget, "drag-motion",       G_CALLBACK(@EditControl_OnDragMotion),      @This)
+			#endif
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "drag-leave",        G_CALLBACK(@EditControl_OnDragLeave_),      @This)
+			#else
+				g_signal_connect(widget, "drag-leave",        G_CALLBACK(@EditControl_OnDragLeave_),      @This)
+			#endif
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "drag-drop",         G_CALLBACK(@EditControl_OnDragDrop_),       @This)
+			#else
+				g_signal_connect(widget, "drag-drop",         G_CALLBACK(@EditControl_OnDragDrop_),       @This)
+			#endif
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "drag-data-received",G_CALLBACK(@EditControl_OnDragDataReceived),@This)
+			#else
+				g_signal_connect(widget, "drag-data-received",G_CALLBACK(@EditControl_OnDragDataReceived),@This)
+			#endif
+			#ifdef __USE_GTK4__
+				gtk4compat_signal_connect(widget, "drag-data-get",     G_CALLBACK(@EditControl_OnDragDataGet),     @This)
+			#else
+				g_signal_connect(widget, "drag-data-get",     G_CALLBACK(@EditControl_OnDragDataGet),     @This)
+			#endif
 			g_signal_connect(widget, "drag-data-delete",  G_CALLBACK(@EditControl_OnDragDataDelete),  @This)
 			g_signal_connect(widget, "drag-end",          G_CALLBACK(@EditControl_OnDragEnd),         @This)
+			#endif
 
 			PCONTEXT = gtk_widget_create_pango_context(widget)
 			layout = pango_layout_new(PCONTEXT)
@@ -9193,7 +9573,7 @@ Namespace My.Sys.Forms
 			'BlinkTime = BlinkTime / 1.75
 			'gdk_threads_add_timeout(BlinkTime, @Blink_cb, @This)
 			adjustmentvTop = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				scrollbarvTop = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentvTop))
 			#else
 				scrollbarvTop = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentvTop))
@@ -9204,8 +9584,12 @@ Namespace My.Sys.Forms
 			If GTK_IS_WIDGET(scrollbarvTop) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarvTop, 0, 0)
 			'gtk_widget_show(scrollbarvTop)
 			gtk_widget_set_no_show_all(scrollbarvTop, True)
+			#ifdef __USE_GTK4__
+				' Widgets are visible by default, the scroll bar of the divided pane is shown when the editor is divided
+				gtk_widget_set_visible(scrollbarvTop, False)
+			#endif
 			adjustmentvBottom = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 201.0, 1.0, 20.0, 20.0))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				scrollbarvBottom = gtk_scrollbar_new(GTK_ORIENTATION_VERTICAL, GTK_ADJUSTMENT(adjustmentvBottom))
 			#else
 				scrollbarvBottom = gtk_vscrollbar_new(GTK_ADJUSTMENT(adjustmentvBottom))
@@ -9216,7 +9600,7 @@ Namespace My.Sys.Forms
 			If GTK_IS_WIDGET(scrollbarvBottom) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarvBottom, 0, 0)
 			gtk_widget_show(scrollbarvBottom)
 			adjustmenthLeft = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				scrollbarhLeft = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenthLeft))
 			#else
 				scrollbarhLeft = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenthLeft))
@@ -9227,8 +9611,11 @@ Namespace My.Sys.Forms
 			If GTK_IS_WIDGET(scrollbarhLeft) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarhLeft, 0, 0)
 			'gtk_widget_show(scrollbarhLeft)
 			gtk_widget_set_no_show_all(scrollbarhLeft, True)
+			#ifdef __USE_GTK4__
+				gtk_widget_set_visible(scrollbarhLeft, False)
+			#endif
 			adjustmenthRight = GTK_ADJUSTMENT(gtk_adjustment_new(0.0, 0.0, 101.0, 1.0, 20.0, 20.0))
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				scrollbarhRight = gtk_scrollbar_new(GTK_ORIENTATION_HORIZONTAL, GTK_ADJUSTMENT(adjustmenthRight))
 			#else
 				scrollbarhRight = gtk_hscrollbar_new(GTK_ADJUSTMENT(adjustmenthRight))
@@ -9239,7 +9626,7 @@ Namespace My.Sys.Forms
 			If GTK_IS_WIDGET(scrollbarhRight) Then gtk_layout_put(GTK_LAYOUT(widget), scrollbarhRight, 0, 0)
 			gtk_widget_show(scrollbarhRight)
 			Dim As GtkRequisition vminimum, hminimum, vrequisition, hrequisition
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_widget_get_preferred_size(scrollbarvBottom, @vminimum, @vrequisition)
 				gtk_widget_get_preferred_size(scrollbarhRight, @hminimum, @hrequisition)
 			#else
@@ -9304,7 +9691,11 @@ Namespace My.Sys.Forms
 		crScrollUpDown.LoadFromResourceName("ScrollUpDown")
 		'Text = ""
 		#ifdef __USE_GTK__
-			winIntellisense = gtk_window_new(GTK_WINDOW_POPUP)
+			#ifdef __USE_GTK4__
+				winIntellisense = gtk4compat_window_new(GTK_WINDOW_POPUP)
+			#else
+				winIntellisense = gtk_window_new(GTK_WINDOW_POPUP)
+			#endif
 			gtk_scrolled_window_set_policy(GTK_SCROLLED_WINDOW(lvIntellisense.scrolledwidget), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC)
 			gtk_container_add(GTK_CONTAINER(winIntellisense), lvIntellisense.scrolledwidget)
 			'gtk_window_set_transient_for(gtk_window(winIntellisense), gtk_window(pfrmMain->widget))
@@ -9313,9 +9704,13 @@ Namespace My.Sys.Forms
 			lvIntellisense.ColumnHeaderHidden = True
 			lvIntellisense.SingleClickActivate = True
 			
-			winTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#ifdef __USE_GTK4__
+				winTooltip = gtk4compat_window_new(GTK_WINDOW_POPUP)
+			#else
+				winTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#endif
 			lblTooltip = gtk_label_new(NULL)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_widget_set_margin_left(lblTooltip, 1)
 				gtk_widget_set_margin_top(lblTooltip, 1)
 				gtk_widget_set_margin_right(lblTooltip, 1)
@@ -9325,9 +9720,13 @@ Namespace My.Sys.Forms
 			'gtk_window_set_transient_for(gtk_window(winTooltip), gtk_window(pfrmMain->widget))
 			g_signal_connect(lblTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
 			'gtk_window_resize(gtk_window(winTooltip), 1000, 21)
-			winDropDownTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#ifdef __USE_GTK4__
+				winDropDownTooltip = gtk4compat_window_new(GTK_WINDOW_POPUP)
+			#else
+				winDropDownTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#endif
 			lblDropDownTooltip = gtk_label_new(NULL)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_widget_set_margin_left(lblDropDownTooltip, 1)
 				gtk_widget_set_margin_top(lblDropDownTooltip, 1)
 				gtk_widget_set_margin_right(lblDropDownTooltip, 1)
@@ -9335,9 +9734,13 @@ Namespace My.Sys.Forms
 			#endif
 			gtk_container_add(GTK_CONTAINER(winDropDownTooltip), lblDropDownTooltip)
 			g_signal_connect(lblDropDownTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
-			winMouseHoverTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#ifdef __USE_GTK4__
+				winMouseHoverTooltip = gtk4compat_window_new(GTK_WINDOW_POPUP)
+			#else
+				winMouseHoverTooltip = gtk_window_new(GTK_WINDOW_POPUP)
+			#endif
 			lblMouseHoverTooltip = gtk_label_new(NULL)
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				gtk_widget_set_margin_left(lblMouseHoverTooltip, 1)
 				gtk_widget_set_margin_top(lblMouseHoverTooltip, 1)
 				gtk_widget_set_margin_right(lblMouseHoverTooltip, 1)
@@ -9345,6 +9748,15 @@ Namespace My.Sys.Forms
 			#endif
 			gtk_container_add(GTK_CONTAINER(winMouseHoverTooltip), lblMouseHoverTooltip)
 			g_signal_connect(lblMouseHoverTooltip, "activate-link", G_CALLBACK(@ActivateLink), @This)
+			#ifdef __USE_GTK4__
+				' Popups are popovers in GTK4: they need a parent instead of a transient window,
+				' their positions are relative to it (gdk_window_get_origin gives 0).
+				' Not in the draw function: changing the children while GTK draws crashes (gtk_snapshot_pop)
+				gtk4compat_set_parent winIntellisense, widget
+				gtk4compat_set_parent winTooltip, widget
+				gtk4compat_set_parent winDropDownTooltip, widget
+				gtk4compat_set_parent winMouseHoverTooltip, widget
+			#endif
 		#else
 			pnlIntellisense.SetBounds 0, -50, 250, 0
 			'cboIntellisense.Visible = False

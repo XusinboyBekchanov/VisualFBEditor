@@ -554,6 +554,13 @@ Namespace My.Sys.Forms
 			Declare Sub EC_HandleGtkDrop(context As GdkDragContext Ptr, X As gint, Y As gint, seldata As GtkSelectionData Ptr, time_ As guint)
 			Declare Sub EC_HandleGtkDragDataGet(seldata As GtkSelectionData Ptr)
 			Declare Sub EC_HandleGtkDragDataDelete()
+			Declare Function EC_InsertDroppedText(pUtf8Text As gchar Ptr, X As gint, Y As gint, bIsMove As Boolean) As Boolean
+			#ifdef __USE_GTK4__
+				Declare Static Function EditControl_OnGtk4Drop(target As GtkDropTarget Ptr, value As Const GValue Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As Boolean
+				Declare Static Function EditControl_OnGtk4DropMotion(target As GtkDropTarget Ptr, x As gdouble, y As gdouble, user_data As Any Ptr) As GdkDragAction
+				Declare Static Sub EditControl_OnGtk4DropLeave(target As GtkDropTarget Ptr, user_data As Any Ptr)
+				Declare Static Sub EditControl_OnGtk4DragFinished(drag As GdkDrag Ptr, user_data As Any Ptr)
+			#endif
 			Declare Static Function EC_GtkDragScrollTimer(user_data As gpointer) As gboolean
 			Declare Static Function EditControl_OnDragMotion(widget As GtkWidget Ptr, context As GdkDragContext Ptr, X As gint, Y As gint, time_ As guint, user_data As Any Ptr) As gboolean
 			Declare Static Sub EditControl_OnDragLeave_(widget As GtkWidget Ptr, CONTEXT As GdkDragContext Ptr, Time_ As guint, user_data As Any Ptr)
@@ -614,7 +621,7 @@ Namespace My.Sys.Forms
 			Dim As GdkCursor Ptr gdkCursorSIZEWE
 			Dim As GdkCursor Ptr gdkCursorSIZENS
 			Dim As GdkCursor Ptr gdkCursorARROW
-			#ifdef __USE_GTK3__
+			#ifndef __USE_GTK2__
 				Dim As GtkStyleContext Ptr scontext
 			#endif
 			Dim As GtkWidget Ptr scrollbarvTop
@@ -682,6 +689,9 @@ Namespace My.Sys.Forms
 		ToolTipShowed As Boolean
 		ToolTipChar As Integer
 		Declare Sub SetScrollsInfo(WithChange As Boolean = False)
+		#ifdef __USE_GTK__
+			Declare Sub UpdateClientSize(AllocatedWidth As Integer, AllocatedHeight As Integer)
+		#endif
 		Declare Sub ShowCaretPos(Scroll As Boolean = False)
 		Declare Function TextWidth(ByRef sText As WString) As Integer
 		Declare Sub ShowDropDownAt(iSelEndLine As Integer, iSelEndChar As Integer)
@@ -799,7 +809,7 @@ Namespace My.Sys.Forms
 	Common As Integer MiddleScrollIndexX, MiddleScrollIndexY
 	Dim Shared As Any Ptr DragSourceECPtr
 	Dim Shared As Integer DragOrigStartLine, DragOrigStartChar, DragOrigEndLine, DragOrigEndChar
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
 		Dim Shared ECDragTargets(0) As GtkTargetEntry
 	#endif
 End Namespace
