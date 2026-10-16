@@ -2877,7 +2877,7 @@ Namespace My.Sys.Forms
 				If Des->Dialog = 0 Then Return g_darkModeEnabled
 				Dim As GdkRGBA FgColor
 				#ifdef __USE_GTK4__
-					gtk_widget_get_color(Des->Dialog, @FgColor)
+					gtk4compat_widget_get_color(Des->Dialog, @FgColor)
 				#else
 					gtk_style_context_get_color(gtk_widget_get_style_context(Des->Dialog), GTK_STATE_FLAG_NORMAL, @FgColor)
 				#endif
