@@ -11,6 +11,13 @@
         <item name="colorOnSecondary">@color/black</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <!-- Standard text of the MyFbFramework controls (mff_styles.xml). -->
+        <item name="android:textViewStyle">@style/MffTextView</item>
+        <item name="android:editTextStyle">@style/MffEditText</item>
+        <item name="checkboxStyle">@style/MffCheckBox</item>
+        <item name="radioButtonStyle">@style/MffRadioButton</item>
+        <item name="materialButtonStyle">@style/MffButton</item>
+        <item name="android:calendarViewStyle">@style/MffCalendarView</item>
         <!-- Customize your theme here. -->
     </style>
 </resources>

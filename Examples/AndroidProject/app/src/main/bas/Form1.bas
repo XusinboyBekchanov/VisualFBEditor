@@ -45,6 +45,8 @@
 			.Text = "CommandButton1"
 			.TabIndex = 0
 			.Align = DockStyle.alNone
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 0, 60, 257, 37
 			.Designer = @This
 			.OnClick = @CommandButton1_Click_
@@ -53,8 +55,10 @@
 		' TextBox1
 		With TextBox1
 			.Name = "TextBox1"
-			.Text = "TextBox1"
+			.Text = "TextBox12"
 			.TabIndex = 0
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
 			.SetBounds 70, 10, 170, 30
 			.Designer = @This
 			.OnChange = @TextBox1_Change_
@@ -73,6 +77,10 @@
 			.Name = "CheckBox1"
 			.Text = "CheckBox1"
 			.TabIndex = 5
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Top = AnchorStyle.asAnchor
 			.SetBounds 30, 310, 170, 30
 			.Parent = @This
 		End With
@@ -81,6 +89,10 @@
 			.Name = "MonthCalendar1"
 			.Text = "MonthCalendar1"
 			.TabIndex = 4
+			.Anchor.Bottom = AnchorStyle.asAnchor
+			.Anchor.Left = AnchorStyle.asAnchor
+			.Anchor.Right = AnchorStyle.asAnchor
+			.Anchor.Top = AnchorStyle.asAnchor
 			.SetBounds 10, 110, 230, 190
 			.Parent = @This
 		End With

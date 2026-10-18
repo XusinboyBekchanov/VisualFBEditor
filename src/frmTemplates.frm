@@ -671,6 +671,6 @@ Private Sub frmTemplates.Form_Create(ByRef Sender As Control)
 	Do
 		n = n + 1
 		NewName = ProjectName & Str(n)
-	Loop While FolderExists(*ProjectsPath & Slash & NewName)
+	Loop While FolderExists(GetFullPath(*ProjectsPath) & Slash & NewName)
 	txtSaveLocation.Text = Replace(*ProjectsPath, BackSlash, Slash) & Slash & NewName
 End Sub

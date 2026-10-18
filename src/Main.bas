@@ -447,7 +447,9 @@ Function GetFullPathInSystem(ByRef Path As WString) As UString
 End Function
 
 Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
-	If CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
+	If StartsWith(Path, "%") AndAlso InStr(2, Path, "%") > 0 Then
+		Return GetFilePath(Path)
+	ElseIf CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
 		If EndsWith(Path, "\..") OrElse EndsWith(Path, "/..") Then
 			Return GetFolderName(GetFolderName(Path))
 		Else
@@ -1286,7 +1288,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				#endif
 				WLet(PipeCommand, gradlewFile & " " & gradlewCommand)
 			ElseIf LCase(GetFileName(*BatchCompilationFileName)) = "makefile" Then
-				WLet(PipeCommand, "make")
+				'Use the make tool, compiler and "make 1" arguments from Parameters, as for Build > Make
+				Dim As String Colon = ""
+				#ifdef __USE_GTK__
+					Colon = ":"
+				#endif
+				WLet(PipeCommand, """" & *MakeToolPath1 & """ FBC" & Colon & "=""""""" & *FbcExe & """"""" " & *Make1Arguments)
 			Else
 				WLet(PipeCommand, *BatchCompilationFileName)
 			End If
@@ -1356,19 +1363,37 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If Pos1 > 0 Then
 				*MainFileNameOnly = Left(*MainFileNameOnly, Pos1 - 1)
 			End If
+			'fbc64_js.exe is fbc built with a 32-bit WString for the js target, matching wchar_t of emscripten and libfb
+			If FileExists(FbcFolder & "fbc64_js.exe") Then
+				WLet(PipeCommand, Replace(*PipeCommand, """" & *FbcExe & """", """" & FbcFolder & "fbc64_js.exe"""))
+			End If
+			'Without -m the module-level code becomes a C constructor that runs before the constructors of shared objects
+			If InStr(*PipeCommand, " -m ") = 0 Then WAdd(PipeCommand, " -m """ & *MainFileNameOnly & """")
+			'-e, -ex and -exx generate computed gotos (goto *label), which WebAssembly does not support
+			For iOpt As Integer = 0 To 2
+				Dim As String ErrorOption = IIf(iOpt = 0, " -exx ", IIf(iOpt = 1, " -ex ", " -e "))
+				If InStr(*PipeCommand & " ", ErrorOption) > 0 Then
+					WLet(PipeCommand, RTrim(Replace(*PipeCommand & " ", ErrorOption, " ")))
+					ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported for WebAssembly and was ignored"))
+				End If
+			Next
 			CompileCommands.Add "", *PipeCommand
-			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
+			'-O1: at -O0 a big procedure (Chart.Draw) has more locals than WebAssembly allows ("local count too large")
+			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -O1 -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
 			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
-			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD'"
+			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD', '_ONTIMER', '_ONPAINT', '_ONRESIZE'"
 			'For i As Integer = 0 To Globals.Functions.Count - 1
 			'
 			'Next
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --js-library """ & *MFFPathC & "\mff\Web\mff_lib.js"" --post-js """ & *MFFPathC & "\mff\Web\mff.js"""
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
 		Dim As UShort bFlagErr
 		Dim As Double CompileElapsedTime = Timer
+		'A makefile or batch file decides itself where the executable goes, so its exit code tells if the build succeeded
+		Dim As Boolean UseBatchExitCode = WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean"
+		Dim As Long BatchExitCode = -1
 		For cc As Integer = 0 To CompileCommands.Count - 1
 			WLet(PipeCommand, CompileCommands.Item(cc)->Text)
 			If cc > 0 Then
@@ -1477,19 +1502,28 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Continue For
 				End If
 				
+				'Only the write end goes to the child. With the read end as its stdin, a child that reads stdin
+				'(emcc.exe -> python) takes its own output from the pipe and the compilation never finishes.
+				SetHandleInformation(hReadPipe, HANDLE_FLAG_INHERIT, 0)
+				Dim As HANDLE hNulInput = CreateFile("NUL", GENERIC_READ, FILE_SHARE_READ Or FILE_SHARE_WRITE, @sa, OPEN_EXISTING, 0, NULL)
+				
 				si.cb = Len(STARTUPINFO)
 				si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
 				si.hStdOutput = hWritePipe
 				si.hStdError = hWritePipe
-				si.hStdInput  = hReadPipe
+				si.hStdInput  = hNulInput
 				si.wShowWindow = 0
 				
 				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, ByVal 0, ByVal 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process") & ": " & GetErrorString(GetLastError), False)
+					If hNulInput <> INVALID_HANDLE_VALUE Then CloseHandle hNulInput
+					CloseHandle hWritePipe
+					CloseHandle hReadPipe
 					CompileResult = 0
 					Continue For
 				End If
 				
+				If hNulInput <> INVALID_HANDLE_VALUE Then CloseHandle hNulInput
 				CloseHandle hWritePipe
 				Dim As Integer Pos1, PosFirstErr, FirstErrFlag
 				Do
@@ -1590,6 +1624,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					End If
 				Loop While result_
 				
+				Dim As DWORD ProcessExitCode
+				WaitForSingleObject(pi.hProcess, INFINITE)
+				If GetExitCodeProcess(pi.hProcess, @ProcessExitCode) Then BatchExitCode = ProcessExitCode
 				CloseHandle pi.hProcess
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
@@ -1599,7 +1636,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		#ifdef __USE_GTK__
 			Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL
 		#else
-			Yaratilmadi = Dir(*ExeName) = ""
+			If UseBatchExitCode AndAlso BatchExitCode <> -1 Then
+				Yaratilmadi = BatchExitCode <> 0 OrElse NumberErr > 0
+			Else
+				Yaratilmadi = Dir(*ExeName) = ""
+			End If
 		#endif
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
@@ -12738,7 +12779,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_GTK__
 		' The version of the GTK library loaded at runtime
 		#ifdef __USE_GTK2__
-			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_major_version & "." & gtk_minor_version & "." & gtk_micro_version & ")"
+			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_major_version_ & "." & gtk_minor_version_ & "." & gtk_micro_version_ & ")"
 		#else
 			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_get_major_version() & "." & gtk_get_minor_version() & "." & gtk_get_micro_version() & ")"
 		#endif

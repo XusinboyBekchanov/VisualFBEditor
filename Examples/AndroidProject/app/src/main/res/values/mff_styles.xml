@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- The standard text of the controls (Material Body1: 16sp, primary text color); Font.Size of a control overrides it -->
+    <style name="MffTextView" parent="android:Widget.TextView">
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+    </style>
+    <style name="MffEditText" parent="Widget.AppCompat.EditText">
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+    </style>
+    <style name="MffCheckBox" parent="Widget.MaterialComponents.CompoundButton.CheckBox">
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+    </style>
+    <style name="MffRadioButton" parent="Widget.MaterialComponents.CompoundButton.RadioButton">
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+    </style>
+    <!-- CommandButton: the text as it is written (Material buttons are all caps by default) -->
+    <style name="MffButton" parent="Widget.MaterialComponents.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:letterSpacing">0</item>
+    </style>
+    <!-- MonthCalendar: the days as the standard text (16sp) on Android 6+ (values-v23) -->
+    <style name="MffCalendarView" parent="android:Widget.CalendarView" />
+</resources>

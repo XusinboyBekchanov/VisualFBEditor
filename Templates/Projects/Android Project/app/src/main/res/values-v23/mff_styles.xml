@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- MonthCalendar: the days as the standard text (16sp) with the colors of the theme (color/mff_calendar_day.xml);
+         Android 6+ as the theme attributes in a color list need it -->
+    <style name="MffCalendarView" parent="android:Widget.Material.CalendarView">
+        <item name="android:dateTextAppearance">@style/MffCalendarDay</item>
+        <item name="android:weekDayTextAppearance">@style/MffCalendarWeekDay</item>
+    </style>
+    <style name="MffCalendarDay">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/mff_calendar_day</item>
+    </style>
+    <style name="MffCalendarWeekDay">
+        <item name="android:textSize">16sp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+</resources>

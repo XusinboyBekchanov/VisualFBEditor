@@ -12534,7 +12534,7 @@ Sub RunEmulator(Param As Any Ptr)
 			Case 1: WLet(CmdL, *SdkDir & "\emulator\emulator.exe -avd " & AvdName)
 			End Select
 			If i = 1 Then
-				ShowMessages ML("Run AVD:") & " " & AvdName & "", False
+				ShowMessages ML("Run AVD:") & " " & AvdName, False
 			End If
 			Dim si As STARTUPINFO
 			Dim pi As PROCESS_INFORMATION
@@ -12925,6 +12925,8 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 	Dim ExeFileName As WString Ptr
 	If CBool(ProjectFileName <> "") AndAlso (Not EndsWith(ProjectFileName, ".vfp")) AndAlso FileExists(ProjectFileName & "/local.properties") Then
 		Dim As String ApkFileName = ProjectFileName & "/app/build/outputs/apk/debug/app-debug.apk"
+		'adb runs in the platform-tools folder: a relative project path (e.g. Projects\Project1) is made full
+		If Cbool(InStr(ApkFileName, ":") = 0) AndAlso Not StartsWith(ApkFileName, "/") AndAlso Not StartsWith(ApkFileName, "\") Then ApkFileName = CurDir & Slash & ApkFileName
 		If Not FileExists(ApkFileName) Then
 			ShowMessages ML("Do not found apk file!")
 			Exit Sub
@@ -12982,7 +12984,7 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 				#define BufferSize 2048
 				Select Case i
 				Case 0: WLet(CmdL, SDKDir & "\platform-tools\adb uninstall " & applicationId)
-				Case 1: WLet(CmdL, SDKDir & "\platform-tools\adb install -t " & ApkFileName)
+				Case 1: WLet(CmdL, SDKDir & "\platform-tools\adb install -t """ & ApkFileName & """")
 				Case 2: WLet(CmdL, SDKDir & "\platform-tools\adb shell am start " & applicationId & "/" & applicationId & ".mffActivity")
 				End Select
 				Dim si As STARTUPINFO

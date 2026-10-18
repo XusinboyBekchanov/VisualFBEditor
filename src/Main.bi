@@ -348,6 +348,7 @@ Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = 
 Declare Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
 Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetSpecialPath(ByRef key As WString) As UString
+Declare Function GetFilePath(ByRef source As WString) As UString
 Declare Function EnsureFolderExists(ByRef FolderName As WString) As Boolean
 Declare Function CopyFileToPath(ByRef SourcePath As WString, ByRef DestinationPath As WString) As Boolean
 Declare Function GetUserDataPath(ByRef RelativePath As WString = "") As UString

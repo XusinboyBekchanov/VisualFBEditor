@@ -56,7 +56,7 @@ Using My.Sys.Forms
 		' lblInfo
 		lblInfo.Name = "lblInfo"
 		lblInfo.Text = "2018-2026"
-		lblInfo.SetBounds 18, 348, 52, 17
+		lblInfo.SetBounds 18, 348, 100, 17
 		lblInfo.BackColor = 0
 		lblInfo.Font.Color = 16777215
 		lblInfo.Font.Size = 8
@@ -78,6 +78,14 @@ Using My.Sys.Forms
 				.Text = ML("64-bit")
 			#else
 				.Text = ML("32-bit")
+			#endif
+			#ifdef __USE_GTK__
+				' The version of the GTK library loaded at runtime
+				#ifdef __USE_GTK2__
+					.Text = .Text & ", GTK " & gtk_major_version_ & "." & gtk_minor_version_ & "." & gtk_micro_version_
+				#else
+					.Text = .Text & ", GTK " & gtk_get_major_version() & "." & gtk_get_minor_version() & "." & gtk_get_micro_version()
+				#endif
 			#endif
 			.TabIndex = 3
 			.Alignment = AlignmentConstants.taCenter
