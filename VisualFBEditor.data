@@ -18087,7 +18087,35 @@ Namespace My.Sys.ComponentModel
 				EndIf
 			#elseif defined(__USE_WINAPI__)
 				If FHandle Then
-					MoveWindow FHandle, ScaleX(iLeft), ScaleY(iTop), ScaleX(iWidth), ScaleY(iHeight), True
+					Dim As Integer nLeft = ScaleX(iLeft), nTop = ScaleY(iTop), nWidth = ScaleX(iWidth), nHeight = ScaleY(iHeight)
+					If AlignLock > 0 Then
+						' A layout pass is running and repaints the container when it ends.
+						' Repainting here would show a half finished layout and costs more than
+						' the move itself; a window which already has the bounds is skipped
+						Dim As RECT R, ROld, RNew
+						Dim As HWND hParentWnd = GetParent(FHandle)
+						GetWindowRect FHandle, @R
+						ROld = R
+						If R.Right - R.Left = nWidth AndAlso R.Bottom - R.Top = nHeight Then
+							MapWindowPoints 0, hParentWnd, Cast(Point Ptr, @R), 2
+							If R.Left = nLeft AndAlso R.Top = nTop Then Exit Sub
+						End If
+						If AlignMoved = 0 Then AlignMoved = 1
+						' Only the old and the new place of the window are repainted when the pass ends
+						RNew.Left = nLeft: RNew.Top = nTop: RNew.Right = nLeft + nWidth: RNew.Bottom = nTop + nHeight
+						MapWindowPoints hParentWnd, 0, Cast(Point Ptr, @RNew), 2
+						AlignAddRect @ROld
+						AlignAddRect @RNew
+						' Only children of the container of the batch may join it
+						If AlignDefer AndAlso hParentWnd = AlignDeferParent Then
+							AlignDefer = DeferWindowPos(AlignDefer, FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW)
+							If AlignDefer Then Exit Sub
+							' The batch failed and is gone: the remaining moves are applied one by one
+						End If
+						SetWindowPos FHandle, 0, nLeft, nTop, nWidth, nHeight, SWP_NOZORDER Or SWP_NOACTIVATE Or SWP_NOREDRAW
+						Exit Sub
+					End If
+					MoveWindow FHandle, nLeft, nTop, nWidth, nHeight, True
 				End If
 			#elseif defined(__USE_JNI__)
 				'The bounds of Move (there is no WM_SIZE which gives them back like on Windows): an AutoSize container
@@ -18488,6 +18516,47 @@ Namespace My.Sys.ComponentModel
 		#endif
 	End Destructor
 End Namespace
+
+#ifdef __USE_WINAPI__
+	Private Sub AlignAddRect(ByVal pRect As RECT Ptr)
+		If pRect->Right <= pRect->Left OrElse pRect->Bottom <= pRect->Top Then Exit Sub
+		If AlignRgn = 0 Then
+			AlignRgn = CreateRectRgnIndirect(pRect)
+		Else
+			Dim As HRGN hRgn = CreateRectRgnIndirect(pRect)
+			CombineRgn AlignRgn, AlignRgn, hRgn, RGN_OR
+			DeleteObject hRgn
+		End If
+	End Sub
+
+	Private Sub AlignAddWindow(ByVal hWnd As HWND)
+		Dim As RECT R
+		If hWnd = 0 OrElse GetWindowRect(hWnd, @R) = 0 Then Exit Sub
+		If AlignMoved = 0 Then AlignMoved = 1
+		AlignAddRect @R
+	End Sub
+
+	Private Sub AlignClear
+		AlignMoved = 0
+		If AlignRgn Then DeleteObject AlignRgn: AlignRgn = 0
+	End Sub
+
+	Private Sub AlignRedraw(ByVal hContainer As HWND, ByVal bNow As Boolean = False)
+		If hContainer <> 0 AndAlso AlignMoved <> 0 Then
+			Dim As UINT uFlags = RDW_INVALIDATE Or RDW_ERASE Or RDW_FRAME Or RDW_ALLCHILDREN Or IIf(bNow, RDW_UPDATENOW, 0)
+			If AlignMoved = 1 AndAlso AlignRgn <> 0 Then
+				' Only the places the moved windows left and took: the rest of the container stays valid
+				Dim As .Point P
+				ClientToScreen hContainer, @P
+				OffsetRgn AlignRgn, -P.X, -P.Y
+				RedrawWindow hContainer, 0, AlignRgn, uFlags
+			Else
+				RedrawWindow hContainer, 0, 0, uFlags
+			End If
+		End If
+		AlignClear
+	End Sub
+#endif
 
 Function ThreadCreate_(ByVal ProcPtr_ As Sub ( ByVal userdata As Any Ptr ), ByVal param As Any Ptr = 0, ByVal stack_size As Integer = 0) As Any Ptr
 	'Android: the views are only of the main thread and the JNIEnv of the controls is the one of it (a control changed
@@ -19015,6 +19084,41 @@ Private Enum Keys
 		Key_Esc = 0
 	#endif
 End Enum
+
+#ifndef __USE_WASM__
+	'Greater than 0 while a pass sets the bounds of many controls (RequestAlign) or
+	'rescales a whole tree (WM_DPICHANGED). In such a pass a single move or font change
+	'must not repaint its control: a synchronous paint of a half finished layout costs
+	'more than the move itself. The outermost pass repaints its container once at the end.
+	'Every pass restores the value it found, so a stuck counter cannot stop repainting.
+	Common Shared AlignLock As Integer
+	'Set by a move of such a pass which really changed the bounds: only then the
+	'outermost pass repaints, a pass which moved nothing leaves the container alone.
+	'1 = repaint the places in AlignRgn, 2 = repaint the whole container (a rescale)
+	Common Shared AlignMoved As Integer
+	#ifdef __USE_WINAPI__
+		'Open DeferWindowPos batch of the running pass: one call reaches the window manager
+		'instead of one per moved control (about eight times faster for a large form)
+		Common Shared AlignDefer As HDWP
+		'Container whose children the open batch collects: all windows of one DeferWindowPos
+		'batch must have the same parent, otherwise DeferWindowPos fails and drops the batch
+		Common Shared AlignDeferParent As HWND
+		'Greater than 0 while WM_DPICHANGED rescales a tree. Every rescaled control requests a
+		'layout of its parent (a ReBar for every band, a ToolBar for every rebuild): such a
+		'request only goes into the list and the outermost rescale lays out each container once
+		Common Shared DpiPass As Integer
+		Common Shared DpiPendingCount As Integer
+		Common Shared DpiPending As Any Ptr Ptr
+		'Screen region of the old and the new places of the windows moved in the pass
+		Common Shared AlignRgn As HRGN
+		Declare Sub AlignAddRect(ByVal pRect As RECT Ptr)
+		'Notes a window whose content changed in the pass (a new font) for the repaint
+		Declare Sub AlignAddWindow(ByVal hWnd As HWND)
+		Declare Sub AlignClear
+		'Ends the outermost pass: repaints the noted places of the container (bNow: at once)
+		Declare Sub AlignRedraw(ByVal hContainer As HWND, ByVal bNow As Boolean = False)
+	#endif
+#endif
 
 Declare Sub ThreadsEnter
 
@@ -21249,6 +21353,38 @@ Namespace My.Sys.Forms
 					Instance, _
 					@This) ' '
 					'End If
+					'Per-monitor DPI: ScaleX initialized xdpi from the primary
+					'monitor, but this window may live on a monitor with another
+					'DPI and no WM_DPICHANGED arrives for the creation itself.
+					'Adopt the window's real DPI and rescale the window, fonts
+					'and children with the new factor.
+					If FHandle <> 0 Then
+						Dim As HDC WndDc = GetDC(FHandle)
+						Dim As Single NewXdpi = GetDeviceCaps(WndDc, LOGPIXELSX) / 96
+						Dim As Single NewYdpi = GetDeviceCaps(WndDc, LOGPIXELSY) / 96
+						ReleaseDC FHandle, WndDc
+						If NewXdpi > 0 AndAlso NewYdpi > 0 AndAlso (NewXdpi <> xdpi OrElse NewYdpi <> ydpi) Then
+							xdpi = NewXdpi
+							ydpi = NewYdpi
+							oldxdpi = NewXdpi
+							oldydpi = NewYdpi
+							Canvas.xdpi = NewXdpi
+							Canvas.ydpi = NewYdpi
+							Font.xdpi = NewXdpi
+							Font.ydpi = NewYdpi
+							Font.Size = Font.Size
+							For i As Integer = 0 To ControlCount - 1
+								Controls[i]->xdpi = NewXdpi
+								Controls[i]->ydpi = NewYdpi
+								Controls[i]->Font.xdpi = NewXdpi
+								Controls[i]->Font.ydpi = NewYdpi
+							Next i
+							'Do not override Windows-default placement (CW_USEDEFAULT).
+							If nLeft <> CW_USEDEFAULT AndAlso nTop <> CW_USEDEFAULT AndAlso nWidth <> CW_USEDEFAULT AndAlso nHeight <> CW_USEDEFAULT Then
+								MoveWindow FHandle, ScaleX(FLeft), ScaleY(FTop), ScaleX(FWidth), ScaleY(FHeight), True
+							End If
+						End If
+					End If
 				#endif
 			#elseif defined(__USE_JNI__)
 				If env = 0 OrElse Instance = 0 Then Exit Sub
@@ -22067,17 +22203,33 @@ Namespace My.Sys.Forms
 						SendMessageW(Message.hWnd, WM_THEMECHANGED, 0, 0)
 					End If
 				Case WM_DPICHANGED
+					' Rescaling the tree rebuilds the font of every control and moves it: like in
+					'a layout pass only the outermost call repaints the container. The moves are
+					'not deferred: the tree spans many parents, and a nested pass must read the
+					'real bounds of the controls rescaled before it
+					Dim As Integer iSavedAlignLock = AlignLock
+					AlignLock = iSavedAlignLock + 1
+					' A rescale always repaints: the fonts and the bounds changed
+					If iSavedAlignLock = 0 Then AlignClear: AlignMoved = 2
+					' Every control of the tree changes its size and requests a layout of its
+					'parent: in the pass these requests are collected (see RequestAlign)
+					DpiPass += 1
 					Canvas.xdpi = xdpi
 					Canvas.ydpi = ydpi
-					Font.xdpi = xdpi
-					Font.ydpi = ydpi
-					Font.Size = Font.Size
+					' The point size does not change when only the screen changes: the font must be
+					'rebuilt only if the scale it is mapped with really changed
+					Dim As Boolean bScaleChanged = (oldxdpi <> xdpi OrElse oldydpi <> ydpi)
+					If bScaleChanged Then
+						Font.xdpi = xdpi
+						Font.ydpi = ydpi
+						Font.Size = Font.Size
+					End If
 					If oldxdpi = 0 OrElse oldydpi = 0 Then
 						oldxdpi = 1 OrElse oldydpi = 1
 					End If
 					If Message.lParam <> 0 Then
 						Dim As .Rect Ptr rct = Cast(Any Ptr, Message.lParam)
-						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, True
+						MoveWindow FHandle, rct->Left, rct->Top, rct->Right - rct->Left, rct->Bottom - rct->Top, False
 					Else
 						If FParent = 0 OrElse FParent->ClassName <> "ReBar" Then
 							If FHandle = GetCapture Then
@@ -22096,6 +22248,11 @@ Namespace My.Sys.Forms
 							Controls[i]->Perform(WM_DPICHANGED, Message.wParam, 0)
 						Next
 					End If
+					DpiPass -= 1
+					' The outermost rescale lays out the noted containers once, the parents first
+					If DpiPass = 0 Then DpiAlignFlush
+					AlignLock = iSavedAlignLock
+					If iSavedAlignLock = 0 Then AlignRedraw FHandle
 					Message.Result = 0
 					Return
 				Case WM_THEMECHANGED
@@ -23466,7 +23623,80 @@ Namespace My.Sys.Forms
 			MaxHeight += Margins.Bottom
 		End Sub
 		
+		#ifdef __USE_WINAPI__
+			Private Sub DpiAlignFlush
+				' Parents first: a layout of a parent resizes its children, which lay out their own
+				'children by WM_SIZE, so most of the requests of the children are already done then
+				Do While DpiPendingCount > 0
+					Dim As Integer iBest, iBestDepth = &h7FFFFFFF
+					For i As Integer = 0 To DpiPendingCount - 1
+						Dim As Integer iDepth
+						Dim As Control Ptr Ctrl = DpiPending[i]
+						Do While Ctrl->Parent
+							iDepth += 1
+							Ctrl = Ctrl->Parent
+						Loop
+						If iDepth < iBestDepth Then iBestDepth = iDepth: iBest = i
+					Next
+					Dim As Control Ptr Ctrl = DpiPending[iBest]
+					DpiPendingCount -= 1
+					DpiPending[iBest] = DpiPending[DpiPendingCount]
+					If Ctrl->Handle Then Ctrl->RequestAlign
+				Loop
+				_Deallocate(DpiPending)
+				DpiPending = 0
+			End Sub
+		#endif
+
 		Private Sub Control.RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			#ifdef __USE_WINAPI__
+				' A request of a rescale (no given client size, not a part of a running layout) is
+				'only noted: the outermost rescale lays out every noted container once at its end
+				If DpiPass > 0 AndAlso iClientWidth = -1 AndAlso iClientHeight = -1 AndAlso bInDraw = False Then
+					For i As Integer = 0 To DpiPendingCount - 1
+						If DpiPending[i] = @This Then Exit Sub
+					Next
+					DpiPendingCount += 1
+					DpiPending = _Reallocate(DpiPending, DpiPendingCount * SizeOf(Any Ptr))
+					DpiPending[DpiPendingCount - 1] = @This
+					Exit Sub
+				End If
+				' One layout pass moves every docked and anchored control. Letting each move
+				' repaint its control shows a half finished layout and is by far the most
+				' expensive part of the pass, so the pass is batched and the container is
+				' repainted once when the outermost pass ends
+				Dim As Integer iSavedAlignLock = AlignLock
+				' A pass collects the moves of the children of this control in one DeferWindowPos
+				' batch. A batch takes only windows of one parent: a nested pass of another
+				' container (a child container resized by this one) opens a batch of its own
+				Dim As HDWP hSavedDefer = AlignDefer
+				Dim As HWND hSavedDeferParent = AlignDeferParent
+				Dim As Boolean bOwnDefer = (FHandle <> 0) AndAlso (AlignDefer = 0 OrElse AlignDeferParent <> FHandle)
+				AlignLock = iSavedAlignLock + 1
+				If iSavedAlignLock = 0 Then AlignClear
+				If bOwnDefer Then
+					AlignDefer = BeginDeferWindowPos(Max(8, ControlCount))
+					AlignDeferParent = FHandle
+				End If
+				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
+				If bOwnDefer Then
+					' Cleared before the batch is applied: the WM_SIZE messages it sends run
+					'nested passes which must start a batch of their own
+					Dim As HDWP hDefer = AlignDefer
+					AlignDefer = 0
+					AlignDeferParent = 0
+					If hDefer Then EndDeferWindowPos(hDefer)
+					AlignDefer = hSavedDefer
+					AlignDeferParent = hSavedDeferParent
+				End If
+				AlignLock = iSavedAlignLock
+				If iSavedAlignLock = 0 Then AlignRedraw FHandle
+			#else
+				RequestAlignCore iClientWidth, iClientHeight, bInDraw, bWithoutControl
+			#endif
+		End Sub
+		
+		Private Sub Control.RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			#ifdef __USE_GTK__
 				If GTK_IS_NOTEBOOK(widget) Then
 					For i As Integer = 0 To ControlCount - 1
@@ -23507,6 +23737,16 @@ Namespace My.Sys.Forms
 			rLeft = iClientWidth - Margins.Right
 			tTop  = Margins.Top
 			bTop  = iClientHeight - Margins.Bottom
+			'Every control goes into at most one of the lists: allocate the worst case once
+			'instead of reallocating on every control of the pass
+			If ControlCount > 0 Then
+				Dim As Integer iCapacity = ControlCount * SizeOf(Control Ptr)
+				ListLeft   = _Allocate(iCapacity)
+				ListRight  = _Allocate(iCapacity)
+				ListTop    = _Allocate(iCapacity)
+				ListBottom = _Allocate(iCapacity)
+				ListClient = _Allocate(iCapacity)
+			End If
 			If ControlCount <> 0 Then
 				#ifdef __USE_GTK__
 					If rLeft <= 1 And bTop <= 1 Then
@@ -23549,41 +23789,52 @@ Namespace My.Sys.Forms
 				'		Exit Sub
 				'	End If
 				'#endif
+				' The anchored children are scaled against the current size of this control:
+				' read it once, the getters go through GetWindowRect for every control
+				Dim As Boolean bAnchored
+				For i = 0 To ControlCount - 1
+					With *Controls[i]
+						If Cast(Integer, .Anchor.Left) + Cast(Integer, .Anchor.Right) + Cast(Integer, .Anchor.Top) + Cast(Integer, .Anchor.Bottom) <> 0 Then
+							bAnchored = True
+							Exit For
+						End If
+					End With
+				Next i
+				If bAnchored Then
+					This.FWidth = This.Width
+					This.FHeight = This.Height
+					#ifdef __USE_JNI__
+						'The controls are in the layout of the form (without the title bar)
+						If layoutview Then This.FWidth = iClientWidth: This.FHeight = iClientHeight
+					#endif
+				End If
 				For i = 0 To ControlCount - 1
 					'If Controls[i]->Handle = 0 Then Continue For
 					Select Case Controls[i]->Align
 					Case 1'alLeft
 						LeftCount += 1
-						ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 						ListLeft[LeftCount - 1] = Controls[i]
 					Case 2'alRight
 						RightCount += 1
-						ListRight = _Reallocate(ListRight,SizeOf(Control Ptr)*RightCount)
 						ListRight[RightCount - 1] = Controls[i]
 					Case 3'alTop
 						TopCount += 1
-						ListTop = _Reallocate(ListTop, SizeOf(Control Ptr)*TopCount)
 						ListTop[TopCount - 1] = Controls[i]
 					Case 4'alBottom
 						BottomCount += 1
-						ListBottom = _Reallocate(ListBottom,SizeOf(Control Ptr)*BottomCount)
 						ListBottom[BottomCount - 1] = Controls[i]
 					Case 5'alClient
 						ClientCount += 1
-						ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 						ListClient[ClientCount - 1] = Controls[i]
 					Case Else
 						If ClassName = "VerticalBox" Then
 							TopCount += 1
-							ListTop = _Reallocate(ListTop, SizeOf(Control Ptr)*TopCount)
 							ListTop[TopCount - 1] = Controls[i]
 						ElseIf ClassName = "HorizontalBox" Then
 							LeftCount += 1
-							ListLeft = _Reallocate(ListLeft,SizeOf(Control Ptr)*LeftCount)
 							ListLeft[LeftCount - 1] = Controls[i]
 						ElseIf ClassName = "PagePanel" AndAlso Controls[i]->Name <> "PagePanel_NumericUpDownControl" Then
 							ClientCount += 1
-							ListClient = _Reallocate(ListClient,SizeOf(Control Ptr)*ClientCount)
 							ListClient[ClientCount - 1] = Controls[i]
 						End If
 					End Select
@@ -23595,11 +23846,6 @@ Namespace My.Sys.Forms
 								If CInt(.FVisible) AndAlso CInt(.Handle) Then
 							#endif
 								aLeft = .FLeft: aTop = .FTop: aWidth = .FWidth: aHeight = .FHeight
-								This.FWidth = This.Width: This.FHeight = This.Height
-								#ifdef __USE_JNI__
-									'The controls are in the layout of the form (without the title bar)
-									If layoutview Then This.FWidth = iClientWidth: This.FHeight = iClientHeight
-								#endif
 								If .Anchor.Left <> asNone Then
 									If .Anchor.Left = asAnchorProportional Then aLeft = This.FWidth / .FAnchoredParentWidth * .FAnchoredLeft
 									If .Anchor.Right <> asNone Then aWidth = This.FWidth - aLeft - IIf(.Anchor.Right = asAnchor, .FAnchoredRight, This.FWidth / .FAnchoredParentWidth * .FAnchoredRight)
@@ -25276,6 +25522,8 @@ Namespace My.Sys.Forms
 			Declare Sub SendToBack
 			'Instructs the parent of a control to reposition the control, enforcing its Align property (Windows, Linux, Android, Web).
 			Declare Sub RequestAlign(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
+			'The layout pass itself, without the paint batching of RequestAlign
+			Declare Sub RequestAlignCore(iClientWidth As Integer = -1, iClientHeight As Integer = -1, bInDraw As Boolean = False, bWithoutControl As Control Ptr = 0)
 			'Displays the control to the user (Windows, Linux, Android, Web).
 			Declare Virtual Sub Show
 			'Conceals the control from the user (Windows, Linux, Android, Web).
@@ -25363,6 +25611,10 @@ Namespace My.Sys.Forms
 		End Type
 		
 		Dim Shared CreationControl As Control Ptr
+		#ifdef __USE_WINAPI__
+			'Lays out the containers noted by RequestAlign during a rescale (WM_DPICHANGED)
+			Declare Sub DpiAlignFlush
+		#endif
 	#endif
 	#ifdef __USE_JNI__
 		Dim Shared AppMainForm As Control Ptr
@@ -30838,8 +31090,14 @@ Namespace My.Sys.Drawing
 						End If
 					#elseif defined(__USE_WINAPI__)
 						If QComponent(FParent).Handle Then
-							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), True)
-							InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+							' In a layout or DPI pass the container is repainted once when the pass ends:
+							'a synchronous repaint per control is the most expensive part of the pass
+							SendMessage(QComponent(FParent).Handle, WM_SETFONT, CUInt(Handle), AlignLock = 0)
+							If AlignLock = 0 Then
+								InvalidateRect Cast(Component Ptr, FParent)->Handle, 0, True
+							Else
+								AlignAddWindow Cast(Component Ptr, FParent)->Handle
+							End If
 						End If
 					#endif
 				End If
@@ -30925,6 +31183,15 @@ Namespace My.Sys.Drawing
 				If FParent AndAlso QComponent(FParent).Handle Then
 					SetForeColor(QComponent(FParent).Handle, Value)
 				End If
+			#elseif defined(__USE_JNI__)
+				'The text color of a TextView (a Label, a LinkLabel, a Button...); the color of FreeBasic is BGR
+				If env AndAlso FParent AndAlso QComponent(FParent).Handle Then
+					Dim As jobject h = QComponent(FParent).Handle
+					If (*env)->IsInstanceOf(env, h, FindJNIClass("android/widget/TextView")) Then
+						Dim As Long ARGB = &hFF000000 Or ((Value And &hFF) Shl 16) Or (Value And &hFF00) Or ((Value Shr 16) And &hFF)
+						(*env)->CallVoidMethod(env, h, GetMethodID("android/widget/TextView", "setTextColor", "(I)V"), ARGB)
+					End If
+				End If
 			#endif
 		End Property
 	#endif
@@ -30999,7 +31266,8 @@ Namespace My.Sys.Drawing
 	End Operator
 	
 	Private Operator Font.Cast ByRef As WString
-		Return ToString
+		WLet(FTemp, This.Name & ", " & This.Size)
+		Return *FTemp
 	End Operator
 	
 	Private Function Font.ToString ByRef As WString
@@ -32493,15 +32761,28 @@ Namespace My.Sys.Forms
 				'	RequestAlign
 				'End If
 				FDPIChanging = True
+				'Every control rebuilds its font and moves itself: repaint only once, when the
+				'whole tree has the new scale (a paint in between shows a broken layout)
+				'(Not deferred: the tree spans many parents, see Control.ProcessMessage)
+				Dim As Integer iSavedAlignLock = AlignLock
+				AlignLock = iSavedAlignLock + 1
+				' A rescale always repaints: the fonts and the bounds changed
+				If iSavedAlignLock = 0 Then AlignClear: AlignMoved = 2
 				LockWindowUpdate(FHandle)
 				Base.ProcessMessage(msg)
+				' OnResize of the new window size waited for the rescaled tree (see WM_SIZE):
+				'sizes computed from the children are right only now
+				If OnResize AndAlso Not IsIconic(FHandle) Then OnResize(*Designer, This, This.Width, This.Height)
 				LockWindowUpdate(0)
+				AlignLock = iSavedAlignLock
+				If iSavedAlignLock = 0 Then AlignRedraw FHandle
 				FDPIChanging = False
 				Return
 			Case WM_SIZE
 				'xdpi = FDpiFormX
 				'ydpi = FDpiFormY
-				If OnResize Then OnResize(*Designer, This, This.Width, This.Height)
+				' In a rescale OnResize runs once, when the whole tree has the new scale
+				If OnResize AndAlso Not FDPIChanging Then OnResize(*Designer, This, This.Width, This.Height)
 				If Not IsIconic(FHandle) Then
 					'If Not FDPIChanging Then UpdateLock
 					'RequestAlign
@@ -33170,8 +33451,8 @@ Namespace My.Sys.Forms
 			If FHandle = 0 AndAlso env <> 0 AndAlso FParent <> 0 AndAlso Cast(Control Ptr, FParent)->layoutview <> 0 Then
 				FVisible = True
 				'The layout is transparent without a color: the form has the color of the dialogs of Windows (BTNFACE) over
-				'the controls of its owner
-				If FBackColor = -1 Then FBackColor = &hF0F0F0
+				'the controls of its owner, the background of the dark theme in the night mode
+				If FBackColor = -1 Then FBackColor = IIf(ActivityNightMode, &h121212, &hF0F0F0)
 				CreateWnd
 				If FHandle Then Exit Sub
 			End If
@@ -33186,7 +33467,7 @@ Namespace My.Sys.Forms
 					ApplyAndroidStyle
 					FormSetOnTop(FHandle, FFormStyle = FormStyles.fsStayOnTop)
 					'A form which was made before (CreateWnd at the start of the program) has no color yet either
-					If FBackColor = -1 Then FBackColor = &hF0F0F0: ApplyBackColor
+					If FBackColor = -1 Then FBackColor = IIf(ActivityNightMode, &h121212, &hF0F0F0): ApplyBackColor
 				End If
 				Dim As Boolean AsDialog = FInShowModal OrElse CBool(FBorderStyle = FormBorderStyle.FixedDialog AndAlso FormLargeScreen()) OrElse IsToolWindow OrElse CBool(FFormStyle = FormStyles.fsStayOnTop)
 				If IsSecondForm AndAlso (AsDialog OrElse Not FormActivityShow(FHandle, ToUtf8(*FText))) AndAlso FormTitleBarHeight() > 0 Then
@@ -48597,8 +48878,9 @@ Namespace My.Sys.Forms
 		#elseif defined(__USE_JNI__)
 			If FHandle Then
 				(*env)->CallVoidMethod(env, FHandle, GetMethodID("android/widget/TextView", "setText", "(Ljava/lang/CharSequence;)V"), (*env)->NewStringUTF(env, ToUtf8(RemoveMnemonic(*FText))))
-				'Without WordWraps the text is one line (CreateWnd sets the text: the view gets it there too)
-				If Not FWordWraps AndAlso Activity <> 0 Then (*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetSingleLine", "(Landroid/view/View;Z)V"), FHandle, CUByte(1))
+				'Without WordWraps the text is one line, with it the lines which the height shows (CreateWnd sets the text:
+				'the view gets it there too); the end of a longer text is "..."
+				If Activity <> 0 Then (*env)->CallVoidMethod(env, Activity, ActivityMethodID("textSetSingleLine", "(Landroid/view/View;Z)V"), FHandle, CUByte(IIf(FWordWraps, 0, 1)))
 				SetGravity
 			End If
 		#elseif defined(__USE_WASM__)
@@ -70197,7 +70479,7 @@ Namespace My.Sys.Forms
 				#ifdef __USE_JNI__
 					'Android: the left, the top and the height of the rows (a band which does not fit in the last row goes
 					'into the first row above with the free width for it: the wider buttons of Android made more rows)
-					Dim As Integer iRows, RowLefts(Bands.Count), RowTops(Bands.Count), RowHeights(Bands.Count), iRow
+					Dim As Integer iRows, RowLefts(Bands.Count), RowTops(Bands.Count), RowHeights(Bands.Count), iRow, BandRows(Bands.Count)
 				#endif
 				For i As Integer = 0 To Bands.Count - 1
 					With *Bands.Item(i)
@@ -70224,7 +70506,8 @@ Namespace My.Sys.Forms
 							If .Child->Handle <> 0 Then
 								Dim As Integer ContentWidth = ButtonsContentWidth(.Child->Handle)
 								If ContentWidth > 0 Then
-									ContentWidth = UnScaleX(ContentWidth)
+									'rounded up: the last button was in the overflow menu for the pixels lost
+									ContentWidth = UnScaleX(ContentWidth) + 1
 									If .MinWidth > ContentWidth Then BandWidth = .MinWidth Else BandWidth = ContentWidth
 								End If
 							End If
@@ -70253,6 +70536,7 @@ Namespace My.Sys.Forms
 								iRows += 1
 							End If
 							.Child->SetBounds RowLefts(iRow), RowTops(iRow), Min(BandWidth, iWidth - RowLefts(iRow)), BandHeight
+							BandRows(i) = iRow
 							RowLefts(iRow) += BandWidth
 							If RowHeights(iRow) < BandHeight Then RowHeights(iRow) = BandHeight
 							iTop = RowTops(iRows - 1)
@@ -70269,6 +70553,16 @@ Namespace My.Sys.Forms
 						#endif
 					End With
 				Next
+				#ifdef __USE_JNI__
+					'The bands of a row have its height: the buttons of the toolbars in it are on one line (a lower band
+					'had them higher)
+					For i As Integer = 0 To Bands.Count - 1
+						With *Bands.Item(i)
+							If .Child = 0 OrElse Not .Visible Then Continue For
+							If .Child->Height <> RowHeights(BandRows(i)) Then .Child->SetBounds .Child->Left, RowTops(BandRows(i)), .Child->Width, RowHeights(BandRows(i))
+						End With
+					Next
+				#endif
 				If iTop + RowHeight > 0 AndAlso iTop + RowHeight <> This.Height Then
 					This.Height = iTop + RowHeight
 					If OnHeightChange Then OnHeightChange(*Designer, This)
@@ -79120,7 +79414,16 @@ Namespace My.Sys.Forms
 						yCur = g_CurCursorPos.y
 				#endif
 					If This.Parent->ControlCount AndAlso i > 0 AndAlso SizeCtrl = This.Parent->Controls[i - 1] Then
-						This.Parent->UpdateLock
+						#ifdef __USE_WINAPI__
+							' One layout pass for the step: the moves do not paint, and when the pass ends
+							'only the places the moved windows left and took are painted (at once, so that
+							'the panels follow the mouse), not the whole parent with all its children
+							Dim As Integer iSavedAlignLock = AlignLock
+							AlignLock = iSavedAlignLock + 1
+							If iSavedAlignLock = 0 Then AlignClear
+						#else
+							This.Parent->UpdateLock
+						#endif
 						' The control and the splitter are moved at once: the right and the bottom control keep their
 						' right and bottom edge (with only the new size the edge moves until the parent aligns again)
 						Select Case Align
@@ -79144,12 +79447,17 @@ Namespace My.Sys.Forms
 						If OnMoving Then OnMoving(*Designer, This)
 						This.Parent->RequestAlign
 						#ifdef __USE_GTK__
-							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign 
+							If i > 0 Then This.Parent->Controls[i-1]->RequestAlign
 							'#Else
 							'		This.Parent->RequestAlign
 						#endif
-						This.Parent->UpdateUnLock
-						This.Parent->Repaint
+						#ifdef __USE_WINAPI__
+							AlignLock = iSavedAlignLock
+							If iSavedAlignLock = 0 Then AlignRedraw This.Parent->Handle, True
+						#else
+							This.Parent->UpdateUnLock
+							This.Parent->Repaint
+						#endif
 						'This.Parent->Update
 						'Parent->Update
 					End If
@@ -79932,6 +80240,14 @@ Namespace My.Sys.Forms
 		End Sub
 		
 		Private Sub StatusBar.ProcessMessage(ByRef Message As Message)
+			#ifdef __USE_WINAPI__
+				If Message.Msg = WM_DPICHANGED Then
+					Base.ProcessMessage(Message)
+					' The parts are in pixels: they are set again with the new scale
+					UpdatePanels
+					Return
+				End If
+			#endif
 			Base.ProcessMessage(Message)
 		End Sub
 	#endif
@@ -81481,6 +81797,13 @@ End Namespace
 		If Method Then (*env)->CallVoidMethod(env, Activity, Method, CUByte(IIf(Value, 1, 0)))
 	End Sub
 
+	Function ActivityNightMode() As Boolean
+		If env = 0 OrElse Activity = 0 Then Return False
+		Dim As jmethodID Method = OptionalActivityMethodID("isNightMode", "()Z")
+		If Method = 0 Then Return False
+		Return (*env)->CallBooleanMethod(env, Activity, Method) <> 0
+	End Function
+
 	Sub RestartApplication()
 		If env = 0 OrElse Activity = 0 Then Exit Sub
 		Dim As jmethodID Method = OptionalActivityMethodID("restartApplication", "()V")
@@ -81559,6 +81882,13 @@ End Namespace
 	Function ButtonsItemLeft(Id As Any Ptr, ByVal Index As Integer) As Integer
 		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
 		Return (*env)->CallIntMethod(env, Activity, ActivityMethodID("buttonsItemLeft", "(Landroid/view/View;I)I"), Id, Index)
+	End Function
+	
+	Function ButtonsItemWidth(Id As Any Ptr, ByVal Index As Integer) As Integer
+		If env = 0 OrElse Activity = 0 OrElse Id = 0 Then Return -1
+		Dim As jmethodID Method = OptionalActivityMethodID("buttonsItemWidth", "(Landroid/view/View;I)I")
+		If Method = 0 Then Return -1
+		Return (*env)->CallIntMethod(env, Activity, Method, Id, Index)
 	End Function
 	
 	Sub AddResourceSearchPath(Path As String)
@@ -83449,6 +83779,8 @@ Const HELP_SETPOPUP_POS = &Hd
 	Declare Sub SetActivityDarkMode(ByVal Value As Boolean)
 	'Ends the process of the program and starts it again (mffActivity.Restart)
 	Declare Sub RestartApplication()
+	'The views have the colors of the night mode (mffActivity.nightMode: the dark mode of the program or of the system)
+	Declare Function ActivityNightMode() As Boolean
 	'The view of the form is put again into the layout of its owner (a form of Show was in its own activity before)
 	Declare Sub FormAttach(Id As Any Ptr, Parent As Any Ptr)
 	'A form of ShowModal over the window of its owner (over the action bar too, mffActivity.formAttachTop): the height
@@ -89102,7 +89434,8 @@ Namespace My.Sys.Forms
 					If .Style = tbsCustom AndAlso .Child <> 0 Then
 						If i > 0 Then Items &= Chr(10)
 						#ifdef __USE_JNI__
-							Items &= "6" & ScaleX(.Child->Width)
+							'7 - the gap takes the free width of the bar (Expand), the width of the control is its least one
+							Items &= IIf(.Expand, "7", "6") & ScaleX(.Child->Width)
 						#else
 							'Web: the width of the button (like on Windows), 7 - the gap takes the free width of the bar (Expand)
 							Items &= IIf(.Expand, "7", "6") & ScaleX(IIf(.Width > 0 AndAlso Not .Expand, .Width, .Child->Width))
@@ -89182,7 +89515,13 @@ Namespace My.Sys.Forms
 						If .Style = tbsCustom AndAlso .Child <> 0 Then
 							Dim As Integer x = ButtonsItemLeft(FHandle, i)
 							#ifdef __USE_JNI__
-								If x <> -1 Then .Child->SetBounds UnScaleX(x), 0, .Child->Width, Min(.Child->Height, This.Height)
+								'the height of the bar: the Height of Windows is too low for the text of Android (it was cut), a
+								'Spinner and an EditText have their text in the middle like the buttons (mffActivity.buttonsSet)
+								'the width of the gap (Expand: the free width of the bar)
+								If x <> -1 Then
+									Dim As Integer w = ButtonsItemWidth(FHandle, i)
+									.Child->SetBounds UnScaleX(x), 0, IIf(w > 0, UnScaleX(w), .Child->Width), This.Height
+								End If
 							#else
 								'Web: the width of the gap (Expand), one line high in the middle of the bar (the Height of a
 								'ComboBox of Windows is the one with its list)
@@ -90771,6 +91110,9 @@ Namespace My.Sys.Forms
 				If HotImagesList Then HotImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If DisabledImagesList Then DisabledImagesList->SetImageSize FBitmapWidth, FBitmapHeight, xdpi, ydpi
 				If ImagesList AndAlso ImagesList->Handle Then SendMessage(FHandle, TB_SETIMAGELIST, 0, CInt(ImagesList->Handle))
+				' Every button update lays out and paints the palette again: it is painted once at the end
+				'(the buttons have no child windows, which would need the layout of every step)
+				SendMessage FHandle, WM_SETREDRAW, False, 0
 				For i As Integer = 0 To Groups.Count - 1
 					For j As Integer = 0 To Groups.Item(i)->Buttons.Count - 1
 						Groups.Item(i)->Buttons.Item(j)->xdpi = xdpi
@@ -90779,6 +91121,7 @@ Namespace My.Sys.Forms
 						Groups.Item(i)->Buttons.Item(j)->Caption = Groups.Item(i)->Buttons.Item(j)->Caption
 					Next
 				Next
+				SendMessage FHandle, WM_SETREDRAW, True, 0
 				SetBounds FLeft, FTop, FWidth, FHeight
 				Return
 			Case WM_DESTROY
