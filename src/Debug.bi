@@ -57,7 +57,10 @@ Declare Sub DeleteDebugCursor
 	#define KNEWARRAYFIELD ''to skip flag field
 #endif
 
-#ifdef __FB_WIN32__
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: no debugger (DebugWeb.bas), only the declarations which the IDE uses
+	#define WSTRSIZE 4 ''wchar_t of emscripten and of the Android NDK
+#elseif defined(__FB_WIN32__)
 	#include once "windows.bi"
 	#include once "win\commctrl.bi"
 	#include once "win\commdlg.bi"
@@ -365,7 +368,11 @@ Type tlist
 End Type
 
 #define TYPESTD 18 ''upper limit for standard type, now 17 for va_list 2020/02/05
-Const STYPESTD = ":t" + Str(TYPESTD)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	Const STYPESTD = ":t18"
+#else
+	Const STYPESTD = ":t" + Str(TYPESTD)
+#endif
 
 '' DATA STAB
 Type udtstab
@@ -993,11 +1000,15 @@ Declare Function thread_select(id As Integer = 0) As Integer
 Declare Function var_search(pproc As Integer, text() As String, vnb As Integer, varr As Integer, vpnt As Integer = 0) As Integer
 Declare Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 Declare Sub RunProgramWithDebug(Param As Any Ptr)
-#ifndef __FB_WIN32__
+#if Not defined(__FB_WIN32__) AndAlso Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
 	Declare Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 	Declare Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
 #endif
 
 #ifndef __USE_MAKE__
-	#include once "Debug.bas"
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#include once "DebugWeb.bas"
+	#else
+		#include once "Debug.bas"
+	#endif
 #endif

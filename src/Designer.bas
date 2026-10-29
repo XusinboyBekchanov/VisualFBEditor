@@ -25,6 +25,13 @@
 	#define CtrlHandle HWND
 #endif
 
+#ifdef __USE_WIN32_COMPAT__
+	'Web and Android: there is no library to load, the controls of MyFbFramework are the ones of the program (DesignerStatic.bi)
+	Declare Function DesignerSymbol(ByVal Handle As Any Ptr, ByRef SymbolName As String) As Any Ptr
+#else
+	#define DesignerSymbol(Handle, SymbolName) DyLibSymbol(Handle, SymbolName)
+#endif
+
 Namespace My.Sys.Forms
 	#ifdef __USE_GTK__
 		Function Designer.GetControl(ControlHandle As GtkWidget Ptr) As Any Ptr
@@ -97,6 +104,38 @@ Namespace My.Sys.Forms
 			RedrawWindow(FDialog, NULL, NULL, RDW_INVALIDATE)
 		#endif
 		If OnChangeSelection Then OnChangeSelection(This, SelectedControl)
+	End Sub
+
+	'Band balandligini sichqoncha bilan o'zgartirish boshlanganda controllarning Top/Height'ini
+	'eslab qoladi - oxirida qaysilari siljiganini (ShiftControlsFrom) bilish uchun.
+	Sub Designer.ReportBandDragStart()
+		Dim As Integer iLeft, iTop, iWidth, iHeight
+		If Objects.Count = 0 Then Erase FReportDragTops, FReportDragHeights: Exit Sub
+		ReDim FReportDragTops(Objects.Count - 1)
+		ReDim FReportDragHeights(Objects.Count - 1)
+		For i As Integer = 0 To Objects.Count - 1
+			iTop = -1: iHeight = -1
+			GetControlBounds(Objects.Item(i), iLeft, iTop, iWidth, iHeight)
+			FReportDragTops(i) = iTop
+			FReportDragHeights(i) = iHeight
+		Next
+	End Sub
+
+	'Band balandligi sichqoncha bilan o'zgartirilgach kodni yangilaydi: bandning .Height'i,
+	'siljigan controllarning SetBounds'i va Report'ning o'z o'lchami (u ham o'zgaradi).
+	Sub Designer.ReportBandModified(Band As Any Ptr)
+		If OnModified = 0 OrElse Band = 0 Then Exit Sub
+		OnModified(This, Band, "Height")
+		Dim As Integer iLeft, iTop, iWidth, iHeight
+		For i As Integer = 0 To UBound(FReportDragTops)
+			If i >= Objects.Count Then Exit For
+			Dim As Any Ptr Ctrl = Objects.Item(i)
+			If Ctrl = 0 OrElse IsReportBand(Ctrl) Then Continue For
+			iTop = -1: iHeight = -1
+			GetControlBounds(Ctrl, iLeft, iTop, iWidth, iHeight)
+			If iTop <> FReportDragTops(i) OrElse iHeight <> FReportDragHeights(i) Then OnModified(This, Ctrl)
+		Next
+		OnModified(This, DesignControl)
 	End Sub
 
 	Function Designer.GetParentControl(iControl As Any Ptr, ByVal toRoot As Boolean = True) As Any Ptr
@@ -222,7 +261,7 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	#ifndef __USE_GTK__
-		Function Designer.EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
+		Function Designer.EnumChildsProc(hDlg As HWND, lParam As LPARAM) As BOOL
 			If lParam Then
 				With *Cast(WindowList Ptr, lParam)
 					.Count = .Count + 1
@@ -1613,7 +1652,12 @@ Namespace My.Sys.Forms
 			#ifdef __USE_GTK__
 				Dim As PointerList Ptr Value = @CopyList
 			#else
-				If Clipboard.HasFormat(fformat) Then
+				#ifdef __USE_WIN32_COMPAT__
+					'Web and Android: the copied controls stay in the clipboard of the program (Win32Compat.bi)
+					If IsClipboardFormatAvailable(fformat) Then
+				#else
+					If Clipboard.HasFormat(fformat) Then
+				#endif
 					If ( OpenClipboard(NULL) ) Then
 						'извлекаем данные из буфера 'Extract data from buffer
 						Dim As HANDLE hData = GetClipboardData(fformat)
@@ -1744,7 +1788,9 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Function Designer.CreateControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
-		On Error Goto ErrorHandler
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrorHandler
+		#endif
 		If LCase(AClassName) = "report" Then
 			Return This.CreateReportControl(AClassName, AName, AText, AParent, x, y, cx, cy, bNotHook)
 		End If
@@ -1857,7 +1903,9 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function Designer.CreateReportControl(AClassName As String, ByRef AName As WString, ByRef AText As WString, AParent As Any Ptr, x As Integer, y As Integer, cx As Integer, cy As Integer, bNotHook As Boolean = False) As Any Ptr
-		On Error Goto ErrorHandler
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrorHandler
+		#endif
 		Dim As SymbolsType Ptr st = Symbols(AClassName)
 		Ctrl = 0
 		FSelControl = 0
@@ -2034,48 +2082,53 @@ Namespace My.Sys.Forms
 				Else
 					Dim As Library Ptr CtlLib = te->Tag
 					Var st = _New(SymbolsType)
-					st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
+					#ifdef __USE_WIN32_COMPAT__
+						'Only the controls of MyFbFramework (the ones of the program): another library has no procedures
+						st->Handle = IIf(InStr(LCase(CtlLib->Path), "mff"), Cast(Any Ptr, 1), 0)
+					#else
+						st->Handle = DyLibLoad(GetFullPath(CtlLib->Path))
+					#endif
 					st->Path = GetFullPath(CtlLib->Path)
-					st->CreateControlFunc = DyLibSymbol(st->Handle, "CreateControl")
-					st->CreateReportControlFunc = DyLibSymbol(st->Handle, "CreateReportControl")
-					st->CreateComponentFunc = DyLibSymbol(st->Handle, "CreateComponent")
-					st->ReadPropertyFunc = DyLibSymbol(st->Handle, "ReadProperty")
-					st->WritePropertyFunc = DyLibSymbol(st->Handle, "WriteProperty")
-					st->DeleteComponentFunc = DyLibSymbol(st->Handle, "DeleteComponent")
-					st->DeleteAllObjectsFunc = DyLibSymbol(st->Handle, "DeleteAllObjects")
-					st->RemoveControlSub = DyLibSymbol(st->Handle, "RemoveControl")
-					st->ControlByIndexFunc = DyLibSymbol(st->Handle, "ControlByIndex")
-					st->Q_ComponentFunc = DyLibSymbol(st->Handle, "Q_Component")
-					st->ComponentGetBoundsSub = DyLibSymbol(st->Handle, "ComponentGetBounds")
-					st->ComponentSetBoundsSub = DyLibSymbol(st->Handle, "ComponentSetBounds")
-					st->ControlIsContainerFunc = DyLibSymbol(st->Handle, "ControlIsContainer")
-					st->IsControlFunc = DyLibSymbol(st->Handle, "IsControl")
-					st->IsReportControlFunc = DyLibSymbol(st->Handle, "IsReportControl")
-					st->IsComponentFunc = DyLibSymbol(st->Handle, "IsComponent")
-					st->ControlSetFocusSub = DyLibSymbol(st->Handle, "ControlSetFocus")
-					st->ControlFreeWndSub = DyLibSymbol(st->Handle, "ControlFreeWnd")
-					st->ControlRepaintSub = DyLibSymbol(st->Handle, "ControlRepaint")
-					st->ToStringFunc = DyLibSymbol(st->Handle, "ToString")
-					st->CreateObjectFunc = DyLibSymbol(st->Handle, "CreateObject")
-					st->ObjectDeleteFunc = DyLibSymbol(st->Handle, "ObjectDelete")
-					st->MenuByIndexFunc = DyLibSymbol(st->Handle, "MenuByIndex")
-					st->MenuItemByIndexFunc = DyLibSymbol(st->Handle, "MenuItemByIndex")
-					st->MenuFindByCommandFunc = DyLibSymbol(st->Handle, "MenuFindByCommand")
-					st->MenuRemoveSub = DyLibSymbol(st->Handle, "MenuRemove")
-					st->MenuItemRemoveSub = DyLibSymbol(st->Handle, "MenuItemRemove")
-					st->ToolBarButtonByIndexFunc = DyLibSymbol(st->Handle, "ToolBarButtonByIndex")
-					st->ToolBarRemoveButtonSub = DyLibSymbol(st->Handle, "ToolBarRemoveButton")
-					st->StatusBarPanelByIndexFunc = DyLibSymbol(st->Handle, "StatusBarPanelByIndex")
-					st->StatusBarRemovePanelSub = DyLibSymbol(st->Handle, "StatusBarRemovePanel")
-					st->RemoveReportBandSub = DyLibSymbol(st->Handle, "RemoveReportBand")
-					st->ReportBandByIndexFunc = DyLibSymbol(st->Handle, "ReportBandByIndex")
-					st->GraphicTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "GraphicTypeLoadFromFile")
-					st->BitmapTypeLoadFromFileFunc = DyLibSymbol(st->Handle, "BitmapTypeLoadFromFile")
-					st->IconLoadFromFileFunc = DyLibSymbol(st->Handle, "IconLoadFromFile")
-					st->CursorLoadFromFileFunc = DyLibSymbol(st->Handle, "CursorLoadFromFile")
-					st->ImageListAddFromFileSub = DyLibSymbol(st->Handle, "ImageListAddFromFile")
-					st->ImageListIndexOfFunc = DyLibSymbol(st->Handle, "ImageListIndexOf")
-					st->ImageListClearSub = DyLibSymbol(st->Handle, "ImageListClear")
+					st->CreateControlFunc = DesignerSymbol(st->Handle, "CreateControl")
+					st->CreateReportControlFunc = DesignerSymbol(st->Handle, "CreateReportControl")
+					st->CreateComponentFunc = DesignerSymbol(st->Handle, "CreateComponent")
+					st->ReadPropertyFunc = DesignerSymbol(st->Handle, "ReadProperty")
+					st->WritePropertyFunc = DesignerSymbol(st->Handle, "WriteProperty")
+					st->DeleteComponentFunc = DesignerSymbol(st->Handle, "DeleteComponent")
+					st->DeleteAllObjectsFunc = DesignerSymbol(st->Handle, "DeleteAllObjects")
+					st->RemoveControlSub = DesignerSymbol(st->Handle, "RemoveControl")
+					st->ControlByIndexFunc = DesignerSymbol(st->Handle, "ControlByIndex")
+					st->Q_ComponentFunc = DesignerSymbol(st->Handle, "Q_Component")
+					st->ComponentGetBoundsSub = DesignerSymbol(st->Handle, "ComponentGetBounds")
+					st->ComponentSetBoundsSub = DesignerSymbol(st->Handle, "ComponentSetBounds")
+					st->ControlIsContainerFunc = DesignerSymbol(st->Handle, "ControlIsContainer")
+					st->IsControlFunc = DesignerSymbol(st->Handle, "IsControl")
+					st->IsReportControlFunc = DesignerSymbol(st->Handle, "IsReportControl")
+					st->IsComponentFunc = DesignerSymbol(st->Handle, "IsComponent")
+					st->ControlSetFocusSub = DesignerSymbol(st->Handle, "ControlSetFocus")
+					st->ControlFreeWndSub = DesignerSymbol(st->Handle, "ControlFreeWnd")
+					st->ControlRepaintSub = DesignerSymbol(st->Handle, "ControlRepaint")
+					st->ToStringFunc = DesignerSymbol(st->Handle, "ToString")
+					st->CreateObjectFunc = DesignerSymbol(st->Handle, "CreateObject")
+					st->ObjectDeleteFunc = DesignerSymbol(st->Handle, "ObjectDelete")
+					st->MenuByIndexFunc = DesignerSymbol(st->Handle, "MenuByIndex")
+					st->MenuItemByIndexFunc = DesignerSymbol(st->Handle, "MenuItemByIndex")
+					st->MenuFindByCommandFunc = DesignerSymbol(st->Handle, "MenuFindByCommand")
+					st->MenuRemoveSub = DesignerSymbol(st->Handle, "MenuRemove")
+					st->MenuItemRemoveSub = DesignerSymbol(st->Handle, "MenuItemRemove")
+					st->ToolBarButtonByIndexFunc = DesignerSymbol(st->Handle, "ToolBarButtonByIndex")
+					st->ToolBarRemoveButtonSub = DesignerSymbol(st->Handle, "ToolBarRemoveButton")
+					st->StatusBarPanelByIndexFunc = DesignerSymbol(st->Handle, "StatusBarPanelByIndex")
+					st->StatusBarRemovePanelSub = DesignerSymbol(st->Handle, "StatusBarRemovePanel")
+					st->RemoveReportBandSub = DesignerSymbol(st->Handle, "RemoveReportBand")
+					st->ReportBandByIndexFunc = DesignerSymbol(st->Handle, "ReportBandByIndex")
+					st->GraphicTypeLoadFromFileFunc = DesignerSymbol(st->Handle, "GraphicTypeLoadFromFile")
+					st->BitmapTypeLoadFromFileFunc = DesignerSymbol(st->Handle, "BitmapTypeLoadFromFile")
+					st->IconLoadFromFileFunc = DesignerSymbol(st->Handle, "IconLoadFromFile")
+					st->CursorLoadFromFileFunc = DesignerSymbol(st->Handle, "CursorLoadFromFile")
+					st->ImageListAddFromFileSub = DesignerSymbol(st->Handle, "ImageListAddFromFile")
+					st->ImageListIndexOfFunc = DesignerSymbol(st->Handle, "ImageListIndexOf")
+					st->ImageListClearSub = DesignerSymbol(st->Handle, "ImageListClear")
 					FSymbols.Add st
 					FLibs.Add CtlLib
 					OldClassName = AClassName
@@ -2979,6 +3032,13 @@ Namespace My.Sys.Forms
 			Dim As SymbolsType Ptr st = Symbols(DesignControl)
 			If st AndAlso st->ReadPropertyFunc Then BackColor = QInteger(st->ReadPropertyFunc(DesignControl, "BackColor"))
 			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
+			#ifdef __USE_JNI__
+				'Android: a dot of the density of the screen (a pixel is not seen)
+				Dim As Integer GridDot = Max(1, ScaleX(1))
+			#else
+				Dim As Integer GridDot = 1
+			#endif
+			Dim As HBRUSH DotBrush = IIf(GridDot > 1, CreateSolidBrush(0), 0)
 			FHDC = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
 			If BitmapHandle <> 0 Then
@@ -2995,7 +3055,7 @@ Namespace My.Sys.Forms
 				If WithGraphic Then
 					For i As Integer = R.Left To R.Right Step ScaleX(FStepX)
 						For j As Integer = R.Top To R.Bottom Step ScaleY(FStepX)
-							SetPixel(FHDC, i, j, 0)
+							If DotBrush Then FillRect(FHDC, @Type<..Rect>(i, j, i + GridDot, j + GridDot), DotBrush) Else SetPixel(FHDC, i, j, 0)
 						Next
 					Next
 				Else
@@ -3006,7 +3066,7 @@ Namespace My.Sys.Forms
 					mBMP  = CreateCompatibleBitmap(FHDC, ScaleX(FStepX), ScaleY(FStepY))
 					pBMP  = SelectObject(mDc, mBMP)
 					FillRect(mDc, @BrushRect, Brush) 'Cast(HBRUSH, 16))
-					SetPixel(mDc, 0, 0, 0)
+					If DotBrush Then FillRect(mDc, @Type<..Rect>(0, 0, GridDot, GridDot), DotBrush) Else SetPixel(mDc, 0, 0, 0)
 					'for lines use MoveTo and LineTo or Rectangle function or whatever...
 					FGridBrush = CreatePatternBrush(mBMP)
 					FillRect(FHDC, @R, FGridBrush)
@@ -3015,6 +3075,7 @@ Namespace My.Sys.Forms
 				FillRect(FHDC, @R, Brush) 'Cast(HBRUSH, 16))
 			End If
 			DeleteObject(Brush)
+			If DotBrush Then DeleteObject(DotBrush)
 			
 			For j As Integer = 0 To SelectedControls.Count - 1
 				GetWindowRect(GetControlHandle(SelectedControls.Items[j]), @R)
@@ -4394,6 +4455,7 @@ Namespace My.Sys.Forms
 							.FReportDragBandIndex = BandIdx
 							.FReportDragStartY    = .UnScaleY(HiWord(lParam))
 							.FReportDragStartH    = QInteger(st->ReadPropertyFunc(Band, "Height"))
+							.ReportBandDragStart
 
 							'Balandligi o'zgartirilayotgan band tanlanadi - xossalarda Height jonli ko'rinadi.
 							.SelectReportBand(Band)
@@ -4425,6 +4487,9 @@ Namespace My.Sys.Forms
 						If .FReportDragging Then
 							.FReportDragging = False
 							ReleaseCapture()
+							Dim As SymbolsType Ptr st = .Symbols(.DesignControl)
+							Dim As Any Ptr Band       = st->ReportBandByIndexFunc(.DesignControl, .FReportDragBandIndex)
+							If QInteger(st->ReadPropertyFunc(Band, "Height")) <> .FReportDragStartH Then .ReportBandModified(Band)
 							Return 0
 						End If
 						.MouseUp(.UnScaleX(P.X), .UnScaleY(P.Y), wParam And &HFFFF )

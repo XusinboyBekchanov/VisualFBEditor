@@ -190,7 +190,7 @@ pIncludeFiles = @IncludeFiles
 pLoadPaths = @LoadPaths
 pIncludePaths = @IncludePaths
 pLibraryPaths = @LibraryPaths
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Settings")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Settings"): pApp->DoEvents
 
 'LoadLanguageTexts
 LoadSettings
@@ -571,6 +571,11 @@ Function GetSpecialPath(ByRef key As WString) As UString
 			If path <> "" Then path = GetOSPath(path) & "/"
 		#elseif defined(__USE_GTK__)
 			path = GetGtkUserDirectory(G_USER_DIRECTORY_DOCUMENTS, "Documents")
+		#elseif defined(__USE_JNI__)
+			'Android: the folder Documents of the app on the shared storage (mffActivity.prepareAppFiles)
+			path = Environ("MFF_DOCUMENTS")
+			If path = "" Then path = Environ("HOME") & "/Documents"
+			path = GetOSPath(path) & "/"
 		#else
 			path = GetOSPath(Environ("HOME")) & "/Documents/"
 		#endif
@@ -1023,8 +1028,264 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'The answer of the server (WebCompile of TabWindow.bas) in Messages and Problems: the lines "Name=Value", an empty
+	'line, the output of the compilation, "[problems]" and the problems. Returns the result of the compilation
+	Function ShowWebCompileAnswer(ByRef Parameter As String, ByRef Answer As UString) As Boolean
+		Dim As UString sLine
+		Dim As Boolean Result, InHead = True, InProblems
+		Dim As Integer Position = 1, PosEnd
+		Do While Position <= Len(Answer)
+			PosEnd = InStr(Position, Answer, WChr(10))
+			If PosEnd = 0 Then PosEnd = Len(Answer) + 1
+			sLine = Mid(Answer, Position, PosEnd - Position)
+			Position = PosEnd + 1
+			If InHead Then
+				If sLine = "" Then
+					InHead = False
+				ElseIf StartsWith(sLine, "result=") Then
+					Result = Mid(sLine, 8) = "1"
+				ElseIf StartsWith(sLine, "page=") Then
+					If Parameter = "Run" Then ShowMessages(Str(Time) & ": " & ML("Run") & ": " & Mid(sLine, 6), False)
+				ElseIf StartsWith(sLine, "error=") Then
+					ShowMessages(Str(Time) & ": " & ML("Error") & ": " & Mid(sLine, 7), False)
+				End If
+			ElseIf sLine = "[problems]" Then
+				InProblems = True
+			ElseIf InProblems Then
+				'Error|Warning|Info, line, file, text
+				Dim As Integer Tab1 = InStr(sLine, WChr(9)), Tab2 = InStr(Tab1 + 1, sLine, WChr(9)), Tab3 = InStr(Tab2 + 1, sLine, WChr(9))
+				If Tab1 > 0 AndAlso Tab2 > 0 AndAlso Tab3 > 0 Then
+					Dim As UString ProblemText = Mid(sLine, Tab3 + 1), ProblemKind = Left(sLine, Tab1 - 1)
+					Dim As UString ProblemLine = Mid(sLine, Tab1 + 1, Tab2 - Tab1 - 1), ProblemFile = Replace(Mid(sLine, Tab2 + 1, Tab3 - Tab2 - 1), "\", "/")
+					lvProblems.ListItems.Add *ProblemText.vptr, *ProblemKind.vptr
+					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(1) = *ProblemLine.vptr
+					lvProblems.ListItems.Item(lvProblems.ListItems.Count - 1)->Text(2) = *ProblemFile.vptr
+				End If
+			ElseIf sLine <> "" Then
+				ShowMessages(sLine, False)
+			End If
+		Loop
+		If lvProblems.ListItems.Count > 0 Then
+			tpProblems->Caption = ML("Problems") & " (" & WStr(lvProblems.ListItems.Count) & " " & ML("Pos") & ")"
+			If Not Result Then tpProblems->SelectTab
+		End If
+		Return Result
+	End Function
+#endif
+
+#ifdef __USE_WASM__
+	'Sends the files of the folder Root (the folder of the project) to the server, which compiles them for the Web
+	'(WebIDEServer of the desktop IDE, TabWindow.bas). Waits (ASYNCIFY) for the answer, RunPage opens the page of the
+	'program in a new tab. Returns 0 when another wait runs. WebIDE_lib.js
+	Declare Function CompileOnServer_ Alias "COMPILEONSERVER"(Root As String, MainFile As String, Options As String, ByVal RunPage As Long) As ZString Ptr
+
+	Function CompileOnWebServer(ByRef Parameter As String, ByRef MainFile As WString, ByRef ProjectPath As WString, ByRef Options As WString) As Boolean
+		Dim As UString Root = Replace(ProjectPath, "\", "/")
+		If Not EndsWith(Root, "/") Then Root &= "/"
+		If Not StartsWith(Replace(MainFile, "\", "/"), Root) Then Root = Replace(GetFolderName(MainFile), "\", "/")
+		ThreadsEnter()
+		ShowMessages(Str(Time) & ": " & ML("Compilation on the server") & ": " & MainFile)
+		ThreadsLeave()
+		Dim As ZString Ptr pAnswer = CompileOnServer_(ToUtf8(Root), ToUtf8(MainFile), ToUtf8(Options), IIf(Parameter = "Run", 1, 0))
+		ThreadsEnter()
+		If pAnswer = 0 Then
+			ShowMessages(Str(Time) & ": " & ML("The compilation is already running"))
+			StopProgress
+			ThreadsLeave()
+			Return False
+		End If
+		Dim As WString Ptr pText = FromUtf8(pAnswer)
+		FreePtr pAnswer
+		Dim As UString Answer = WGet(pText)
+		WDeAllocate(pText)
+		Dim As Boolean Result = ShowWebCompileAnswer(Parameter, Answer)
+		StopProgress
+		ThreadsLeave()
+		Return Result
+	End Function
+#endif
+
+#ifdef __USE_JNI__
+	'Android: the IDE can not start the compiler. The files of the project are sent with POST /compile to the Web IDE
+	'Server of the desktop IDE (Service > Web IDE Server, WebCompile of TabWindow.bas) like from the Web IDE
+	'(WebIDE_lib.js), with the line "target android": the server compiles them with Use > JNI and Gradle, and Run
+	'installs the APK on the device with adb and starts it. The device reaches the port of the computer with
+	'adb reverse tcp:8001 tcp:8001, which the server runs for the connected devices when it starts
+	Extern "C"
+		Declare Function AndroidCompile_opendir Alias "opendir"(ByVal DirName As ZString Ptr) As Any Ptr
+		Declare Function AndroidCompile_readdir Alias "readdir"(ByVal DirPtr As Any Ptr) As UByte Ptr
+		Declare Function AndroidCompile_closedir Alias "closedir"(ByVal DirPtr As Any Ptr) As Long
+		Declare Function AndroidCompile_socket Alias "socket"(ByVal Domain As Long, ByVal SocketType As Long, ByVal Protocol As Long) As Long
+		Declare Function AndroidCompile_connect Alias "connect"(ByVal Fd As Long, ByVal Address As Any Ptr, ByVal AddressLength As ULong) As Long
+		Declare Function AndroidCompile_send Alias "send"(ByVal Fd As Long, ByVal Buffer As Any Ptr, ByVal Length As UInteger, ByVal Flags As Long) As Integer
+		Declare Function AndroidCompile_recv Alias "recv"(ByVal Fd As Long, ByVal Buffer As Any Ptr, ByVal Length As UInteger, ByVal Flags As Long) As Integer
+		Declare Function AndroidCompile_close Alias "close"(ByVal Fd As Long) As Long
+	End Extern
+
+	'struct sockaddr_in (the port and the address in the network order)
+	Type AndroidCompileAddress
+		Family As UShort
+		Port As UShort
+		Address As ULong
+		Zero(7) As UByte
+	End Type
+
+	Const AndroidCompileServerPort = 8001
+	'struct dirent of bionic on all the ABIs: d_ino (8 bytes), d_off (8 bytes), d_reclen (2 bytes), d_type (1 byte), d_name
+	Const AndroidCompile_DTypeOffset = 18, AndroidCompile_DNameOffset = 19
+	Const AndroidCompile_DT_UNKNOWN = 0, AndroidCompile_DT_DIR = 4
+
+	'A line of the body of the request. The literals of the IDE are wide strings and an expression with them is one too:
+	'only String parameters are added, so the bytes of the files in the body and the UTF-8 of the paths stay as they are
+	Private Sub AndroidCompileAddLine(ByRef Body As String, ByRef Text As String, ByRef Value As String = "", ByRef Value2 As String = "")
+		Body += Text
+		Body += Value
+		Body += Value2
+		Body += Chr(10)
+	End Sub
+
+	'The files of the folder (UTF-8, with a slash at the end) and its subfolders in the body of the request: the files
+	'which the compilation makes are not sent (the ones of the program, of fbc and of Gradle)
+	Private Sub AndroidCompileAddFiles(ByRef Body As String, ByRef Folder As String, ByRef RelativeFolder As String, ByRef MainName As String, ByVal Depth As Integer, ByVal MaxDepth As Integer, ByRef Total As LongInt)
+		Dim As Any Ptr DirPtr = AndroidCompile_opendir(StrPtr(Folder))
+		If DirPtr = 0 Then Exit Sub
+		Dim As Boolean GradleFolder = FileExists(Folder & "build.gradle")
+		Do
+			Dim As UByte Ptr Entry = AndroidCompile_readdir(DirPtr)
+			If Entry = 0 Then Exit Do
+			Dim As String EntryName = *Cast(ZString Ptr, Entry + AndroidCompile_DNameOffset)
+			If EntryName = "." OrElse EntryName = ".." Then Continue Do
+			Dim As String FullName = Folder & EntryName
+			Dim As Boolean IsFolder = Entry[AndroidCompile_DTypeOffset] = AndroidCompile_DT_DIR
+			If Entry[AndroidCompile_DTypeOffset] = AndroidCompile_DT_UNKNOWN Then
+				Dim As Any Ptr FolderPtr = AndroidCompile_opendir(StrPtr(FullName))
+				IsFolder = FolderPtr <> 0
+				If FolderPtr Then AndroidCompile_closedir FolderPtr
+			End If
+			If IsFolder Then
+				'.gradle, .idea and the build folders of Gradle
+				If Depth < MaxDepth AndAlso EntryName[0] <> Asc(".") AndAlso Not (GradleFolder AndAlso EntryName = "build") Then
+					AndroidCompileAddFiles Body, FullName & "/", RelativeFolder & EntryName & "/", MainName, Depth + 1, MaxDepth, Total
+				End If
+				Continue Do
+			End If
+			Dim As String LowerName = LCase(EntryName), Extension
+			Dim As Integer PosDot = InStrRev(LowerName, ".")
+			If PosDot > 0 Then Extension = Mid(LowerName, PosDot)
+			Select Case Extension
+			Case ".exe", ".dll", ".so", ".o", ".obj", ".a", ".apk", ".aab", ".wasm", ".data", ".pdb", ".zip", ".7z", ".rar", ".log": Continue Do
+			Case ".c", ".asm", ".html", ".js"
+				If Left(LowerName, PosDot - 1) = MainName Then Continue Do
+			End Select
+			Dim As Integer Fn = FreeFile_
+			If Open(FullName For Binary Access Read As #Fn) <> 0 Then Continue Do
+			Dim As LongInt FileSize = LOF(Fn)
+			If FileSize > (16 Shl 20) OrElse Total + FileSize > (64 Shl 20) Then
+				CloseFile_(Fn)
+				Continue Do
+			End If
+			Dim As String FileData = Space(FileSize)
+			If FileSize > 0 Then Get #Fn, , FileData
+			CloseFile_(Fn)
+			Total += FileSize
+			AndroidCompileAddLine Body, "file " & FileSize & " ", RelativeFolder, EntryName
+			Body += FileData
+			Body += Chr(10)
+		Loop
+		AndroidCompile_closedir DirPtr
+	End Sub
+
+	'POST /compile to the server at localhost:AndroidCompileServerPort of the device, the answer of the server or the
+	'lines of an error in its format
+	Private Function AndroidCompilePost(ByRef Body As String) As String
+		Dim As String ServerName = "localhost:" & AndroidCompileServerPort
+		Dim As Long Fd = AndroidCompile_socket(2, 1, 0) 'AF_INET, SOCK_STREAM
+		If Fd < 0 Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unable to create socket"))
+		Dim As AndroidCompileAddress Address
+		Address.Family = 2
+		Address.Port = (AndroidCompileServerPort Shr 8) Or ((AndroidCompileServerPort And &hFF) Shl 8)
+		Address.Address = &h0100007F '127.0.0.1
+		If AndroidCompile_connect(Fd, @Address, SizeOf(Address)) <> 0 Then
+			AndroidCompile_close Fd
+			Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unable to connect to the server") & " http://" & ServerName & "/ (" & ML("start Service > Web IDE Server of the IDE on the computer, which is connected to this device with adb") & ")")
+		End If
+		Dim As String Request = "POST /compile HTTP/1.1" + Chr(13, 10) + "Host: " + ServerName + Chr(13, 10) + "Content-Type: application/octet-stream" + Chr(13, 10) + _
+		"Content-Length: " + Str(Len(Body)) + Chr(13, 10) + "Connection: close" + Chr(13, 10, 13, 10)
+		Request += Body
+		Dim As Integer Sent, Count
+		Do While Sent < Len(Request)
+			'MSG_NOSIGNAL: a closed connection is an error, not the signal SIGPIPE
+			Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, &h4000)
+			If Count <= 0 Then Exit Do
+			Sent += Count
+		Loop
+		'The answer is read to its Content-Length: the server does not always close the connection after it
+		Dim As String Responce, Buffer = Space(65536)
+		Dim As Integer PosBody, ContentLength = -1
+		Do
+			Count = AndroidCompile_recv(Fd, StrPtr(Buffer), Len(Buffer), 0)
+			If Count <= 0 Then Exit Do
+			Responce += Left(Buffer, Count)
+			If PosBody = 0 Then
+				PosBody = InStr(Responce, Chr(13, 10, 13, 10))
+				If PosBody > 0 Then
+					Dim As String LowerHeaders = LCase(Left(Responce, PosBody - 1))
+					Dim As Integer PosLength = InStr(LowerHeaders, "content-length:")
+					If PosLength > 0 Then ContentLength = ValInt(Mid(LowerHeaders, PosLength + 15))
+				End If
+			End If
+			If PosBody > 0 AndAlso ContentLength >= 0 AndAlso Len(Responce) >= PosBody + 3 + ContentLength Then Exit Do
+		Loop
+		AndroidCompile_close Fd
+		PosBody = InStr(Responce, Chr(13, 10, 13, 10))
+		If PosBody > 0 AndAlso StartsWith(Mid(Responce, PosBody + 4), "result=") Then Return Mid(Responce, PosBody + 4)
+		Return "result=0" & Chr(10) & "error=http://" & ServerName & "/compile: " & IIf(Responce = "", ToUtf8(ML("No answer")), Left(Responce, InStr(Responce & Chr(13), Chr(13)) - 1))
+	End Function
+
+	'WithSubfolders: the files of the subfolders too (a project); a file without a project is sent with the files next
+	'to it only (the folder of the projects has all the projects in it)
+	Function CompileOnAndroidServer(ByRef Parameter As String, ByRef MainFile As WString, ByRef ProjectPath As WString, ByRef Options As WString, WithSubfolders As Boolean) As Boolean
+		'The folder of the compilations of this IDE on the server
+		Static As String Id
+		If Id = "" Then
+			Randomize
+			Id = "android" & Hex(CLng(Rnd * &h7FFFFFFF), 8)
+		End If
+		Dim As UString Root = Replace(ProjectPath, "\", "/"), Main = Replace(MainFile, "\", "/")
+		If Not EndsWith(Root, "/") Then Root &= "/"
+		If Not StartsWith(Main, Root) Then Root = Replace(GetFolderName(MainFile), "\", "/")
+		ThreadsEnter()
+		ShowMessages(Str(Time) & ": " & ML("Compilation on the server") & ": " & MainFile)
+		ThreadsLeave()
+		Dim As String RootUtf8 = ToUtf8(Root), MainUtf8 = ToUtf8(Main), OptionsUtf8 = ToUtf8(Replace(Replace(Options, WChr(13), " "), WChr(10), " ")), Body
+		AndroidCompileAddLine Body, "VFBE-WEBCOMPILE 1"
+		AndroidCompileAddLine Body, "id ", Id
+		AndroidCompileAddLine Body, "root ", RootUtf8
+		AndroidCompileAddLine Body, "main ", Mid(MainUtf8, Len(RootUtf8) + 1)
+		AndroidCompileAddLine Body, "options ", OptionsUtf8
+		AndroidCompileAddLine Body, "target android"
+		'Run: the server installs the program on the device and starts it, Bundle and APK: the release ones of Gradle
+		If Parameter = "Run" OrElse Parameter = "Bundle" OrElse Parameter = "APK" Then AndroidCompileAddLine Body, "parameter ", Parameter
+		Dim As LongInt Total
+		AndroidCompileAddFiles Body, RootUtf8, "", LCase(ToUtf8(GetFileName(MainFile, False))), 0, IIf(WithSubfolders, 8, 0), Total
+		AndroidCompileAddLine Body, "end"
+		Dim As String AnswerUtf8 = AndroidCompilePost(Body)
+		Dim As WString Ptr pText = FromUtf8(StrPtr(AnswerUtf8))
+		Dim As UString Answer = WGet(pText)
+		WDeAllocate(pText)
+		ThreadsEnter()
+		Dim As Boolean Result = ShowWebCompileAnswer(Parameter, Answer)
+		StopProgress
+		ThreadsLeave()
+		Return Result
+	End Function
+#endif
+
 Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim As WString Ptr MainFileNameOnly, MainFile, LogFileName, LogFileName2, LogText, BatFileName, fbcCommand, PipeApplicationName, PipeCommand, fbcCommand1, PipeCommand1
 	Dim As WString Ptr CompileWith, MFFPathC, ErrFileName, ErrTitle, ExeName, FirstLine, ProjectPath
 	Dim As Integer NumberErr, NumberWarning, NumberInfo, NodesCount, CompileResult = 1
@@ -1032,6 +1293,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
 	Dim As Boolean Bit32 = tbt32Bit->Checked
+	'Web IDE server: the compiler which has the library of the Web (lib/js-asmjs)
+	If CBool(WGet(WebCompileMainFile) <> "") AndAlso CBool(WGet(WebCompileAndroidFolder) = "") AndAlso Not FolderExists(GetFolderName(GetFullPath(WGet(IIf(Bit32, Compiler32Path, Compiler64Path)))) & "lib/js-asmjs") Then Bit32 = Not Bit32
 	Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	ThreadsEnter()
 	ClearMessages
@@ -1043,7 +1306,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsEnter()
 		StartProgress
 		If bAll Then ProjectNode = tvExplorer.Nodes.Item(k) Else ProjectNode = 0
-		WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
+		If WGet(WebCompileMainFile) <> "" Then
+			'Web IDE server (WebCompile of TabWindow.bas): the main file is one of the files of the Web IDE, without a project
+			WLet(MainFile, *WebCompileMainFile)
+			Project = 0
+		Else
+			WLet(MainFile, GetMainFile(AutoSaveBeforeCompiling, Project, ProjectNode))
+		End If
 		If Project Then
 			If EndsWith(LCase(*Project->FileName), ".vfp") Then
 				WLet(ProjectPath, GetFolderName(*Project->FileName))
@@ -1061,11 +1330,84 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			CompileResult = 0
 			Continue For
 		End If
-		WLet(FirstLine, GetFirstCompileLine(*MainFile, Project, CompileLine))
+		If WGet(WebCompileMainFile) <> "" Then
+			'The options are the ones of the Web IDE (its GetFirstCompileLine)
+			WLet(FirstLine, WGet(WebCompileOptions))
+			CompileLine = ""
+		Else
+			#ifdef __USE_WASM__
+				'Web: the program is compiled for the Web, the lines of '#Compile for __USE_WASM__ are the ones of it
+				Dim As String OldUseDefine = UseDefine
+				If InStr(UseDefine, "__USE_WASM__") = 0 Then UseDefine = "__USE_WASM__ -target js-asmjs -r"
+			#endif
+			WLet(FirstLine, GetFirstCompileLine(*MainFile, Project, CompileLine))
+			#ifdef __USE_WASM__
+				UseDefine = OldUseDefine
+			#endif
+		End If
 		Versioning *MainFile, *FirstLine & CompileLine, Project, ProjectNode
 		Dim FileOut As Integer
 		WLet(ExeName, GetExeFileName(*MainFile, CompileLine & " " & *FirstLine))
-		If Project AndAlso Trim(*Project->CompilerPath) <> "" Then
+		#ifdef __USE_WASM__
+			'Web: the browser can not start the compiler, the server compiles the files of the project
+			If Not CompileOnWebServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine) Then CompileResult = 0
+			Continue For
+		#elseif defined(__USE_JNI__)
+			'Android: the server compiles the files of the project with Use > JNI
+			If Not CompileOnAndroidServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine, Project <> 0 OrElse FileExists(*ProjectPath & "/Android/app/build.gradle")) Then CompileResult = 0
+			Continue For
+		#endif
+		'Use > JNI: fbc compiles the program as libmff-app.so for each ABI of the Android project (the Android folder next
+		'to the project) and Gradle makes the APK of them. A batch compilation file (gradlew.bat of the Android projects
+		'which compiles itself) is used as before
+		Dim As Boolean UseJNI
+		Dim As UString AndroidFolder
+		If InStr(*FirstLine & CompileLine, "__USE_JNI__") > 0 AndAlso Parameter <> "Check" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean" Then
+			Dim As WString Ptr BatchFile
+			If Project Then
+				#ifdef __FB_WIN32__
+					BatchFile = Project->BatchCompilationFileNameWindows
+				#else
+					BatchFile = Project->BatchCompilationFileNameLinux
+				#endif
+			End If
+			If WGet(BatchFile) = "" Then
+				If WGet(WebCompileAndroidFolder) <> "" Then
+					'Web IDE server: the Gradle project of the files of the Android IDE
+					AndroidFolder = *WebCompileAndroidFolder
+				ElseIf Project Then
+					AndroidFolder = GetAndroidProjectFolder(*Project->FileName, *MainFile)
+				Else
+					AndroidFolder = GetAndroidProjectFolder("", *MainFile)
+				End If
+				If AndroidFolder = "" Then
+					ThreadsEnter()
+					ShowMessages ML("Android project not found") & ": " & ML("the folder Android with app/build.gradle next to the project is needed")
+					ThreadsLeave()
+					CompileResult = 0
+					Continue For
+				End If
+				UseJNI = True
+				If Parameter = "Bundle" Then
+					WLet(ExeName, AndroidFolder & "/app/build/outputs/bundle/release/app-release.aab")
+				ElseIf Parameter = "APK" Then
+					WLet(ExeName, AndroidFolder & "/app/build/outputs/apk/release/app-release-unsigned.apk")
+				Else
+					WLet(ExeName, AndroidFolder & "/app/build/outputs/apk/debug/app-debug.apk")
+				End If
+			End If
+		End If
+		If WGet(WebCompileAndroidFolder) <> "" Then
+			'Web IDE server, Android IDE: the compiler which has the libraries of Android
+			WLet(FbcExe, FindAndroidCompiler())
+			If *FbcExe = "" Then
+				ThreadsEnter()
+				ShowMessages ML("No compiler with the libraries of Android (lib/freebasic/android-aarch64) was found in Settings > Compilers or in the template Android Project")
+				ThreadsLeave()
+				CompileResult = 0
+				Continue For
+			End If
+		ElseIf Project AndAlso Trim(*Project->CompilerPath) <> "" Then
 			WLet(FbcExe, GetFullPath(*Project->CompilerPath))
 		Else
 			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
@@ -1148,9 +1490,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If Parameter = "Check" Then WAdd(CompileWith, " -c")
 		WAdd(CompileWith, " " & *FirstLine)
 		WLet(MainFileNameOnly, GetFileName(*MainFile))
-		#ifdef __USE_WINAPI__
-			If InStr(LCase(*CompileWith), ".rc") < 1 AndAlso FileExists(Left(*MainFile, Len(*MainFile) - 4) & ".rc") Then WAdd(CompileWith, " """  & GetFileName(Left(*MainFile, Len(*MainFile) - 4) & ".rc"""))
-		#endif
+		'#ifdef __USE_WINAPI__
+		'	If InStr(LCase(*CompileWith), ".rc") < 1 AndAlso FileExists(Left(*MainFile, Len(*MainFile) - 4) & ".rc") Then WAdd(CompileWith, " """  & GetFileName(Left(*MainFile, Len(*MainFile) - 4) & ".rc"""))
+		'#endif
 		'If IncludeMFFPath Then WAdd CompileWith, " -i """ & *MFFPathC & """"
 		Dim As Boolean UseWasm = InStr(*FirstLine & CompileLine, "__USE_WASM__") > 0
 		'If UseWasm Then
@@ -1357,6 +1699,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		ThreadsLeave()
 		'End If
 		Dim As Dictionary CompileCommands
+		'Use > JNI: the gcc, as and ld of the NDK (their beginning) for each command of fbc, Gradle is the last command
+		Dim As WStringList JNIToolPrefixes
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
 			Var Pos1 = InStrRev(*MainFileNameOnly, ".")
@@ -1379,24 +1723,232 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Next
 			CompileCommands.Add "", *PipeCommand
 			'-O1: at -O0 a big procedure (Chart.Draw) has more locals than WebAssembly allows ("local count too large")
-			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -O1 -nostdlib -nostdinc -Wall -Wno-unused-label -Wno-unused-function -Wno-unused-variable -Wno-warn-absolute-paths -Wno-main -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
+			'The unused warnings like -gen gcc/clang (Advanced Options of the project, off by default); the warnings of clang
+			'about the C that fbc generates (its declarations of malloc, memcpy..., va_start, abs of an unsigned) are always off
+			'(If and not IIf: a chain of IIf of string literals gave "-Wno-unused-label????????????")
+			Dim As String WarningOptions
+			If Project = 0 OrElse Not Project->ShowUnusedLabelWarnings Then WarningOptions &= " -Wno-unused-label"
+			If Project = 0 OrElse Not Project->ShowUnusedFunctionWarnings Then WarningOptions &= " -Wno-unused-function"
+			If Project = 0 OrElse Not Project->ShowUnusedVariableWarnings Then WarningOptions &= " -Wno-unused-variable"
+			If Project = 0 OrElse Not Project->ShowUnusedButSetVariableWarnings Then WarningOptions &= " -Wno-unused-but-set-variable"
+			If Project = 0 OrElse Not Project->ShowMainWarnings Then WarningOptions &= " -Wno-main"
+			WarningOptions &= " -Wno-incompatible-library-redeclaration -Wno-varargs -Wno-absolute-value"
+			CompileCommands.Add "compiling C :  ", GetFullPath("emcc") & " -c -O1 -nostdlib -nostdinc -Wall" & WarningOptions & " -Wno-warn-absolute-paths -Werror-implicit-function-declaration -fno-strict-aliasing -fno-math-errno -fwrapv -fno-exceptions -fno-asynchronous-unwind-tables -funwind-tables -Wno-format """ & *MainFileNameOnly & ".c"" -o """ & *MainFileNameOnly & ".o"""
 			'CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & FbcFolder & "lib\js-asmjs\fb_shell.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""['_ONLOAD']"" --post-js " & *MFFPathC & "\mff\Web\mff.js"
-			Dim As String EXPORTED_FUNCTIONS = "'_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD', '_ONTIMER', '_ONPAINT', '_ONRESIZE'"
+			'The options of -Wl (comma separated, like for ld) go to emcc: fbc does not link with -r
+			Dim As UString LinkOptions, AllOptions = " " & *FirstLine & " " & CompileLine & " "
+			Dim As Long PosWl = InStr(AllOptions, " -Wl ")
+			Do While PosWl > 0
+				Dim As Long PosStart = PosWl + 5, PosEnd
+				If Mid(AllOptions, PosStart, 1) = """" Then
+					PosStart += 1
+					PosEnd = InStr(PosStart, AllOptions, """")
+				Else
+					PosEnd = InStr(PosStart, AllOptions, " ")
+				End If
+				If PosEnd = 0 Then PosEnd = Len(AllOptions) + 1
+				LinkOptions &= " " & Replace(Mid(AllOptions, PosStart, PosEnd - PosStart), ",", " ")
+				PosWl = InStr(PosEnd, AllOptions, " -Wl ")
+			Loop
+			'The page is the output of -x (GetExeFileName), next to it emcc puts the .js, .wasm and .data files
+			Dim As UString HtmlFile = IIf(*ExeName <> "", *ExeName, *MainFileNameOnly & ".html")
+			'The .rc files next to the main file are in the files of the page, in the folder of the main file relative to the
+			'page (src/ of the IDE): Form.Icon finds its ICON there, its file is relative to the page (FindIconFile)
+			Dim As UString MainFolder = Replace(GetFolderName(*MainFile), "\", "/")
+			Dim As UString PageFolder = Replace(GetFolderName(GetFullPath(HtmlFile, *MainFile)), "\", "/")
+			Dim As UString RcFolder = "/"
+			If PageFolder <> "" AndAlso StartsWith(LCase(MainFolder), LCase(PageFolder)) Then RcFolder = "/" & Mid(MainFolder, Len(PageFolder) + 1)
+			Dim As String RcFile = Dir(GetFolderName(*MainFile) & "*.rc")
+			Do While RcFile <> ""
+				LinkOptions &= " --preload-file """ & GetFolderName(*MainFile) & RcFile & "@" & RcFolder & RcFile & """"
+				RcFile = Dir()
+			Loop
+			Dim As String EXPORTED_FUNCTIONS = "'_main', '_ONSTART', '_ONLOAD', '_ONCHANGE', '_ONCLICK', '_ONCLOSE', '_ONDBLCLICK', '_ONGOTFOCUS', '_ONLOSTFOCUS', '_ONKEYDOWN', '_ONKEYPRESS', '_ONKEYUP', '_ONMOUSEENTER', '_ONMOUSEDOWN', '_ONMOUSEMOVE', '_ONMOUSEUP', '_ONMOUSELEAVE', '_ONMOUSEWHEEL', '_ONUNLOAD', '_ONTIMER', '_ONPAINT', '_ONRESIZE', '_ONMAINMENU', '_ONSHORTCUT', '_ONSHORTCUTCLICK', '_ONDIALOGKEY', '_ONMOUSEHOVER', '_ONCONTEXTMENU', '_ONCONTEXTMENUPOPUP', '_ONCAPTIONBUTTON'"
 			'For i As Integer = 0 To Globals.Functions.Count - 1
 			'
 			'Next
-			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & *MainFileNameOnly & ".html"" -O0 -Wno-warn-absolute-paths -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --js-library """ & *MFFPathC & "\mff\Web\mff_lib.js"" --post-js """ & *MFFPathC & "\mff\Web\mff.js"""
+			'-O2: binaryen optimizes the code after ASYNCIFY. With -O0 the instrumented functions are so big that the browser
+			'(V8, the optimizing compiler of a hot function) takes gigabytes of memory and the page crashes
+			CompileCommands.Add "linking :      ", GetFullPath("emcc") & " -o """ & HtmlFile & """ -O2 -Wno-warn-absolute-paths" & LinkOptions & " -s CASE_INSENSITIVE_FS=1 -s TOTAL_MEMORY=67108864 -s ALLOW_MEMORY_GROWTH=1 -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=$stringToNewUTF8 -s RETAIN_COMPILER_SETTINGS=1 --shell-file """ & *MFFPathC & "\mff\Web\mff.html"" --post-js """ & FbcFolder & "lib\js-asmjs\fb_rtlib.js"" --post-js """ & FbcFolder & "lib\js-asmjs\termlib_min.js"" -L""" & FbcFolder & "lib\js-asmjs"" -L""."" """ & *MainFileNameOnly & ".o"" -lfb -lfb  -s ASYNCIFY=1 -s ASYNCIFY_STACK_SIZE=1048576 -s STACK_SIZE=8388608 -s ERROR_ON_UNDEFINED_SYMBOLS=0 -s WASM=1 -s EXPORTED_FUNCTIONS=""[" & EXPORTED_FUNCTIONS & "]"" --js-library """ & *MFFPathC & "\mff\Web\mff_lib.js"" --post-js """ & *MFFPathC & "\mff\Web\mff.js"""
+		ElseIf UseJNI Then
+			'The ABIs are abiFilters of app/build.gradle (else the folders of app/src/main/jniLibs), the API level of the
+			'sysroot is minSdkVersion (or the nearest lower one of the NDK)
+			Dim As WStringList Abis
+			Dim As Integer MinSdk = 21
+			Dim As Integer Fn = FreeFile_
+			If Open(AndroidFolder & "/app/build.gradle" For Input As #Fn) = 0 Then
+				Dim As String GradleLine
+				Do Until EOF(Fn)
+					Line Input #Fn, GradleLine
+					GradleLine = Trim(GradleLine, Any !"\t ")
+					If StartsWith(GradleLine, "minSdkVersion ") Then
+						MinSdk = Val(Mid(GradleLine, 15))
+					ElseIf StartsWith(GradleLine, "abiFilters ") Then
+						Dim As Integer PosQ1 = InStr(GradleLine, "'"), PosQ2
+						If PosQ1 = 0 Then GradleLine = Replace(GradleLine, """", "'"): PosQ1 = InStr(GradleLine, "'")
+						Do While PosQ1 > 0
+							PosQ2 = InStr(PosQ1 + 1, GradleLine, "'")
+							If PosQ2 = 0 Then Exit Do
+							Abis.Add Mid(GradleLine, PosQ1 + 1, PosQ2 - PosQ1 - 1)
+							PosQ1 = InStr(PosQ2 + 1, GradleLine, "'")
+						Loop
+					End If
+				Loop
+				CloseFile_(Fn)
+			End If
+			If Abis.Count = 0 Then
+				Dim As String AbiFolder = Dir(AndroidFolder & "/app/src/main/jniLibs/*", fbDirectory)
+				Do While AbiFolder <> ""
+					If AbiFolder <> "." AndAlso AbiFolder <> ".." Then Abis.Add AbiFolder
+					AbiFolder = Dir()
+				Loop
+			End If
+			If Abis.Count = 0 Then Abis.Add "arm64-v8a": Abis.Add "x86"
+			'Start With Compile: only the ABI of the connected device (the first one of its list which the project has),
+			'like Run of Android Studio. Without a device all the ABIs are compiled
+			If Parameter = "Run" OrElse Parameter = "RunWithDebug" Then
+				Dim As String DeviceAbis = GetAndroidDeviceAbis(AndroidFolder), DeviceAbi
+				Dim As Integer PosComma
+				Do While DeviceAbis <> ""
+					PosComma = InStr(DeviceAbis, ",")
+					If PosComma = 0 Then PosComma = Len(DeviceAbis) + 1
+					DeviceAbi = Left(DeviceAbis, PosComma - 1)
+					DeviceAbis = Mid(DeviceAbis, PosComma + 1)
+					If Abis.IndexOf(DeviceAbi, True) > -1 Then
+						Abis.Clear
+						Abis.Add DeviceAbi
+						ThreadsEnter()
+						ShowMessages(Str(Time) & ": " & ML("The ABI of the device") & ": " & DeviceAbi)
+						ThreadsLeave()
+						Exit Do
+					End If
+				Loop
+			End If
+			Dim As UString NDKDir = GetPropertiesValue(AndroidFolder & "/local.properties", "ndk.dir")
+			If NDKDir = "" AndAlso Project <> 0 Then NDKDir = *Project->AndroidNDKLocation
+			Dim As UString FbcFolder = GetFolderName(*FbcExe), JNIError
+			#ifdef __FB_WIN32__
+				Dim As String ToolExt = ".exe"
+			#else
+				Dim As String ToolExt = ""
+			#endif
+			'gas64 is only for x86_64 and not on Android
+			Dim As UString JNICommand = Replace(Replace(*PipeCommand & " ", " -gen gas64 ", " "), " -gen gas ", " ")
+			'The constructors of the shared objects run before the main code of the library without it
+			If FileExists(AndroidFolder & "/fbinitorder.h") Then JNICommand &= " -Wc -include,""" & AndroidFolder & "/fbinitorder.h"""
+			If NDKDir = "" Then JNIError = ML("ndk.dir not specified in file local.properties!") & " (" & AndroidFolder & "/local.properties)"
+			For i As Integer = 0 To Abis.Count - 1
+				If JNIError <> "" Then Exit For
+				Dim As String Abi = Abis.Item(i), Triple, Arch, ToolChain, FbcTarget
+				'The libraries of the sysroot (x86_64 has the 32-bit ones in usr/lib)
+				Dim As String SysRootLib = "/usr/lib"
+				Select Case Abi
+				Case "x86": Triple = "i686-linux-android": Arch = "x86": ToolChain = "x86-4.9": FbcTarget = "android-x86"
+				Case "x86_64": Triple = "x86_64-linux-android": Arch = "x86_64": ToolChain = "x86_64-4.9": FbcTarget = "android-x86_64": SysRootLib = "/usr/lib64"
+				Case "arm64-v8a": Triple = "aarch64-linux-android": Arch = "arm64": ToolChain = "aarch64-linux-android-4.9": FbcTarget = "android-aarch64"
+				Case "armeabi-v7a", "armeabi": Triple = "arm-linux-androideabi": Arch = "arm": ToolChain = "arm-linux-androideabi-4.9": FbcTarget = "android-arm"
+				Case "mips", "mips64"
+					JNIError = ML("FreeBASIC has no MIPS target") & ": " & Abi
+					Exit For
+				Case Else
+					JNIError = ML("Unknown ABI") & ": " & Abi
+					Exit For
+				End Select
+				'lib/<target> of a standalone compiler, lib/freebasic/<target> next to bin of the other ones
+				If Dir(FbcFolder & "lib/freebasic/" & FbcTarget, fbDirectory) = "" AndAlso Dir(FbcFolder & "lib/" & FbcTarget, fbDirectory) = "" AndAlso Dir(GetFolderName(FbcFolder) & "lib/freebasic/" & FbcTarget, fbDirectory) = "" Then
+					JNIError = ML("The compiler has no library for") & " " & FbcTarget & ": " & *FbcExe
+					Exit For
+				End If
+				'The gcc toolchain of the NDK (r12b, up to r17)
+				Dim As String ToolBin = NDKDir & "/toolchains/" & ToolChain & "/prebuilt/"
+				Dim As String HostFolder = Dir(ToolBin & "*", fbDirectory)
+				Do While HostFolder = "." OrElse HostFolder = ".."
+					HostFolder = Dir()
+				Loop
+				ToolBin &= HostFolder & "/bin/" & Triple & "-"
+				If HostFolder = "" OrElse Not FileExists(ToolBin & "gcc" & ToolExt) Then
+					JNIError = ML("File not found") & ": " & ToolBin & "gcc" & ToolExt
+					Exit For
+				End If
+				'64-bit ABIs are from API 21
+				Dim As Integer Api = IIf(MinSdk < 21 AndAlso (Arch = "arm64" OrElse Arch = "x86_64"), 21, MinSdk)
+				Do While Api > 9 AndAlso Dir(NDKDir & "/platforms/android-" & Api & "/arch-" & Arch, fbDirectory) = ""
+					Api -= 1
+				Loop
+				Dim As String SysRoot = NDKDir & "/platforms/android-" & Api & "/arch-" & Arch
+				JNIToolPrefixes.Add ToolBin
+				'The linker does not make the folder of the library (a new project of the Android IDE has no jniLibs)
+				EnsureFolderExists GetOSPath(AndroidFolder & "/app/src/main/jniLibs/" & Abi)
+				If WebCompileAndroidConsole Then
+					'Web IDE server, a console program of the Android IDE: an executable (PIE, the only one Android runs) with
+					'the name of a library, so that it is in the folder of the native libraries of the console (ConsoleHost)
+					CompileCommands.Add Abi & ":  ", JNICommand & " """ & AndroidFolder & "/console.bas"" -x """ & AndroidFolder & "/app/src/main/jniLibs/" & Abi & "/libconsole-app.so"" -target " & Triple & " -sysroot """ & SysRoot & """ -p """ & SysRoot & SysRootLib & """ -Wc -fPIE -Wl -pie"
+				Else
+					CompileCommands.Add Abi & ":  ", JNICommand & " -dll -x """ & AndroidFolder & "/app/src/main/jniLibs/" & Abi & "/libmff-app.so"" -target " & Triple & " -sysroot """ & SysRoot & """ -p """ & SysRoot & SysRootLib & """"
+				End If
+			Next
+			If JNIError <> "" Then
+				ThreadsEnter()
+				ShowMessages(Str(Time) & ": " & JNIError)
+				ThreadsLeave()
+				CompileResult = 0
+				Continue For
+			End If
+			#ifdef __FB_WIN32__
+				Dim As String GradlewFile = "gradlew.bat"
+			#else
+				Dim As String GradlewFile = "./gradlew"
+			#endif
+			Dim As String GradleTask = "assembleDebug"
+			If Parameter = "Bundle" Then
+				GradleTask = "bundleRelease"
+			ElseIf Parameter = "APK" Then
+				GradleTask = "assembleRelease"
+			End If
+			CompileCommands.Add "Gradle:  ", GradlewFile & " " & GradleTask
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
 		Dim As UShort bFlagErr
 		Dim As Double CompileElapsedTime = Timer
 		'A makefile or batch file decides itself where the executable goes, so its exit code tells if the build succeeded
-		Dim As Boolean UseBatchExitCode = WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean"
+		Dim As Boolean UseBatchExitCode = CBool(WGet(BatchCompilationFileName) <> "" AndAlso Parameter <> "Make" AndAlso Parameter <> "MakeClean") OrElse UseJNI
 		Dim As Long BatchExitCode = -1
+		Dim As String OldJavaHome = Environ("JAVA_HOME")
+		'End stops the compilation while it runs (Case "End" of VisualFBEditor.bas)
+		ThreadsEnter()
+		Dim As Boolean bOldEndEnabled = tbtEnd->Enabled
+		tbtEnd->Enabled = True
+		mnuEnd->Enabled = True
+		ThreadsLeave()
+		CompileStopped = False
+		CompileRunning = True
 		For cc As Integer = 0 To CompileCommands.Count - 1
+			If CompileStopped Then Exit For
 			WLet(PipeCommand, CompileCommands.Item(cc)->Text)
-			If cc > 0 Then
+			If UseJNI Then
+				#ifdef __FB_WIN32__
+					Dim As String ToolExt = ".exe"
+				#else
+					Dim As String ToolExt = ""
+				#endif
+				If cc < JNIToolPrefixes.Count Then
+					'fbc takes the tools of the target from these variables, the process of fbc gets them
+					SetEnviron "GCC=" & JNIToolPrefixes.Item(cc) & "gcc" & ToolExt
+					SetEnviron "AS=" & JNIToolPrefixes.Item(cc) & "as" & ToolExt
+					SetEnviron "LD=" & JNIToolPrefixes.Item(cc) & "ld" & ToolExt
+				Else
+					'gradlew runs in the folder of the Android project, with the JDK of org.gradle.java.home
+					SetEnviron "GCC=": SetEnviron "AS=": SetEnviron "LD="
+					ChDir(AndroidFolder)
+					If OldJavaHome = "" Then
+						Dim As UString JavaHome = GetPropertiesValue(AndroidFolder & "/gradle.properties", "org.gradle.java.home")
+						If JavaHome = "" AndAlso Project <> 0 Then JavaHome = *Project->JDKLocation
+						If JavaHome <> "" Then SetEnviron "JAVA_HOME=" & JavaHome
+					End If
+				End If
+			End If
+			If cc > 0 OrElse UseJNI Then
 				If UseWasm AndAlso CBool(cc = 1) Then
 					'Var Fn = FreeFile_
 					'If Open(*MainFileNameOnly & ".c" For Input As #Fn) = 0 Then
@@ -1424,6 +1976,31 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					'	Next
 					'	Close #Fn
 					'End If
+					'WebAssembly has no common symbols (Common Shared): clang stops with them. The program is one C file,
+					'so the variables are ordinary definitions without the attribute
+					Dim As Integer FnC = FreeFile_
+					If Open(*MainFileNameOnly & ".c" For Binary Access Read As #FnC) = 0 Then
+						Dim As String CSource = Space(LOF(FnC)), CResult
+						If Len(CSource) Then Get #FnC, , CSource
+						CloseFile_(FnC)
+						Const CommonAttribute = " __attribute__((common))"
+						Dim As Integer PosStart = 1, PosFound = InStr(CSource, CommonAttribute)
+						If PosFound > 0 Then
+							Do While PosFound > 0
+								CResult &= Mid(CSource, PosStart, PosFound - PosStart)
+								PosStart = PosFound + Len(CommonAttribute)
+								PosFound = InStr(PosStart, CSource, CommonAttribute)
+							Loop
+							CResult &= Mid(CSource, PosStart)
+							'Binary writing does not shorten a file: the old one is deleted first
+							Kill *MainFileNameOnly & ".c"
+							FnC = FreeFile_
+							If Open(*MainFileNameOnly & ".c" For Binary Access Write As #FnC) = 0 Then
+								Put #FnC, , CResult
+								CloseFile_(FnC)
+							End If
+						End If
+					End If
 				End If
 				ThreadsEnter()
 				ShowMessages(Str(Time) + ": " + CompileCommands.Item(cc)->Key & *PipeCommand)
@@ -1433,9 +2010,23 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim As WString * 2048 TmpStr
 			#ifdef __USE_GTK__
 				Dim As Integer Fn = FreeFile_
+				#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+					'The command runs in its own process group (setsid) whose id it writes first: End terminates the
+					'group with all the processes of the command (fbc -> gcc, emcc -> python -> clang)
+					Dim As UString Script = "echo __VFBE_PID__$$; " & *PipeCommand
+					WLet(PipeCommand, "if command -v setsid >/dev/null; then exec setsid sh -c '" & Replace(Script, "'", "'\''") & "'; else " & *PipeCommand & "; fi")
+				#endif
 				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
+						#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+							If StartsWith(Buff, "__VFBE_PID__") Then
+								CompilePid = Val(Mid(Buff, 13))
+								'End was pressed before the group was known
+								If CompileStopped AndAlso CompilePid > 0 Then kill_(-CompilePid, 15)
+								Continue While
+							End If
+						#endif
 						If Len(Trim(Buff)) <= 1 OrElse StartsWith(Trim(Buff), "|") Then Continue While
 						Dim As Integer nPos = InStr(Buff, ":")
 						If nPos < 1 Then nPos = InStr(Buff, " ")
@@ -1480,6 +2071,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Wend
 				End If
 				CloseFile_(Fn)
+				CompilePid = 0
 			#else
 				Dim As Integer BufferSize = 128
 				Dim si As STARTUPINFO
@@ -1514,7 +2106,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				si.hStdInput  = hNulInput
 				si.wShowWindow = 0
 				
-				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE, ByVal 0, ByVal 0, @si, @pi) = 0 Then
+				'The process starts suspended to be in the job before it starts its own processes (emcc -> python ->
+				'clang, fbc -> gcc): End terminates them all with the job
+				If CreateProcess(PipeApplicationName, PipeCommand, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NEW_CONSOLE Or CREATE_SUSPENDED, ByVal 0, ByVal 0, @si, @pi) = 0 Then
 					ShowMessages(ML("Error: Couldn't Create Process") & ": " & GetErrorString(GetLastError), False)
 					If hNulInput <> INVALID_HANDLE_VALUE Then CloseHandle hNulInput
 					CloseHandle hWritePipe
@@ -1525,6 +2119,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				
 				If hNulInput <> INVALID_HANDLE_VALUE Then CloseHandle hNulInput
 				CloseHandle hWritePipe
+				Dim As HANDLE hJob = CreateJobObject(NULL, NULL)
+				If hJob <> NULL AndAlso AssignProcessToJobObject(hJob, pi.hProcess) = 0 Then CloseHandle hJob: hJob = NULL
+				CompileJob = hJob
+				ResumeThread(pi.hThread)
+				'End was pressed before the job was there
+				If CompileStopped AndAlso hJob <> NULL Then TerminateJobObject(hJob, 1)
 				Dim As Integer Pos1, PosFirstErr, FirstErrFlag
 				Do
 					result_ = ReadFile(hReadPipe, @sBuffer, BufferSize, @bytesRead, ByVal 0)
@@ -1627,21 +2227,44 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Dim As DWORD ProcessExitCode
 				WaitForSingleObject(pi.hProcess, INFINITE)
 				If GetExitCodeProcess(pi.hProcess, @ProcessExitCode) Then BatchExitCode = ProcessExitCode
+				CompileJob = 0
+				If hJob <> NULL Then CloseHandle hJob
 				CloseHandle pi.hProcess
 				CloseHandle pi.hThread
 				CloseHandle hReadPipe
 			#endif
 			If NumberErr > 0 Then Exit For
+			'Use > JNI: the next ABI or Gradle does not run after an error (of the linker too, which has no line)
+			If UseJNI AndAlso BatchExitCode > 0 Then Exit For
 		Next cc
+		If UseJNI Then
+			'The variables are not for the next compilations of other targets
+			SetEnviron "GCC=": SetEnviron "AS=": SetEnviron "LD="
+			If OldJavaHome = "" Then SetEnviron "JAVA_HOME="
+		End If
+		CompileRunning = False
+		ThreadsEnter()
+		tbtEnd->Enabled = bOldEndEnabled
+		mnuEnd->Enabled = bOldEndEnabled
+		If CompileStopped Then ShowMessages(Str(Time) & ": " & ML("Compilation stopped"))
+		ThreadsLeave()
 		#ifdef __USE_GTK__
-			Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL
+			If UseJNI Then
+				Yaratilmadi = Not FileExists(*ExeName)
+			Else
+				Yaratilmadi = g_find_program_in_path(ToUtf8(*ExeName)) = NULL
+			End If
 		#else
 			If UseBatchExitCode AndAlso BatchExitCode <> -1 Then
 				Yaratilmadi = BatchExitCode <> 0 OrElse NumberErr > 0
 			Else
 				Yaratilmadi = Dir(*ExeName) = ""
 			End If
+			'Use > JNI: Gradle made the package
+			If UseJNI AndAlso Dir(*ExeName) = "" Then Yaratilmadi = True
 		#endif
+		'The old executable is not the result of a stopped compilation
+		If CompileStopped Then Yaratilmadi = True
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
 		#ifdef __USE_GTK__
@@ -1738,6 +2361,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				End If
 			End If
 		End If
+		If CompileStopped Then Exit For
 	Next k
 	ThreadsEnter()
 	StopProgress
@@ -2286,7 +2910,9 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					Buff = Trim(Mid(Buff, Pos1+1 ))
 					ee = _New( ExplorerElement)
 					If CInt(InStr(Buff, ":") = 0) OrElse CInt(StartsWith(Buff, "/")) Then
-						#ifdef __USE_GTK__
+						#if defined(__USE_GTK__) OrElse Not defined(__FB_WIN32__)
+							'Not Windows (Android, Web): the paths have slashes like the ones of the nodes of the project, with
+							'backslashes the main file would not be found among them (and would lose its * when it is saved)
 							WLet(ee->FileName, GetFolderName(FileName) & Buff)
 						#else
 							WLet(ee->FileName, GetFolderName(FileName) & Replace(Buff, "/", "\"))
@@ -2312,7 +2938,8 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 							If WGet(ppe->BatchCompilationFileNameLinux) = "" Then WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 						ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
 							WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
-						ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+						ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(GetFileName(*ee->FileName), ".") = 0 Then
+							'A name without an extension (gradlew); a dot of a folder (com.visualfbeditor.ide on Android) does not count
 							WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 						Else
 							WLet(ppe->MainFileName, *ee->FileName)
@@ -2507,16 +3134,18 @@ Sub OpenProject()
 	tpProject->SelectTab
 End Sub
 
-Sub OpenUrl(ByVal url As String)
-	Dim As String cmd
-	#ifdef __USE_GTK__
-		cmd = "xdg-open " & url
-	#else
-		cmd =  "start /b " & url
-	#endif
-	'Shell cmd
-	PipeCmd "", cmd
-End Sub
+#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+	Sub OpenUrl(ByVal url As String)
+		Dim As String cmd
+		#ifdef __USE_GTK__
+			cmd = "xdg-open " & url
+		#else
+			cmd =  "start /b " & url
+		#endif
+		'Shell cmd
+		PipeCmd "", cmd
+	End Sub
+#endif
 
 Function AddSession(ByRef FileName As WString) As Boolean
 	'Dim As ExplorerElement Ptr ee
@@ -2706,11 +3335,27 @@ Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 	Return 0
 End Function
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: Dir of the runtime finds no folders, the folder is opened with the C library
+	Extern "C"
+		Declare Function opendir_ Alias "opendir"(ByVal DirName As ZString Ptr) As Any Ptr
+		Declare Function closedir_ Alias "closedir"(ByVal DirPtr As Any Ptr) As Long
+	End Extern
+#endif
+
 Function FolderExists(ByRef FolderName As WString) As Boolean
 	If Trim(FolderName)="" Then Return False
-	Dim AttrTester As Integer, DirString As String
-	DirString = Dir(FolderName, fbDirectory, AttrTester)
-	Return AttrTester = fbDirectory
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		Dim As String sFolderName = ToUtf8(FolderName)
+		Dim As Any Ptr DirPtr = opendir_(StrPtr(sFolderName))
+		If DirPtr = 0 Then Return False
+		closedir_ DirPtr
+		Return True
+	#else
+		Dim AttrTester As Integer, DirString As String
+		DirString = Dir(FolderName, fbDirectory, AttrTester)
+		Return AttrTester = fbDirectory
+	#endif
 End Function
 
 Sub AddNew(ByRef Template As WString = "")
@@ -2747,7 +3392,7 @@ Sub OpenProgram()
 		OpenD.InitialDir = GetFullPath(*ProjectsPath)
 	End If
 	'  Add *.inc
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.rpt, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.rpt;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("Report Module") & " (*.rpt)|*.rpt|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		WLet(LastOpenPath, GetFolderName(OpenD.FileName))
 		OpenFiles(GetFullPath(OpenD.FileName))
@@ -2843,7 +3488,7 @@ End Function
 
 Sub SetSaveDialogParameters(ByRef FileName As WString)
 	pSaveD->Caption = ML("Save File As")
-	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	pSaveD->Filter = ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Report Module") & " (*.rpt)|*.rpt|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	Dim As WString * MAX_PATH Path = GetFilePath(*ProjectsPath)
 	If Not EnsureFolderExists(Path) Then
 		MsgBox "Unable to create projects folder: " & Path
@@ -3139,7 +3784,18 @@ Function SaveAllBeforeCompile() As Boolean
 End Function
 
 Sub PrintThis()
-	PrintD.Execute
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web: the pages of the code (Document_PrintPage) are printed by the print dialog of the browser (Android: of the system)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb = 0 Then Exit Sub
+		With *PrintPreviewD.Document
+			.DocumentName = GetFileName(tb->FileName)
+			.Repaint
+			.Print
+		End With
+	#else
+		PrintD.Execute
+	#endif
 End Sub
 
 Sub PrintPreview()
@@ -3147,7 +3803,15 @@ Sub PrintPreview()
 End Sub
 
 Sub PageSetup()
-	PageSetupD.Execute
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web and Android: the paper and the orientation of Page Setup are the ones of the pages of Print and Print Preview
+		If PageSetupD.Execute Then
+			PrintPreviewD.Document->PrinterSettings.PageSize = PageSetupD.PaperSize
+			PrintPreviewD.Document->PrinterSettings.Orientation = PageSetupD.Orientation
+		End If
+	#else
+		PageSetupD.Execute
+	#endif
 End Sub
 
 Sub CloseAllTabs(WithoutCurrent As Boolean = False)
@@ -3421,7 +4085,7 @@ Sub AddFilesToProject
 	Dim OpenD As OpenFileDialog
 	OpenD.Options.Include ofOldStyleDialog
 	OpenD.MultiSelect = True
-	OpenD.Filter = ML("FreeBasic Files") & " (*.vfp, *.bas, *.frm, *.bi, *.inc; *.rc)|*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+	OpenD.Filter = ML("FreeBasic Files") & " (*.vfp, *.bas, *.frm, *.rpt, *.bi, *.inc; *.rc)|*.vfp;*.bas;*.frm;*.rpt;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Form Module") & " (*.frm)|*.frm|" & ML("Report Module") & " (*.rpt)|*.rpt|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 	If OpenD.Execute Then
 		Dim tn1 As TreeNode Ptr
 		For i As Integer = 0 To OpenD.FileNames.Count - 1
@@ -3614,7 +4278,7 @@ Sub SetAsMain(IsTab As Boolean)
 				'David Change
 				'If *ee->FileName = *pee->Project->MainFileName OrElse *ee->FileName = *pee->Project->ResourceFileName Then Exit Sub
 				If EndsWith(LCase(*ee->FileName), ".rc") OrElse EndsWith(LCase(*ee->FileName), ".xpm") OrElse EndsWith(LCase(*ee->FileName), ".bas") OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse (EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".rpt")) _
-					OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse CBool(LCase(GetFileName(*ee->FileName)) = "makefile") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+					OrElse EndsWith(LCase(*ee->FileName), ".inc") OrElse EndsWith(LCase(*ee->FileName), ".bat") OrElse CBool(LCase(GetFileName(*ee->FileName)) = "makefile") OrElse EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(GetFileName(*ee->FileName), ".") = 0 Then
 					Dim As TreeNode Ptr tn1, tn2
 					Dim As Integer tIndex
 					Dim As String IconName
@@ -3628,7 +4292,7 @@ Sub SetAsMain(IsTab As Boolean)
 						WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 					ElseIf EndsWith(LCase(*ee->FileName), ".bat") Then
 						WLet(ppe->BatchCompilationFileNameWindows, *ee->FileName)
-					ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(*ee->FileName, ".") = 0 Then
+					ElseIf EndsWith(LCase(*ee->FileName), ".sh") OrElse InStr(GetFileName(*ee->FileName), ".") = 0 Then
 						WLet(ppe->BatchCompilationFileNameLinux, *ee->FileName)
 					Else
 						WLet(ppe->MainFileName, *ee->FileName)
@@ -4206,6 +4870,11 @@ End Function
 Sub pnlToolBox_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 	#ifdef __USE_GTK__
 		tbToolBox.SetBounds 0, 0, NewWidth, NewHeight
+	#elseif defined(__USE_WASM__)
+		'Web: the palette scrolls itself (SETBUTTONS), the second scroll bar is not shown
+		scrTool.MaxValue = 0
+		scrTool.Visible = False
+		tbToolBox.SetBounds 0, 0, NewWidth, NewHeight
 	#else
 		scrTool.MaxValue = Max(0, tbToolBox.Height - NewHeight)
 		scrTool.Visible = scrTool.MaxValue <> 0
@@ -4325,7 +4994,8 @@ Function DeleteSpaces(b As String) As String
 End Function
 
 Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
-	If StartsWith(FileName, FromFile) Then
+	'The folders may be separated by "\" in one path and by "/" in the other (Web: the paths of the settings of Windows)
+	If StartsWith(Replace(FileName, "\", "/"), Replace(FromFile, "\", "/")) Then
 		Dim As UString Path = Mid(FileName, Len(FromFile) + 1)
 		If StartsWith(Path, "\") OrElse StartsWith(Path, "/") Then Path = Mid(Path, 2)
 		Return Path
@@ -6092,7 +6762,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As UString MFF, Temp
 	Dim As UInteger Attr
 	Dim As Library Ptr MFFCtlLibrary
-	#ifndef __USE_GTK__
+	#ifdef __USE_JNI__
+		'Android: MyFbFramework is in the library of the IDE (DesignerStatic.bi), the path only names its folder
+		MFF = "Controls/MyFbFramework/mff"
+	#elseif Not defined(__USE_GTK__)
 		#ifdef __FB_64BIT__
 			MFF = IIf(i = 0, "Controls\MyFbFramework\mff64.dll", "")
 		#else
@@ -6170,12 +6843,29 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
-		CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
-		If Not FileExists(GetFullPath(CtlLibrary->Path)) Then
-			MsgBox ML("File not found") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
-		ElseIf CtlLibrary->Handle = 0 Then
-			MsgBox ML("File not loaded") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
-		End If
+		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+			'Web and Android: only MyFbFramework, which is in the program of the IDE (the same handle as in Designer.bas)
+			CtlLibrary->Handle = IIf(InStr(LCase(CtlLibrary->Path), "mff"), Cast(Any Ptr, 1), 0)
+			If CtlLibrary->Handle = 0 Then Continue For
+			#ifdef __USE_JNI__
+				'The pictures of the toolbox (like the icon theme of GTK below)
+				AddResourceSearchPath GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "resources")
+			#else
+				'Web: the pictures of the toolbox are loaded by the browser from the folder of the library next to the page,
+				'the ones whose files have other names are in the .rc file of its sources (PagePanel: Panel.png)
+				AddResourceSearchPath GetFolderName(CtlLibrary->Path) & "resources"
+				Dim As String RcFolder = GetFolderName(Replace(GetFullPath(CtlLibrary->Path), "\", "/")) & CtlLibrary->SourcesFolder & "/"
+				Dim As String RcFile = Dir(RcFolder & "*.rc")
+				If RcFile <> "" Then AddResourceFile RcFolder & RcFile
+			#endif
+		#else
+			CtlLibrary->Handle = DyLibLoad(GetFullPath(CtlLibrary->Path))
+			If Not FileExists(GetFullPath(CtlLibrary->Path)) Then
+				MsgBox ML("File not found") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
+			ElseIf CtlLibrary->Handle = 0 Then
+				MsgBox ML("File not loaded") & ": " & WChr(13, 10) & WChr(13, 10) & GetFullPath(CtlLibrary->Path) & WChr(13, 10) & WChr(13, 10) & ML("Can not load control to toolbox")
+			End If
+		#endif
 		If Not CtlLibrary->Enabled Then Continue For
 		#ifdef __USE_GTK__
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources")))
@@ -6215,7 +6905,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		it = Comps.Item(i)
 		#ifndef __USE_GTK__
 			Dim As Any Ptr LibHandle
-			LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
+			If tbi->Tag Then LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
 			imgListTools.Add it, it, LibHandle
 		#endif
 		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap))
@@ -7449,7 +8139,12 @@ Sub LoadSettings
 		If LoadedProjectsPath = "./Projects" Then LoadedProjectsPath = "%USERDOCUMENTS%/Visual FB Editor Projects"
 	#endif
 	WLet(ProjectsPath, LoadedProjectsPath)
-	GridSize = iniSettings.ReadInteger("Options", "GridSize", 10)
+	#ifdef __USE_JNI__
+		'Android: the folder of the projects in the documents of the app is made at the first start (New Project saves
+		'the new projects in it)
+		If StartsWith(*ProjectsPath, "%USERDOCUMENTS%") Then EnsureFolderExists GetFullPath(*ProjectsPath)
+	#endif
+	GridSize =iniSettings.ReadInteger("Options", "GridSize", 10)
 	ShowAlignmentGrid = iniSettings.ReadBool("Options", "ShowAlignmentGrid", True)
 	SnapToGridOption = iniSettings.ReadBool("Options", "SnapToGrid", True)
 	AutoIncrement = iniSettings.ReadBool("Options", "AutoIncrement", True)
@@ -7548,7 +8243,7 @@ Sub LoadSettings
 	WLet(RunArguments, iniSettings.ReadString("Parameters", "RunArguments", ""))
 	WLet(Debug32Arguments, iniSettings.ReadString("Parameters", "Debug32Arguments", ""))
 	WLet(Debug64Arguments, iniSettings.ReadString("Parameters", "Debug64Arguments", ""))
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("KeyWords"): pApp->DoEvents
 	LoadKeyWords
 	LoadInterfaceTheme
 	LoadTheme
@@ -7786,7 +8481,7 @@ Sub GDBCommand
 End Sub
 
 Sub CreateMenusAndToolBars
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Create Menus And ToolBars")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Create Menus And ToolBars"): pApp->DoEvents
 	imgList.Name = "imgList"
 	imgList.Add "StartWithCompile", "StartWithCompile"
 	imgList.Add "Start", "Start"
@@ -7945,7 +8640,7 @@ Sub CreateMenusAndToolBars
 	imgList32.Add "Manifest32", "Manifest32"
 	
 	'mnuMain.ImagesList = @imgList
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Load Hot Keys")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Load Hot Keys"): pApp->DoEvents
 	LoadHotKeys
 	Var miFile = mnuMain.Add(ML("&File"), "", "File")
 	miFile->Add(ML("&New Project") & HK("NewProject", "Ctrl+Shift+N"), "Project", "NewProject", @mClick)
@@ -8306,6 +9001,10 @@ Sub CreateMenusAndToolBars
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mClick)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Tools") & "..." & HK("Tools"), "", "Tools", @mClick)
+	#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+		'The Web IDE in the browser, which compiles with this IDE (StartWebIDEServer)
+		miXizmat->Add(ML("&Web IDE Server"), "", "WebIDEServer", @mClick)
+	#endif
 	miXizmat->Add("-")
 	Dim As My.Sys.Drawing.BitmapType Bitm
 	Dim As WString * 1024 Buff
@@ -8342,15 +9041,17 @@ Sub CreateMenusAndToolBars
 					tt->WorkingFolder = Mid(Buff, 15)
 				ElseIf StartsWith(Buff, "Accelerator=") Then
 					tt->Accelerator = Mid(Buff, 13)
-					#ifdef __USE_GTK__
-					#else
+					'The icon of the program of the tool (Windows)
+					#ifdef __USE_WINAPI__
 						Dim As HICON IcoHandle
 						ExtractIconEx(GetFullPath(tt->Path), NULL, NULL, @IcoHandle, 1)
 						Bitm = IcoHandle
 						DestroyIcon IcoHandle
 					#endif
 					mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool)
-					Bitm.Handle = 0
+					#ifndef __USE_WIN32_COMPAT__
+						Bitm.Handle = 0
+					#endif
 					mi->Tag = tt
 				ElseIf StartsWith(Buff, "LoadType=") Then
 					tt->LoadType = Cast(LoadTypes, Val(Mid(Buff, 10)))
@@ -8718,7 +9419,15 @@ End Sub
 tbLeft.ImagesList = @imgList
 tbLeft.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinLeft", "", ML("Pin"), , Cast(ToolButtonState, tstEnabled Or tstChecked)
 tbLeft.Flat = True
-tbLeft.Width = 23
+#ifdef __USE_JNI__
+	'Android: the button with its picture is 32 dp
+	tbLeft.Width = 32
+#elseif defined(__USE_WASM__)
+	'Web: the button (16 + 2 * 2 + 2 * 1) and the padding of the row of the buttons (2 * 2, SETBUTTONS)
+	tbLeft.Width = 26
+#else
+	tbLeft.Width = 23
+#endif
 tbLeft.Parent = @pnlLeftPin
 tbLeft.OnResize = @tbLeft_OnResize
 
@@ -8775,9 +9484,18 @@ FormSearch->Child = @txtForm
 FormSearch->Expand = True
 tbForm.Buttons.Add tbsSeparator
 
-tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 200)
-tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 200)
-tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 200)
+#ifdef __USE_JNI__
+	'Android: a unit of the forms is one dp (the IDE is too big in the physical size of the designer), and the panels
+	'are narrower on the small screen
+	AndroidDesignDpi = 160
+	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 150)
+	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 150)
+	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 110)
+#else
+	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 200)
+	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 200)
+	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 200)
+#endif
 
 splLeft.Align = SplitterAlignmentConstants.alLeft
 splRight.Align = SplitterAlignmentConstants.alRight
@@ -8857,6 +9575,10 @@ End Function
 Dim Shared bClosing As Boolean
 Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	If bClosing Then Exit Sub
+	#ifdef __USE_JNI__
+		'Android: there is no mouse leaving the panel, the not pinned panel is closed at once
+		WithClose = True
+	#endif
 	bClosing = True
 	With *tbLeft.Buttons.Item("PinLeft")
 		If Value Then
@@ -9445,7 +10167,13 @@ txtExplorer.OnChange = @txtExplorer_Change
 
 lblLeft.Text = ML("Main File") & ": " & ML("Automatic")
 lblLeft.Align = DockStyle.alBottom
-lblLeft.Height = Max(8, DefaultFont.Size) / 72 * 96 + 5
+#ifdef __USE_JNI__
+	'Android: the text of the label is one line of the font of Android (about 20 dp)
+	lblLeft.WordWraps = False
+	lblLeft.Height = 24
+#else
+	lblLeft.Height = Max(8, DefaultFont.Size) / 72 * 96 + 5
+#endif
 tpProject->Add @tbExplorer
 tpProject->Add @lblLeft
 tpProject->Add @tvExplorer
@@ -10536,7 +11264,14 @@ End Sub
 tbRight.ImagesList = @imgList
 tbRight.Buttons.Add tbsCheck, "Pinned", , @mClick, "PinRight", "", ML("Pin"), , Cast(ToolButtonState, tstEnabled Or tstChecked)
 tbRight.Flat = True
-tbRight.Width = 23
+#ifdef __USE_JNI__
+	tbRight.Width = 32
+#elseif defined(__USE_WASM__)
+	'Web: the button (16 + 2 * 2 + 2 * 1) and the padding of the row of the buttons (2 * 2, SETBUTTONS)
+	tbRight.Width = 26
+#else
+	tbRight.Width = 23
+#endif
 tbRight.Parent = @pnlRightPin
 
 tbProperties.ImagesList = @imgList
@@ -10707,6 +11442,17 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
 		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+	#elseif defined(__USE_WASM__)
+		'Web: the cell of the selected row (the row of the table, the item is the selected one)
+		TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
+	#elseif defined(__USE_WIN32_COMPAT__)
+		'Android: the cell of the selected row in the ListView; the editors are in the page over it (a ListView has no
+		'child views), like on GTK
+		TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
+		If lpRect.Right > lpRect.Left Then
+			lpRect.Left += lvProperties.ScaleX(lvProperties.Left): lpRect.Right += lvProperties.ScaleX(lvProperties.Left)
+			lpRect.Top += lvProperties.ScaleY(lvProperties.Top): lpRect.Bottom += lvProperties.ScaleY(lvProperties.Top)
+		End If
 	#else
 		ListView_GetSubItemRect(lvProperties.Handle, Item->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 	#endif
@@ -10803,9 +11549,24 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		cboPropertyValue.Width = cboPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) + 2
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	End If
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web, Android: the editors have no frames outside of them like on Windows, they are in the cell (the button is square)
+		Dim As Integer iCellWidth = pnlPropertyValue.Width, iCellHeight = pnlPropertyValue.Height
+		cboPropertyValue.SetBounds 0, 0, iCellWidth, iCellHeight
+		If btnPropertyValue.Visible Then
+			btnPropertyValue.SetBounds iCellWidth - iCellHeight, 0, iCellHeight, iCellHeight
+			txtPropertyValue.SetBounds 0, 0, iCellWidth - iCellHeight, iCellHeight
+		End If
+	#endif
 	'If CtrlEdit = @pnlPropertyValue Then cboPropertyValue.Width = UnScaleX(lpRect.Right - lpRect.Left + 2)
 	'CtrlEdit->Visible = True
 	pnlPropertyValue.Visible = True
+	#ifdef __USE_JNI__
+		'Android: the editor is in the page of the list, over the list (the Spinner is transparent: the panel under it is
+		'the background of the cell like the one of an editor of Windows)
+		pnlPropertyValue.BackColor = &hFFFFFF
+		pnlPropertyValue.BringToFront
+	#endif
 	'#endif
 	'If te->Comment <> 0 Then
 	If LCase(App.CurLanguage) = "default" Then
@@ -10859,6 +11620,10 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 			gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 			gtk_tree_path_free(TreePath)
 			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+		#elseif defined(__USE_WASM__)
+			TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			lpRect = Type(0, 0, 0, 0)
 		#else
 			ListView_GetSubItemRect(lvProperties.Handle, lvProperties.SelectedItem->GetItemIndex, 1, LVIR_BOUNDS, @lpRect)
 		#endif
@@ -10890,6 +11655,10 @@ Sub lvProperties_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control
 	txtPropertyValue.Width = (lvWidth - 32) / 2
 	pnlPropertyValue.Width = (lvWidth - 32) / 2
 	cboPropertyValue.Width = (lvWidth - 32) / 2 + 2
+	#ifdef __USE_WASM__
+		'Web: the square of the color before the value of a color (lvProperties_DrawItem on Windows) is drawn by the table
+		If lvProperties.Handle Then SetAttribute(lvProperties.Handle, "data-colorcolumn", "1")
+	#endif
 	lvProperties_EndScroll(*Sender.Designer, *Cast(TreeListView Ptr, @Sender))
 End Sub
 
@@ -11050,7 +11819,7 @@ lvProperties.Columns.Add ML("Value"), , 50, , True
 pnlPropertyValue.Add @btnPropertyValue
 pnlPropertyValue.Add @txtPropertyValue
 pnlPropertyValue.Add @pnlColor
-#ifndef __USE_GTK__
+#if Not defined(__USE_GTK__) AndAlso Not defined(__USE_JNI__)
 	'lvProperties.Add @txtPropertyValue
 	'lvProperties.Add @btnPropertyValue
 	lvProperties.Add @pnlPropertyValue
@@ -11089,7 +11858,10 @@ txtLabelProperty.Height = Max(8, DefaultFont.Size) / 72 * 96 * 4 + 5
 txtLabelProperty.Align = DockStyle.alBottom
 txtLabelProperty.Multiline = True
 txtLabelProperty.ReadOnly = True
-#ifndef __USE_GTK__
+#ifdef __USE_WASM__
+	'the face of the page, dark in its dark mode
+	txtLabelProperty.BackColor = clBtnFace
+#elseif Not defined(__USE_GTK__)
 	If Not DarkMode Then
 		txtLabelProperty.BackColor = clBtnFace
 	End If
@@ -11100,7 +11872,10 @@ txtLabelEvent.Height = Max(8, DefaultFont.Size) / 72 * 96 * 4 + 5
 txtLabelEvent.Align = DockStyle.alBottom
 txtLabelEvent.Multiline = True
 txtLabelEvent.ReadOnly = True
-#ifndef __USE_GTK__
+#ifdef __USE_WASM__
+	'the face of the page, dark in its dark mode
+	txtLabelEvent.BackColor = clBtnFace
+#elseif Not defined(__USE_GTK__)
 	If Not DarkMode Then
 		txtLabelEvent.BackColor = clBtnFace
 	End If
@@ -11113,6 +11888,10 @@ End Function
 
 Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	If bClosing Then Exit Sub
+	#ifdef __USE_JNI__
+		'Android: there is no mouse leaving the panel, the not pinned panel is closed at once
+		WithClose = True
+	#endif
 	bClosing = True
 	With *tbRight.Buttons.Item("PinRight")
 		If Value Then
@@ -11466,7 +12245,8 @@ tpEvents->Add @txtLabelEvent
 tpEvents->Add @splEvents
 tpEvents->Add @lvEvents
 pnlRight.Add @tabRight
-#ifdef __USE_GTK__
+#if defined(__USE_GTK__) OrElse defined(__USE_JNI__)
+	'GTK, Android: the editor of the value is in the page over the list (the list has no child controls)
 	tpProperties->Add @pnlPropertyValue
 #endif
 
@@ -11499,7 +12279,7 @@ pnlRight.Add @tabRight
 #endif
 pnlRightPin.Anchor.Right = AnchorStyle.asAnchor
 pnlRightPin.Top = tabItemHeight
-pnlRightPin.Width = 23
+pnlRightPin.Width = tbRight.Width
 pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 pnlRightPin.Height = tbRight.Height
 pnlRightPin.Parent = @pnlRight
@@ -11935,6 +12715,10 @@ End Function
 
 Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
 	If bClosing Then Exit Sub
+	#ifdef __USE_JNI__
+		'Android: there is no mouse leaving the panel, the not pinned panel is closed at once
+		WithClose = True
+	#endif
 	bClosing = True
 	With *tbBottom.Buttons.Item("PinBottom")
 		If Value Then
@@ -12158,7 +12942,14 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__)
+#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'The margins of Page Setup on the page: Web and Android - the page is in pixels at 96 DPI (Printer.PrintableWidth),
+	'the margins are millimeters
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#define PrintMargin(m) ((m) * 96 / 25.4)
+	#else
+		#define PrintMargin(m) (m)
+	#endif
 	Dim Shared As Integer iLine, iChar, CanvasHeight, CanvasWidth
 	Sub Document_PrintPage(ByRef Designer As My.Sys.Object, ByRef Sender As PrintDocument, ByRef Canvas As My.Sys.Drawing.Canvas, ByRef HasMorePages As Boolean)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
@@ -12170,14 +12961,14 @@ pnlBottomPin.Parent = @pnlBottom
 		End If
 		Dim As Integer CharHeight = Canvas.TextHeight("P")
 		Dim As Integer CharWidth = Canvas.TextWidth("P")
-		Dim As Integer CharsCount = (CanvasWidth - PageSetupD.LeftMargin - PageSetupD.RightMargin) / CharWidth, LinesCount = 0, LineCharsCount, SpacePos
+		Dim As Integer CharsCount = (CanvasWidth - PrintMargin(PageSetupD.LeftMargin) - PrintMargin(PageSetupD.RightMargin)) / CharWidth, LinesCount = 0, LineCharsCount, SpacePos
 		Dim As UString sLine, sLineToPrint
 		For i As Integer = iLine To tb->txtCode.LinesCount - 1
 			sLine = Replace(tb->txtCode.Lines(i), !"\t", Space(TabWidth))
 			LineCharsCount = Len(sLine)
 			Do
 				LinesCount += 1
-				If PageSetupD.TopMargin + PageSetupD.BottomMargin + LinesCount * CharHeight > CanvasHeight Then
+				If PrintMargin(PageSetupD.TopMargin) + PrintMargin(PageSetupD.BottomMargin) + LinesCount * CharHeight > CanvasHeight Then
 					iLine = i
 					HasMorePages = True
 					Exit Sub
@@ -12190,7 +12981,7 @@ pnlBottomPin.Parent = @pnlBottom
 				Else
 					iChar += CharsCount
 				End If
-				Canvas.TextOut PageSetupD.LeftMargin, PageSetupD.TopMargin + (LinesCount - 1) * CharHeight, sLineToPrint
+				Canvas.TextOut PrintMargin(PageSetupD.LeftMargin), PrintMargin(PageSetupD.TopMargin) + (LinesCount - 1) * CharHeight, sLineToPrint
 			Loop While LineCharsCount > iChar
 			iChar = 0
 		Next
@@ -12221,23 +13012,29 @@ Function ControlInParent Overload(Ctrl As Control Ptr, ByRef ParentName As WStri
 	End If
 End Function
 
-Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
-	If frmMain.ActiveControl = 0 Then Exit Sub
+'The not pinned panels are closed when Ctrl out of them is activated (Android: also touched)
+'The Pin toolbars are in the panels, not in the tabs (Web: the toolbar takes the focus when it is clicked)
+Sub CloseUnpinnedPanels(Ctrl As Control Ptr)
 	If tabLeft.TabPosition = tpLeft And tabLeft.SelectedTabIndex <> -1 Then
-		If Not ControlInParent(frmMain.ActiveControl, @tabLeft) Then
+		If Not ControlInParent(Ctrl, @pnlLeft) Then
 			CloseLeft
 		End If
 	End If
 	If tabRight.TabPosition = tpRight And tabRight.SelectedTabIndex <> -1 Then
-		If (Not ControlInParent(frmMain.ActiveControl, @tabRight)) AndAlso (Not ControlInParent(frmMain.ActiveControl, "Designer")) Then
+		If (Not ControlInParent(Ctrl, @pnlRight)) AndAlso (Not ControlInParent(Ctrl, "Designer")) Then
 			CloseRight()
 		End If
 	End If
 	If ptabBottom->TabPosition = tpBottom And ptabBottom->SelectedTabIndex <> -1 Then
-		If Not ControlInParent(frmMain.ActiveControl, @tabBottom) Then
+		If Not ControlInParent(Ctrl, @pnlBottom) Then
 			CloseBottom
 		End If
 	End If
+End Sub
+
+Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
+	If frmMain.ActiveControl = 0 Then Exit Sub
+	CloseUnpinnedPanels frmMain.ActiveControl
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb Then
 		If tb->txtCode.ToolTipShowed Then tb->txtCode.CloseToolTip
@@ -12591,12 +13388,12 @@ tbToolBox.ImagesList = @imgListTools
 tbToolBox.HotImagesList = @imgListTools
 tbToolBox.OnButtonActivate = @tbToolBox_ButtonActivate
 
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Help")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Help"): pApp->DoEvents
 LoadHelp
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Snippets")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Snippets"): pApp->DoEvents
 LoadSnippets
 
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox"): pApp->DoEvents
 Dim As String it = "Cursor"
 tbToolBox.Groups.Add ML("Controls")
 tbToolBox.Groups.Add ML("Containers")
@@ -12611,6 +13408,11 @@ tbToolBox.Groups.Item(4)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it
 
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'Web and Android: there are no compilers to find or to run (the Web IDE Server compiles), the start of the IDE
+		'(new project, default file) goes on
+		Return True
+	#endif
 	For i As Integer = 0 To pCompilers->Count - 1
 		If FileExists(GetFullPath(pCompilers->Item(i)->Text)) Then
 			bFind = True
@@ -12663,7 +13465,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		SetProp(frmMain.Handle, "VisualFBEditorApp", @VisualFBEditorApp)
 	#endif
 	
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Toolbox"): pApp->DoEvents
 	LoadToolBox
 	
 	pfTemplates->Visible = False: pfTemplates->Parent = @frmMain: pfTemplates->CreateWnd
@@ -12680,12 +13482,19 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	End If
 	frmMain.Width = iniSettings.ReadInteger("MainWindow", "Width", 800)
 	frmMain.Height = iniSettings.ReadInteger("MainWindow", "Height", 600)
+	'Android: the panels which can be closed are closed at the start (the small screen is for the editor)
+	#ifdef __USE_JNI__
+		#define PANELS_CLOSED True
+	#else
+		#define PANELS_CLOSED False
+	#endif
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
-	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", False)
+	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", PANELS_CLOSED)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
-	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", False)
+	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", PANELS_CLOSED)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", tabBottomHeight)
-	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", False)
+	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", PANELS_CLOSED)
+	#undef PANELS_CLOSED
 	ShowProjectFolders = iniSettings.ReadBool("MainWindow", "ProjectFolders", True)
 	If ShowProjectFolders Then
 		miShowWithFolders->RadioItem = True
@@ -12784,11 +13593,11 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			pfAbout->Label11.Text = pfAbout->Label11.Text & " (GTK " & gtk_get_major_version() & "." & gtk_get_minor_version() & "." & gtk_get_micro_version() & ")"
 		#endif
 	#endif
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Check compiler paths"): pApp->DoEvents
 	
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Add-Ins"): pApp->DoEvents
 	LoadAddIns
-	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools")
+	pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Tools"): pApp->DoEvents
 	LoadTools
 	
 	bSharedFind = CheckCompilerPaths
@@ -12913,7 +13722,16 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 End Sub
 
-#ifndef __USE_GTK__
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
+		Return FT
+	End Function
+
+	Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME
+		If Not FileExists(FileName) Then Return 0
+		Return FileDateTime(FileName)
+	End Function
+#elseif Not defined(__USE_GTK__)
 	Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 		Dim dt As DATE_, ST As SYSTEMTIME
 		FileTimeToSystemTime(@FT, @ST)
@@ -12997,7 +13815,9 @@ Sub SaveMRU
 End Sub
 
 Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	If AutoSaveSession AndAlso SessionOpened AndAlso Trim(*RecentSession) <> "" Then
 		SaveSession(True)
 	End If
@@ -13118,7 +13938,7 @@ Sub ToolBar_MouseUp(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Mo
 	Sender.ContextMenu = miToolBars->SubMenu
 End Sub
 
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Command bars")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Command bars"): pApp->DoEvents
 tbStandard.OnMouseUp = @ToolBar_MouseUp
 tbEdit.OnMouseUp = @ToolBar_MouseUp
 tbProject.OnMouseUp = @ToolBar_MouseUp
@@ -13180,7 +14000,7 @@ frmMain.Add @MainReBar
 '	tbStandard.Align = DockStyle.alTop
 '	frmMain.Add @tbStandard
 '#endif
-pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Main Form")
+pfSplash->lblProcess.Text = ML("Load On Startup") & ": " & ML("Main Form"): pApp->DoEvents
 frmMain.Add @stBar
 'frmMain.Add @rbBottom
 frmMain.Add @pnlLeft

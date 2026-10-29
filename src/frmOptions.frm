@@ -26,8 +26,6 @@ pfOptions = @fOptions
 		#else
 			This.Icon.LoadFromResourceID(1)
 		#endif
-		This.MinimizeBox = False
-		This.MaximizeBox = False
 		This.ExtraMargins.Bottom = -1
 		This.ExtraMargins.Left = 0
 		This.ExtraMargins.Top = 0
@@ -37,7 +35,7 @@ pfOptions = @fOptions
 		This.CancelButton = @cmdCancel
 		'This.DefaultButton = @cmdOK
 		This.Designer = @This
-		This.BorderStyle = FormBorderStyle.FixedDialog
+		This.BorderStyle = FormBorderStyle.FixedSingle
 		' pplGeneralr
 		pplGeneral.Name = "pplGeneral"
 		pplGeneral.Text = ""
@@ -996,10 +994,9 @@ pfOptions = @fOptions
 			.Name = "chkChangeIdentifiersCase"
 			.Text = ML("Change Identifiers Case To") & ":"
 			.TabIndex = 120
-			.Align = DockStyle.alLeft
+			.Align = DockStyle.alClient
 			.ExtraMargins.Top = 0
 			.Constraints.Height = 21
-			.AutoSize = True
 			.SetBounds 0, 0, 171, 21
 			.Designer = @This
 			.Parent = @pnlChangeIdentifiersCase
@@ -1019,11 +1016,10 @@ pfOptions = @fOptions
 		chkChangeKeywordsCase.Name = "chkChangeKeywordsCase"
 		chkChangeKeywordsCase.Text = ML("Change Keywords Case To") & ":"
 		chkChangeKeywordsCase.ExtraMargins.Top = 0
-		chkChangeKeywordsCase.Align = DockStyle.alLeft
+		chkChangeKeywordsCase.Align = DockStyle.alClient
 		chkChangeKeywordsCase.ExtraMargins.Right = 0
 		chkChangeKeywordsCase.TabIndex = 31
 		chkChangeKeywordsCase.Constraints.Height = 21
-		chkChangeKeywordsCase.AutoSize = True
 		chkChangeKeywordsCase.SetBounds 0, 0, 202, 21
 		chkChangeKeywordsCase.Parent = @pnlChangeKeywordsCase
 		' cboCase
@@ -1041,12 +1037,11 @@ pfOptions = @fOptions
 		chkTabAsSpaces.Name = "chkTabAsSpaces"
 		chkTabAsSpaces.Text = ML("Treat Tab as Spaces")
 		chkTabAsSpaces.ExtraMargins.Top = 0
-		chkTabAsSpaces.Align = DockStyle.alLeft
+		chkTabAsSpaces.Align = DockStyle.alClient
 		chkTabAsSpaces.ExtraMargins.Right = 0
 		'chkTabAsSpaces.Caption = ML("Treat Tab as Spaces") & ":"
 		chkTabAsSpaces.TabIndex = 33
 		chkTabAsSpaces.Constraints.Height = 21
-		chkTabAsSpaces.AutoSize = True
 		chkTabAsSpaces.SetBounds 0, 0, 171, 21
 		chkTabAsSpaces.Parent = @pnlTreatTabAsSpaces
 		' cboTabStyle
@@ -3126,8 +3121,7 @@ pfOptions = @fOptions
 			.Name = "chkChangeEndingType"
 			.Text = ML("Change Ending Type") & ":"
 			.TabIndex = 267
-			.Align = DockStyle.alLeft
-			.AutoSize = True
+			.Align = DockStyle.alClient
 			.Caption = ML("Change Ending Type") & ":"
 			.Constraints.Height = 21
 			.SetBounds 0, 0, 172, 15
@@ -4052,7 +4046,9 @@ Sub SetColors
 End Sub
 
 Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim As ToolType Ptr Tool
 	With fOptions
 		For i As Integer = 0 To pCompilers->Count - 1

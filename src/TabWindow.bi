@@ -442,6 +442,15 @@ Declare Sub SetCodeVisible(tb As TabWindow Ptr)
 
 Declare Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Project As ProjectElement Ptr = 0, ByRef ProjectNode As TreeNode Ptr = 0)
 
+Declare Function GetAndroidProjectFolder(ByRef ProjectFileName As WString, ByRef MainFile As WString) As UString
+
+Declare Function GetPropertiesValue(ByRef FileName As WString, ByRef Key As WString) As UString
+Declare Function FindAndroidCompiler() As UString
+
+Declare Function GetCommandOutput(ByRef CommandLine As WString) As String
+
+Declare Function GetAndroidDeviceAbis(ByRef AndroidFolder As WString) As String
+
 Declare Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 
 Declare Sub RunProgram(Param As Any Ptr)

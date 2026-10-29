@@ -1,0 +1,63 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
+
+    defaultConfig {
+        applicationId "com.visualfbeditor.ide"
+        minSdkVersion 21
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        // libmff-app.so is the IDE itself, built by fbc-android for arm64 and x86 (android-21)
+        ndk {
+            abiFilters 'arm64-v8a', 'x86'
+        }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.appcompat:appcompat:1.2.0'
+    implementation 'com.google.android.material:material:1.2.1'
+    implementation 'androidx.constraintlayout:constraintlayout:2.0.4'
+    testImplementation 'junit:junit:4.+'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.2'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+}
+// The files which the IDE reads at run time (ExePath: Settings, Templates, Resources, the sources of MyFbFramework
+// for the toolbox) are the asset mffapp.zip: mffActivity copies them to the folder of the app at the first start
+def ideRoot = file('../..')
+task zipIdeFiles(type: Zip) {
+    archiveFileName = 'mffapp.zip'
+    destinationDirectory = file("$buildDir/generated/mffapp")
+    from(ideRoot) {
+        include 'Settings/**', 'Resources/**', 'Templates/Files/**', 'Templates/Projects/**'
+        include 'Controls/MyFbFramework/Settings.ini', 'Controls/MyFbFramework/ControlParent.csv'
+        include 'Controls/MyFbFramework/resources/**', 'Controls/MyFbFramework/mff/*.bi', 'Controls/MyFbFramework/mff/*.bas'
+        // the settings of Windows / Linux (local paths) and what is not needed on Android
+        exclude 'Settings/VisualFBEditor*.ini', 'Settings/Others/*chinese*'
+        exclude '**/build/**', '**/.gradle/**', '**/.idea/**', '**/release/**', '**/jniLibs/**'
+        exclude '**/*.apk', '**/*.so', '**/*.exe', '**/*.dll', '**/*.o', '**/*.a', '**/*.stackdump', '**/Temp.bas', '**/*.db'
+    }
+    from(ideRoot) {
+        include 'Settings/VisualFBEditorAndroid.ini'
+    }
+}
+android.sourceSets.main.assets.srcDirs += "$buildDir/generated/mffapp"
+preBuild.dependsOn zipIdeFiles

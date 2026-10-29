@@ -8,6 +8,13 @@
 
 #include once "mff/Clipboard.bi"
 #include once "Main.bi"
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: the designer compiles its Windows code with the Windows API subset of Win32Compat.bi
+	#ifndef __USE_WIN32_COMPAT__
+		#define __USE_WIN32_COMPAT__
+	#endif
+	#include once "Win32Compat.bi"
+#endif
 
 Using My.Sys.Forms
 
@@ -165,10 +172,14 @@ Namespace My.Sys.Forms
 		FReportDragBandIndex As Integer
 		FReportDragStartY    As Integer
 		FReportDragStartH    As Integer
-		
+		FReportDragTops(Any)    As Integer
+		FReportDragHeights(Any) As Integer
+
 		Declare Function ReportBandEdgeAt(Y As Integer) As Integer
 		Declare Function ReportBandAt(Y As Integer) As Any Ptr
 		Declare Sub SelectReportBand(Band As Any Ptr)
+		Declare Sub ReportBandDragStart()
+		Declare Sub ReportBandModified(Band As Any Ptr)
 		As Any Ptr OldCtrl
 		As String OldClassName
 		As Library Ptr OldLibrary
@@ -201,7 +212,8 @@ Namespace My.Sys.Forms
 			Declare Function IsDot(hDlg As GtkWidget Ptr) As Integer
 		#else
 			Declare Static Sub HandleIsAllocated(ByRef Sender As Control)
-			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As Boolean
+			'BOOL like WNDENUMPROC (WebAssembly does not call a function of another result type through its pointer)
+			Declare Static Function EnumChildsProc(hDlg As HWND, lParam As LPARAM) As BOOL
 			Declare Function IsDot(hDlg As HWND) As Integer
 		#endif
 		Declare Function GetContainerControl(Ctrl As Any Ptr) As Any Ptr

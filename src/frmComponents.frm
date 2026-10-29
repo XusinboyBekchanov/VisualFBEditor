@@ -265,7 +265,7 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 		bChanged = False
 		For j As Integer = 0 To ControlLibraries.Count - 1
 			CtlLibrary = ControlLibraries.Item(j)
-			If GetFullPath(CtlLibrary->Path) = Paths.Item(i) Then
+			If Replace(GetFullPath(CtlLibrary->Path), "\", "/") = Replace(Paths.Item(i), "\", "/") Then
 				bFinded = True
 				bChanged = CtlLibrary->Enabled <> chlControls.Checked(i)
 				CtlLibrary->Enabled = chlControls.Checked(i)
@@ -319,7 +319,8 @@ End Sub
 
 Function GetLibKey As String
 	Dim LibKey As String = "Lib"
-	#ifndef __FB_WIN32__
+	'Web and Android: the IDE has the keys of Windows (only MyFbFramework, which is in the program of the IDE)
+	#if Not defined(__FB_WIN32__) AndAlso Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
 		LibKey &= "X"
 	#endif
 	#ifdef __FB_64BIT__
@@ -358,7 +359,7 @@ Private Sub frmComponentsType.Form_Create(ByRef Sender As Control)
 					Dim As Library Ptr CtlLibrary
 					For i As Integer = 0 To ControlLibraries.Count - 1
 						CtlLibrary = ControlLibraries.Item(i)
-						If CtlLibrary->Path = "Controls" & Slash & f & Slash & FileName Then
+						If Replace(CtlLibrary->Path, "\", "/") = "Controls/" & f & "/" & FileName Then
 							If CtlLibrary->Enabled Then chlControls.Checked(chlControls.ItemCount - 1) = True
 							Exit For
 						End If

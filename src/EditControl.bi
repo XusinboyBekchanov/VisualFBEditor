@@ -12,9 +12,19 @@
 #include once "mff/Clipboard.bi"
 #include once "mff/Application.bi"
 #include once "mff/ListView.bi"
-#include once "mff/ToolTips.bi"
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#include once "mff/LinkLabel.bi"
+#else
+	#include once "mff/ToolTips.bi"
+#endif
 #ifdef __USE_WINAPI__
 	#include once "mff/D2D1/D2D1_MFF.bi"
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: EditControl compiles its Windows code with the Windows API subset of Win32Compat.bi
+	#ifndef __USE_WIN32_COMPAT__
+		#define __USE_WIN32_COMPAT__
+	#endif
+	#include once "Win32Compat.bi"
 #endif
 '#include once "Main.bi"
 
@@ -392,6 +402,14 @@ Namespace My.Sys.Forms
 			Dim pBrushBackground As ID2D1SolidColorBrush Ptr = 0
 			Dim pLayout As IDWriteTextLayout Ptr = 0
 			Dim Metrics As DWRITE_TEXT_METRICS
+		#elseif defined(__USE_WIN32_COMPAT__)
+			'Never set on the Web and Android (Direct2D is not started): the Direct2D branches compile with them
+			Dim pRenderTarget As ID2D1DeviceContext Ptr = 0
+			Dim pFormat As IDWriteTextFormat Ptr = 0
+			Dim pBrushForeground As ID2D1SolidColorBrush Ptr = 0
+			Dim pBrushBackground As ID2D1SolidColorBrush Ptr = 0
+			Dim pLayout As IDWriteTextLayout Ptr = 0
+			Dim Metrics As DWRITE_TEXT_METRICS
 		#endif
 		Dim As Integer PosiBD, tIndex, Pos1
 		Dim As Boolean bKeyWord, bWithoutWith, TwoDots, OneDot
@@ -452,6 +470,21 @@ Namespace My.Sys.Forms
 			Dim As GtkTooltip Ptr tooltip
 			Dim As Integer dead_key
 			Dim As GtkIMContext Ptr im_context
+		#elseif defined(__USE_WIN32_COMPAT__)
+			Dim As HDC hd
+			Dim As HDC bufDC
+			Dim As HBITMAP bufBMP
+			Dim As TEXTMETRIC tm
+			Dim As HWND hwndTT, hwndTTDropDown, hwndTTMouseHover
+			'Web and Android: the tooltips are labels over the editor (ShowWebToolTip)
+			Dim As LinkLabel lblToolTip, lblDropDownToolTip, lblMouseHoverToolTip
+			'The place of the tooltip and of the mouse hover tooltip (ShowWebToolTip): a new text of the tooltip is shown at it
+			Dim As Integer ToolTipX, ToolTipY, MouseHoverToolTipX, MouseHoverToolTipY
+			'The line of the caret of the IntelliSense list (ShowDropDownAt): the tooltip of the list does not cover it
+			Dim As Integer DropDownLineTop, DropDownLineBottom
+			Dim As Boolean ToolTipAtTheTop
+			Declare Sub ShowWebToolTip(ByRef lbl As LinkLabel, ByRef sHint As WString, X As Integer, Y As Integer, AtTheTop As Boolean = False)
+			Declare Static Sub WebToolTip_LinkClicked(ByRef Designer As My.Sys.Object, ByRef Sender As LinkLabel, ByVal ItemIndex As Integer, ByRef Link As WString, ByRef Action As Integer)
 		#else
 			Dim As HDC hd
 			Dim As HDC bufDC
@@ -542,6 +575,8 @@ Namespace My.Sys.Forms
 			Declare Sub EC_OnDragDrop(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
 			Declare Sub EC_OnDragEnterOver(ByRef Sender As Control, ByRef DataObject As DataObject, AllowedEffect As DragDropEffects, Effect As DragDropEffects, KeyState As ULong, X As Integer, Y As Integer)
 			Declare Sub EC_OnDragLeave(ByRef Sender As Control)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			Declare Sub EC_BeginTextDrag()
 		#endif
 		Declare Sub EC_UpdateDropIndicator(X As Integer, Y As Integer)
 		Declare Sub EC_ClearDropIndicator()

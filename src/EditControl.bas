@@ -296,7 +296,7 @@ Namespace My.Sys.Forms
 			iDivideX = 0
 			iDividedX = 0
 			ActiveCodePane = 1
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 				ShowWindow sbScrollBarvTop, SW_HIDE
 				ShowWindow sbScrollBarhLeft, SW_HIDE
 				MoveWindow sbScrollBarhRight, ScaleX(7), ScaleY(dwClientY - 17), ScaleX(dwClientX - 17 - 7), ScaleY(17), True
@@ -313,7 +313,7 @@ Namespace My.Sys.Forms
 			End If
 			bDividedX = True
 			If iDivideX <= 0 Then iDivideX = (dwClientX - 17) / 2: iDividedX = iDivideX
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 				MoveWindow sbScrollBarvTop, ScaleX(iDivideX - 17), 0, ScaleX(17), ScaleY(dwClientY - 17), True
 				MoveWindow sbScrollBarhLeft, 0, ScaleY(dwClientY - 17), ScaleX(iDivideX - 17), ScaleY(17), True
 				MoveWindow sbScrollBarhRight, ScaleX(iDivideX + 7), ScaleY(dwClientY - 17), ScaleX(dwClientX - iDivideX - 7 - 17), ScaleY(17), True
@@ -348,7 +348,7 @@ Namespace My.Sys.Forms
 			iDivideY = 0
 			iDividedY = 0
 			ActiveCodePane = 1
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 				ShowWindow sbScrollBarvTop, SW_HIDE
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(7), ScaleX(17), ScaleY(dwClientY - 17 - 7), True
 			#else
@@ -363,7 +363,7 @@ Namespace My.Sys.Forms
 			End If
 			bDividedY = True
 			If iDivideY <= 0 Then iDivideY = (dwClientY - 17) / 2: iDividedY = iDivideY
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 				ShowWindow sbScrollBarvTop, SW_SHOW
 				MoveWindow sbScrollBarvTop, ScaleX(dwClientX - 17), 0, ScaleX(17), ScaleY(iDivideY), True
 				MoveWindow sbScrollBarvBottom, ScaleX(dwClientX - 17), ScaleY(iDivideY + 7), ScaleX(17), ScaleY(dwClientY - iDivideY - 7 - 17), True
@@ -759,7 +759,9 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControlContent.GetConstruction(ByRef wLine As WString, ByRef iType As Integer = 0, OldCommentIndex As Integer = 0, InAsm As Boolean = False, TextIsWithoutQuotesAndComments As Boolean = False) As Integer
-		On Error Goto ErrorHandler
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrorHandler
+		#endif
 		If Trim(wLine, Any !"\t ") = "" Then Return -1
 		Dim As String sLine = wLine
 		Dim As String sLineTrim
@@ -1821,7 +1823,9 @@ Namespace My.Sys.Forms
 	End Sub
 	
 	Sub EditControl.ClearUndo
-		On Error Goto ErrL
+		#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+			On Error Goto ErrL
+		#endif
 		For i As Integer = curHistory To 0 Step -1
 			If FHistory.Count > curHistory Then
 				_Delete( Cast(EditControlHistory Ptr, FHistory.Items[i]))
@@ -2834,7 +2838,8 @@ Namespace My.Sys.Forms
 		End If
 		Dim As Integer HScrollMax = IIf(bDividedX AndAlso ActiveCodePane = 0, HScrollMaxLeft, HScrollMaxRight)
 		Dim As Integer VScrollMax = IIf(ActiveCodePane = 0, VScrollMaxTop, VScrollMaxBottom)
-		If Scroll Then
+		'Before the font is measured (Android: the view is made later) there is no width of a character to divide by
+		If Scroll AndAlso dwCharX > 0 Then
 			Var OldHScrollPos = *pHScrollPos, OldVScrollPos = *pVScrollPos
 			If nCaretPosX < *pHScrollPos * dwCharX Then
 				*pHScrollPos = nCaretPosX / dwCharX
@@ -2926,7 +2931,8 @@ Namespace My.Sys.Forms
 			'				End If
 			'			End If
 			'If CaretVisible Then
-			SetCaretPos(ScaleX(HCaretPos), ScaleY(VCaretPos))
+			'HCaretPos = -1 - the caret is hidden: it is put far to the left, otherwise a caret wider than 1 pixel (Web, Android) is seen at the left edge
+			SetCaretPos(IIf(HCaretPos < 0, ScaleX(-100), ScaleX(HCaretPos)), ScaleY(VCaretPos))
 			'End If
 		#endif
 		OldLine = FSelEndLine
@@ -4369,6 +4375,10 @@ Namespace My.Sys.Forms
 			End If
 			If pRenderTarget = 0 Then
 				hd = GetDC(FHandle)
+				#ifdef __USE_WIN32_COMPAT__
+					'Web and Android: the canvas is drawn at once in its paint, without a memory bitmap
+					bufDC = hd
+				#endif
 				If bufDC = 0 Then
 					bufDC = CreateCompatibleDC(hd)
 					bufBMP = CreateCompatibleBitmap(hd, ScaleX(dwClientX), ScaleY(dwClientY))
@@ -4376,7 +4386,7 @@ Namespace My.Sys.Forms
 					This.Canvas.HandleSetted = True
 					SelectObject(bufDC, This.Font.Handle)
 					SelectObject(bufDC, bufBMP)
-				ElseIf OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY Then
+				ElseIf CBool(OlddwClientX <> dwClientX OrElse OlddwClientY <> dwClientY) AndAlso CBool(bufDC <> hd) Then
 					DeleteDC bufDC
 					DeleteObject bufBMP
 					bufDC = CreateCompatibleDC(hd)
@@ -5940,7 +5950,7 @@ Namespace My.Sys.Forms
 				cairo_rectangle (cr, ScaleX(LeftMargin - 25 + CodePaneX), ScaleY(Min(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY), (Max(0, OldI - VScrollPos + 1)) * dwCharY + CodePaneY)), ScaleX(LeftMargin + CodePaneX), ScaleY(IIf(bDividedY AndAlso zz = 0, iDividedY, dwClientY)), True)
 				cairo_set_source_rgb(cr, NormalText.BackgroundRed, NormalText.BackgroundGreen, NormalText.BackgroundBlue)
 				cairo_fill (cr)
-				If CaretOn Then
+				If CaretOn AndAlso HCaretPos >= 0 Then
 					'#ifdef __USE_GTK3__
 					'	cairo_set_source_rgb(cr, NormalText.ForegroundRed, NormalText.ForegroundGreen, NormalText.ForegroundBlue)
 					'	gtk_render_insertion_cursor(gtk_widget_get_style_context(widget), cr, HCaretPos, VCaretPos, layout, 0, PANGO_DIRECTION_LTR)
@@ -5983,7 +5993,7 @@ Namespace My.Sys.Forms
 						pBrushBackground->lpVtbl->SetColor(pBrushBackground, @clr)
 					End If
 					pRenderTarget->lpVtbl->FillRectangle(pRenderTarget, @Type<D2D1_RECT_F>(rc.Left, rc.Top, rc.Right, rc.Bottom), Cast(ID2D1Brush Ptr, pBrushBackground))
-					If CaretOn Then
+					If CaretOn AndAlso HCaretPos >= 0 Then
 						pRenderTarget->lpVtbl->DrawRectangle(pRenderTarget, @Type<D2D1_RECT_F>(ScaleX(HCaretPos) + 1, ScaleY(VCaretPos) + 1, ScaleX(HCaretPos) + 1, ScaleY(VCaretPos + dwCharY)), Cast(ID2D1Brush Ptr, pBrushForeground), 1, NULL)
 					End If
 				End If
@@ -6221,7 +6231,7 @@ Namespace My.Sys.Forms
 				End If
 			#endif
 		End If
-		#ifdef __USE_WINAPI__
+		#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 			If bInMiddleScroll Then
 				#ifdef __USE_GTK__
 					'					cairo_set_source_rgb(cr, Abs(GetRed(clMaroon) / 255.0), Abs(GetGreen(clMaroon) / 255.0), Abs(GetBlue(clMaroon) / 255.0))
@@ -6363,6 +6373,10 @@ Namespace My.Sys.Forms
 				ReleaseDC FHandle, hd
 				ShowCaret(FHandle)
 			End If
+		#elseif defined(__USE_WIN32_COMPAT__)
+			'Web and Android: the caret hidden for the drawing (HideCaret above) is shown again, otherwise the count of
+			'ShowCaret falls to 0 and the caret is not drawn (it does not blink)
+			ShowCaret(FHandle)
 		#endif
 		This.Canvas.HandleSetted = False
 		OlddwClientX = dwClientX
@@ -6392,6 +6406,14 @@ Namespace My.Sys.Forms
 			'PaintControlPriv
 			bChanged = True
 			If GTK_IS_WIDGET(widget) Then gtk_widget_queue_draw(widget)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			'Web and Android: the canvas is drawn in its paint (CM_PAINT, then WM_PAINT), which calls PaintControlPriv
+			'The window is the handle (Web: the address of the control, Android: the view)
+			If Win32CompatPaintingWnd = This.Handle Then
+				PaintControlPriv(bFull, OnlyCursor)
+			Else
+				Repaint
+			End If
 		#else
 			PaintControlPriv(bFull, OnlyCursor)
 		#endif
@@ -6872,6 +6894,29 @@ Namespace My.Sys.Forms
 			gtk_window_move(GTK_WINDOW(winIntellisense), ScaleX(HCaretPos) + x, ScaleY(VCaretPos) + y)
 			gtk_widget_show_all(winIntellisense)
 			ShowDropDownToolTipAt HCaretPos + 250 + UnScaleX(x), VCaretPos + UnScaleY(y)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			'Web and Android: the list is a list box under the caret (ComboBoxEdit.ShowDropDown), over the caret when
+			'there is no place under it. Without place for all of it (the editor is low: the soft keyboard of Android) it is
+			'on the side with more place and is lower
+			Dim As Integer iListHeight = 8 * 16 + 4
+			Dim As Integer SpaceBelow = Max(0, dwClientY - VCaretPos), SpaceAbove = Max(0, VCaretPos - dwCharY)
+			Dim As Integer iListTop
+			If iListHeight <= SpaceBelow OrElse (iListHeight > SpaceAbove AndAlso SpaceBelow >= SpaceAbove) Then
+				iListHeight = Max(Min(iListHeight, SpaceBelow), Min(iListHeight, 2 * 16 + 4))
+				iListTop = VCaretPos
+			Else
+				iListHeight = Max(Min(iListHeight, SpaceAbove), Min(iListHeight, 2 * 16 + 4))
+				iListTop = VCaretPos - dwCharY - iListHeight
+			End If
+			DropDownLineTop = VCaretPos - dwCharY
+			DropDownLineBottom = VCaretPos
+			pnlIntellisense.SetBounds HCaretPos, iListTop, 250, iListHeight
+			cboIntellisense.SetBounds 0, 0, 250, iListHeight
+			pnlIntellisense.Visible = True
+			pnlIntellisense.BringToFront
+			cboIntellisense.ShowDropDown True
+			If LastItemIndex = -1 Then cboIntellisense.ItemIndex = -1
+			ShowDropDownToolTipAt HCaretPos + 250, iListTop
 		#else
 			pnlIntellisense.SetBounds HCaretPos, VCaretPos, 250, 0
 			cboIntellisense.ShowDropDown True
@@ -6902,6 +6947,143 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_WIN32_COMPAT__
+		'Web and Android: a tooltip is a label over the editor at X, Y (units of the editor), sized to its text (SysLink markup)
+		Sub EditControl.ShowWebToolTip(ByRef lbl As LinkLabel, ByRef sHint As WString, X As Integer, Y As Integer, AtTheTop As Boolean = False)
+			'One tooltip at a time: they are at the same place (the caret, the touch), the other ones are closed
+			If @lbl <> @lblToolTip AndAlso ToolTipShowed Then CloseToolTip
+			If @lbl <> @lblDropDownToolTip AndAlso DropDownToolTipShowed Then CloseDropDownToolTip
+			If @lbl <> @lblMouseHoverToolTip AndAlso MouseHoverToolTipShowed Then CloseMouseHoverToolTip
+			Dim As UString sPlain = sHint, sLine
+			Dim As Integer Pos1, Pos2, MaxWidth, nLines
+			'The size is the one of the text without the tags
+			Do
+				Pos1 = InStr(sPlain, "<")
+				If Pos1 = 0 Then Exit Do
+				Pos2 = InStr(Pos1, sPlain, ">")
+				If Pos2 = 0 Then Exit Do
+				sPlain = ..Left(sPlain, Pos1 - 1) & Mid(sPlain, Pos2 + 1)
+			Loop
+			'The lines of a hint are separated by CR (GetParameters, like the tooltips of Windows), CR LF or LF
+			sPlain = Replace(Replace(sPlain, Chr(13, 10), Chr(10)), Chr(13), Chr(10))
+			Pos1 = 1
+			Do
+				Pos2 = InStr(Pos1, sPlain, Chr(10))
+				sLine = Mid(sPlain, Pos1, IIf(Pos2 = 0, Len(sPlain) + 1, Pos2) - Pos1)
+				MaxWidth = Max(MaxWidth, Canvas.TextWidth(sLine))
+				nLines += 1
+				Pos1 = Pos2 + 1
+			Loop While Pos2 > 0
+			If lbl.Parent = 0 Then
+				lbl.BackColor = &hE1FFFF
+				lbl.Font = This.Font
+				lbl.Designer = @This
+				lbl.OnLinkClicked = @WebToolTip_LinkClicked
+				This.Add @lbl
+			End If
+			'The colors of a tooltip of Windows, dark in the dark mode
+			lbl.BackColor = IIf(g_darkModeEnabled, BGR(43, 43, 43), &hE1FFFF)
+			lbl.ForeColor = IIf(g_darkModeEnabled, BGR(224, 224, 224), clBlack)
+			Dim As Integer iHeight = nLines * dwCharY + 6
+			lbl.Text = Replace(Replace(Replace(sHint, Chr(13, 10), "<br>"), Chr(13), "<br>"), Chr(10), "<br>")
+			#ifdef __USE_WASM__
+				'The size of the text in the font of the label (the Canvas of the editor measures with the font of the
+				'code, which is wider: the tooltip was too wide and was moved to the left side)
+				lbl.Visible = True
+				Dim As Integer NaturalWidth = UnScaleX(ElementNaturalSize(lbl.Handle, 1))
+				If NaturalWidth > 0 Then MaxWidth = NaturalWidth
+				'Not wider than the editor (a long line of the parameters made the page wider): the lines wrap, the height is
+				'the one in that width
+				MaxWidth = Max(50, Min(MaxWidth, dwClientX - 10))
+				lbl.Width = MaxWidth + 10
+				Dim As Integer NaturalHeight = UnScaleY(ElementNaturalSize(lbl.Handle, 0))
+				If NaturalHeight > 0 Then iHeight = NaturalHeight + 4
+				'Not higher than the editor: the rest is scrolled
+				iHeight = Min(iHeight, Max(dwCharY + 6, dwClientY - 4))
+				SetStyle(lbl.Handle, "overflow", "auto")
+			#endif
+			If @lbl = @lblToolTip Then
+				ToolTipX = X: ToolTipY = Y: ToolTipAtTheTop = AtTheTop
+			ElseIf @lbl = @lblMouseHoverToolTip Then
+				MouseHoverToolTipX = X: MouseHoverToolTipY = Y
+			End If
+			Dim As Integer iTop
+			Dim As Integer iLeft = Max(0, Min(X, dwClientX - MaxWidth - 10))
+			'The tooltip of the IntelliSense list is beside the list like on Windows: at its right, at its left when there is
+			'no place, under it or over it when the editor is too narrow (moved to the left it covered the list)
+			If @lbl = @lblDropDownToolTip AndAlso pnlIntellisense.Visible Then
+				Dim As Integer ListLeft = pnlIntellisense.Left, ListTop = pnlIntellisense.Top
+				Dim As Integer ListRight = ListLeft + pnlIntellisense.Width, ListBottom = ListTop + pnlIntellisense.Height
+				If ListRight + MaxWidth + 10 <= dwClientX OrElse ListLeft - MaxWidth - 10 >= 0 Then
+					iLeft = IIf(ListRight + MaxWidth + 10 <= dwClientX, ListRight, ListLeft - MaxWidth - 10)
+					iHeight = Min(iHeight, dwClientY)
+					iTop = Max(0, Min(ListTop, dwClientY - iHeight))
+				Else
+					'Under or over the list and the line of the caret (it covered them in a low editor), on the side with more
+					'place; without place for a line it is not shown
+					Dim As Integer SpaceBelow = Max(0, dwClientY - Max(ListBottom, DropDownLineBottom))
+					Dim As Integer SpaceAbove = Max(0, Min(ListTop, DropDownLineTop))
+					If Max(SpaceBelow, SpaceAbove) < Min(iHeight, dwCharY + 6) Then
+						lbl.Visible = False
+						Exit Sub
+					End If
+					If iHeight <= SpaceBelow OrElse (iHeight > SpaceAbove AndAlso SpaceBelow >= SpaceAbove) Then
+						iHeight = Min(iHeight, SpaceBelow)
+						iTop = Max(ListBottom, DropDownLineBottom)
+					Else
+						iHeight = Min(iHeight, SpaceAbove)
+						iTop = Min(ListTop, DropDownLineTop) - iHeight
+					End If
+				End If
+			Else
+				'The tooltip is in the editor (Windows: a window over the screen): it is over or under the line, where it has
+				'place, and does not cover the line. Without place for all of it (the editor is low: the soft keyboard of
+				'Android) it is on the side with more place and is lower: the rest of the text is scrolled
+				Dim As Integer LineTop = IIf(AtTheTop, Y, Y - dwCharY - 5), LineBottom = IIf(AtTheTop, Y + dwCharY + 5, Y)
+				Dim As Integer SpaceAbove = Max(0, LineTop), SpaceBelow = Max(0, dwClientY - LineBottom)
+				Dim As Boolean bAbove
+				If AtTheTop Then
+					bAbove = iHeight <= SpaceAbove OrElse (iHeight > SpaceBelow AndAlso SpaceAbove >= SpaceBelow)
+				Else
+					bAbove = iHeight > SpaceBelow AndAlso (iHeight <= SpaceAbove OrElse SpaceAbove > SpaceBelow)
+				End If
+				Dim As Integer iMinHeight = Min(iHeight, dwCharY + 6)
+				If bAbove Then
+					iHeight = Max(iMinHeight, Min(iHeight, SpaceAbove))
+					iTop = LineTop - iHeight
+				Else
+					iHeight = Max(iMinHeight, Min(iHeight, SpaceBelow))
+					iTop = LineBottom
+				End If
+			End If
+			iTop = Max(0, Min(iTop, dwClientY - iHeight))
+			lbl.SetBounds iLeft, iTop, MaxWidth + 10, iHeight
+			lbl.Visible = True
+			lbl.BringToFront
+		End Sub
+		
+		'A link of a tooltip like TTN_LINKCLICK of Windows
+		Sub EditControl.WebToolTip_LinkClicked(ByRef Designer As My.Sys.Object, ByRef Sender As LinkLabel, ByVal ItemIndex As Integer, ByRef Link As WString, ByRef Action As Integer)
+			Dim As EditControl Ptr ec = Cast(EditControl Ptr, @Designer)
+			If ec->OnToolTipLinkClicked Then ec->OnToolTipLinkClicked(*ec->Designer, *ec, Link)
+			Action = 0
+		End Sub
+		
+		'The text is dragged with the mouse only on Windows (OLE)
+		Sub EditControl.EC_BeginTextDrag()
+		End Sub
+		
+		'Direct2D and the dark theme of the scroll bars are the ones of Windows
+		Sub EditControl.SetClientSize()
+		End Sub
+		
+		Sub EditControl.ReleaseDirect2D
+		End Sub
+		
+		Sub EditControl.SetDark(Value As Boolean)
+		End Sub
+	#endif
+	
 	Sub EditControl.ShowDropDownToolTipAt(X As Integer, Y As Integer)
 		#ifdef __USE_GTK__
 			DropDownToolTipItemIndex = lvIntellisense.SelectedItemIndex
@@ -6914,6 +7096,8 @@ Namespace My.Sys.Forms
 			gtk_window_move(GTK_WINDOW(winDropDownTooltip), ScaleX(X), ScaleY(Y))
 			gtk_window_resize(GTK_WINDOW(winDropDownTooltip), ScaleX(100), ScaleY(25))
 			gtk_widget_show_all(winDropDownTooltip)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			ShowWebToolTip lblDropDownToolTip, *FHintDropDown, X, Y
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -6964,6 +7148,8 @@ Namespace My.Sys.Forms
 			gtk_window_move(GTK_WINDOW(winMouseHoverTooltip), X + xorigin, Y + yorigin)
 			gtk_window_resize(GTK_WINDOW(winMouseHoverTooltip), 100, 25)
 			gtk_widget_show_all(winMouseHoverTooltip)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			ShowWebToolTip lblMouseHoverToolTip, *FHintMouseHover, X, Y
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -7017,6 +7203,12 @@ Namespace My.Sys.Forms
 			gtk_window_move(GTK_WINDOW(winTooltip), ScaleX(HCaretPos) + x, ScaleY(VCaretPos) + y)
 			gtk_window_resize(GTK_WINDOW(winTooltip), ScaleX(100), ScaleY(25))
 			gtk_widget_show_all(winTooltip)
+		#elseif defined(__USE_WIN32_COMPAT__)
+			If ShowTooltipsAtTheTop Then
+				ShowWebToolTip lblToolTip, *FHint, HCaretPos, VCaretPos - dwCharY, True
+			Else
+				ShowWebToolTip lblToolTip, *FHint, HCaretPos, VCaretPos + UnScaleY(5)
+			End If
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -7059,6 +7251,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.UpdateDropDownToolTip()
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			If lblDropDownToolTip.Visible Then ShowWebToolTip lblDropDownToolTip, *FHintDropDown, lblDropDownToolTip.Left, lblDropDownToolTip.Top
 		#else
 			If hwndTTDropDown <> 0 Then
 				Dim As TOOLINFO    ti
@@ -7081,6 +7275,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.UpdateMouseHoverToolTip()
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			If lblMouseHoverToolTip.Visible Then ShowWebToolTip lblMouseHoverToolTip, *FHintMouseHover, MouseHoverToolTipX, MouseHoverToolTipY
 		#else
 			If hwndTTMouseHover <> 0 Then
 				Dim As TOOLINFO    ti
@@ -7103,6 +7299,8 @@ Namespace My.Sys.Forms
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
 			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			If lblToolTip.Visible Then ShowWebToolTip lblToolTip, *FHint, ToolTipX, ToolTipY, ToolTipAtTheTop
 		#else
 			If hwndTT <> 0 Then
 				Dim As TOOLINFO    ti
@@ -7126,6 +7324,9 @@ Namespace My.Sys.Forms
 			gtk_widget_hide(GTK_WIDGET(winIntellisense))
 		#else
 			cboIntellisense.ShowDropDown False
+			#ifdef __USE_WIN32_COMPAT__
+				pnlIntellisense.Visible = False
+			#endif
 		#endif
 		CloseDropDownToolTip
 		If OnDropDownCloseUp Then OnDropDownCloseUp(*Designer, This)
@@ -7135,6 +7336,8 @@ Namespace My.Sys.Forms
 		DropDownToolTipShowed = False
 		#ifdef __USE_GTK__
 			gtk_widget_hide(GTK_WIDGET(winDropDownTooltip))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			lblDropDownToolTip.Visible = False
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -7151,6 +7354,8 @@ Namespace My.Sys.Forms
 		MouseHoverToolTipShowed = False
 		#ifdef __USE_GTK__
 			gtk_widget_hide(GTK_WIDGET(winMouseHoverTooltip))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			lblMouseHoverToolTip.Visible = False
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -7167,6 +7372,8 @@ Namespace My.Sys.Forms
 		ToolTipShowed = False
 		#ifdef __USE_GTK__
 			gtk_widget_hide(GTK_WIDGET(winTooltip))
+		#elseif defined(__USE_WIN32_COMPAT__)
+			lblToolTip.Visible = False
 		#else
 			Dim As TOOLINFO    ti
 			ZeroMemory(@ti, SizeOf(ti))
@@ -7231,6 +7438,10 @@ Namespace My.Sys.Forms
 		Static bShifted As Boolean
 		Static bCtrl As Boolean
 		Static scrStyle As Integer, scrDirection As Integer
+		#ifdef __USE_WIN32_COMPAT__
+			'Web and Android: the CM_* messages of MyFbFramework come back as the WM_* messages of Windows (Win32Compat.bi)
+			If Win32CompatDispatch(@This, msg) Then Exit Sub
+		#endif
 		#ifdef __USE_GTK__
 			#ifdef __USE_GTK4__
 				' Pseudo events (map, unmap, destroy) have no GdkEvent
@@ -7307,7 +7518,7 @@ Namespace My.Sys.Forms
 			Case WM_MOUSEWHEEL
 			#endif
 			If ToolTipShowed Then CloseToolTip
-			#ifdef __USE_WINAPI__
+			#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 				If DropDownToolTipShowed AndAlso GetFocus = FHandle Then CloseDropDownToolTip
 			#else
 				If DropDownToolTipShowed Then CloseDropDownToolTip
@@ -7326,7 +7537,7 @@ Namespace My.Sys.Forms
 				bInMiddleScroll = False
 				Dim As Integer VScrollMax
 				Dim As Integer Ptr pVScrollPos, pHScrollPos
-				#ifdef __USE_WINAPI__
+				#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 					Dim As HWND sbScrollBarV, sbScrollBarH
 				#else
 					Dim As GtkAdjustment Ptr adjustmentv, adjustmenth
@@ -7536,7 +7747,7 @@ Namespace My.Sys.Forms
 					End If
 				End If
 			End If
-			#ifndef __USE_GTK__
+			#ifdef __USE_WINAPI__
 			Case WM_NOTIFY
 				Dim As LPNMHDR lp = Cast(LPNMHDR, msg.lParam)
 				Select Case lp->code
@@ -7581,6 +7792,12 @@ Namespace My.Sys.Forms
 				poPoint.Y = psPoints.y
 				..ScreenToClient(Handle, @poPoint)
 				iCursorLine = LineIndexFromPoint(UnScaleX(poPoint.X), UnScaleY(poPoint.Y), IIf((bDividedY AndAlso UnScaleY(poPoint.Y) <= iDividedY) OrElse (bDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX), 0, 1))
+				'The hand over the box of a fold, the start of a line and an include file; the Web has no cursor of a
+				'resource (crHand_.Handle is 0): the hand of the browser
+				Dim As HCURSOR hHand = crHand_.Handle
+				#ifndef __USE_WINAPI__
+					hHand = LoadCursor(NULL, IDC_HAND)
+				#endif
 				'If Cast(EditControlLine Ptr, Content.Lines.Items[i])->Collapsible Then
 				'If p.X < LeftMargin AndAlso p.X > LeftMargin - 15 Then
 				If bDividedX AndAlso UnScaleX(poPoint.X) >= iDividedX AndAlso UnScaleX(poPoint.X) <= iDividedX + 7 Then
@@ -7619,10 +7836,10 @@ Namespace My.Sys.Forms
 					End If
 					Return
 				ElseIf InStartOfLine(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
-					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
+					msg.Result = Cast(LRESULT, SetCursor(hHand))
 					Return
 				ElseIf InCollapseRect(iCursorLine, UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
-					msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
+					msg.Result = Cast(LRESULT, SetCursor(hHand))
 					Return
 				ElseIf Not bShifted AndAlso HasRealSelection() AndAlso PointIsInsideSelection(UnScaleX(poPoint.X), UnScaleY(poPoint.Y)) Then
 					msg.Result = Cast(LRESULT, SetCursor(LoadCursor(NULL, IDC_ARROW)))
@@ -7633,7 +7850,7 @@ Namespace My.Sys.Forms
 					iCursorLineOld = iCursorLine
 					bInIncludeFileRectOld = bInIncludeFileRect
 					If bInIncludeFileRect Then
-						msg.Result = Cast(LRESULT, SetCursor(crHand_.Handle))
+						msg.Result = Cast(LRESULT, SetCursor(hHand))
 						Return
 					End If
 				End If
@@ -8672,6 +8889,10 @@ Namespace My.Sys.Forms
 			#else
 				Var X = UnScaleX(msg.lParamLo), Y = UnScaleY(msg.lParamHi)
 			#endif
+			#ifdef __USE_WIN32_COMPAT__
+				'The pressed button like Control.ProcessMessage of Windows: the moves divide the window too (WM_MOUSEMOVE)
+				DownButton = 0
+			#endif
 			If (X > dwClientX - 17 AndAlso Y < 7) OrElse (bDividedY AndAlso Y >= iDividedY AndAlso Y <= iDividedY + 7) Then
 				bInDivideY = True
 				#ifndef __USE_GTK__
@@ -9072,7 +9293,7 @@ Namespace My.Sys.Forms
 	Sub EditControl.HandleIsAllocated(ByRef Sender As Control)
 		If Sender.Child Then
 			With QEditControl(Sender.Child)
-				#ifdef __USE_WINAPI__
+				#if defined(__USE_WINAPI__) OrElse defined(__USE_WIN32_COMPAT__)
 					.sbScrollBarvTop = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, 0, 0, .ScaleX(17), .ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
 					.sbScrollBarvBottom = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_VERT, .ScaleX(Sender.ClientWidth - 17), 5, .ScaleX(17), .ScaleY(Sender.Height - 5), Sender.Handle, 0, Instance, 0)
 					.sbScrollBarhLeft = CreateWindowEx(0, "ScrollBar", "", WS_CHILD Or WS_CLIPSIBLINGS Or WS_CLIPCHILDREN Or SB_HORZ, 0, .ScaleY(Sender.ClientHeight - 17), .ScaleX(Sender.ClientWidth - 17), .ScaleY(17), Sender.Handle, 0, Instance, 0)
@@ -9645,6 +9866,11 @@ Namespace My.Sys.Forms
 		#else
 			OnHandleIsAllocated = @HandleIsAllocated
 			BlinkTime = GetCaretBlinkTime
+			#ifdef __USE_WIN32_COMPAT__
+				'The mouse, the keyboard and the focus come as CM_* messages (Win32CompatDispatch)
+				FMouseEvents = True
+				FKeyEvents = True
+			#endif
 			'sbScrollBarvTop.Style = ScrollBarControlStyle.sbVertical
 			'sbScrollBarv.Style = ScrollBarControlStyle.sbVertical
 			'sbScrollBarh.Style = ScrollBarControlStyle.sbHorizontal
@@ -9656,19 +9882,19 @@ Namespace My.Sys.Forms
 		dwCharY = 5
 		'MultiLine = True
 		'ChildProc   = @WndProc
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			ExStyle     = WS_EX_CLIENTEDGE
 			Style       = WS_CHILD Or WS_TABSTOP Or ES_WANTRETURN Or CS_DBLCLKS 'Or WS_HSCROLL Or WS_VSCROLL
 		#endif
 		This.Width       = 121
 		Height          = 121
 		#ifndef __USE_GTK__
-			This.Cursor = LoadCursor(NULL, IDC_IBEAM)
+			This.Cursor = crIBeam
 		#endif
 		This.BackColor       = clWhite
 		This.FHoverTime       = CodeEditorHoverTime
 		WLet(FClassName, "EditControl")
-		#ifndef __USE_GTK__
+		#ifdef __USE_WINAPI__
 			This.RegisterClass "EditControl", ""
 		#endif
 		This.Designer = @This
@@ -9767,6 +9993,11 @@ Namespace My.Sys.Forms
 			cboIntellisense.Height = 7 * 22
 			pnlIntellisense.Add @cboIntellisense
 			This.Add @pnlIntellisense
+			#ifdef __USE_WIN32_COMPAT__
+				'Web and Android: the list of a ComboBox can not be opened by the program, the panel out of the editor
+				'(Windows) would show the box of the ComboBox over the window
+				pnlIntellisense.Visible = False
+			#endif
 		#endif
 		Var item = _New( EditControlLine)
 		If item = 0 Then Return

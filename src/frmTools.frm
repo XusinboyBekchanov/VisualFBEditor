@@ -288,15 +288,17 @@ Private Sub frmTools.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sender A
 			pTools->Add Tool
 			Dim As My.Sys.Drawing.BitmapType Bitm
 			Dim As My.Sys.Drawing.Icon Ico
-			#ifdef __USE_GTK__
-			#else
+			'The icon of the program of the tool (Windows)
+			#ifdef __USE_WINAPI__
 				Dim As HICON IcoHandle
 				ExtractIconEx(GetFullPath(tt->Path), NULL, NULL, @IcoHandle, 1)
 				Bitm = IcoHandle
 				DestroyIcon IcoHandle
 			#endif
 			mi = miXizmat->Add(tt->Name & !"\t" & tt->Accelerator, Bitm, "Tools", @mClickTool, , i + ToolsIndex + 2)
-			Bitm.Handle = 0
+			#ifndef __USE_WIN32_COMPAT__
+				Bitm.Handle = 0
+			#endif
 			mi->Tag = tt
 			Print #Fn, "Path=" & tt->Path
 			Print #Fn, "Name=" & tt->Name

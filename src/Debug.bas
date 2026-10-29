@@ -14362,11 +14362,30 @@ End Sub
 		Dim As String sTemp = readpipe()
 		
 		If Len(sTemp) Then
-			
+
 			iVersionGdb = get_version_gdb(sTemp)
-			
+
 		End If
-		
+
+		'GDB did not load the file: it is closed, otherwise the debugging waits for it and End does not work
+		If InStr(sTemp, "not in executable format") Then
+
+			writepipe(!"q\n")
+
+			#ifdef __FB_WIN32__
+				CloseHandle(hReadPipe)
+				CloseHandle(hWritePipe)
+			#else
+				close_(iWritePipe(1))
+				close_(iReadPipe(0))
+			#endif
+
+			iGlPid = 0
+
+			Return -1
+
+		End If
+
 		'Updateinfoxserver(30)
 		
 		writepipe(!"set confirm off\n" , 100)
@@ -15106,7 +15125,9 @@ Private Sub hard_closing(errormsg As String)
 End Sub
 
 Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	'Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	'If tb = 0 Then Exit Sub
 	Dim Result As Integer
@@ -15129,6 +15150,17 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		'#EndIf
 	Else
 		Restarting = False
+	End If
+	'A WebAssembly page (.html) cannot be debugged by GDB: it is opened in the browser like with Run
+	If EndsWith(LCase(exename), ".html") Then
+		ThreadsEnter()
+		ShowMessages(Time & ": " & ML("Debugging is not available for web pages, the page is opened in the browser"))
+		ThreadsLeave()
+		RunPr Debugger, ProjectFileName, ProjectCommandLineArguments, MainFile, CompileLine, FirstLine
+		ThreadsEnter()
+		ChangeEnabledDebug True, False, False
+		ThreadsLeave()
+		Exit Sub
 	End If
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbt32Bit->Checked

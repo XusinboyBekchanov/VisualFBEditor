@@ -183,7 +183,7 @@ Private Sub frmAddIns.Form_Create(ByRef Designer As My.Sys.Object, ByRef Sender 
 				Add_In->LoadedOriginal = pAddIns->Contains(AddIn)
 				Add_In->Loaded = Add_In->LoadedOriginal
 				WLet(Add_In->Path, ExePath & "/AddIns/" & f)
-				#ifdef __USE_GTK__
+				#ifndef __USE_WINAPI__
 					WLet(Add_In->Description, "")
 				#else
 					Dim As DWORD ret, discard

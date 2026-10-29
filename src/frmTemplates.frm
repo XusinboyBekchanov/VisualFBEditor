@@ -158,7 +158,7 @@
 			.SetBounds 0, 0, 615, 326
 			.Designer = @This
 			.InitialDir = GetFullPath(*ProjectsPath)
-			.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
+			.Filter = ML("FreeBasic Files") & " (*.vfs, *.vfp, *.bas, *.frm, *.rpt, *.bi, *.inc, *.rc)|*.vfs;*.vfp;*.bas;*.frm;*.rpt;*.bi;*.inc;*.rc|" & ML("VisualFBEditor Project Group") & " (*.vfs)|*.vfs|" & ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|" & ML("FreeBasic Module") & " (*.bas)|*.bas|" & ML("FreeBasic Form Module") & " (*.frm)|*.frm|" & ML("Report Module") & " (*.rpt)|*.rpt|" & ML("FreeBasic Include File") & " (*.bi)|*.bi|" & ML("Other Include File") & " (*.inc)|*.inc|" & ML("Resource File") & " (*.rc)|*.rc|" & ML("All Files") & "|*.*|"
 			.OnFileActivate = @OpenFileControl1_FileActivate_
 			.Parent = @tpExisting
 		End With
@@ -358,7 +358,7 @@ Private Sub frmTemplates.cmdOK_Click(ByRef Sender As Control)
 					Dim As WString * MAX_PATH SrcPath, DestPath
 					SrcPath = SelectedFolder & Slash & GetFileName(SelectedTemplate)
 					DestPath = SelectedFolder & Slash & GetFileName(SelectedFolder) & ".vfp"
-					#ifdef __USE_GTK__
+					#ifndef __USE_WINAPI__
 						.Name(SrcPath, DestPath)
 					#else
 						MoveFile @SrcPath, @DestPath
@@ -459,7 +459,14 @@ Private Sub frmTemplates.Form_Show_(ByRef Designer As My.Sys.Object, ByRef Sende
 	(*Cast(frmTemplates Ptr, Sender.Designer)).Form_Show(Sender)
 End Sub
 Private Sub frmTemplates.Form_Show(ByRef Sender As Form)
-	
+	'The list of the existing files begins in the folder of the projects: ProjectsPath is read from the settings after
+	'the constructor of the form. Later the folder which was opened last stays
+	Static As Boolean bInitialDir
+	If Not bInitialDir AndAlso *ProjectsPath <> "" Then
+		bInitialDir = True
+		Dim As UString ProjectsFolder = GetFullPath(*ProjectsPath)
+		If FolderExists(ProjectsFolder) Then OpenFileControl1.InitialDir = ProjectsFolder
+	End If
 End Sub
 
 Private Sub frmTemplates.Form_Close_(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef Action As Integer)

@@ -1,0 +1,21 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    compileSdkVersion 30
+    buildToolsVersion "30.0.2"
+
+    defaultConfig {
+        applicationId "com.visualfbeditor.console"
+        // The executable of the program is compiled for the API level of minSdkVersion (Compile of Main.bas)
+        minSdkVersion 16
+        targetSdkVersion 30
+        versionCode 1
+        versionName "1.0"
+    }
+    // The executable is in the folder of the native libraries of the app, the only place an app can run it from
+    packagingOptions {
+        doNotStrip "**/libconsole-app.so"
+    }
+}

@@ -30,7 +30,10 @@
 #include once "mff/PrintPreviewDialog.bi"
 #include once "mff/Printer.bi"
 
-#ifndef __USE_GTK__
+#ifdef __USE_JNI__
+	'Android: the settings of a small screen (the asset mffapp.zip of the APK has no settings of Windows / Linux)
+	#define SettingsPath ExePath & "/Settings/VisualFBEditorAndroid.ini"
+#elseif Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#define SettingsPath ExePath & "/Settings/VisualFBEditor64.ini"
 	#else
@@ -175,6 +178,21 @@ Common Shared As Boolean mFormFindInFile
 Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
+'The compilation in progress: End stops it (CompileStopped), on Windows the job of its processes is terminated, on
+'Linux its process group (CompilePid)
+Common Shared As Boolean CompileRunning, CompileStopped
+Common Shared As Any Ptr CompileJob
+Common Shared As Long CompilePid
+'Web IDE server (WebCompile of TabWindow.bas): Compile compiles this file with these options (of the Web IDE). For the
+'Android IDE the program is compiled with Use > JNI and the Gradle project WebCompileAndroidFolder
+Common Shared As WString Ptr WebCompileMainFile, WebCompileOptions, WebCompileAndroidFolder
+'A program without an Android project: an executable which the console of the Android IDE runs (Android/ConsoleHost)
+Common Shared As Boolean WebCompileAndroidConsole
+#ifdef __USE_WASM__
+	'Web: Start and Restart open the page of the program of the main file (its last compilation on the server,
+	'WebIDE_lib.js); 0 - the main file was not compiled
+	Declare Function RunWebPage Alias "WEBRUNPAGE"(MainFile As String) As Long
+#endif
 Common Shared As Boolean DisplayMenuIcons, ShowMainToolBar, DarkMode, ShowStandardToolBar, ShowEditToolBar, ShowProjectToolBar, ShowFormatToolBar, ShowBuildToolBar, ShowDebugToolBar, ShowRunToolBar
 Common Shared As Boolean ShowKeywordsToolTip, ShowTooltipsAtTheTop, ShowHorizontalSeparatorLines, ShowHolidayFrame, ShowTipoftheDay
 Common Shared As Boolean OpenCommandPromptInMainFileFolder, ShowProjectFolders
@@ -286,7 +304,11 @@ Declare Sub AddFilesToProject
 Declare Sub RemoveFileFromProject
 Declare Sub SaveMRU
 Declare Sub RestoreStatusText
-Declare Sub OpenUrl(ByVal url As String)
+#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+	'Web and Android: OpenURL of MyFbFramework opens the link
+	Declare Sub OpenUrl(ByVal url As String)
+	Declare Function StartWebIDEServer(OpenBrowser As Boolean) As Boolean
+#endif
 Declare Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Ptr = 0, tn As TreeNode Ptr = 0, bNew As Boolean = False) As TreeNode Ptr
 Declare Function SaveProject(ByRef tn As TreeNode Ptr, bWithQuestion As Boolean = False) As Boolean
 Declare Function CloseProject(tn As TreeNode Ptr, WithoutMessage As Boolean = False) As Boolean
@@ -358,7 +380,13 @@ Declare Function GetAIChatDirectory() As UString
 Declare Function GetUserChangeLogPath(ByRef FileName As WString) As UString
 Declare Function GetUserThemePath(ByRef ThemeName As WString, IsInterfaceTheme As Boolean = False) As UString
 Declare Function GetXY(XorY As Integer) As Integer
-#ifndef __USE_GTK__
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	'Web and Android: the time of a file is the one of FileDateTime
+	Type FILETIME As Double
+	Type DATE_ As Double
+	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
+	Declare Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME
+#elseif Not defined(__USE_GTK__)
 	Declare Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 	Declare Function GetFileLastWriteTime(ByRef FileName As WString) As FILETIME
 #endif
@@ -380,6 +408,7 @@ Common Shared As Integer tabLeftWidth, tabRightWidth, tabBottomHeight
 Declare Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 Declare Sub SetBottomClosedStyle(Value As Boolean, WithClose As Boolean = True)
+Declare Sub CloseUnpinnedPanels(Ctrl As Control Ptr)
 Declare Sub pnlToolBox_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer = -1, NewHeight As Integer = -1)
 
 Dim Shared symbols(0 To 15) As UByte

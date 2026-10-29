@@ -66,7 +66,10 @@ Public Sub TabCtl.MoveCloseButtons(ptabCode As TabControl Ptr)
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 		Dim As Boolean bVisible
 		If tb = 0 Then Continue For
-		#ifndef __USE_GTK__
+		#ifdef __USE_WIN32_COMPAT__
+			'Web and Android: the tabs are drawn by the TabControl itself, their places are not known
+			tb->btnClose.Visible = False
+		#elseif Not defined(__USE_GTK__)
 			SendMessage(ptabCode->Handle, TCM_GETITEMRECT, tb->Index, CInt(@RR))
 			bVisible = True
 			If ptabCode->UpDownControl.Handle AndAlso CInt(ptabCode->UpDownControl.Visible) AndAlso RR.Right - ptabCode->ScaleX(18) + ptabCode->ScaleX(14) > ptabCode->ScaleX(ptabCode->UpDownControl.Left) Then bVisible = False
@@ -434,7 +437,9 @@ End Sub
 Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 	Static As Boolean TabAdding
 	If TabAdding Then Return 0
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	TabAdding = True
 	MouseHoverTimerVal = Timer
 	Dim bFind As Boolean
@@ -659,6 +664,14 @@ Sub OnChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'        tb->FormDesign tb->tbrTop.Buttons.Item(1)->Checked
 	'    End With
 End Sub
+
+#ifdef __USE_JNI__
+	'Android: the touch of the editor does not change the focus (it is the only control with the keys), the not pinned
+	'panels are closed by the touch
+	Sub OnMouseDownEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		CloseUnpinnedPanels @Sender
+	End Sub
+#endif
 
 'Declare Function get_var_value(VarName As String, LineIndex As Integer) As String
 
@@ -916,9 +929,11 @@ End Property
 Property TabWindow.Caption(ByRef Value As WString)
 	FCaptionNew = _Reallocate(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		'The close button of the tab is a button of its own (Web, Android)
 		Base.Caption = Value
 	#else
+		'The place of the close button which is drawn on the tab
 		Base.Caption = Value + Space(5)
 	#endif
 End Property
@@ -1406,7 +1421,9 @@ Function GetOriginalType(ByRef TypeName As String) As String
 End Function
 
 Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	WLet(FLine, "")
 	If Des = 0 Then Return ""
 	Dim As SymbolsType Ptr st = Des->Symbols(Obj)
@@ -1494,7 +1511,9 @@ Function TabWindow.ReadObjProperty(ByRef Obj As Any Ptr, ByRef PropertyName As S
 End Function
 
 Function TabWindow.GetFormattedPropertyValue(ByRef Obj As Any Ptr, ByRef PropertyName As String, Cpnt As Any Ptr = 0) ByRef As WString
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	WLet(FLine, "")
 	If Obj = 0 Then Return *FLine
 	If Des = 0 Then Return *FLine
@@ -2166,7 +2185,9 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 End Sub
 
 Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef PropertyName As WString = "", BeforeCtrl As Any Ptr = 0, AfterCtrl As Any Ptr = 0, iLeft As Integer = -1, iTop As Integer = -1, iWidth As Integer = -1, iHeight As Integer = -1) As Integer
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Return 0
 	If tb->Des = 0 Then Return 0
@@ -2420,7 +2441,8 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 				End If
 			End If
 		End If
-		If st->IsControlFunc <> 0 AndAlso CInt(st->IsControlFunc(Cpnt)) OrElse st->IsReportControlFunc <> 0 AndAlso CInt(st->IsReportControlFunc(Cpnt)) Then
+		'AndAlso and OrElse have the same precedence (from left to right): the brackets are needed
+		If (st->IsControlFunc <> 0 AndAlso CInt(st->IsControlFunc(Cpnt))) OrElse (st->IsReportControlFunc <> 0 AndAlso CInt(st->IsReportControlFunc(Cpnt))) Then
 			ptxtCode->InsertLine se, *FLine1 & TabSpace & "' " & CtrlName
 			ptxtCode->InsertLine se + 1, *FLine1 & TabSpace & "With " & CtrlName
 			ptxtCode->InsertLine se + 2, *FLine1 & TabSpace & TabSpace & ".Name = """ & CtrlName & """"
@@ -2873,7 +2895,9 @@ Sub DesignerModified(ByRef Sender As Designer, Ctrl As Any Ptr, PropertyName As 
 End Sub
 
 Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft2 As Integer, iTop2 As Integer, iWidth2 As Integer, iHeight2 As Integer)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
 	If tb->Des = 0 Then Exit Sub
@@ -3513,7 +3537,9 @@ Function GetOnlyArguments(ArgumentsLine As String) As String
 End Function
 
 Sub FindEvent(tbw As TabWindow Ptr, Cpnt As Any Ptr, EventName As String)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	If Cpnt = 0 Then Exit Sub
 	Dim As TabWindow Ptr tb = ptabRight->Tag
 	If tb = 0 Then
@@ -4006,7 +4032,8 @@ End Sub
 			End If
 		End If
 		tb->txtCode.SetFocus
-		#ifdef __USE_GTK__
+		'The list of a ComboBox of Windows is closed by the choice; the Web and Android: it is a list in the editor
+		#if defined(__USE_GTK__) OrElse defined(__USE_WIN32_COMPAT__)
 			tb->txtCode.CloseDropDown
 		#endif
 	End With
@@ -4027,7 +4054,9 @@ Sub OnGotFocusEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 End Sub
 
 Function AddSorted(tb As TabWindow Ptr, ByRef Text As WString, te As TypeElement Ptr = 0, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "Sub", bKeywords As Boolean = True, Files As WStringList Ptr = 0, FileLines As IntegerList Ptr = 0) As Boolean
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Var Idx = -1
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	If (Not bKeywords) AndAlso CBool(Files = 0 OrElse ((Not Files->Contains(te->FileName, , , , Idx)) OrElse (FileLines <> 0) AndAlso (FileLines->Item(Idx) <> -1) AndAlso te->StartLine > FileLines->Item(Idx))) Then Return True
@@ -4376,7 +4405,9 @@ Sub FillTypeIntellisenses(ByRef Starts As WString = "")
 End Sub
 
 Function AddFileSorted(tb As TabWindow Ptr, ByRef Text As WString, ByRef Starts As WString = "", ByRef c As Integer = 0, ByRef imgKey As WString = "") As Boolean
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	If Starts <> "" AndAlso Not StartsWith(LCase(Text), LCase(Starts)) Then Return True
 	c += 1
 	If c > IntellisenseLimit Then Return False
@@ -7342,6 +7373,17 @@ Sub AnalyzeTab(Param As Any Ptr)
 	SetLastThread Project, tb, 0
 End Sub
 
+'Starts AnalyzeTab; the result is the thread (0 - it already ended). Android: the views are only of the main thread
+'(a view changed by JNI from another thread crashed the IDE), the analysis runs in it
+Function StartAnalyzeTab(tbOrProject As Any Ptr) As Any Ptr
+	#ifdef __USE_JNI__
+		AnalyzeTab tbOrProject
+		Return 0
+	#else
+		Return ThreadCreate(@AnalyzeTab, tbOrProject)
+	#endif
+End Function
+
 Sub QuitThread(Project As ProjectElement Ptr, tb As TabWindow Ptr)
 	SetQuitThread Project, tb, True
 	If GetLastThread(Project, tb) <> 0 Then
@@ -8608,7 +8650,7 @@ Sub Suggestions
 	tpSuggestions->SelectTab
 	QuitThread Project, tb
 	SetQuitThread Project, tb, False
-	SetLastThread Project, tb, ThreadCreate(@AnalyzeTab, tbOrProject)
+	SetLastThread Project, tb, StartAnalyzeTab(tbOrProject)
 End Sub
 
 Sub TabWindow.ClearTypes
@@ -8773,7 +8815,9 @@ Function TrimAll(ByRef Value As WString) As UString
 End Function
 
 Sub TabWindow.FormDesign(NotForms As Boolean = False)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	If bNotDesign OrElse FormClosing OrElse txtCode.LinesCount > 50000 Then Exit Sub
 	If Not txtCode.SyntaxEdit Then
 		If cboClass.Items.Count = 0 Then
@@ -10127,6 +10171,14 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									End If
 								#else
 									Dim As HWND Ptr DCHandle = stDesignControl->ReadPropertyFunc(.DesignControl, "Handle")
+									#ifdef __USE_WIN32_COMPAT__
+										'Android: the view of the form is made by its parent (Control.Add), it has none yet: the form
+										'is put into the panel of the designer and gets its view there
+										If DCHandle <> 0 AndAlso *DCHandle = 0 Then
+											pnlDesign.Add Cast(My.Sys.Forms.Control Ptr, .DesignControl)
+											DCHandle = stDesignControl->ReadPropertyFunc(.DesignControl, "Handle")
+										End If
+									#endif
 									If DCHandle <> 0 Then
 										SetParent *DCHandle, pnlDesign.Handle
 										.Dialog = *DCHandle
@@ -10518,7 +10570,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 	If AutoSuggestions AndAlso LoadFunctionsCount = 0 Then
 		If (Project = 0) OrElse ProjectAutoSuggestions Then
 			If IsNew Then
-				SetLastThread Project, @This, ThreadCreate(@AnalyzeTab, @This)
+				SetLastThread Project, @This, StartAnalyzeTab(@This)
 			End If
 		End If
 	End If
@@ -10856,8 +10908,23 @@ Sub tabPanel_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Ne
 	End With
 End Sub
 
+#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+	'Android and Web: the close button of a tab of the code (CloseButton of Windows is over the tab, the TabControl
+	'draws the tabs)
+	Sub tabCode_TabClose(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr)
+		If Page <> 0 AndAlso *Page Is TabWindow Then
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Page)
+			CloseTab(tb)
+		End If
+	End Sub
+#endif
+
 Constructor TabPanel
 	tabCode.Images = @imgList
+	#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+		tabCode.ShowCloseButtons = True
+		tabCode.OnTabClose = @tabCode_TabClose
+	#endif
 	tabCode.GroupName = "tabCode"
 	tabCode.Align = DockStyle.alClient
 	tabCode.Detachable = True
@@ -10910,6 +10977,9 @@ Constructor TabWindow(ByRef wFileName As WString = "", bNew As Boolean = False, 
 	#endif
 	'OnPaste = @OnPasteEdit
 	txtCode.OnMouseMove = @OnMouseMoveEdit
+	#ifdef __USE_JNI__
+		txtCode.OnMouseDown = @OnMouseDownEdit
+	#endif
 	txtCode.OnMouseHover = @OnMouseHoverEdit
 	'txtCode.tbParent = @This
 	This.Width = 180
@@ -12328,6 +12398,12 @@ Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolea
 			Return InStr(LCase(UseDefine), "__use_gtk4__") > 0
 		Case "__use_gtk__", "defined(__use_gtk__)"
 			Return InStr(LCase(UseDefine), "__use_gtk__") > 0
+		Case "__use_wasm__", "defined(__use_wasm__)"
+			Return InStr(LCase(UseDefine), "__use_wasm__") > 0
+		Case "__use_jni__", "defined(__use_jni__)"
+			Return InStr(LCase(UseDefine), "__use_jni__") > 0
+		Case "__fb_js__", "defined(__fb_js__)"
+			Return InStr(LCase(UseDefine), "-target js-asmjs") > 0
 		Case Else
 			Return False
 		End Select
@@ -12510,6 +12586,19 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 			#else
 				If WGet(Project->IconResourceFileName) <> "" Then ResourceFileName = GetShortFileName(WGet(Project->IconResourceFileName), FileName)
 			#endif
+		End If
+		' .rc/.res resources are only supported by Windows targets (not js-asmjs, linux, android, dos...)
+		If EndsWith(LCase(ResourceFileName), ".rc") OrElse EndsWith(LCase(ResourceFileName), ".res") Then
+			Dim As UString CompileArgs = LCase(Result & " " & CompileLine & " ")
+			Dim As Integer TargetPos = InStr(CompileArgs, "-target ")
+			If TargetPos > 0 Then
+				Dim As UString TargetName = LTrim(Mid(CompileArgs, TargetPos + 8))
+				Dim As Integer SpacePos = InStr(TargetName, " ")
+				If SpacePos > 0 Then TargetName = Left(TargetName, SpacePos - 1)
+				If InStr(TargetName, "win") = 0 AndAlso InStr(TargetName, "mingw") = 0 Then ResourceFileName = ""
+			End If
+			'Use > JNI: the -target of Android is added for each ABI in Compile
+			If InStr(CompileArgs, "__use_jni__") > 0 Then ResourceFileName = ""
 		End If
 		If ResourceFileName <> "" Then 'AndAlso InStr(Result & CompileLine, ResourceFileName) = 0
 			Result += " """ & ResourceFileName & """"
@@ -12919,43 +13008,575 @@ Sub CheckProfiler(ByRef WorkDir As WString, ByRef ExeName As WString)
 	lvProfiler.UpdateUnLock
 End Sub
 
+#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+	'A WebAssembly page (.html, .js, .wasm, .data) does not work from file://: the IDE serves the folder of the page
+	'at http://localhost:8000/ itself. The server is started once, a new Run changes only its folder
+	#include once "mff/HTTPServer.bi"
+	Dim Shared As HTTPServer WebPageServer
+	Dim Shared As Boolean WebPageServerRunning
+	'The page of a Web IDE which runs from here (Run of VisualFBEditor.bas with Use > WASM) compiles here too
+	Declare Sub WebIDEServer_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPServer, ByRef Request As HTTPServerRequest, ByRef Responce As HTTPServerResponce)
+	Declare Sub InitWebCompile()
+
+	Function StartWebPageServer(ByRef Folder As WString) As Boolean
+		Dim As String HomeDir = Replace(Folder, BackSlash, Slash)
+		'The folder of -x ../Page.html is like src/../: the ".." and "." parts are removed
+		If Not EndsWith(HomeDir, Slash) Then HomeDir &= Slash
+		HomeDir = Replace(HomeDir, "/./", "/")
+		Do
+			Dim As Long PosUp = InStr(HomeDir, "/../")
+			If PosUp <= 1 Then Exit Do
+			Dim As Long PosParent = InStrRev(HomeDir, "/", PosUp - 1)
+			If PosParent = 0 Then Exit Do
+			HomeDir = Left(HomeDir, PosParent) & Mid(HomeDir, PosUp + 4)
+		Loop
+		If Len(HomeDir) > 1 Then HomeDir = Left(HomeDir, Len(HomeDir) - 1)
+		WebPageServer.HomeDir = HomeDir
+		If WebPageServerRunning Then Return True
+		WebPageServer.Address = "127.0.0.1"
+		WebPageServer.Port = 8000
+		InitWebCompile
+		WebPageServer.OnReceive = @WebIDEServer_Receive
+		WebPageServerRunning = WebPageServer.Run()
+		Return WebPageServerRunning
+	End Function
+#else
+	'Web and Android: the IDE can not listen to a port
+	Function StartWebPageServer(ByRef Folder As WString) As Boolean
+		Return False
+	End Function
+#endif
+
+#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+	'Web IDE server: the folder of the IDE (VisualFBEditor.html of the Web IDE) at http://localhost:8001/. The Web IDE
+	'can not start the compiler: it sends the files of its project with POST /compile (CompileOnWebServer of Main.bas),
+	'they are compiled for the Web with the compiler of this IDE in Temp/WebCompile/<id> and the page of the program is
+	'served from there
+	Dim Shared As HTTPServer WebIDEServer
+	Dim Shared As Boolean WebIDEServerRunning
+	Dim Shared As Any Ptr WebCompileMutex
+	Const WebIDEServerPort = 8001
+
+	'The value of a header of the request ("" if it is not there)
+	Private Function WebIDEHeader(ByRef Headers As String, ByRef HeaderName As String) As String
+		Dim As String LowerHeaders = LCase(Chr(10) & Headers)
+		Dim As Integer Pos1 = InStr(LowerHeaders, Chr(10) & LCase(HeaderName) & ":")
+		If Pos1 = 0 Then Return ""
+		Pos1 += Len(HeaderName) + 2
+		Dim As Integer Pos2 = InStr(Pos1, LowerHeaders, Chr(13))
+		If Pos2 = 0 Then Pos2 = Len(LowerHeaders) + 1
+		Return Trim(Mid(Chr(10) & Headers, Pos1, Pos2 - Pos1))
+	End Function
+
+	'The pages of this computer only: a page of another site can not compile here (CSRF), a name which leads to this
+	'computer can not be used either (DNS rebinding)
+	Private Function WebIDELocalAddress(ByRef Address As String) As Boolean
+		Dim As String LowerAddress = LCase(Address)
+		If StartsWith(LowerAddress, "http://") Then LowerAddress = Mid(LowerAddress, 8)
+		Dim As Integer PosColon = InStr(LowerAddress, ":")
+		If PosColon > 0 Then LowerAddress = Left(LowerAddress, PosColon - 1)
+		Return LowerAddress = "localhost" OrElse LowerAddress = "127.0.0.1"
+	End Function
+
+	'One line of the body from Position (its Chr(10) is not in it)
+	Private Function WebCompileReadLine(ByRef Body As String, ByRef Position As Integer) As String
+		Dim As Integer PosEnd = InStr(Position, Body, Chr(10))
+		If PosEnd = 0 Then PosEnd = Len(Body) + 1
+		Function = Mid(Body, Position, PosEnd - Position)
+		Position = PosEnd + 1
+	End Function
+
+	'A path of the request: relative, without ".." and "." folders and without a drive
+	Private Function WebCompileSafePath(ByRef RelativePath As String) As Boolean
+		If RelativePath = "" OrElse InStr(RelativePath, ":") > 0 Then Return False
+		Dim As String PathWithSlashes = "/" & Replace(RelativePath, "\", "/") & "/"
+		If StartsWith(PathWithSlashes, "//") OrElse InStr(PathWithSlashes, "/../") > 0 OrElse InStr(PathWithSlashes, "/./") > 0 Then Return False
+		Return True
+	End Function
+
+	'The folder of the compilation in the paths of the messages is the folder of the project of the Web IDE
+	Private Function WebCompileWebPath(ByRef Text As WString, ByRef Folder As WString, ByRef WebFolder As WString) As UString
+		Dim As UString Result = Replace(Text, Folder, WebFolder)
+		Result = Replace(Result, Replace(Folder, "\", "/"), WebFolder)
+		Return Replace(Result, Replace(Folder, "/", "\"), WebFolder)
+	End Function
+
+	'The .properties files of the Android projects of this computer: the template Android Project, then the Android
+	'project of the IDE
+	Private Function WebIDEAndroidPropertiesValue(ByRef PropertiesFile As String, ByRef Key As String) As UString
+		Dim As UString Value = GetPropertiesValue(ExePath & "/Templates/Projects/Android Project/" & PropertiesFile, Key)
+		If Value = "" OrElse Not FolderExists(Value) Then Value = GetPropertiesValue(ExePath & "/Android/" & PropertiesFile, Key)
+		If Value <> "" AndAlso Not FolderExists(Value) Then Value = ""
+		Return Value
+	End Function
+
+	'A path of a .properties file of the Gradle project of the Android IDE which is not on this computer (or is not in
+	'the file) is the one of the Android projects of this computer
+	Private Sub WebCompileAndroidProperty(ByRef AndroidFolder As WString, ByRef PropertiesFile As String, ByRef Key As String)
+		Dim As UString FileName = AndroidFolder & Slash & PropertiesFile
+		Dim As UString Value = GetPropertiesValue(FileName, Key)
+		If Value <> "" AndAlso FolderExists(Value) Then Exit Sub
+		Dim As UString NewValue = WebIDEAndroidPropertiesValue(PropertiesFile, Key)
+		If NewValue = "" Then Exit Sub
+		'The escapes of .properties: C\:\\Folder
+		Dim As String NewLine = Key & "=" & ToUtf8(Replace(Replace(NewValue, "\", "\\"), ":", "\:")), Text, Result
+		Dim As Integer Fn = FreeFile_
+		If Open(FileName For Binary Access Read As #Fn) = 0 Then
+			Text = Space(LOF(Fn))
+			If Len(Text) Then Get #Fn, , Text
+			CloseFile_(Fn)
+		End If
+		Dim As Boolean Found
+		Dim As Integer Position = 1
+		Do While Position <= Len(Text)
+			Dim As String sLine = WebCompileReadLine(Text, Position)
+			If StartsWith(Trim(sLine, Any !"\r\t "), Key & "=") Then
+				sLine = NewLine
+				Found = True
+			End If
+			Result &= sLine & Chr(10)
+		Loop
+		If Not Found Then Result &= NewLine & Chr(10)
+		If FileExists(FileName) Then Kill FileName
+		Fn = FreeFile_
+		If Open(FileName For Binary Access Write As #Fn) = 0 Then
+			Put #Fn, , Result
+			CloseFile_(Fn)
+		End If
+	End Sub
+
+	Private Sub WebCompileAndroidProperties(ByRef AndroidFolder As WString)
+		WebCompileAndroidProperty AndroidFolder, "local.properties", "sdk.dir"
+		WebCompileAndroidProperty AndroidFolder, "local.properties", "ndk.dir"
+		WebCompileAndroidProperty AndroidFolder, "gradle.properties", "org.gradle.java.home"
+		'The Android IDE has the templates without jniLibs (the asset mffapp.zip): the folders of the libraries which
+		'gradlew.bat and gradlew of the project compile (fbc -x ".../jniLibs/x86/libmff-app.so") are made here, the
+		'linker does not make them
+		For i As Integer = 0 To 1
+			Dim As Integer Fn = FreeFile_
+			If Open(AndroidFolder & Slash & IIf(i = 0, "gradlew.bat", "gradlew") For Binary Access Read As #Fn) <> 0 Then Continue For
+			Dim As String Text = Space(LOF(Fn))
+			If Len(Text) Then Get #Fn, , Text
+			CloseFile_(Fn)
+			Dim As Integer Position = InStr(Text, "jniLibs/"), PosEnd
+			Do While Position > 0
+				Position += 8
+				PosEnd = Position
+				Do While PosEnd <= Len(Text)
+					Select Case Text[PosEnd - 1]
+					Case Asc("a") To Asc("z"), Asc("0") To Asc("9"), Asc("_"), Asc("-")
+						PosEnd += 1
+					Case Else
+						Exit Do
+					End Select
+				Loop
+				If PosEnd > Position Then EnsureFolderExists GetOSPath(AndroidFolder & "/app/src/main/jniLibs/" & Mid(Text, Position, PosEnd - Position))
+				Position = InStr(PosEnd, Text, "jniLibs/")
+			Loop
+		Next
+	End Sub
+
+	'A program with forms (MyFbFramework, "mff/..." in the main file) runs only in an Android project, one without them
+	'in the console of the Android IDE
+	Private Function WebCompileUsesForms(ByRef MainFileName As WString) As Boolean
+		Dim As Integer Fn = FreeFile_
+		If Open(MainFileName For Binary Access Read As #Fn) <> 0 Then Return False
+		Dim As String Text = Space(LOF(Fn))
+		If Len(Text) Then Get #Fn, , Text
+		CloseFile_(Fn)
+		Text = LCase(Text)
+		Return InStr(Text, """mff/") > 0 OrElse InStr(Text, """mff\") > 0
+	End Function
+
+	'The Android IDE on a device (or an emulator) which is connected with adb reaches the server at its own
+	'localhost:8001: adb reverse for each device
+	Private Sub WebIDEAdbReverse()
+		Dim As UString SDKDir = WebIDEAndroidPropertiesValue("local.properties", "sdk.dir")
+		If SDKDir = "" Then SDKDir = Environ("ANDROID_HOME")
+		If SDKDir = "" Then Exit Sub
+		#ifdef __FB_WIN32__
+			Dim As UString Adb = SDKDir & "\platform-tools\adb.exe"
+		#else
+			Dim As UString Adb = SDKDir & "/platform-tools/adb"
+		#endif
+		If Not FileExists(Adb) Then Exit Sub
+		'The lines "<serial>	device" after "List of devices attached"
+		Dim As String Devices = GetCommandOutput("""" & Adb & """ devices"), sLine, Serial
+		Dim As Integer Position = 1, PosTab
+		Do While Position <= Len(Devices)
+			sLine = Trim(WebCompileReadLine(Devices, Position), Any !"\r ")
+			PosTab = InStr(sLine, Chr(9))
+			If PosTab = 0 OrElse Mid(sLine, PosTab + 1) <> "device" Then Continue Do
+			Serial = Left(sLine, PosTab - 1)
+			Dim As String Output_ = Trim(GetCommandOutput("""" & Adb & """ -s """ & Serial & """ reverse tcp:" & WebIDEServerPort & " tcp:" & WebIDEServerPort), Any !"\r\n\t ")
+			If Output_ = "" OrElse Output_ = Str(WebIDEServerPort) Then
+				ShowMessages(Time & ": " & ML("Android IDE") & ": " & Serial & " - http://localhost:" & WebIDEServerPort & "/ (adb reverse)")
+			Else
+				ShowMessages(Time & ": " & ML("Android IDE") & ": " & Serial & " - " & Output_)
+			End If
+		Loop
+	End Sub
+
+	'The body of POST /compile (UTF-8): the lines "VFBE-WEBCOMPILE 1", "id <letters and digits>", "root <folder of the
+	'project in the Web IDE>", "main <main file>", "options <options of fbc>", then for each file "file <size> <path>",
+	'its bytes and Chr(10), the last line is "end". The paths are relative to the root. The Android IDE
+	'(CompileOnAndroidServer of Main.bas) adds "target android" and "parameter Run|Bundle|APK": the program is compiled
+	'with Use > JNI and Gradle, Run installs it on the device with adb and starts it
+	'The response: the lines "result=1" (or 0), "page=<URL of the page of the program>", "error=<text>", an empty line,
+	'then the lines of the output and after the line "[problems]" the problems ("Error|Warning|Info", line, file, text
+	'separated by Chr(9))
+	Sub InitWebCompile()
+		If WebCompileMutex = 0 Then WebCompileMutex = MutexCreate()
+	End Sub
+	
+	'HomeDir: the folder of the server which received the request, the page of the program is relative to it. A page
+	'outside of it (the page server of Run, port 8000) is given by the Web IDE server (port 8001)
+	Private Function WebCompile(ByRef Body As String, ByRef HomeDir As String) As String
+		Dim As Integer Position = 1
+		If WebCompileReadLine(Body, Position) <> "VFBE-WEBCOMPILE 1" Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unknown request"))
+		Dim As String Id, Root, MainFile, Options, Target, Parameter, sLine
+		Dim As UString Folder
+		Do While Position <= Len(Body)
+			sLine = WebCompileReadLine(Body, Position)
+			If StartsWith(sLine, "id ") Then
+				Id = Mid(sLine, 4)
+				For i As Integer = 0 To Len(Id) - 1
+					Select Case Id[i]
+					Case Asc("0") To Asc("9"), Asc("a") To Asc("z"), Asc("A") To Asc("Z")
+					Case Else: Return "result=0" & Chr(10) & "error=Invalid id"
+					End Select
+				Next
+				If Id = "" OrElse Len(Id) > 32 Then Return "result=0" & Chr(10) & "error=Invalid id"
+				Folder = GetOSPath(ExePath & "/Temp/WebCompile/" & Id & "/")
+			ElseIf StartsWith(sLine, "root ") Then
+				Root = Mid(sLine, 6)
+			ElseIf StartsWith(sLine, "main ") Then
+				MainFile = Mid(sLine, 6)
+			ElseIf StartsWith(sLine, "options ") Then
+				Options = Mid(sLine, 9)
+			ElseIf StartsWith(sLine, "target ") Then
+				Target = Mid(sLine, 8)
+			ElseIf StartsWith(sLine, "parameter ") Then
+				Parameter = Mid(sLine, 11)
+			ElseIf StartsWith(sLine, "file ") Then
+				Dim As Integer PosSpace = InStr(6, sLine, " ")
+				If PosSpace = 0 Then Return "result=0" & Chr(10) & "error=Invalid file"
+				Dim As Integer FileSize = ValInt(Mid(sLine, 6, PosSpace - 6))
+				Dim As String RelativePath = Mid(sLine, PosSpace + 1)
+				If CBool(Folder = "") OrElse CBool(FileSize < 0) OrElse CBool(Position + FileSize > Len(Body) + 1) OrElse Not WebCompileSafePath(RelativePath) Then
+					Return "result=0" & Chr(10) & "error=Invalid file: " & RelativePath
+				End If
+				Dim As WString Ptr pRelativePath = FromUtf8(StrPtr(RelativePath))
+				Dim As UString FileName = GetOSPath(Folder & *pRelativePath)
+				WDeAllocate(pRelativePath)
+				EnsureFolderExists GetFolderName(FileName)
+				'Binary writing does not shorten a file: the old one is deleted first
+				If FileExists(FileName) Then Kill FileName
+				Dim As Integer Fn = FreeFile_
+				If Open(FileName For Binary Access Write As #Fn) <> 0 Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unable to write file") & ": " & FileName)
+				If FileSize > 0 Then
+					Dim As String FileData = Mid(Body, Position, FileSize)
+					Put #Fn, , FileData
+				End If
+				CloseFile_(Fn)
+				Position += FileSize + 1
+			ElseIf sLine = "end" Then
+				Exit Do
+			End If
+		Loop
+		If CBool(Folder = "") OrElse CBool(MainFile = "") OrElse Not WebCompileSafePath(MainFile) Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("No Main file specified for the project."))
+		Dim As WString Ptr pText = FromUtf8(StrPtr(MainFile))
+		Dim As UString MainFileName = GetOSPath(Folder & *pText)
+		WDeAllocate(pText)
+		pText = FromUtf8(StrPtr(Options))
+		Dim As UString CompileOptions = WGet(pText)
+		WDeAllocate(pText)
+		pText = FromUtf8(StrPtr(Root))
+		Dim As UString WebFolder = WGet(pText)
+		WDeAllocate(pText)
+		If Not FileExists(MainFileName) Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("File not found") & ": " & MainFile)
+		Dim As Boolean ForAndroid = Target = "android", AndroidConsole
+		Dim As UString AndroidFolder
+		If ForAndroid Then
+			'The Android IDE: the program is compiled with Use > JNI and the Gradle project of its files (the project
+			'itself or its folder Android)
+			If FileExists(Folder & "app/build.gradle") Then
+				AndroidFolder = GetOSPath(ExePath & "/Temp/WebCompile/" & Id)
+			ElseIf FileExists(Folder & "Android/app/build.gradle") Then
+				AndroidFolder = GetOSPath(Folder & "Android")
+			ElseIf WebCompileUsesForms(MainFileName) Then
+				Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Android project not found") & ": " & ML("a program with forms needs an Android project (File > New Project > Android Project)"))
+			Else
+				'A console program: its executable runs in the console of the Android IDE, a copy of Android/ConsoleHost
+				If Not FileExists(ExePath & "/Android/ConsoleHost/app/build.gradle") Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("File not found") & ": " & ExePath & "/Android/ConsoleHost/app/build.gradle")
+				AndroidFolder = GetOSPath(ExePath & "/Temp/WebCompile/" & Id & "/ConsoleHost")
+				FolderCopy GetOSPath(ExePath & "/Android/ConsoleHost"), AndroidFolder
+				AndroidConsole = True
+			End If
+			If InStr(CompileOptions, "__USE_JNI__") = 0 Then CompileOptions &= " -d __USE_JNI__"
+			WebCompileAndroidProperties AndroidFolder
+			If Parameter <> "Run" AndAlso Parameter <> "Bundle" AndAlso Parameter <> "APK" Then Parameter = ""
+		Else
+			'The program is compiled for the Web (the define of Use > WASM)
+			If InStr(CompileOptions, "__USE_WASM__") = 0 Then CompileOptions &= " -d __USE_WASM__ -target js-asmjs -r"
+			Parameter = ""
+		End If
+		If CompileRunning Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("The compilation is already running"))
+		WLet(WebCompileMainFile, MainFileName)
+		WLet(WebCompileOptions, CompileOptions)
+		WLet(WebCompileAndroidFolder, AndroidFolder)
+		WebCompileAndroidConsole = AndroidConsole
+		Dim As Integer CompileResult = Compile(Parameter)
+		WLet(WebCompileMainFile, "")
+		WLet(WebCompileAndroidFolder, "")
+		WebCompileAndroidConsole = False
+		Dim As String Result = "result=" & IIf(CompileResult, "1", "0") & Chr(10)
+		If CompileResult <> 0 AndAlso Not ForAndroid Then
+			'The page of the program relative to the home folder of the server
+			Dim As UString PageFile = Replace(GetFullPath(GetExeFileName(MainFileName, " " & CompileOptions), MainFileName), "\", "/")
+			Dim As UString HomeFolder = Replace(HomeDir, "\", "/") & "/"
+			Dim As UString IDEFolder = Replace(GetOSPath(ExePath & "/"), "\", "/")
+			If StartsWith(LCase(PageFile), LCase(HomeFolder)) Then
+				Result &= "page=" & ToUtf8(Mid(PageFile, Len(HomeFolder) + 1)) & Chr(10)
+			ElseIf StartsWith(LCase(PageFile), LCase(IDEFolder)) AndAlso StartWebIDEServer(False) Then
+				Result &= "page=http://localhost:" & WebIDEServerPort & "/" & ToUtf8(Mid(PageFile, Len(IDEFolder) + 1)) & Chr(10)
+			End If
+		End If
+		ThreadsEnter()
+		Result &= Chr(10) & ToUtf8(WebCompileWebPath(Replace(txtOutput.Text, Chr(13), ""), Folder, WebFolder)) & Chr(10) & "[problems]" & Chr(10)
+		For i As Integer = 0 To lvProblems.ListItems.Count - 1
+			With *lvProblems.ListItems.Item(i)
+				Result &= ToUtf8(.ImageKey & Chr(9) & .Text(1) & Chr(9) & WebCompileWebPath(.Text(2), Folder, WebFolder) & Chr(9) & WebCompileWebPath(.Text(0), Folder, WebFolder)) & Chr(10)
+			End With
+		Next
+		ThreadsLeave()
+		Return Result
+	End Function
+
+	Sub WebIDEServer_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPServer, ByRef Request As HTTPServerRequest, ByRef Responce As HTTPServerResponce)
+		Dim As String Origin = WebIDEHeader(Request.Headers, "Origin"), Answer
+		Dim As Boolean LocalRequest = WebIDELocalAddress(WebIDEHeader(Request.Headers, "Host")) AndAlso (CBool(Origin = "") OrElse WebIDELocalAddress(Origin))
+		'The files are given to the pages of this computer only (the settings of the IDE are in its folder too)
+		If Request.HTTPMethod <> "POST" AndAlso LocalRequest Then Exit Sub
+		Dim As String Headers = "Content-Type: text/plain; charset=utf-8" & Chr(13, 10) & "Cache-Control: no-cache"
+		If Origin <> "" AndAlso LocalRequest Then Headers &= Chr(13, 10) & "Access-Control-Allow-Origin: " & Origin
+		If Not LocalRequest Then
+			Responce.StatusCode = 403
+			Responce.Reason = "Forbidden"
+			Answer = "result=0" & Chr(10) & "error=Forbidden"
+		ElseIf Request.RelativeURL <> Sender.HomeDir & "/compile" Then
+			Responce.StatusCode = 404
+			Responce.Reason = "Not Found"
+			Answer = "result=0" & Chr(10) & "error=Not Found"
+		Else
+			'One compilation at a time (the output and the problems of the IDE are the ones of the compilation)
+			MutexLock(WebCompileMutex)
+			Answer = WebCompile(Request.Body, Sender.HomeDir)
+			MutexUnlock(WebCompileMutex)
+		End If
+		Responce.Body = Answer
+		Responce.Headers = Headers & Chr(13, 10) & "Content-Length: " & Len(Answer) & Chr(13, 10) & "Connection: close"
+	End Sub
+
+	'Service > Web IDE Server: starts the server once, connects the Android devices to it (adb reverse) and opens the
+	'Web IDE in the browser (OpenBrowser; without it the server gives the pages of the programs which were compiled for a
+	'page of the server of Run). Without the Web IDE (VisualFBEditor.html) the server is only the one of the Android IDE
+	Function StartWebIDEServer(OpenBrowser As Boolean) As Boolean
+		If Not WebIDEServerRunning Then
+			InitWebCompile
+			WebIDEServer.HomeDir = Replace(ExePath, BackSlash, Slash)
+			WebIDEServer.Address = "127.0.0.1"
+			WebIDEServer.Port = WebIDEServerPort
+			WebIDEServer.OnReceive = @WebIDEServer_Receive
+			WebIDEServerRunning = WebIDEServer.Run()
+			If Not WebIDEServerRunning Then
+				ShowMessages(Time & ": " & ML("Unable to start the web server at") & " http://localhost:" & WebIDEServerPort & "/ (" & ML("the port is used by another program") & ")")
+				Return False
+			End If
+			ShowMessages(Time & ": " & ML("Web IDE Server") & ": http://localhost:" & WebIDEServerPort & "/VisualFBEditor.html")
+		End If
+		If OpenBrowser Then
+			'A device which was connected later is connected by the next click of the menu
+			WebIDEAdbReverse
+			If FileExists(ExePath & "/VisualFBEditor.html") Then
+				OpenUrl "http://localhost:" & WebIDEServerPort & "/VisualFBEditor.html"
+			Else
+				ShowMessages(Time & ": " & ML("File not found") & ": " & ExePath & "/VisualFBEditor.html (" & ML("Compile the IDE for the Web (Use > WASM) first.") & ")")
+			End If
+		End If
+		Return True
+	End Function
+#endif
+
+'Use > JNI: the Gradle project of the program. It is the project itself when it is a folder with app/build.gradle,
+'otherwise the Android folder next to the .vfp file of the project (or next to the main file)
+Function GetAndroidProjectFolder(ByRef ProjectFileName As WString, ByRef MainFile As WString) As UString
+	If ProjectFileName <> "" AndAlso Not EndsWith(LCase(ProjectFileName), ".vfp") Then
+		If FileExists(ProjectFileName & "/app/build.gradle") Then Return ProjectFileName
+	End If
+	Dim As UString Folder
+	If ProjectFileName <> "" Then Folder = GetFolderName(ProjectFileName) Else Folder = GetFolderName(MainFile)
+	If Folder <> "" AndAlso FileExists(Folder & "Android/app/build.gradle") Then Return Folder & "Android"
+	Return ""
+End Function
+
+'The value of Key in a .properties file (local.properties, gradle.properties), without its escapes (C\:\\Folder)
+Function GetPropertiesValue(ByRef FileName As WString, ByRef Key As WString) As UString
+	Dim As UString Result
+	Dim As Integer Fn = FreeFile_
+	If Open(FileName For Input As #Fn) <> 0 Then Return ""
+	Dim pBuff As WString Ptr
+	Dim As Integer FileSize = LOF(Fn)
+	WReAllocate(pBuff, FileSize)
+	Do Until EOF(Fn)
+		LineInputWstr Fn, pBuff, FileSize
+		If StartsWith(Trim(*pBuff), Key & "=") Then
+			Result = Replace(Replace(Mid(Trim(*pBuff), Len(Key) + 2), "\\", "\"), "\:", ":")
+			Exit Do
+		End If
+	Loop
+	CloseFile_(Fn)
+	WDeAllocate(pBuff)
+	Return Result
+End Function
+
+'Web IDE server, Android IDE: the compiler which has the libraries of Android (lib/freebasic/android-<arch> of a build
+'for Android, lib/android-<arch> of a standalone one): the one of the template Android Project, otherwise one of
+'Settings > Compilers
+Function FindAndroidCompiler() As UString
+	Dim As UString CompilerPath, CompilerFolder
+	Dim As Integer Fn
+	For i As Integer = -1 To pCompilers->Count - 1
+		If i = -1 Then
+			'CompilerPath="..." of the template
+			Fn = FreeFile_
+			If Open(ExePath & "/Templates/Projects/Android Project/Android Project.vfp" For Input Encoding "utf-8" As #Fn) <> 0 Then Continue For
+			Dim As WString * 2048 Buff
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
+				If StartsWith(Buff, "CompilerPath=""") Then CompilerPath = Mid(Buff, 15, Len(Buff) - 15)
+			Loop
+			CloseFile_(Fn)
+		Else
+			CompilerPath = pCompilers->Item(i)->Text
+		End If
+		If CompilerPath = "" Then Continue For
+		CompilerPath = GetFullPath(CompilerPath)
+		If Not FileExists(CompilerPath) Then Continue For
+		CompilerFolder = GetFolderName(CompilerPath)
+		For j As Integer = 0 To 1
+			Dim As String Arch = IIf(j = 0, "android-aarch64", "android-x86")
+			If FolderExists(CompilerFolder & "lib/" & Arch) OrElse FolderExists(GetFolderName(CompilerFolder) & "lib/freebasic/" & Arch) Then Return CompilerPath
+		Next
+	Next
+	Return ""
+End Function
+
+'The output (stdout and stderr) of a short command, run without a window
+Function GetCommandOutput(ByRef CommandLine As WString) As String
+	Dim As String Result
+	#ifdef __USE_WINAPI__
+		Dim sa As SECURITY_ATTRIBUTES
+		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+		sa.bInheritHandle = True
+		Dim As HANDLE hReadPipe, hWritePipe
+		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 Then Return ""
+		SetHandleInformation(hReadPipe, HANDLE_FLAG_INHERIT, 0)
+		Dim si As STARTUPINFO
+		Dim pi As PROCESS_INFORMATION
+		si.cb = SizeOf(STARTUPINFO)
+		si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+		si.hStdOutput = hWritePipe
+		si.hStdError = hWritePipe
+		si.wShowWindow = SW_HIDE
+		Dim As WString Ptr CmdL
+		WLet(CmdL, CommandLine)
+		If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NO_WINDOW, 0, 0, @si, @pi) = 0 Then
+			CloseHandle hWritePipe
+			CloseHandle hReadPipe
+			WDeAllocate(CmdL)
+			Return ""
+		End If
+		CloseHandle hWritePipe
+		Dim As ZString * 1025 Buffer
+		Dim As DWORD BytesRead
+		Do While ReadFile(hReadPipe, @Buffer, 1024, @BytesRead, 0) AndAlso BytesRead > 0
+			Buffer[BytesRead] = 0
+			Result &= Buffer
+		Loop
+		WaitForSingleObject(pi.hProcess, INFINITE)
+		CloseHandle pi.hProcess
+		CloseHandle pi.hThread
+		CloseHandle hReadPipe
+		WDeAllocate(CmdL)
+	#else
+		Dim As Integer Fn = FreeFile_
+		If Open Pipe(CommandLine & " 2>&1" For Input As #Fn) = 0 Then
+			Dim As String Buff
+			Do Until EOF(Fn)
+				Line Input #Fn, Buff
+				Result &= Buff & Chr(10)
+			Loop
+			CloseFile_(Fn)
+		End If
+	#endif
+	Return Result
+End Function
+
+'The ABIs of the connected device or emulator in the order of its preference ("x86_64,x86"), "" if there is no device
+'(or more than one): adb of sdk.dir of the Android project
+Function GetAndroidDeviceAbis(ByRef AndroidFolder As WString) As String
+	Dim As UString SDKDir = GetPropertiesValue(AndroidFolder & "/local.properties", "sdk.dir")
+	If SDKDir = "" Then Return ""
+	#ifdef __FB_WIN32__
+		Dim As UString Adb = SDKDir & "\platform-tools\adb.exe"
+	#else
+		Dim As UString Adb = SDKDir & "/platform-tools/adb"
+	#endif
+	If Not FileExists(Adb) Then Return ""
+	Dim As String Output_ = Trim(GetCommandOutput("""" & Adb & """ shell getprop ro.product.cpu.abilist"), Any !"\r\n\t ")
+	'adb: no devices/emulators found, more than one device/emulator, ...
+	If Output_ = "" OrElse InStr(Output_, " ") > 0 OrElse InStr(Output_, ":") > 0 Then Return ""
+	Return Output_
+End Function
+
 Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
-	On Error Goto ErrorHandler
+	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+		On Error Goto ErrorHandler
+	#endif
 	Dim Result As Integer
 	Dim ExeFileName As WString Ptr
-	If CBool(ProjectFileName <> "") AndAlso (Not EndsWith(ProjectFileName, ".vfp")) AndAlso FileExists(ProjectFileName & "/local.properties") Then
-		Dim As String ApkFileName = ProjectFileName & "/app/build/outputs/apk/debug/app-debug.apk"
+	'An Android project (a folder with Gradle), or with Use > JNI the Android folder of the project
+	Dim As UString AndroidFolder
+	If WGet(WebCompileAndroidFolder) <> "" Then
+		'Web IDE server: the program of the Android IDE is installed on the device and started there
+		AndroidFolder = *WebCompileAndroidFolder
+	ElseIf CBool(ProjectFileName <> "") AndAlso (Not EndsWith(ProjectFileName, ".vfp")) AndAlso FileExists(ProjectFileName & "/local.properties") Then
+		AndroidFolder = ProjectFileName
+	ElseIf InStr(FirstLine & CompileLine, "__USE_JNI__") > 0 Then
+		AndroidFolder = GetAndroidProjectFolder(ProjectFileName, MainFile)
+	End If
+	If AndroidFolder <> "" Then
+		Dim As String ApkFileName = AndroidFolder & "/app/build/outputs/apk/debug/app-debug.apk"
 		'adb runs in the platform-tools folder: a relative project path (e.g. Projects\Project1) is made full
 		If Cbool(InStr(ApkFileName, ":") = 0) AndAlso Not StartsWith(ApkFileName, "/") AndAlso Not StartsWith(ApkFileName, "\") Then ApkFileName = CurDir & Slash & ApkFileName
 		If Not FileExists(ApkFileName) Then
 			ShowMessages ML("Do not found apk file!")
 			Exit Sub
 		End If
-		Dim As Integer Fn = FreeFile_
-		Open ProjectFileName & "/local.properties" For Input As #Fn
-		Dim SDKDir As UString
+		Dim SDKDir As UString = GetPropertiesValue(AndroidFolder & "/local.properties", "sdk.dir")
 		Dim pBuff As WString Ptr
 		Dim As Integer FileSize
-		FileSize = LOF(Fn)
-		WReAllocate(pBuff, FileSize)
-		Do Until EOF(Fn)
-			LineInputWstr Fn, pBuff, FileSize
-			If StartsWith(*pBuff, "sdk.dir=") Then
-				SDKDir = Replace(Replace(Mid(*pBuff, 9), "\\", "\"), "\:", ":")
-				Exit Do
-			End If
-		Loop
-		CloseFile_(Fn)
 		If SDKDir = "" Then
 			ShowMessages ML("Sdk.dir not specified in file local.properties!")
 			Exit Sub
 		End If
-		If Not FileExists(ProjectFileName & "/app/build.gradle") Then
-			ShowMessages ML("File") & " " & ProjectFileName & "/app/build.gradle " & ML("not found") & "!"
+		If Not FileExists(AndroidFolder & "/app/build.gradle") Then
+			ShowMessages ML("File") & " " & AndroidFolder & "/app/build.gradle " & ML("not found") & "!"
 			Exit Sub
 		End If
-		Fn = FreeFile_
-		Open ProjectFileName & "/app/build.gradle" For Input As #Fn
+		Dim As Integer Fn = FreeFile_
+		Open AndroidFolder & "/app/build.gradle" For Input As #Fn
 		Dim applicationId As String
 		FileSize = LOF(Fn)
 		WReAllocate(pBuff, FileSize)
@@ -13081,7 +13702,12 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 				ChDir(GetFolderName(*ExeFileName))
 				Dim As UString CommandLine
 				If EndsWith(*ExeFileName, ".html") Then
-					CommandLine = "http://localhost:8000/" & GetFileName(*ExeFileName)
+					If Not StartWebPageServer(GetFolderName(*ExeFileName)) Then
+						ThreadsEnter()
+						ShowMessages(Time & ": " & ML("Unable to start the web server at http://localhost:8000/ (the port is used by another program)"))
+						ThreadsLeave()
+					End If
+					CommandLine = "xdg-open http://localhost:8000/" & GetFileName(*ExeFileName)
 				Else
 					Dim As ToolType Ptr Tool
 					Dim As Integer Idx = pTerminals->IndexOfKey(*CurrentTerminal)
@@ -13102,8 +13728,13 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			End If
 			WDeAllocate(Arguments)
 			ThreadsEnter()
-			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-			CheckProfiler GetFolderName(*ExeFileName), *ExeFileName
+			'xdg-open returns at once: its exit code is not the one of the web application
+			If EndsWith(*ExeFileName, ".html") Then
+				ShowMessages(Time & ": " & ML("Opened in browser"))
+			Else
+				ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+				CheckProfiler GetFolderName(*ExeFileName), *ExeFileName
+			End If
 			ThreadsLeave()
 			'EndIf
 			'i_retcode = g_spawn_command_line_sync(ToUTF8(build_create_shellscript(GetFolderName(*ExeFileName), *ExeFileName, False)), NULL, NULL, @i_exitcode, NULL)
@@ -13114,6 +13745,9 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			Dim As WString Ptr Workdir, CmdL
 			Dim As ULong ExitCode
 			If EndsWith(*ExeFileName, ".html") Then
+				If Not StartWebPageServer(GetFolderName(*ExeFileName)) Then
+					ShowMessages(Time & ": " & ML("Unable to start the web server at http://localhost:8000/ (the port is used by another program)"))
+				End If
 				WLet(CmdL, "explorer http://localhost:8000/" & GetFileName(*ExeFileName))
 			Else
 				WLet(CmdL, """" & *ExeFileName & """ " & *RunArguments)
@@ -13246,8 +13880,13 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 					prun = False
 					Result = ExitCode
 					'Result = Shell(Debugger & """" & *ExeFileName + """")
-					ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
-					CheckProfiler *Workdir, *ExeFileName
+					'explorer returns 1 after it opened the URL: its exit code is not the one of the web application
+					If EndsWith(*ExeFileName, ".html") Then
+						ShowMessages(Time & ": " & ML("Opened in browser"))
+					Else
+						ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+						CheckProfiler *Workdir, *ExeFileName
+					End If
 				Else
 					Result = GetLastError()
 					ShowMessages(Time & ": " & ML("Application do not run. Error code") & ": " & Result & " - " & GetErrorString(Result))

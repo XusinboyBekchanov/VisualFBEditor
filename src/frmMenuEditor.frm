@@ -354,7 +354,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 			If CurrentToolBar Then
 				Dim As BitmapType AddButton
 				AddButton.LoadFromResourceName("UserControl")
-				#ifdef __USE_GTK__
+				#ifndef __USE_WINAPI__
 					
 				#else
 					.DrawTransparent ScaleX(Rects(RectsCount).Left + IIf(IsToolBarList, 3, (Rects(RectsCount).Right - Rects(RectsCount).Left - BitmapWidth) / 2)), ScaleY(Rects(RectsCount).Top + IIf(Rects(RectsCount).Bottom - Rects(RectsCount).Top - 6 < BitmapHeight, 3, 3)), AddButton.Handle

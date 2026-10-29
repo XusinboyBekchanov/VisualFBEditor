@@ -13,7 +13,15 @@
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
-#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
+#if defined(__USE_WASM__) OrElse defined(__FB_JS__)
+	'Web: the page is next to Resources and Settings like the executable. -Wl gives emcc the files of the virtual file system
+	'(ExePath is empty on the Web, so the settings are read from /Settings). The headers and the sources of MyFbFramework
+	'(not its subfolders) are read by LoadToolBox: without them the toolbox has only the cursors of its groups.
+	'WebIDE_lib.js: the functions of the page of the IDE (CompileOnWebServer)
+	#cmdline "-s gui -x ../VisualFBEditor.html -Wl --js-library,WebIDE_lib.js,--preload-file,../Settings@/Settings,--preload-file,../Templates@/Templates,--preload-file,../Controls/MyFbFramework/Settings.ini@/Controls/MyFbFramework/Settings.ini,--preload-file,../Controls/MyFbFramework/mff@/Controls/MyFbFramework/mff,--exclude-file,*Android?Project*,--exclude-file,*/mff/*/*"
+#elseif defined(__USE_JNI__) OrElse defined(__FB_ANDROID__)
+	'Android: the name of the output (the library of the Android project) is the one of the command line
+#elseif defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#cmdline "-x ../VisualFBEditor64.exe"
 	#else
@@ -57,6 +65,20 @@
 	#endif
 #endif
 
+#if defined(__USE_JNI__) OrElse defined(__FB_ANDROID__)
+	'Android: the Java package of mffActivity in the Android project of the IDE (Android/app/src/main/java)
+	#ifndef Package
+		#define Package com_visualfbeditor_ide
+	#endif
+	'The folder of the program is a folder of the system: the files of the IDE (Settings, Templates, ...) are the asset
+	'mffapp.zip of the APK which mffActivity copies to the folder of the app (MFF_APPDIR) before the library is loaded
+	Function AndroidExePath() As String
+		Return Environ("MFF_APPDIR")
+	End Function
+	#undef ExePath
+	#define ExePath AndroidExePath()
+#endif
+
 #define APP_TITLE "Visual FB Editor"
 #define VER_MAJOR "1"
 #define VER_MINOR "3"
@@ -66,7 +88,9 @@ Const VERSION    = VER_MAJOR + "." + VER_MINOR + "." + VER_PATCH
 Const BUILD_DATE = __DATE__
 Const SIGN       = APP_TITLE + " " + VERSION
 
-On Error Goto AA
+#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
+	On Error Goto AA
+#endif
 
 #define MEMCHECK 0
 #define FILENUMCHECK 1
@@ -74,6 +98,15 @@ On Error Goto AA
 
 Declare Sub DebugPrint_(ByRef MSG As WString)
 
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
+	'Web and Android: the designer has no library of MyFbFramework to load, it creates the controls of the program
+	'(the procedures of mff.bi and the ones of the units which __EXPORT_PROCS__ gives)
+	#define __EXPORT_PROCS__
+#endif
+#ifdef __USE_WASM__
+	'Web: Dir which finds the files and folders of the virtual file system
+	#include once "WebDir.bi"
+#endif
 #include once "mff/SysUtils.bi"
 #include once "mff/Regex.bi"
 #include once "Main.bi"
@@ -92,6 +125,10 @@ Declare Sub DebugPrint_(ByRef MSG As WString)
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#include once "mff/mff.bi"
+	#include once "DesignerStatic.bi"
+#endif
 
 Sub DebugPrint_(ByRef msg As WString)
 	Debug.Print msg, True, False, False, False
@@ -403,7 +440,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "SaveSession":                         SaveSession
 	Case "CloseFolder":                         CloseFolder GetParentNode(ptvExplorer->SelectedNode)
 	Case "CloseProject":                        CloseProject GetParentNode(ptvExplorer->SelectedNode)
-	Case "New":                                 Dim As TabWindow Ptr tb = AddTab(ExePath & "/Templates/Files/Module.bas", False) : If tb <> 0 Then tb->FileName = ML("Untitled") : tb->Caption = tb->FileName + "*"
+	Case "New":                                 AddTab ExePath & "/Templates/Files/Module.bas", True 'A new file: "Untitled*" in the tab, the tree and the Window menu
 	Case "Open":                                OpenProgram
 	Case "Save":                                Save
 	Case "Print":                               PrintThis
@@ -454,6 +491,21 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					DrawMenuBar pApp->Forms[i]->Handle
 				End If
 			Next i
+		#elseif defined(__USE_WASM__)
+			'the rulers of the designers are drawn with the colors of the mode
+			For jj As Integer = 0 To TabPanels.Count - 1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+				For i As Integer = 0 To ptabCode->TabCount - 1
+					Var tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+					If tb <> 0 Then tb->rulH.Repaint: tb->rulV.Repaint
+				Next
+			Next
+		#elseif defined(__USE_JNI__)
+			'Android: the views made before keep the colors of the theme, the IDE starts again with the new one
+			iniSettings.WriteBool("Options", "DarkMode", DarkMode)
+			If MsgBox(ML("Restart the IDE now to apply the dark mode to all windows?"), , mtQuestion, btYesNo) = mrYes Then
+				If CloseSession Then RestartApplication
+			End If
 		#endif
 	Case "UseDirect2D":                         frmMain.UpdateLock: UseDirect2D = tbtUseDirect2D->Checked: frmMain.Repaint: frmMain.UpdateUnLock
 	Case "ProjectExplorer":                     tpProject->SelectTab: txtExplorer.SetFocus
@@ -487,9 +539,16 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "ShowWithFolders":                     ChangeFolderType ProjectFolderTypes.ShowWithFolders
 	Case "ShowWithoutFolders":                  ChangeFolderType ProjectFolderTypes.ShowWithoutFolders
 	Case "ShowAsFolder":                        ChangeFolderType ProjectFolderTypes.ShowAsFolder
+	#ifdef __USE_WASM__
+		'Web: ThreadCreate of the runtime of the Web does not run the procedure. The compilation (on the server,
+		'CompileOnWebServer) runs here and waits for the answer (ASYNCIFY)
+	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then SyntaxCheck 0
+	Case "CompileAll", "Compile":               If SaveAllBeforeCompile Then CompileProgram 0
+	#else
 	Case "SyntaxCheck":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@SyntaxCheck))
 	Case "CompileAll":                          If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAll))
 	Case "Compile":                             If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileProgram))
+	#endif
 	Case "Make":                                If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@MakeExecute))
 	Case "MakeClean":                           If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@MakeClean))
 	Case "BuildBundle":                         If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileBundle))
@@ -516,6 +575,26 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "GDBCommand":                          GDBCommand
 	Case "LocateProcedure":                     proc_loc
 	Case "EnableDisable":                       proc_enable
+	#ifdef __USE_WIN32_COMPAT__
+		'Web and Android: the compiler and the debugger cannot be started
+	#ifdef __USE_WASM__
+		'Web: Start With Compile compiles on the server (CompileOnWebServer), which gives the page of the program
+	Case "StartWithCompile":                    If SaveAllBeforeCompile Then CompileAndRun 0
+	Case "Start", "Restart"
+		'The page of the main file (Set as Start Up), a main file which was not compiled is compiled first
+		Dim As ProjectElement Ptr WebProject
+		Dim As TreeNode Ptr WebProjectNode
+		If RunWebPage(ToUtf8(GetMainFile(False, WebProject, WebProjectNode))) = 0 AndAlso SaveAllBeforeCompile Then CompileAndRun 0
+	Case "Break", "End", "StepInto", "StepOver"
+	#elseif defined(__USE_JNI__)
+		'Android: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer)
+	Case "StartWithCompile", "Start", "Restart":  If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAndRun))
+	Case "Break", "End", "StepInto", "StepOver"
+	#else
+	Case "StartWithCompile", "Start", "Break", "End", "Restart", "StepInto", "StepOver"
+	#endif
+		MsgBox ML("Compiling and running are not available on this platform yet.")
+	#else
 	Case "StartWithCompile"
 		ClearThreadsWindow
 		If SaveAllBeforeCompile Then
@@ -649,6 +728,16 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			'SetFocus(richeditcur)
 		#endif
 	Case "End":
+		'A compilation in progress: its processes are terminated, Compile ends after them (CompileJob of Main.bas)
+		If CompileRunning Then
+			CompileStopped = True
+			#ifndef __USE_GTK__
+				If CompileJob <> 0 Then TerminateJobObject(CompileJob, 1)
+			#elseif defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+				If CompilePid > 0 Then kill_(-CompilePid, 15)
+			#endif
+			Exit Select
+		End If
 		Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
 		If CurrentDebugger = IntegratedGDBDebugger Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -766,6 +855,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				ThreadCounter(ThreadCreate_(@StartDebugging))
 			End If
 		End If
+	#endif
 	Case "AIRelease"
 		AIRelease
 	Case "AINewChat"
@@ -903,6 +993,10 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English") & !"\r\n" & "```MARKDOWN" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 			
+		#ifdef __USE_WIN32_COMPAT__
+		Case "SetNextStatement", "ShowVar", "StepOut", "RunToCursor", "AddWatch"
+			MsgBox ML("Debugging is not available on this platform.")
+		#else
 		Case "SetNextStatement":
 			ClearThreadsWindow
 			Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
@@ -980,6 +1074,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			'#ifndef __USE_GTK__
 			var_tip(2)
 			'#endif
+		#endif
 		Case "FindNext":                    pfFind->Find(True)
 		Case "FindPrev":                    pfFind->Find(False)
 		Case "Goto":                        pfGoto->Show *pfrmMain : pfGoto->CenterToParent
@@ -1254,6 +1349,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "Options":                         pfOptions->Show *pfrmMain : pfOptions->CenterToParent
 	Case "AddIns":                          pfAddIns->Show *pfrmMain : pfAddIns->CenterToParent
 	Case "Tools":                           pfTools->Show *pfrmMain : pfTools->CenterToParent
+	#if Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__)
+	Case "WebIDEServer":                    StartWebIDEServer True
+	#endif
 	Case "Content":                         ThreadCounter(ThreadCreate_(@RunHelp))
 	Case "FreeBasicForums":                 OpenUrl "https://www.freebasic.net/forum/index.php"
 	Case "FreeBasicWiKi":                   OpenUrl "https://www.freebasic.net/wiki/wikka.php?wakka=PageIndex"
@@ -1273,9 +1371,17 @@ End Sub
 pApp->MainForm = @frmMain
 pApp->Run
 
-End
+#ifdef __USE_JNI__
+	'Android: App.Run returns at once, the activity creates the main form later (onCreate). End would close the process
+	Goto EndOfMainCode
+#else
+	End
+#endif
 AA:
 MsgBox ErrDescription(Err) & " (" & Err & ") " & _
 "in line " & Erl() & " (Handler line: " & __LINE__ & ") " & _
 "in function " & ZGet(Erfn()) & " (Handler function: " & __FUNCTION__ & ") " & _
 "in module " & ZGet(Ermn()) & " (Handler file: " & __FILE__ & ") "
+#ifdef __USE_JNI__
+	EndOfMainCode:
+#endif

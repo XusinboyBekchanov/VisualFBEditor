@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The days of MonthCalendar (values-v23/mff_styles.xml): the selected day is "activated" -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_activated="true" android:color="?android:attr/textColorPrimaryInverse" />
+    <item android:state_enabled="false" android:color="?android:attr/textColorTertiary" />
+    <item android:color="?android:attr/textColorPrimary" />
+</selector>

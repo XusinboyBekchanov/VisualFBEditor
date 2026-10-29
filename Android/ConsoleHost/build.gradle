@@ -1,0 +1,18 @@
+// The console of the Android IDE: the Web IDE Server (WebCompile of TabWindow.bas) compiles a program without an
+// Android project as an executable (app/src/main/jniLibs/<ABI>/libconsole-app.so) and makes the APK of this project
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "com.android.tools.build:gradle:4.1.1"
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}

@@ -748,7 +748,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(2) = FilePath
 						If OnlyIcons AndAlso Image <> "ICON" Then
-							#ifndef __USE_GTK__
+							#ifdef __USE_WINAPI__
 								lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->State = LVIS_CUT
 							#endif
 						End If
