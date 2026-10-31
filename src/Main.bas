@@ -1012,6 +1012,9 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 				Return IIf(InStr(CompileWith, "-dll") + InStr(CompileWith, "-lib") > 0, "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", IIf(InStr(CompileWith, "-lib"), ".o", ""))
 			End If
 		#else
+			#ifdef __USE_APPLE__
+				Return Left(pFileName, Pos1 - 1)
+			#endif
 			If InStr(CompileWith, "-target js-asmjs") Then
 				Return Left(pFileName, Pos1 - 1) & ".html"
 			ElseIf InStr(CompileWith, "-target ") Then
@@ -1758,6 +1761,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
 			'MyFbFramework of the IDE: the compilation runs in the folder of the program
 			PipeNoLog &= " -i """ & *MFFPathC & """"
+			'The settings of the IDE can have the paths of Windows; \" would hide the end of a path from the shell
+			PipeNoLog = Replace(PipeNoLog, "\", "/")
 			WLet(PipeCommand, PipeNoLog & LogPart)
 			CompileCommands.Add "", *PipeCommand
 			Dim As UString FbcRoot = *FbcExe
@@ -1765,7 +1770,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				Var PosBin = InStrRev(FbcRoot, "/bin/")
 				If PosBin > 0 Then FbcRoot = Mid(FbcRoot, 1, PosBin - 1)
 			End Scope
-			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & *MFFPathC & IIf(ForIOS, "/mff/UIKit/build.sh"" """, "/mff/Cocoa/build.sh"" """) & MainNoExt & ".c"" """ & *ExeName & """ """ & FbcRoot & IIf(ForIOS, "-ios", "") & """"
+			'The program is next to its main file (the compilation runs in that folder); of the Simulator: in its bundle
+			Dim As UString ExeBase = CurDir & "/" & MainNoExt
+			WLet(ExeName, ExeBase & IIf(ForIOS, ".app/" & MainNoExt, ""))
+			Dim As UString BuildScript = Replace(*MFFPathC, "\", "/") & IIf(ForIOS, "/mff/UIKit/build.sh", "/mff/Cocoa/build.sh")
+			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & BuildScript & """ """ & MainNoExt & ".c"" """ & ExeBase & """ """ & FbcRoot & IIf(ForIOS, "-ios", "") & """"
 		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)

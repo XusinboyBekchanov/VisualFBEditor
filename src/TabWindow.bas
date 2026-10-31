@@ -13358,7 +13358,7 @@ End Sub
 		Dim As String Result = "result=" & IIf(CompileResult, "1", "0") & Chr(10)
 		#ifdef __USE_COCOA__
 			If CompileResult <> 0 AndAlso AppleRun Then
-				Dim As UString AppFile = Replace(GetFullPath(GetExeFileName(MainFileName, " " & CompileOptions), MainFileName), "\", "/")
+				Dim As UString AppFile = GetFolderName(MainFileName) & GetFileName(MainFileName, False)
 				Shell "xcrun simctl install booted '" & AppFile & ".app' && xcrun simctl launch booted 'com.myfbframework." & GetFileName(AppFile) & "'"
 			End If
 		#endif
