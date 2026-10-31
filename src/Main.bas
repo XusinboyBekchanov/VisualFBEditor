@@ -1352,6 +1352,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'Web: the browser can not start the compiler, the server compiles the files of the project
 			If Not CompileOnWebServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine) Then CompileResult = 0
 			Continue For
+		#elseif defined(__USE_UIKIT__)
+			'iOS does not allow a program to start another one: a compiler can not run on the iPhone
+			ThreadsEnter()
+			ShowMessages(Str(Time) & ": " & ML("The compiler can not run on iOS"))
+			ThreadsLeave()
+			CompileResult = 0
+			Continue For
 		#elseif defined(__USE_JNI__)
 			'Android: the server compiles the files of the project with Use > JNI
 			If Not CompileOnAndroidServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine, Project <> 0 OrElse FileExists(*ProjectPath & "/Android/app/build.gradle")) Then CompileResult = 0
@@ -1412,6 +1419,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Else
 			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
 		End If
+		#ifdef __USE_COCOA__
+			'macOS: the compiler next to the IDE (the package of the IDE) when Settings > Compilers has none
+			If *FbcExe = "" OrElse Not FileExists(*FbcExe) Then
+				If FileExists(ExePath & "/Compilers/fbc/bin/fbc") Then WLet(FbcExe, ExePath & "/Compilers/fbc/bin/fbc")
+			End If
+		#endif
 		If *FbcExe = "" Then
 			ThreadsEnter()
 			ShowMessages ML("Invalid defined compiler path.")
@@ -1688,7 +1701,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Integer Result = -1
 		Dim Buff As ZString * 2048 ' for V1.07 Line Input not working fine
 		Dim As WString Ptr ErrLinePtr
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 			WAdd(PipeCommand, " 2> """ + *LogFileName2 + """")
 		#else
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
@@ -1701,6 +1714,36 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Dictionary CompileCommands
 		'Use > JNI: the gcc, as and ld of the NDK (their beginning) for each command of fbc, Gradle is the last command
 		Dim As WStringList JNIToolPrefixes
+		#ifdef __USE_COCOA__
+			'macOS: fbc makes the C code of the program, then clang builds it with the host of AppKit (mff/Cocoa/build.sh).
+			'The compiler is in <folder>/bin, the runtime of FreeBASIC in <folder>/lib/freebasic/darwin-*
+			Dim As UString MainNoExt = *MainFileNameOnly
+			Scope
+				Var PosDot = InStrRev(MainNoExt, ".")
+				If PosDot > 0 Then MainNoExt = Left(MainNoExt, PosDot - 1)
+			End Scope
+			Dim As UString PipeNoLog = *PipeCommand
+			WAdd(PipeCommand, "")
+			Dim As Long PosLog = InStrRev(*PipeCommand, " 2> ")
+			Dim As UString LogPart = IIf(PosLog > 0, Mid(*PipeCommand, PosLog), "")
+			If PosLog > 0 Then PipeNoLog = Left(*PipeCommand, PosLog - 1)
+			'-e, -ex and -exx generate computed gotos, which clang does not accept in the C code of fbc
+			For iOpt As Integer = 0 To 2
+				Dim As String ErrorOption = IIf(iOpt = 0, " -exx ", IIf(iOpt = 1, " -ex ", " -e "))
+				If InStr(PipeNoLog & " ", ErrorOption) > 0 Then
+					PipeNoLog = RTrim(Replace(PipeNoLog & " ", ErrorOption, " "))
+					ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported on macOS and was removed"))
+				End If
+			Next
+			If InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
+			If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
+			If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
+			If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
+			WLet(PipeCommand, PipeNoLog & LogPart)
+			CompileCommands.Add "", *PipeCommand
+			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & *MFFPathC & "/mff/Cocoa/build.sh"" """ & MainNoExt & ".c"" """ & *ExeName & """ """ & GetFolderName(GetFolderName(Left(*FbcExe, Len(*FbcExe) - 1))) & """"
+		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
 			Var Pos1 = InStrRev(*MainFileNameOnly, ".")
@@ -1909,6 +1952,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
+		#endif
 		Dim As UShort bFlagErr
 		Dim As Double CompileElapsedTime = Timer
 		'A makefile or batch file decides itself where the executable goes, so its exit code tells if the build succeeded
@@ -2008,9 +2052,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End If
 			Dim As String TmpStrKey = "@freebasic compiler@copyright@standalone@target@backend@compiling@compiling rc@compiling rc failed@compiling c@assembling@linking@obj@creating@restarting@creating import library@archiving@"
 			Dim As WString * 2048 TmpStr
-			#ifdef __USE_GTK__
+			#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 				Dim As Integer Fn = FreeFile_
-				#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+				#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__) AndAlso Not defined(__USE_COCOA__)
 					'The command runs in its own process group (setsid) whose id it writes first: End terminates the
 					'group with all the processes of the command (fbc -> gcc, emcc -> python -> clang)
 					Dim As UString Script = "echo __VFBE_PID__$$; " & *PipeCommand
@@ -2019,7 +2063,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
-						#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+						#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__) AndAlso Not defined(__USE_COCOA__)
 							If StartsWith(Buff, "__VFBE_PID__") Then
 								CompilePid = Val(Mid(Buff, 13))
 								'End was pressed before the group was known
@@ -2267,7 +2311,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If CompileStopped Then Yaratilmadi = True
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 			Dim Fn As Integer = FreeFile_
 			Result = -1
 			Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
@@ -7711,7 +7755,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
-		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+		'macOS, iOS: the handle of MyFbFramework is only a mark (it is in the program of the IDE, LoadToolBox)
+		#ifndef __USE_APPLE__
+			If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+		#endif
 	Next i
 	Exit Sub
 	ErrorHandler:

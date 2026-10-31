@@ -13673,7 +13673,22 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 		If CmdL Then _Deallocate(CmdL)
 	Else
 		WLet(ExeFileName, (GetExeFileName(MainFile, CompileLine & " " & FirstLine)))
-		#ifdef __USE_GTK__
+		#ifdef __USE_COCOA__
+			'macOS: the program runs and the IDE gets its exit code (a thread of the IDE waits here)
+			Dim As WString Ptr Arguments
+			WLet(Arguments, *RunArguments)
+			If ProjectCommandLineArguments <> "" Then WAdd(Arguments, " " & ProjectCommandLineArguments)
+			ChDir(GetFolderName(*ExeFileName))
+			Dim As UString CommandLine = """" & Replace(*ExeFileName, "\", "/") & """ " & *Arguments
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+			ThreadsLeave()
+			Result = Shell(CommandLine)
+			WDeAllocate(Arguments)
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ThreadsLeave()
+		#elseif defined(__USE_GTK__)
 			Dim As GPid pid = 0
 			'		Dim As GtkWidget Ptr win, vte
 			'		win = gtk_window_new(gtk_window_toplevel)
