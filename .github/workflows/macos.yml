@@ -170,6 +170,41 @@ jobs:
           done
           [ $A = 0 ] && [ $B = 0 ]
 
+      # The way of the button Start of the IDE: the IDE opens the file, compiles it and starts it
+      - name: Start in the IDE on the Mac
+        run: |
+          mkdir -p starttest
+          cp Controls/MyFbFramework/examples/Hello.bas starttest/
+          VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT=snapshots/IDEEditor MFF_SNAPSHOT_DELAY=60 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
+          ls starttest | sed 's/^/::notice::/'
+          [ -f starttest/Hello ] || { echo "::error::Start of the IDE made no program"; exit 1; }
+          ls snapshots/StartedByIDE_* > /dev/null || { echo "::error::Start of the IDE did not run the program"; exit 1; }
+
+      # The IDE of the iPhone: it sends the file to the server of the IDE of the Mac, which builds it and starts it
+      - name: Start in the IDE of the Simulator through the server
+        run: |
+          sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c IDEiOS "$RUNNER_TEMP/fbc-ios" > buildios.log 2>&1 || { cat buildios.log; grep -E 'error|ld:|^ *"_' buildios.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
+          cp -R Settings Templates IDEiOS.app/
+          mkdir -p IDEiOS.app/Controls/MyFbFramework iostest
+          cp -R Controls/MyFbFramework/mff Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/resources IDEiOS.app/Controls/MyFbFramework/
+          cp Controls/MyFbFramework/examples/Hello.bas iostest/
+          rm -rf Temp/WebCompile
+          DEVICE=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}')
+          xcrun simctl bootstatus "$DEVICE" -b > /dev/null
+          VFBE_WEB_SERVER=1 MFF_SNAPSHOT=snapshots/Server MFF_SNAPSHOT_DELAY=500 ./VisualFBEditor > ide2.log 2>&1 &
+          IDE=$!
+          sleep 10
+          xcrun simctl install "$DEVICE" IDEiOS.app
+          SIMCTL_CHILD_VFBE_TEST_FILE="$PWD/iostest/Hello.bas" xcrun simctl launch "$DEVICE" com.myfbframework.IDEiOS
+          sleep 8
+          xcrun simctl io "$DEVICE" screenshot snapshots/IDE_iOS_working.png || true
+          for i in $(seq 1 40); do ls -d Temp/WebCompile/*/Hello.app > /dev/null 2>&1 && break; sleep 5; done
+          sleep 12
+          xcrun simctl io "$DEVICE" screenshot snapshots/Hello_started_by_iOS_IDE.png || true
+          kill $IDE || true
+          ls -d Temp/WebCompile/*/Hello.app || { echo "::error::The IDE of the Simulator did not compile through the server"; tail -n 15 ide2.log | sed 's/^/::error::/'; exit 1; }
+          echo "::notice::The IDE of the Simulator compiled through the server"
+
       - name: Package
         if: success()
         run: |

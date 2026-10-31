@@ -13690,6 +13690,19 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
+	#ifdef __USE_APPLE__
+		'The test of Start of the IDE (.github/workflows/macos.yml): the file is opened, compiled and started like with the
+		'button; the program saves its windows as VFBE_TEST_RUN_SNAPSHOT
+		If Environ("VFBE_TEST_FILE") <> "" Then
+			If Environ("VFBE_TEST_RUN_SNAPSHOT") <> "" Then
+				SetEnviron "MFF_SNAPSHOT=" & Environ("VFBE_TEST_RUN_SNAPSHOT")
+				SetEnviron "MFF_SNAPSHOT_DELAY=3"
+			End If
+			OpenFiles Environ("VFBE_TEST_FILE")
+			ThreadCounter(ThreadCreate_(@CompileAndRun))
+			Exit Sub
+		End If
+	#endif
 	Select Case WhenVisualFBEditorStarts
 	Case 3:
 		Select Case LastOpenedFileType
