@@ -171,6 +171,12 @@ jobs:
           [ $A = 0 ] && [ $B = 0 ]
 
       # The way of the button Start of the IDE: the IDE opens the file, compiles it and starts it
+      # A form in the designer of the IDE: the controls and the list of the properties
+      - name: The designer in the IDE on the Mac
+        run: |
+          VFBE_TEST_OPEN="$PWD/Examples/Add-In/Form1.frm" MFF_SNAPSHOT="$PWD/snapshots/IDEDesigner" MFF_SNAPSHOT_DELAY=25 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > designer.log 2>&1 || { tail -n 15 designer.log | sed 's/^/::warning::/'; }
+          ls snapshots/IDEDesigner_* > /dev/null || echo "::warning::The designer made no picture"
+
       - name: Start in the IDE on the Mac
         run: |
           mkdir -p starttest

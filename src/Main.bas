@@ -1724,9 +1724,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		#endif
 		'If Parameter <> "Check" Then
-		ThreadsEnter()
-		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
-		ThreadsLeave()
+		#ifndef __USE_COCOA__
+			ThreadsEnter()
+			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+			ThreadsLeave()
+		#endif
 		'End If
 		Dim As Dictionary CompileCommands
 		'Use > JNI: the gcc, as and ld of the NDK (their beginning) for each command of fbc, Gradle is the last command
@@ -1764,6 +1766,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'The settings of the IDE can have the paths of Windows; \" would hide the end of a path from the shell
 			PipeNoLog = Replace(PipeNoLog, "\", "/")
 			WLet(PipeCommand, PipeNoLog & LogPart)
+			ThreadsEnter()
+			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+			ThreadsLeave()
 			CompileCommands.Add "", *PipeCommand
 			Dim As UString FbcRoot = *FbcExe
 			Scope
@@ -9570,6 +9575,11 @@ tbForm.Buttons.Add tbsSeparator
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 150)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 150)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 110)
+#elseif defined(__USE_UIKIT__)
+	'iPhone: the panels leave the place to the editor
+	tabLeftWidth = 110
+	tabRightWidth = 110
+	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 110)
 #else
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 200)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 200)
@@ -13567,9 +13577,13 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#else
 		#define PANELS_CLOSED False
 	#endif
-	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
+	#ifndef __USE_UIKIT__
+		tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
+	#endif
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", PANELS_CLOSED)
-	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
+	#ifndef __USE_UIKIT__
+		tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
+	#endif
 	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", PANELS_CLOSED)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", tabBottomHeight)
 	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", PANELS_CLOSED)
@@ -13693,6 +13707,11 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#ifdef __USE_APPLE__
 		'The test of Start of the IDE (.github/workflows/macos.yml): the file is opened, compiled and started like with the
 		'button; the program saves its windows as VFBE_TEST_RUN_SNAPSHOT
+		'VFBE_TEST_OPEN: the form is only opened in the designer
+		If Environ("VFBE_TEST_OPEN") <> "" Then
+			OpenFiles Environ("VFBE_TEST_OPEN")
+			Exit Sub
+		End If
 		If Environ("VFBE_TEST_FILE") <> "" Then
 			OpenFiles Environ("VFBE_TEST_FILE")
 			ThreadCounter(ThreadCreate_(@CompileAndRun))
@@ -13780,7 +13799,7 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	End If
 	If bSharedFind Then
 		Select Case WhenVisualFBEditorStarts
-		Case 1: If (Not bFileOpening) AndAlso Environ("VFBE_TEST_FILE") = "" Then NewProject 'pfTemplates->ShowModal
+		Case 1: If (Not bFileOpening) AndAlso Environ("VFBE_TEST_FILE") = "" AndAlso Environ("VFBE_TEST_OPEN") = "" Then NewProject 'pfTemplates->ShowModal
 		Case 2: If Not bFileOpening Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
 			'Select Case LastOpenedFileType
@@ -13810,7 +13829,10 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'			OpenFiles GetFullPath(*RecentFiles)
 	'		End Select
 	'	End If
-	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
+	'iPhone: the tips of the desktop do not fit on the screen
+	#ifndef __USE_UIKIT__
+		If ShowTipoftheDay AndAlso Environ("VFBE_TEST_FILE") = "" AndAlso Environ("VFBE_TEST_OPEN") = "" Then frmTipOfDay.ShowModal *pfrmMain
+	#endif
 	
 End Sub
 
