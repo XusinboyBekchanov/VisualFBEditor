@@ -53,6 +53,17 @@ jobs:
           fi
           mv src/compiler/*.c "$GITHUB_WORKSPACE/build/fbc/"
 
+      - name: C code of the IDE and of fbc for a Mac with Intel
+        run: |
+          FBC="$RUNNER_TEMP/fbc/bin/fbc"
+          mkdir -p build/x86_64/fbc
+          cd src
+          "$FBC" -b VisualFBEditor.bas -target darwin-x86_64 -gen gcc -r -d __USE_COCOA__ -i ../Controls/MyFbFramework -i ../Controls/MariaDBBox -i ../Controls/SQLite3 -m VisualFBEditor > fbc.log 2>&1 || { cat fbc.log; grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
+          mv VisualFBEditor.c ../build/x86_64/VisualFBEditor_COCOA.c
+          cd "$RUNNER_TEMP/fbc"
+          bin/fbc src/compiler/*.bas -m fbc -i inc -r -target darwin-x86_64 > fbc.log 2>&1 || { cat fbc.log; grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
+          mv src/compiler/*.c "$GITHUB_WORKSPACE/build/x86_64/fbc/"
+
       - uses: actions/upload-artifact@v4
         with:
           name: ide-c-code
@@ -170,13 +181,13 @@ jobs:
           done
           [ $A = 0 ] && [ $B = 0 ]
 
-      # The way of the button Start of the IDE: the IDE opens the file, compiles it and starts it
       # A form in the designer of the IDE: the controls and the list of the properties
       - name: The designer in the IDE on the Mac
         run: |
           VFBE_TEST_OPEN="$PWD/Examples/Add-In/Form1.frm" MFF_SNAPSHOT="$PWD/snapshots/IDEDesigner" MFF_SNAPSHOT_DELAY=25 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > designer.log 2>&1 || { tail -n 15 designer.log | sed 's/^/::warning::/'; }
           ls snapshots/IDEDesigner_* > /dev/null || echo "::warning::The designer made no picture"
 
+      # The way of the button Start of the IDE: the IDE opens the file, compiles it and starts it
       - name: Start in the IDE on the Mac
         run: |
           mkdir -p starttest
@@ -240,6 +251,88 @@ jobs:
         with:
           name: VisualFBEditor-macos
           path: VisualFBEditor-macos.tar.gz
+          retention-days: 3
+
+  # A Mac with Intel: the same way with its own C code, the package runs from macOS 12
+  macos-intel:
+    needs: c-code
+    runs-on: macos-15-intel
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "12.0"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ide-c-code
+          path: build
+
+      - name: MyFbFramework and the runtime of FreeBASIC
+        run: |
+          git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+          sh Controls/MyFbFramework/mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
+          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=x86_64 > make.log 2>&1; then
+            cat make.log
+            grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      - name: Build the native fbc
+        run: |
+          F="$RUNNER_TEMP/fbc"
+          LIB="$F/lib/freebasic/darwin-x86_64"
+          sh Controls/MyFbFramework/mff/Apple/fix-c-code.sh build/x86_64/fbc/*.c
+          mkdir -p "$F/bin" "$F/include" build/fbcobj
+          for c in build/x86_64/fbc/*.c; do
+            clang -c -O1 -w -fno-strict-aliasing -fwrapv -fno-math-errno "$c" -o "build/fbcobj/$(basename "$c" .c).o" 2> cc.log || { cat cc.log; head -n 15 cc.log | sed 's/^/::error::/'; exit 1; }
+          done
+          clang -o "$F/bin/fbc" "$LIB/fbrt0.o" build/fbcobj/*.o -L"$LIB" -lfbmt -lpthread -lm -lncurses 2> ld.log || { cat ld.log; grep -E 'error|ld:|^ *"_' ld.log | head -n 30 | sed 's/^/::error::/'; exit 1; }
+          ln -sfn ../inc "$F/include/freebasic"
+          "$F/bin/fbc" -version | sed 's/^/::notice::/'
+
+      - name: Build the IDE
+        run: |
+          if ! sh Controls/MyFbFramework/mff/Cocoa/build.sh build/x86_64/VisualFBEditor_COCOA.c VisualFBEditor "$RUNNER_TEMP/fbc" > build.log 2>&1; then
+            cat build.log
+            grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      - name: Start in the IDE
+        run: |
+          mkdir -p Compilers starttest snapshots
+          ln -sfn "$RUNNER_TEMP/fbc" Compilers/fbc
+          cp Controls/MyFbFramework/examples/Hello.bas starttest/
+          VFBE_TEST_LOG="$PWD/start-run.log" VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT="$PWD/snapshots/IDEEditor" MFF_SNAPSHOT_DELAY=90 perl -e 'alarm 180; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
+          if [ -f start-run.log ]; then sed 's/^/::notice::/' start-run.log; else echo "::error::RunPr was not reached"; fi
+          ls snapshots/StartedByIDE_* > /dev/null || { echo "::error::Start of the IDE did not run the program"; tail -n 20 start.log | sed 's/^/::error::/'; exit 1; }
+
+      - name: Package
+        run: |
+          F="$RUNNER_TEMP/fbc"
+          mkdir -p package/Compilers/fbc/bin package/Compilers/fbc/lib/freebasic package/Compilers/fbc/include package/Controls/MyFbFramework
+          cp VisualFBEditor package/
+          cp -R Settings Templates package/
+          [ -d Resources ] && cp -R Resources package/ || true
+          cp -R Controls/MyFbFramework/mff Controls/MyFbFramework/examples Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/resources package/Controls/MyFbFramework/
+          cp "$F/bin/fbc" package/Compilers/fbc/bin/
+          cp -R "$F/inc" package/Compilers/fbc/include/freebasic
+          cp -R "$F/lib/freebasic/darwin-x86_64" package/Compilers/fbc/lib/freebasic/
+          tar czf VisualFBEditor-macos-x86_64.tar.gz -C package .
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ide-intel-snapshots
+          path: snapshots/*.png
+          retention-days: 3
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: VisualFBEditor-macos-x86_64
+          path: VisualFBEditor-macos-x86_64.tar.gz
           retention-days: 3
 
   ios:

@@ -1757,7 +1757,11 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
 			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
 			If (Not ForIOS) AndAlso InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
-			If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
+			#ifdef __FB_ARM__
+				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
+			#else
+				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-x86_64"
+			#endif
 			If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
 			If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
 			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
