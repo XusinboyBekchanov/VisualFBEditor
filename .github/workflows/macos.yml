@@ -28,6 +28,9 @@ jobs:
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
           git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
           make -C "$RUNNER_TEMP/fbc" compiler -j4 > make.log 2>&1 || { tail -n 40 make.log; tail -n 15 make.log | sed 's/^/::error::/'; exit 1; }
+          # The headers where the fbc of the sources looks for them
+          mkdir -p "$RUNNER_TEMP/fbc/include"
+          ln -sfn ../inc "$RUNNER_TEMP/fbc/include/freebasic"
 
       - name: C code of the IDE and of fbc
         run: |
