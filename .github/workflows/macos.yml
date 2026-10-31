@@ -122,8 +122,18 @@ jobs:
             cat run.log
             echo "::error::The IDE failed"
             tail -n 10 run.log | sed 's/^/::error::/'
-            MFF_SNAPSHOT=snapshots/IDE MFF_SNAPSHOT_DELAY=15 perl -e 'alarm 120; exec @ARGV' lldb --batch -o run -k "bt 25" -k "quit 1" -- ./VisualFBEditor > lldb.log 2>&1 || true
-            grep -E 'frame #|stop reason' lldb.log | head -n 26 | cut -c1-200 | sed 's/^/::error::/'
+            # Where the IDE waits (without the snapshots of the test) or where it crashes
+            ./VisualFBEditor > run2.log 2>&1 &
+            PID=$!
+            sleep 40
+            if kill -0 $PID 2>/dev/null; then
+              sample $PID 3 -file sample.txt > /dev/null 2>&1 || true
+              grep -m 40 -E 'VisualFBEditor|mff|runModal' sample.txt | cut -c1-170 | sed 's/^/::error::/'
+              kill $PID
+            else
+              perl -e 'alarm 120; exec @ARGV' lldb --batch -o run -k "bt 25" -k "quit 1" -- ./VisualFBEditor > lldb.log 2>&1 || true
+              grep -E 'frame #|stop reason' lldb.log | head -n 26 | cut -c1-200 | sed 's/^/::error::/'
+            fi
             exit 1
           fi
           ls snapshots/*.png | sed 's/^/::notice::/'
