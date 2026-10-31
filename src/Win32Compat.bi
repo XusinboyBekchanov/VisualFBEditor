@@ -350,7 +350,7 @@ Const SBS_HORZ = 0, SBS_VERT = 1
 Const WS_CHILD = &h40000000, WS_VISIBLE = &h10000000, WS_CLIPSIBLINGS = &h04000000, WS_CLIPCHILDREN = &h02000000
 Const WS_VSCROLL = &h00200000, WS_HSCROLL = &h00100000, WS_TABSTOP = &h00010000, WS_EX_CLIENTEDGE = &h00000200
 Const ES_WANTRETURN = &h1000, CS_DBLCLKS = &h0008, BS_BITMAP = &h0080, BM_SETIMAGE = &h00F7
-#ifdef __USE_WASM__
+#if defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 	#define Instance Cast(HINSTANCE, 0)
 #endif
 Const SW_HIDE = 0, SW_NORMAL = 1, SW_SHOWNORMAL = 1, SW_SHOWNOACTIVATE = 4, SW_SHOW = 5
@@ -575,6 +575,8 @@ Private Function Win32CompatControl(ByVal hwnd As HWND) As My.Sys.Forms.Control 
 	If hwnd = 0 Then Return 0
 	#ifdef __USE_WASM__
 		Return hwnd
+	#elseif defined(__USE_APPLE__)
+		Return mffViewControl(hwnd)
 	#else
 		For i As Integer = 0 To Handles.Count - 1
 			Dim As My.Sys.Forms.Control Ptr Ctrl = Handles.Item(i)
@@ -648,6 +650,8 @@ Private Sub Win32CompatEnableEvents(ByVal hwnd As HWND)
 		SetKeyUpEvent(hwnd)
 		SetGotFocusEvent(hwnd)
 		SetLostFocusEvent(hwnd)
+	#elseif defined(__USE_APPLE__)
+		'The views of the host always give their events
 	#else
 		SetTouchEvent(hwnd)
 		SetKeyEvent(hwnd, False)
@@ -662,6 +666,11 @@ End Sub
 		If Ctrl->DesignMode AndAlso Ctrl->ClassName = "Form" AndAlso Cast(My.Sys.Forms.Form Ptr, Ctrl)->BorderStyle <> FormBorderStyle.None Then Return Ctrl->ScaleY(28)
 		Return 0
 	End Function
+#elseif defined(__USE_APPLE__)
+	'macOS, iOS: a designed form is a plain view in the panel of the designer, without a title bar
+	Private Function Win32CompatCaptionHeight(ByVal Ctrl As My.Sys.Forms.Control Ptr) As Integer
+		Return 0
+	End Function
 #elseif defined(__USE_JNI__)
 	'Android: the view of the designed form is lower than its place by its title bar (Component.DesignCaptionHeight)
 	Private Function Win32CompatCaptionHeight(ByVal Ctrl As My.Sys.Forms.Control Ptr) As Integer
@@ -674,7 +683,7 @@ Private Function Win32CompatScreenPos(ByVal Ctrl As My.Sys.Forms.Control Ptr) As
 	While Ctrl <> 0 AndAlso Ctrl->Parent <> 0
 		P.X += Ctrl->ScaleX(Ctrl->Left)
 		P.Y += Ctrl->ScaleY(Ctrl->Top)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			P.Y += Win32CompatCaptionHeight(Ctrl)
 		#endif
 		Ctrl = Ctrl->Parent
@@ -719,7 +728,7 @@ Private Function GetWindowRect(ByVal hwnd As HWND, ByVal lpRect As Rect Ptr) As 
 	lpRect->Top = P.Y
 	lpRect->Right = P.X + Ctrl->ScaleX(Ctrl->Width)
 	lpRect->Bottom = P.Y + Ctrl->ScaleY(Ctrl->Height)
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The window has its title bar (its Height is the one of the client area)
 		lpRect->Top -= Win32CompatCaptionHeight(Ctrl)
 	#endif
@@ -829,7 +838,7 @@ End Function
 Private Function MoveWindow(ByVal hwnd As HWND, ByVal X As Long, ByVal Y As Long, ByVal nWidth As Long, ByVal nHeight As Long, ByVal bRepaint As BOOL) As BOOL
 	Dim As My.Sys.Forms.Control Ptr Ctrl = Win32CompatControl(hwnd)
 	If Ctrl = 0 Then Return 0
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The height of the window has its title bar (GetWindowRect)
 		nHeight -= Win32CompatCaptionHeight(Ctrl)
 	#endif
@@ -848,7 +857,7 @@ Private Function SetWindowPos(ByVal hwnd As HWND, ByVal hWndInsertAfter As HWND,
 	If (uFlags And SWP_NOMOVE) = 0 OrElse (uFlags And SWP_NOSIZE) = 0 Then
 		Dim As Integer l = Ctrl->Left, t = Ctrl->Top, w = Ctrl->Width, h = Ctrl->Height
 		If (uFlags And SWP_NOMOVE) = 0 Then l = Ctrl->UnScaleX(X): t = Ctrl->UnScaleY(Y)
-		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+		#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 			cy -= Win32CompatCaptionHeight(Ctrl)
 		#endif
 		If (uFlags And SWP_NOSIZE) = 0 Then w = Ctrl->UnScaleX(cx): h = Ctrl->UnScaleY(cy)

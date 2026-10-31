@@ -1028,7 +1028,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The answer of the server (WebCompile of TabWindow.bas) in Messages and Problems: the lines "Name=Value", an empty
 	'line, the output of the compilation, "[problems]" and the problems. Returns the result of the compilation
 	Function ShowWebCompileAnswer(ByRef Parameter As String, ByRef Answer As UString) As Boolean
@@ -3335,7 +3335,7 @@ Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 	Return 0
 End Function
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: Dir of the runtime finds no folders, the folder is opened with the C library
 	Extern "C"
 		Declare Function opendir_ Alias "opendir"(ByVal DirName As ZString Ptr) As Any Ptr
@@ -3345,7 +3345,7 @@ End Function
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
 	If Trim(FolderName)="" Then Return False
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Dim As String sFolderName = ToUtf8(FolderName)
 		Dim As Any Ptr DirPtr = opendir_(StrPtr(sFolderName))
 		If DirPtr = 0 Then Return False
@@ -3784,7 +3784,7 @@ Function SaveAllBeforeCompile() As Boolean
 End Function
 
 Sub PrintThis()
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web: the pages of the code (Document_PrintPage) are printed by the print dialog of the browser (Android: of the system)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -3803,7 +3803,7 @@ Sub PrintPreview()
 End Sub
 
 Sub PageSetup()
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web and Android: the paper and the orientation of Page Setup are the ones of the pages of Print and Print Preview
 		If PageSetupD.Execute Then
 			PrintPreviewD.Document->PrinterSettings.PageSize = PageSetupD.PaperSize
@@ -6843,7 +6843,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
-		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Web and Android: only MyFbFramework, which is in the program of the IDE (the same handle as in Designer.bas)
 			CtlLibrary->Handle = IIf(InStr(LCase(CtlLibrary->Path), "mff"), Cast(Any Ptr, 1), 0)
 			If CtlLibrary->Handle = 0 Then Continue For
@@ -8158,7 +8158,7 @@ Sub LoadSettings
 	DefaultFileFormat = iniSettings.ReadInteger("Options", "DefaultFileFormat", FileEncodings.Utf8BOM)
 	#ifdef __FB_WIN32__
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.WindowsCRLF)
-	#elseif __FB_DARWIN__
+	#elseif defined(__FB_DARWIN__)
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.MacOSCR)
 	#else
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.LinuxLF)
@@ -11549,7 +11549,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		cboPropertyValue.Width = cboPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) + 2
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	End If
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web, Android: the editors have no frames outside of them like on Windows, they are in the cell (the button is square)
 		Dim As Integer iCellWidth = pnlPropertyValue.Width, iCellHeight = pnlPropertyValue.Height
 		cboPropertyValue.SetBounds 0, 0, iCellWidth, iCellHeight
@@ -12942,10 +12942,10 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The margins of Page Setup on the page: Web and Android - the page is in pixels at 96 DPI (Printer.PrintableWidth),
 	'the margins are millimeters
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		#define PrintMargin(m) ((m) * 96 / 25.4)
 	#else
 		#define PrintMargin(m) (m)
@@ -13408,7 +13408,7 @@ tbToolBox.Groups.Item(4)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it
 
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web and Android: there are no compilers to find or to run (the Web IDE Server compiles), the start of the IDE
 		'(new project, default file) goes on
 		Return True
@@ -13722,7 +13722,7 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	
 End Sub
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 		Return FT
 	End Function

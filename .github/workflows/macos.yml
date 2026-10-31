@@ -1,0 +1,86 @@
+name: macos
+
+# The IDE on macOS (AppKit, -d __USE_COCOA__) with the branch apple of MyFbFramework: the C code is made by fbc on Linux, the
+# Mac builds it, starts it next to Settings and Resources and saves its windows as the artifact "ide-snapshots".
+# The errors of a step are shown as annotations too (their text can be read without signing in)
+on:
+  workflow_dispatch:
+  push:
+    branches: [apple]
+
+jobs:
+  c-code:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install FreeBASIC 1.10.1
+        run: |
+          set -e
+          wget -q -O fb.tar.xz "https://downloads.sourceforge.net/project/fbc/FreeBASIC-1.10.1/Binaries-Linux/FreeBASIC-1.10.1-ubuntu-22.04-x86_64.tar.xz"
+          tar xf fb.tar.xz
+          cd FreeBASIC-1.10.1-ubuntu-22.04-x86_64 && sudo ./install.sh -i
+
+      - name: MyFbFramework and the headers of fbc
+        run: |
+          git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+
+      - name: C code of the IDE
+        working-directory: src
+        run: |
+          if ! fbc -b VisualFBEditor.bas -target darwin-aarch64 -gen gcc -r -d __USE_COCOA__ -i "$RUNNER_TEMP/fbc/inc" -i ../Controls/MyFbFramework -i ../Controls/MariaDBBox -i ../Controls/SQLite3 -m VisualFBEditor > fbc.log 2>&1; then
+            cat fbc.log
+            grep -v "warning" fbc.log | head -n 20 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ide-c-code
+          path: src/VisualFBEditor.c
+          retention-days: 3
+
+  macos:
+    needs: c-code
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: ide-c-code
+          path: build
+
+      - name: MyFbFramework and the runtime of FreeBASIC
+        run: |
+          git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
+          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+          sh Controls/MyFbFramework/mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
+          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 > make.log 2>&1; then
+            cat make.log
+            grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      - name: Build
+        run: |
+          if ! sh Controls/MyFbFramework/mff/Cocoa/build.sh build/VisualFBEditor.c VisualFBEditor "$RUNNER_TEMP/fbc" > build.log 2>&1; then
+            cat build.log
+            grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      # alarm: an IDE which hangs does not stop the job
+      - name: Run
+        run: |
+          mkdir -p snapshots
+          MFF_SNAPSHOT=snapshots/IDE MFF_SNAPSHOT_DELAY=15 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > run.log 2>&1 || { cat run.log; echo "::error::The IDE failed"; tail -n 15 run.log | sed 's/^/::error::/'; exit 1; }
+          ls snapshots/*.png | sed 's/^/::notice::/'
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ide-snapshots
+          path: snapshots/*.png
+          retention-days: 3

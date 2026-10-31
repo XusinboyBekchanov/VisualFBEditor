@@ -380,7 +380,7 @@ Declare Function GetAIChatDirectory() As UString
 Declare Function GetUserChangeLogPath(ByRef FileName As WString) As UString
 Declare Function GetUserThemePath(ByRef ThemeName As WString, IsInterfaceTheme As Boolean = False) As UString
 Declare Function GetXY(XorY As Integer) As Integer
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: the time of a file is the one of FileDateTime
 	Type FILETIME As Double
 	Type DATE_ As Double

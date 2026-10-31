@@ -929,7 +929,7 @@ End Property
 Property TabWindow.Caption(ByRef Value As WString)
 	FCaptionNew = _Reallocate(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
-	#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The close button of the tab is a button of its own (Web, Android)
 		Base.Caption = Value
 	#else
@@ -10908,7 +10908,7 @@ Sub tabPanel_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Ne
 	End With
 End Sub
 
-#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 	'Android and Web: the close button of a tab of the code (CloseButton of Windows is over the tab, the TabControl
 	'draws the tabs)
 	Sub tabCode_TabClose(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr)
@@ -10921,7 +10921,7 @@ End Sub
 
 Constructor TabPanel
 	tabCode.Images = @imgList
-	#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+	#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		tabCode.ShowCloseButtons = True
 		tabCode.OnTabClose = @tabCode_TabClose
 	#endif

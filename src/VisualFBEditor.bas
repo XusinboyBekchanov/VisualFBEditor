@@ -13,6 +13,12 @@
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
+#if defined(__USE_COCOA__) OrElse defined(__USE_UIKIT__)
+	'macOS, iOS: the shared code of both (SysUtils.bi of MyFbFramework defines it too, later than the lines below)
+	#ifndef __USE_APPLE__
+		#define __USE_APPLE__
+	#endif
+#endif
 #if defined(__USE_WASM__) OrElse defined(__FB_JS__)
 	'Web: the page is next to Resources and Settings like the executable. -Wl gives emcc the files of the virtual file system
 	'(ExePath is empty on the Web, so the settings are read from /Settings). The headers and the sources of MyFbFramework
@@ -98,7 +104,7 @@ Const SIGN       = APP_TITLE + " " + VERSION
 
 Declare Sub DebugPrint_(ByRef MSG As WString)
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
 	'Web and Android: the designer has no library of MyFbFramework to load, it creates the controls of the program
 	'(the procedures of mff.bi and the ones of the units which __EXPORT_PROCS__ gives)
 	#define __EXPORT_PROCS__
@@ -125,7 +131,7 @@ Declare Sub DebugPrint_(ByRef MSG As WString)
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "mff/mff.bi"
 	#include once "DesignerStatic.bi"
 #endif

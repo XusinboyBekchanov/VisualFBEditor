@@ -8,7 +8,7 @@
 
 #include once "mff/Clipboard.bi"
 #include once "Main.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: the designer compiles its Windows code with the Windows API subset of Win32Compat.bi
 	#ifndef __USE_WIN32_COMPAT__
 		#define __USE_WIN32_COMPAT__
