@@ -1603,7 +1603,9 @@ Namespace My.Sys.Forms
 		End If
 		If OnInsertingControl Then
 			FName = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
+			IsPasting = bStart
 			OnInsertingControl(This, WGet(st->ReadPropertyFunc(Ctrl, "ClassName")), FName)
+			IsPasting = False
 		End If
 		Dim As Integer FLeft, FTop, FWidth, FHeight
 		If st->ComponentGetBoundsSub AndAlso st->Q_ComponentFunc Then st->ComponentGetBoundsSub(st->Q_ComponentFunc(Ctrl), FLeft, FTop, FWidth, FHeight)

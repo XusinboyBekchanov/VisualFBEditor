@@ -3008,6 +3008,22 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 	Else
 		'  for Control Array
 		Dim As Integer CtrlArrayNum = -1
+		Dim As Integer CtrlIndex = tb->cboClass.Items.IndexOf(PrevName)
+		If Sender.IsPasting AndAlso CtrlIndex > 1 AndAlso InStr(PrevName, "(") < 1 Then
+			If MsgBox(ML("You already have a control named") & " """ & PrevName & """." & !"\r" & ML("Do you want to create a control array?"), , mtQuestion, btYesNo) = mrYes Then
+				' The original control becomes the first element of the array
+				Dim As Any Ptr Ctrl = tb->cboClass.Items.Item(CtrlIndex)->Object
+				Dim As UString OldName = PrevName, FirstName = PrevName & "(0)"
+				tb->txtCode.Changing "Unsurni o`zgartirish"
+				tb->ChangeName OldName, FirstName
+				tb->WriteObjProperty(Ctrl, "Name", FirstName)
+				ChangeControl(Sender, Ctrl, "Name")
+				bNotDesignForms = True
+				tb->txtCode.Changed "Unsurni o`zgartirish"
+				bNotDesignForms = False
+				PrevName = FirstName
+			End If
+		End If
 		If InStr(PrevName,"(") < 1 Then
 			Var n = 0
 			Do
