@@ -153,6 +153,7 @@ jobs:
           VFBE_WEB_SERVER=1 MFF_SNAPSHOT=snapshots/Server MFF_SNAPSHOT_DELAY=400 ./VisualFBEditor > ide.log 2>&1 &
           IDE=$!
           H=Controls/MyFbFramework/examples/Hello.bas
+          set +e
           python3 Controls/MyFbFramework/mff/Apple/test-compile-server.py "$H" macos > macos.log; A=$?
           cat macos.log; grep '::error' macos.log || true
           python3 Controls/MyFbFramework/mff/Apple/test-compile-server.py "$H" ios Run > ios.log; B=$?
@@ -162,6 +163,11 @@ jobs:
           kill $IDE || true
           cat ide.log | tail -n 20
           ls Temp/WebCompile/*/ | sed 's/^/::notice::/'
+          # The place of a crash of the IDE
+          for f in ~/Library/Logs/DiagnosticReports/VisualFBEditor*.ips; do
+            [ -f "$f" ] || continue
+            python3 -c "import sys,json;d=open(sys.argv[1]).read().split(chr(10),1)[1];j=json.loads(d);t=[x for x in j['threads'] if x.get('triggered')][0];[print('::error::crash '+f.get('symbol','?')+' +'+str(f.get('symbolLocation',0))) for f in t['frames'][:16]];print('::error::'+str(j.get('exception',{}).get('subtype','')))" "$f"
+          done
           [ $A = 0 ] && [ $B = 0 ]
 
       - name: Package

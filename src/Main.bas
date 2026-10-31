@@ -1756,6 +1756,8 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
 			If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
 			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
+			'MyFbFramework of the IDE: the compilation runs in the folder of the program
+			PipeNoLog &= " -i """ & *MFFPathC & """"
 			WLet(PipeCommand, PipeNoLog & LogPart)
 			CompileCommands.Add "", *PipeCommand
 			Dim As UString FbcRoot = *FbcExe
