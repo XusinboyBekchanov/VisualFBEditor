@@ -175,9 +175,9 @@ jobs:
         run: |
           mkdir -p starttest
           cp Controls/MyFbFramework/examples/Hello.bas starttest/
-          VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT="$PWD/snapshots/IDEEditor" MFF_SNAPSHOT_DELAY=60 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
+          VFBE_TEST_LOG="$PWD/start-run.log" VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT="$PWD/snapshots/IDEEditor" MFF_SNAPSHOT_DELAY=60 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
           ls starttest | sed 's/^/::notice::/'
-          grep RunPr start.log | sed 's/^/::notice::/' || echo "::warning::RunPr was not reached"
+          if [ -f start-run.log ]; then sed 's/^/::notice::/' start-run.log; else echo "::error::RunPr was not reached"; fi
           [ -f starttest/Hello ] || { echo "::error::Start of the IDE made no program"; exit 1; }
           ls snapshots/StartedByIDE_* > /dev/null || { echo "::error::Start of the IDE did not run the program"; exit 1; }
 

@@ -13694,10 +13694,6 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		'The test of Start of the IDE (.github/workflows/macos.yml): the file is opened, compiled and started like with the
 		'button; the program saves its windows as VFBE_TEST_RUN_SNAPSHOT
 		If Environ("VFBE_TEST_FILE") <> "" Then
-			If Environ("VFBE_TEST_RUN_SNAPSHOT") <> "" Then
-				SetEnviron "MFF_SNAPSHOT=" & Environ("VFBE_TEST_RUN_SNAPSHOT")
-				SetEnviron "MFF_SNAPSHOT_DELAY=3"
-			End If
 			OpenFiles Environ("VFBE_TEST_FILE")
 			ThreadCounter(ThreadCreate_(@CompileAndRun))
 			Exit Sub
@@ -13784,7 +13780,7 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	End If
 	If bSharedFind Then
 		Select Case WhenVisualFBEditorStarts
-		Case 1: If Not bFileOpening Then NewProject 'pfTemplates->ShowModal
+		Case 1: If (Not bFileOpening) AndAlso Environ("VFBE_TEST_FILE") = "" Then NewProject 'pfTemplates->ShowModal
 		Case 2: If Not bFileOpening Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
 			'Select Case LastOpenedFileType

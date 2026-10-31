@@ -13718,8 +13718,24 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
 			ThreadsLeave()
+			'The test of Start (.github/workflows/macos.yml): the program saves its windows and ends itself
+			Dim As String TestLog = Environ("VFBE_TEST_LOG")
+			If Environ("VFBE_TEST_RUN_SNAPSHOT") <> "" Then CommandLine = "MFF_SNAPSHOT='" & Environ("VFBE_TEST_RUN_SNAPSHOT") & "' MFF_SNAPSHOT_DELAY=3 " & CommandLine
+			If TestLog <> "" Then
+				Dim As Integer FnLog = FreeFile_
+				If Open(TestLog For Append As #FnLog) = 0 Then
+					Print #FnLog, "RunPr start: " & ToUtf8(CommandLine)
+					CloseFile_(FnLog)
+				End If
+			End If
 			Result = Shell(CommandLine)
-			If Environ("VFBE_TEST_FILE") <> "" Then Print "RunPr: " & ToUtf8(CommandLine) & " -> " & Result
+			If TestLog <> "" Then
+				Dim As Integer FnLog = FreeFile_
+				If Open(TestLog For Append As #FnLog) = 0 Then
+					Print #FnLog, "RunPr end: " & Result
+					CloseFile_(FnLog)
+				End If
+			End If
 			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
