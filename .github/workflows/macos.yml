@@ -107,6 +107,9 @@ jobs:
           sh "$M/mff/Cocoa/build.sh" Hello.c Hello "$F" > build.log 2>&1 || { cat build.log; grep -E 'error|ld:|^ *"_' build.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
           MFF_SNAPSHOT=../snapshots/NativeHello MFF_CLICK="Click me!" perl -e 'alarm 60; exec @ARGV' ./Hello || { echo "::error::The program of the native fbc failed"; exit 1; }
 
+      - name: The runtime of FreeBASIC for the iOS Simulator
+        run: sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc-ios"
+
       - name: Build the IDE
         run: |
           if ! sh Controls/MyFbFramework/mff/Cocoa/build.sh build/VisualFBEditor_COCOA.c VisualFBEditor "$RUNNER_TEMP/fbc" > build.log 2>&1; then
@@ -138,6 +141,29 @@ jobs:
           fi
           ls snapshots/*.png | sed 's/^/::notice::/'
 
+      # The IDE compiles itself: Compile of Main.bas gets the program from its server, for macOS and for the Simulator
+      - name: Compile with the IDE
+        run: |
+          mkdir -p Compilers
+          ln -sfn "$RUNNER_TEMP/fbc" Compilers/fbc
+          ln -sfn "$RUNNER_TEMP/fbc-ios" Compilers/fbc-ios
+          DEVICE=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}')
+          xcrun simctl boot "$DEVICE"
+          xcrun simctl bootstatus "$DEVICE" -b > /dev/null
+          VFBE_WEB_SERVER=1 MFF_SNAPSHOT=snapshots/Server MFF_SNAPSHOT_DELAY=400 ./VisualFBEditor > ide.log 2>&1 &
+          IDE=$!
+          H=Controls/MyFbFramework/examples/Hello.bas
+          python3 Controls/MyFbFramework/mff/Apple/test-compile-server.py "$H" macos > macos.log; A=$?
+          cat macos.log; grep '::error' macos.log || true
+          python3 Controls/MyFbFramework/mff/Apple/test-compile-server.py "$H" ios Run > ios.log; B=$?
+          cat ios.log; grep '::error' ios.log || true
+          sleep 6
+          xcrun simctl io "$DEVICE" screenshot snapshots/IOS_from_server.png || true
+          kill $IDE || true
+          cat ide.log | tail -n 20
+          ls Temp/WebCompile/*/ | sed 's/^/::notice::/'
+          [ $A = 0 ] && [ $B = 0 ]
+
       - name: Package
         if: success()
         run: |
@@ -150,6 +176,8 @@ jobs:
           cp "$F/bin/fbc" package/Compilers/fbc/bin/
           cp -R "$F/inc" package/Compilers/fbc/include/freebasic
           cp -R "$F/lib/freebasic/darwin-aarch64" package/Compilers/fbc/lib/freebasic/
+          mkdir -p package/Compilers/fbc-ios/lib/freebasic
+          cp -R "$RUNNER_TEMP/fbc-ios/lib/freebasic/darwin-aarch64" package/Compilers/fbc-ios/lib/freebasic/
           tar czf VisualFBEditor-macos.tar.gz -C package .
 
       - uses: actions/upload-artifact@v4

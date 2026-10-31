@@ -592,8 +592,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Dim As TreeNode Ptr WebProjectNode
 		If RunWebPage(ToUtf8(GetMainFile(False, WebProject, WebProjectNode))) = 0 AndAlso SaveAllBeforeCompile Then CompileAndRun 0
 	Case "Break", "End", "StepInto", "StepOver"
-	#elseif defined(__USE_JNI__)
-		'Android: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer)
+	#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'Android, iOS: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer);
+		'macOS: the IDE compiles and starts it itself
 	Case "StartWithCompile", "Start", "Restart":  If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAndRun))
 	Case "Break", "End", "StepInto", "StepOver"
 	#else

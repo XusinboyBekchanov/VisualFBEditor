@@ -1106,7 +1106,8 @@ End Function
 	End Function
 #endif
 
-#ifdef __USE_JNI__
+#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
+	'iOS: the same through the server of the IDE on the Mac, with "target ios": the Simulator shares localhost with it
 	'Android: the IDE can not start the compiler. The files of the project are sent with POST /compile to the Web IDE
 	'Server of the desktop IDE (Service > Web IDE Server, WebCompile of TabWindow.bas) like from the Web IDE
 	'(WebIDE_lib.js), with the line "target android": the server compiles them with Use > JNI and Gradle, and Run
@@ -1133,7 +1134,12 @@ End Function
 
 	Const AndroidCompileServerPort = 8001
 	'struct dirent of bionic on all the ABIs: d_ino (8 bytes), d_off (8 bytes), d_reclen (2 bytes), d_type (1 byte), d_name
-	Const AndroidCompile_DTypeOffset = 18, AndroidCompile_DNameOffset = 19
+	#ifdef __USE_UIKIT__
+		'struct dirent of Darwin: d_ino, d_seekoff (8 bytes each), d_reclen, d_namlen (2 bytes each), d_type, d_name
+		Const AndroidCompile_DTypeOffset = 20, AndroidCompile_DNameOffset = 21
+	#else
+		Const AndroidCompile_DTypeOffset = 18, AndroidCompile_DNameOffset = 19
+	#endif
 	Const AndroidCompile_DT_UNKNOWN = 0, AndroidCompile_DT_DIR = 4
 
 	'A line of the body of the request. The literals of the IDE are wide strings and an expression with them is one too:
@@ -1203,7 +1209,12 @@ End Function
 		Dim As Long Fd = AndroidCompile_socket(2, 1, 0) 'AF_INET, SOCK_STREAM
 		If Fd < 0 Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unable to create socket"))
 		Dim As AndroidCompileAddress Address
-		Address.Family = 2
+		#ifdef __USE_UIKIT__
+			'sin_len and sin_family of Darwin
+			Address.Family = (2 Shl 8) Or 16
+		#else
+			Address.Family = 2
+		#endif
 		Address.Port = (AndroidCompileServerPort Shr 8) Or ((AndroidCompileServerPort And &hFF) Shl 8)
 		Address.Address = &h0100007F '127.0.0.1
 		If AndroidCompile_connect(Fd, @Address, SizeOf(Address)) <> 0 Then
@@ -1216,7 +1227,11 @@ End Function
 		Dim As Integer Sent, Count
 		Do While Sent < Len(Request)
 			'MSG_NOSIGNAL: a closed connection is an error, not the signal SIGPIPE
-			Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, &h4000)
+			#ifdef __USE_UIKIT__
+				Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, 0)
+			#else
+				Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, &h4000)
+			#endif
 			If Count <= 0 Then Exit Do
 			Sent += Count
 		Loop
@@ -1264,7 +1279,11 @@ End Function
 		AndroidCompileAddLine Body, "root ", RootUtf8
 		AndroidCompileAddLine Body, "main ", Mid(MainUtf8, Len(RootUtf8) + 1)
 		AndroidCompileAddLine Body, "options ", OptionsUtf8
-		AndroidCompileAddLine Body, "target android"
+		#ifdef __USE_UIKIT__
+			AndroidCompileAddLine Body, "target ios"
+		#else
+			AndroidCompileAddLine Body, "target android"
+		#endif
 		'Run: the server installs the program on the device and starts it, Bundle and APK: the release ones of Gradle
 		If Parameter = "Run" OrElse Parameter = "Bundle" OrElse Parameter = "APK" Then AndroidCompileAddLine Body, "parameter ", Parameter
 		Dim As LongInt Total
@@ -1294,7 +1313,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As TreeNode Ptr ProjectNode
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	'Web IDE server: the compiler which has the library of the Web (lib/js-asmjs)
+	#ifndef __USE_APPLE__
 	If CBool(WGet(WebCompileMainFile) <> "") AndAlso CBool(WGet(WebCompileAndroidFolder) = "") AndAlso Not FolderExists(GetFolderName(GetFullPath(WGet(IIf(Bit32, Compiler32Path, Compiler64Path)))) & "lib/js-asmjs") Then Bit32 = Not Bit32
+	#endif
 	Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	ThreadsEnter()
 	ClearMessages
@@ -1352,14 +1373,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'Web: the browser can not start the compiler, the server compiles the files of the project
 			If Not CompileOnWebServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine) Then CompileResult = 0
 			Continue For
-		#elseif defined(__USE_UIKIT__)
-			'iOS does not allow a program to start another one: a compiler can not run on the iPhone
-			ThreadsEnter()
-			ShowMessages(Str(Time) & ": " & ML("The compiler can not run on iOS"))
-			ThreadsLeave()
-			CompileResult = 0
-			Continue For
-		#elseif defined(__USE_JNI__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
 			'Android: the server compiles the files of the project with Use > JNI
 			If Not CompileOnAndroidServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine, Project <> 0 OrElse FileExists(*ProjectPath & "/Android/app/build.gradle")) Then CompileResult = 0
 			Continue For
@@ -1735,14 +1749,21 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported on macOS and was removed"))
 				End If
 			Next
-			If InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
+			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
+			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
+			If (Not ForIOS) AndAlso InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
 			If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
 			If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
 			If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
 			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
 			WLet(PipeCommand, PipeNoLog & LogPart)
 			CompileCommands.Add "", *PipeCommand
-			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & *MFFPathC & "/mff/Cocoa/build.sh"" """ & MainNoExt & ".c"" """ & *ExeName & """ """ & GetFolderName(GetFolderName(Left(*FbcExe, Len(*FbcExe) - 1))) & """"
+			Dim As UString FbcRoot = *FbcExe
+			Scope
+				Var PosBin = InStrRev(FbcRoot, "/bin/")
+				If PosBin > 0 Then FbcRoot = Mid(FbcRoot, 1, PosBin - 1)
+			End Scope
+			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & *MFFPathC & IIf(ForIOS, "/mff/UIKit/build.sh"" """, "/mff/Cocoa/build.sh"" """) & MainNoExt & ".c"" """ & *ExeName & """ """ & FbcRoot & IIf(ForIOS, "-ios", "") & """"
 		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
@@ -13695,6 +13716,10 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 End Function
 
 Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	#ifdef __USE_COCOA__
+		'The test of Compile (mff/Apple/test-compile-server.py)
+		If Environ("VFBE_WEB_SERVER") <> "" Then StartWebIDEServer(False)
+	#endif
 	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_GTK__

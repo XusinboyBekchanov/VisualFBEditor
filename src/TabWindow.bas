@@ -13311,7 +13311,7 @@ End Sub
 		Dim As UString WebFolder = WGet(pText)
 		WDeAllocate(pText)
 		If Not FileExists(MainFileName) Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("File not found") & ": " & MainFile)
-		Dim As Boolean ForAndroid = Target = "android", AndroidConsole
+		Dim As Boolean ForAndroid = Target = "android", AndroidConsole, AppleRun
 		Dim As UString AndroidFolder
 		If ForAndroid Then
 			'The Android IDE: the program is compiled with Use > JNI and the Gradle project of its files (the project
@@ -13332,6 +13332,15 @@ End Sub
 			If InStr(CompileOptions, "__USE_JNI__") = 0 Then CompileOptions &= " -d __USE_JNI__"
 			WebCompileAndroidProperties AndroidFolder
 			If Parameter <> "Run" AndAlso Parameter <> "Bundle" AndAlso Parameter <> "APK" Then Parameter = ""
+		ElseIf Target = "ios" OrElse Target = "macos" Then
+			#ifdef __USE_COCOA__
+				'The iOS IDE: the program is compiled with UIKit for the Simulator (Compile of Main.bas), Run installs it there
+				If Target = "ios" AndAlso InStr(CompileOptions, "__USE_UIKIT__") = 0 Then CompileOptions &= " -d __USE_UIKIT__"
+				AppleRun = Target = "ios" AndAlso Parameter = "Run"
+				Parameter = ""
+			#else
+				Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("The programs of iOS are compiled by the IDE on the Mac"))
+			#endif
 		Else
 			'The program is compiled for the Web (the define of Use > WASM)
 			If InStr(CompileOptions, "__USE_WASM__") = 0 Then CompileOptions &= " -d __USE_WASM__ -target js-asmjs -r"
@@ -13347,7 +13356,13 @@ End Sub
 		WLet(WebCompileAndroidFolder, "")
 		WebCompileAndroidConsole = False
 		Dim As String Result = "result=" & IIf(CompileResult, "1", "0") & Chr(10)
-		If CompileResult <> 0 AndAlso Not ForAndroid Then
+		#ifdef __USE_COCOA__
+			If CompileResult <> 0 AndAlso AppleRun Then
+				Dim As UString AppFile = Replace(GetFullPath(GetExeFileName(MainFileName, " " & CompileOptions), MainFileName), "\", "/")
+				Shell "xcrun simctl install booted '" & AppFile & ".app' && xcrun simctl launch booted 'com.myfbframework." & GetFileName(AppFile) & "'"
+			End If
+		#endif
+		If CompileResult <> 0 AndAlso (Not ForAndroid) AndAlso Target <> "ios" AndAlso Target <> "macos" Then
 			'The page of the program relative to the home folder of the server
 			Dim As UString PageFile = Replace(GetFullPath(GetExeFileName(MainFileName, " " & CompileOptions), MainFileName), "\", "/")
 			Dim As UString HomeFolder = Replace(HomeDir, "\", "/") & "/"
@@ -13557,6 +13572,10 @@ Function GetAndroidDeviceAbis(ByRef AndroidFolder As WString) As String
 End Function
 
 Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
+	#ifdef __USE_UIKIT__
+		'The server of the Mac installed and started the program (Compile with Run)
+		Exit Sub
+	#endif
 	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
 		On Error Goto ErrorHandler
 	#endif
