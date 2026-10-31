@@ -13719,6 +13719,7 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
 			ThreadsLeave()
 			Result = Shell(CommandLine)
+			If Environ("VFBE_TEST_FILE") <> "" Then Print "RunPr: " & ToUtf8(CommandLine) & " -> " & Result
 			WDeAllocate(Arguments)
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))

@@ -175,8 +175,9 @@ jobs:
         run: |
           mkdir -p starttest
           cp Controls/MyFbFramework/examples/Hello.bas starttest/
-          VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT=snapshots/IDEEditor MFF_SNAPSHOT_DELAY=60 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
+          VFBE_TEST_FILE="$PWD/starttest/Hello.bas" VFBE_TEST_RUN_SNAPSHOT="$PWD/snapshots/StartedByIDE" MFF_SNAPSHOT="$PWD/snapshots/IDEEditor" MFF_SNAPSHOT_DELAY=60 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > start.log 2>&1 || { cat start.log; tail -n 10 start.log | sed 's/^/::error::/'; exit 1; }
           ls starttest | sed 's/^/::notice::/'
+          grep RunPr start.log | sed 's/^/::notice::/' || echo "::warning::RunPr was not reached"
           [ -f starttest/Hello ] || { echo "::error::Start of the IDE made no program"; exit 1; }
           ls snapshots/StartedByIDE_* > /dev/null || { echo "::error::Start of the IDE did not run the program"; exit 1; }
 
@@ -191,7 +192,7 @@ jobs:
           rm -rf Temp/WebCompile
           DEVICE=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}')
           xcrun simctl bootstatus "$DEVICE" -b > /dev/null
-          VFBE_WEB_SERVER=1 MFF_SNAPSHOT=snapshots/Server MFF_SNAPSHOT_DELAY=500 ./VisualFBEditor > ide2.log 2>&1 &
+          VFBE_WEB_SERVER=1 MFF_SNAPSHOT="$PWD/snapshots/Server" MFF_SNAPSHOT_DELAY=500 ./VisualFBEditor > ide2.log 2>&1 &
           IDE=$!
           sleep 10
           xcrun simctl install "$DEVICE" IDEiOS.app
