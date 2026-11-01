@@ -310,7 +310,7 @@ jobs:
           sh "$M/mff/Cocoa/build.sh" Hello.c Hello "$F" > build.log 2>&1 || { cat build.log; grep -E 'error|ld:|^ *"_' build.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
           if ! MFF_SNAPSHOT=../snapshots/NativeHello perl -e 'alarm 60; exec @ARGV' ./Hello; then
             echo "::error::The program of the native fbc failed"
-            MFF_SNAPSHOT=../snapshots/NativeHello perl -e 'alarm 120; exec @ARGV' lldb --batch -o run -k "bt 25" -k "register read" -k "disassemble -p -b -c 12" -k "disassemble -n _ZN2MY3SYS5FORMS7CONTROL12REQUESTALIGNEllbPS2_ -c 30" -k "quit 1" -- ./Hello > lldb.log 2>&1 || true; cut -c1-150 lldb.log | tail -n 75 | sed "s/^/::notice::/"
+            MFF_SNAPSHOT=../snapshots/NativeHello perl -e 'alarm 120; exec @ARGV' lldb --batch -o run -k "bt 25" -k "register read" -k "disassemble -p -b -c 12" -k "frame select 1" -k "register read rbx r12 r13 r14 r15 rbp" -k "disassemble -s $pc-60 -c 24" -k "memory read -fx -s8 -c 12 $rsp" -k "quit 1" -- ./Hello > lldb.log 2>&1 || true; cut -c1-150 lldb.log | tail -n 75 | sed "s/^/::notice::/"
             grep -E 'frame #|stop reason' lldb.log | head -n 26 | cut -c1-200 | sed 's/^/::error::/'
             exit 1
           fi
