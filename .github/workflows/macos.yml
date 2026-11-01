@@ -299,6 +299,33 @@ jobs:
             exit 1
           fi
 
+      - name: A program with the native fbc
+        run: |
+          F="$RUNNER_TEMP/fbc"
+          M="$PWD/Controls/MyFbFramework"
+          mkdir -p native snapshots
+          cp "$M/examples/Hello.bas" native/
+          cd native
+          "$F/bin/fbc" -d __USE_COCOA__ -target darwin-x86_64 -gen gcc -r -m Hello -i "$M" Hello.bas > fbc.log 2>&1 || { cat fbc.log; grep -v warning fbc.log | head -n 15 | sed 's/^/::error::/'; exit 1; }
+          sh "$M/mff/Cocoa/build.sh" Hello.c Hello "$F" > build.log 2>&1 || { cat build.log; grep -E 'error|ld:|^ *"_' build.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
+          if ! MFF_SNAPSHOT=../snapshots/NativeHello perl -e 'alarm 60; exec @ARGV' ./Hello; then
+            echo "::error::The program of the native fbc failed"
+            MFF_SNAPSHOT=../snapshots/NativeHello perl -e 'alarm 120; exec @ARGV' lldb --batch -o run -k "bt 25" -k "quit 1" -- ./Hello > lldb.log 2>&1 || true
+            grep -E 'frame #|stop reason' lldb.log | head -n 26 | cut -c1-200 | sed 's/^/::error::/'
+            exit 1
+          fi
+
+      # On a crash lldb gives the place
+      - name: Run the IDE
+        run: |
+          if ! MFF_SNAPSHOT="$PWD/snapshots/IDE" MFF_SNAPSHOT_DELAY=20 perl -e 'alarm 120; exec @ARGV' ./VisualFBEditor > run.log 2>&1; then
+            echo "::error::The IDE failed"
+            tail -n 10 run.log | sed 's/^/::error::/'
+            MFF_SNAPSHOT="$PWD/snapshots/IDE" MFF_SNAPSHOT_DELAY=20 perl -e 'alarm 150; exec @ARGV' lldb --batch -o run -k "bt 25" -k "quit 1" -- ./VisualFBEditor > lldb.log 2>&1 || true
+            grep -E 'frame #|stop reason' lldb.log | head -n 26 | cut -c1-200 | sed 's/^/::error::/'
+            exit 1
+          fi
+
       - name: Start in the IDE
         run: |
           mkdir -p Compilers starttest snapshots
