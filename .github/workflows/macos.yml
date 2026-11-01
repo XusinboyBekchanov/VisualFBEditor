@@ -272,7 +272,7 @@ jobs:
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
           git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
           sh Controls/MyFbFramework/mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
-          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=x86_64 > make.log 2>&1; then
+          if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=x86_64 CFLAGS="-O2 -DDISABLE_FFI" > make.log 2>&1; then
             cat make.log
             grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
             exit 1
