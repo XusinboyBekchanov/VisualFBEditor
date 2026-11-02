@@ -626,12 +626,14 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 	If Not bInsideType Then
 		tb->txtCode.InsertLine i, ""
 		If txtDescription.Text <> "" Then
-			Dim As UString res()
+			Dim As WString Ptr res()
 			Split(txtDescription.Text, Chr(13) & Chr(10), res())
 			q1 = UBound(res) + 1
 			For j As Integer = 0 To UBound(res)
-				tb->txtCode.InsertLine i + j + 1, "'" & res(j)
+				tb->txtCode.InsertLine i + j + 1, "'" & *res(j)
+				_Deallocate(res(j))
 			Next
+			Erase(res)
 		End If
 	Else
 		sTypeName = cboType.Text
@@ -704,13 +706,15 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 				End If
 			End If
 			If txtDescription.Text <> "" Then
-				Dim As UString res()
+				Dim As WString Ptr res()
 				Split(txtDescription.Text, Chr(13) & Chr(10), res())
 				For j As Integer = 0 To UBound(res)
-					ptxtCode->InsertLine LineToAdd + q2 + j, SpaceStr & !"\t'" & res(j)
+					ptxtCode->InsertLine LineToAdd + q2 + j, SpaceStr & !"\t'" & *res(j)
+					_Deallocate(res(j))
 				Next
 				q2 += UBound(res) + 1
 				If ptxtCode = @tb->txtCode Then q1 += UBound(res) + 1
+				Erase(res)
 			End If
 			ptxtCode = ptxtCodeType
 			CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
