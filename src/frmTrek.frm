@@ -124,7 +124,7 @@ Private Sub frmTrek.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As F
 End Sub
 
 Private Sub frmTrek.lvTrek_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
-	If ItemIndex <> -1 Then fTrek.lblComment.Caption = fTrek.lvTrek.ListItems.Item(ItemIndex)->Text(4) Else fTrek.lblComment.Caption = ""
+	If ItemIndex <> -1 Then fTrek.lblComment.Caption = fTrek.lvTrek.ListItems.Item(ItemIndex)->Text(5) Else fTrek.lblComment.Caption = ""
 End Sub
 
 Private Sub frmTrek.Form_Create(ByRef Sender As Control)

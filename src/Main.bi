@@ -124,6 +124,9 @@ Declare Function HK(Key As String, Default As String = "", WithSpace As Boolean 
 Declare Function MP(ByRef V As WString) ByRef As WString
 Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
 Declare Function MC(ByRef V As WString) ByRef As WString
+Declare Function GetLineWithoutComments(ByRef sLine As WString, ByRef sComment As UString) As UString
+Declare Function GetParametersComments(ByRef sText As WString) As UString
+Declare Function GetVariableParameters(ByRef sName As WString, ByRef sTypeName As WString, ByRef sValue As WString, bConstant As Boolean) As UString
 Declare Sub AIResetContext()
 Declare Sub AIRequest(Param As Any Ptr)
 Declare Function EscapeJsonForPrompt(ByRef iText As WString) As String

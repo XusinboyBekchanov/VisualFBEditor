@@ -23,6 +23,8 @@
 		Declare Static Sub optConstructor_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optConstructor_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optSub_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
+		Declare Static Sub optMacro_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
+		Declare Sub optMacro_Click(ByRef Sender As RadioButton)
 		Declare Sub optSub_Click(ByRef Sender As RadioButton)
 		Declare Static Sub optFunction_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		Declare Sub optFunction_Click(ByRef Sender As RadioButton)
@@ -56,7 +58,7 @@
 		Dim As TextBox txtName, txtParameters, txtDescription, txtPriority, txtAlias
 		Dim As CommandButton cmdOK, cmdCancel
 		Dim As GroupBox grbType, grbScope, grbAccessControl, grbMemberType
-		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor, optDefaultScope, optNormalMember, optStaticMember, optVirtualMember, optAbstractMember
+		Dim As RadioButton optSub, optFunction, optProperty, optPublicScope, optPrivateScope, optOperator, optPublicAccess, optProtectedAccess, optPrivateAccess, optConstructor, optDestructor, optMacro, optDefaultScope, optNormalMember, optStaticMember, optVirtualMember, optAbstractMember
 		Dim As CheckBox chkStatic, chkExport, chkProcedureAlso
 		Dim As ComboBoxEdit cboType
 		Dim As UpDown updPriority
@@ -75,7 +77,7 @@
 			.Icon = "1"
 			.OnShow = @Form_Show_
 			.OnCreate = @_Form_Create
-			.SetBounds 0, 0, 340, 600
+			.SetBounds 0, 0, 340, 625
 		End With
 		' lblName
 		With lblName
@@ -102,7 +104,7 @@
 			.Text = ML("OK")
 			.TabIndex = 36
 			.Caption = ML("OK")
-			.SetBounds 150, 540, 80, 20
+			.SetBounds 150, 565, 80, 20
 			.Designer = @This
 			.OnClick = @cmdOK_Click_
 			.Parent = @This
@@ -114,7 +116,7 @@
 			.TabIndex = 37
 			.ControlIndex = 2
 			.Caption = ML("Cancel")
-			.SetBounds 240, 540, 80, 20
+			.SetBounds 240, 565, 80, 20
 			.Designer = @This
 			.OnClick = @cmdCancel_Click_
 			.Parent = @This
@@ -125,7 +127,7 @@
 			.Text = ML("Type")
 			.TabIndex = 20
 			.Caption = ML("Type")
-			.SetBounds 10, 330, 310, 80
+			.SetBounds 10, 330, 310, 105
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -170,7 +172,7 @@
 			.Text = ML("Scope")
 			.TabIndex = 27
 			.Caption = ML("Scope")
-			.SetBounds 10, 420, 310, 50
+			.SetBounds 10, 445, 310, 50
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -205,7 +207,7 @@
 			.Text = ML("All Local variables as Statics")
 			.TabIndex = 31
 			.Hint = ML("Static specifies static storage for all local variables, objects and arrays, except temporary types and internal variables (objects not explicitly declared)")
-			.SetBounds 10, 480, 200, 20
+			.SetBounds 10, 505, 200, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -329,6 +331,17 @@
 			.OnClick = @optDestructor_Click_
 			.Parent = @grbType
 		End With
+		' optMacro
+		With optMacro
+			.Name = "optMacro"
+			.Text = ML("Macro")
+			.TabIndex = 38
+			.Caption = ML("Macro")
+			.SetBounds 10, 80, 100, 20
+			.Designer = @This
+			.OnClick = @optMacro_Click_
+			.Parent = @grbType
+		End With
 		' lblParameters1
 		With lblParameters1
 			.Name = "lblParameters1"
@@ -360,7 +373,7 @@
 			.TabIndex = 33
 			.ControlIndex = 0
 			.Caption = ML("Priority") & ":"
-			.SetBounds 190, 513, 60, 20
+			.SetBounds 190, 538, 60, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -370,7 +383,7 @@
 			.Text = "UpDown1"
 			.TabIndex = 35
 			.Associate = @txtPriority
-			.SetBounds 300, 510, 17, 20
+			.SetBounds 300, 535, 17, 20
 			.Designer = @This
 			.MinValue = 101
 			.MaxValue = 65535
@@ -383,7 +396,7 @@
 			.TabIndex = 34
 			.NumbersOnly = True
 			.Alignment = AlignmentConstants.taRight
-			.SetBounds 260, 510, 40, 20
+			.SetBounds 260, 535, 40, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -416,7 +429,7 @@
 			.ControlIndex = 17
 			.Caption = ML("Export")
 			.Hint = ML("Procedure will be added to the public export table")
-			.SetBounds 220, 480, 100, 20
+			.SetBounds 220, 505, 100, 20
 			.Designer = @This
 			.Parent = @This
 		End With
@@ -555,6 +568,10 @@
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optFunction_Click(Sender)
 	End Sub
 	
+	Private Sub frmAddProcedureType.optMacro_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
+		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optMacro_Click(Sender)
+	End Sub
+
 	Private Sub frmAddProcedureType.optSub_Click_(ByRef Designer As My.Sys.Object, ByRef Sender As RadioButton)
 		(*Cast(frmAddProcedureType Ptr, Sender.Designer)).optSub_Click(Sender)
 	End Sub
@@ -719,7 +736,14 @@ Private Sub frmAddProcedureType.cmdOK_Click(ByRef Sender As Control)
 		End If
 		tb->txtCode.InsertLine i + q1, ""
 	End If
-	If Not optAbstractMember.Checked Then
+	If optMacro.Checked Then
+		tb->txtCode.InsertLine i + q1 + 1, "#macro " & txtName.Text & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")")
+		tb->txtCode.InsertLine i + q1 + 2, !"\t"
+		tb->txtCode.InsertLine i + q1 + 3, "#endmacro"
+		tb->txtCode.Changed "Insert procedure"
+		tb->txtCode.SetSelection i + q1 + 2, i + q1 + 2, 1, 1
+		tb->txtCode.TopLine = i + q1 + 1
+	ElseIf Not optAbstractMember.Checked Then
 		tb->txtCode.InsertLine i + q1 + 1, IIf(optPublicScope.Checked, "Public ", IIf(optPrivateScope.Checked, "Private ", "")) & IIf(chkProcedureAlso.Checked, IIf(optStaticMember.Checked, "Static ", IIf(optVirtualMember.Checked, "Virtual ", "")), "") & sType & " " & IIf(bInsideType AndAlso (optConstructor.Checked OrElse optDestructor.Checked), txtName.Text, sTypeNameDot & txtName.Text) & IIf(txtAlias.Text = "", "", " Alias """ & txtAlias.Text & """") & IIf(StartsWith(txtParameters.Text, "(") OrElse Trim(txtParameters.Text) = "", txtParameters.Text, "(" & txtParameters.Text & ")") & sConstructorDestructor & IIf(chkStatic.Checked, " Static", "") & IIf(chkExport.Checked, " Export", "")
 		tb->txtCode.InsertLine i + q1 + 2, !"\t"
 		tb->txtCode.InsertLine i + q1 + 3, "End " & sType
@@ -757,7 +781,23 @@ Private Sub frmAddProcedureType.cboType_Change(ByRef Sender As ComboBoxEdit)
 	optStaticMember_Click(optStaticMember)
 End Sub
 
+Private Sub frmAddProcedureType.optMacro_Click(ByRef Sender As RadioButton)
+	optConstructor_Click(Sender)
+End Sub
+
 Private Sub frmAddProcedureType.optConstructor_Click(ByRef Sender As RadioButton)
+	'A macro is not a member of a type and has no scope
+	Dim As Boolean bMacro = optMacro.Checked
+	If bMacro AndAlso cboType.ItemIndex > 0 Then cboType.ItemIndex = 0
+	cboType.Enabled = Not bMacro
+	optPublicScope.Enabled = Not bMacro
+	optPrivateScope.Enabled = Not bMacro
+	optDefaultScope.Enabled = Not bMacro
+	chkStatic.Enabled = Not bMacro
+	If bMacro Then chkStatic.Checked = False: chkExport.Checked = False
+	chkExport.Enabled = (Not bMacro) AndAlso Not optPrivateScope.Checked
+	txtAlias.Enabled = Not bMacro
+	If bMacro Then txtAlias.Text = ""
 	Dim As Boolean bVisible = (optConstructor.Checked OrElse optDestructor.Checked) AndAlso cboType.ItemIndex = 0
 	lblPriority.Visible = bVisible
 	txtPriority.Visible = bVisible
@@ -875,6 +915,7 @@ Private Sub frmAddProcedureType.Form_Create(ByRef Sender As Control)
 	optOperator.Checked = False
 	optConstructor.Checked = False
 	optDestructor.Checked = False
+	optMacro.Checked = False
 	optPublicScope.Checked = True
 	optPrivateScope.Checked = False
 	chkStatic.Checked = False
@@ -884,4 +925,5 @@ Private Sub frmAddProcedureType.Form_Create(ByRef Sender As Control)
 	optStaticMember.Checked = False
 	chkProcedureAlso.Checked = False
 	txtPriority.Text = "0"
+	optConstructor_Click(optSub)
 End Sub
