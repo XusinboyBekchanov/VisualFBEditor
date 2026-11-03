@@ -1053,7 +1053,6 @@ Private Sub frmFind.Form_Create(ByRef Sender As Control)
 	btnReplace.Enabled = False
 	btnReplaceAll.Enabled = False
 	WDeAllocate(tmpStr)
-	SetBounds pfrmMain->Left + pfrmMain->Width - This.Width - 10, pfrmMain->Top + 20, This.Width, This.Height
 	#ifdef __USE_GTK__
 		btnReplaceShow.Visible = False
 		TrackBar1.Visible = False
@@ -1070,6 +1069,12 @@ End Sub
 
 Private Sub frmFind.Form_Show(ByRef Sender As Form)
 	Dim As UString SelText
+	'Position at the right edge of the main form in physical pixels: the two forms
+	'can have different scales (they can sit on monitors with different DPI), so
+	'design units must not be mixed here
+	Dim As Integer iPhysLeft = pfrmMain->Left * pfrmMain->xdpi + pfrmMain->Width * pfrmMain->xdpi - This.Width * This.xdpi - ScaleX(10)
+	Dim As Integer iPhysTop = pfrmMain->Top * pfrmMain->ydpi + ScaleY(20)
+	SetBounds UnScaleX(iPhysLeft), UnScaleY(iPhysTop), This.Width, This.Height
 	If ptabCode Then
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb Then
