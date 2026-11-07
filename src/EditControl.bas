@@ -1980,7 +1980,8 @@ Namespace My.Sys.Forms
 				Dim As String sFileContents
 				Dim As WString Ptr wsFileContents
 				Dim As Integer BOMSymbolsCount
-				hFile = CreateFile(@FileName, GENERIC_READ, 0, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
+				'The file is read only: other programs can have it open (lldb maps the source files of the stops)
+				hFile = CreateFile(@FileName, GENERIC_READ, FILE_SHARE_READ Or FILE_SHARE_WRITE Or FILE_SHARE_DELETE, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, 0)
 				If hFile = INVALID_HANDLE_VALUE Then
 					MsgBox ML("Open file failure!") &  " " & ML("in function") & " EditControl.LoadFromFile" & Chr(13, 10) & " " & FileName
 				Else

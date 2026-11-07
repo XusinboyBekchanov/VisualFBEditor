@@ -305,9 +305,11 @@ Sub frmParameters.LoadSettings()
 		.cboDebug32.Clear
 		.cboDebug32.AddItem ML("Integrated IDE Debugger")
 		.cboDebug32.AddItem ML("Integrated GDB Debugger")
+		.cboDebug32.AddItem ML("Integrated LLDB Debugger")
 		.cboDebug64.Clear
 		.cboDebug64.AddItem ML("Integrated IDE Debugger")
 		.cboDebug64.AddItem ML("Integrated GDB Debugger")
+		.cboDebug64.AddItem ML("Integrated LLDB Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.cboDebug32.AddItem pDebuggers->Item(i)->Key
 			.cboDebug64.AddItem pDebuggers->Item(i)->Key
@@ -348,10 +350,10 @@ Private Sub frmParameters.cmdOK_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		WLet(MakeToolPath2, pMakeTools->Get(*CurrentMakeTool2, pMakeTools->Get(*DefaultMakeTool)))
 		WLet(CurrentTerminal, .cboRun.Text)
 		WLet(TerminalPath, IIf(.cboRun.ItemIndex = 0, pTerminals->Get(*DefaultTerminal), pTerminals->Get(*CurrentTerminal)))
-		WLet(CurrentDebugger32, IIf(.cboDebug32.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebug32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebug32.Text)))
-		WLet(CurrentDebugger64, IIf(.cboDebug64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebug64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebug64.Text)))
-		CurrentDebuggerType32 = IIf(.cboDebug32.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebug32.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
-		CurrentDebuggerType64 = IIf(.cboDebug64.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebug64.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+		WLet(CurrentDebugger32, DebuggerNameFromIndex(.cboDebug32.ItemIndex, .cboDebug32.Text))
+		WLet(CurrentDebugger64, DebuggerNameFromIndex(.cboDebug64.ItemIndex, .cboDebug64.Text))
+		CurrentDebuggerType32 = DebuggerTypeFromName(*CurrentDebugger32)
+		CurrentDebuggerType64 = DebuggerTypeFromName(*CurrentDebugger64)
 		WLet(Debugger32Path, IIf(.cboDebug32.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger32), pDebuggers->Get(*CurrentDebugger32)))
 		WLet(Debugger64Path, IIf(.cboDebug64.ItemIndex = 0, pDebuggers->Get(*DefaultDebugger64), pDebuggers->Get(*CurrentDebugger64)))
 		piniSettings->WriteString "Parameters", "Compiler32Arguments", *Compiler32Arguments

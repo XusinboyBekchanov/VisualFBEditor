@@ -168,7 +168,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As Panel pnlChangeKeywordsCase, pnlChangeIdentifiersCase, pnlTreatTabAsSpaces, pnlTabSize, pnlHistoryLimit, pnlIntellisenseLimit, pnlHistoryFileSavingDays, hbxDefaultFileFormat, hbxDefaultNewLineFormat, pnlChangeEndingType, pnlCodeEditorHoverTime
 		Dim As TextBox txtColorForeground, txtColorBackground, txtColorIndicator, txtColorFrame
 		Dim As TextBox txtMFFpath, txtTabSize, txtHistoryLimit, txtGridSize, txtProjectsPath, txtInFolder, txtIntellisenseLimit, txtEnvironmentVariables, txtHistoryCodeDays,  txtFoldsHtml(0), txtFoldsLng, txtAutoSaveCharMax, txtCodeEditorHoverTime, txtInterfaceColor
-		Dim As ComboBoxEdit cboLanguage, cboIdentifiersCase, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64, cboDefaultProjectFile, cboDefaultFileFormat, cboDefaultNewLineFormat, cboOpenedFile, cboGDBDebugger32, cboGDBDebugger64, cboConfiguration, cboAIAgent, cboConstructions, cboInterfaceTheme
+		Dim As ComboBoxEdit cboLanguage, cboIdentifiersCase, cboCase, cboTabStyle, cboTheme, cboCompiler32, cboCompiler64, cboDebugger32, cboMakeTool, cboTerminal, cboHelp, cboDebugger64, cboDefaultProjectFile, cboDefaultFileFormat, cboDefaultNewLineFormat, cboOpenedFile, cboGDBDebugger32, cboGDBDebugger64, cboLLDBDebugger32, cboLLDBDebugger64, cboGDBInterface, cboLLDBInterface, cboConfiguration, cboAIAgent, cboConstructions, cboInterfaceTheme
 		Dim As CheckBox CheckBox1, chkAutoCreateRC, chkAutoSaveCurrentFileBeforeCompiling, chkEnableAutoComplete, chkTabAsSpaces, chkAutoIndentation, chkShowSpaces, chkShowAlignmentGrid, chkSnapToGrid, chkChangeKeywordsCase, chkBold, chkItalic, chkUnderline, chkUseMakeOnStartWithCompile
 		Dim As HotKey hkShortcut
 		Dim OpenD As OpenFileDialog
@@ -193,7 +193,7 @@ Common Shared As Integer oldIndex, newIndex
 		Dim As CommandButton cmdInterfaceFont
 		Dim As Label lblInterfaceFontLabel
 		Dim As CheckBox chkDisplayIcons, chkShowMainToolbar, chkAutoCreateBakFiles, chkShowToolBoxLocal, chkShowPropLocal
-		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit, lblDebugger321, lblDebugger641, lblHistoryDay, lblShowMsg, lbAutoSaveCharMax, lblCodeEditorHoverTime, lblDefaultNewLineFormat, lblInterfaceColor
+		Dim As Label lblFrame, lblDebugger32, lblDebugger64, lblFindCompilersFromComputer, lblOpenCommandPromptIn, lblIntellisenseLimit, lblDebugger321, lblDebugger641, lblLLDBDebugger32, lblLLDBDebugger64, lblGDBInterface, lblLLDBInterface, lblHistoryDay, lblShowMsg, lbAutoSaveCharMax, lblCodeEditorHoverTime, lblDefaultNewLineFormat, lblInterfaceColor
 		Dim As CommandButton cmdFrame, cmdChangeCompiler, cmdAddHelp, cmdChangeHelp, cmdRemoveHelp, cmdClearHelps, cmdAddEditor, cmdChangeEditor, cmdRemoveEditor, cmdClearEditor, cmdFindCompilers, cmdInFolder, cmdUpdateLng,  cmdUpdateLngHTMLFolds(0),  cmdReplaceInFiles(0), cmdClearConfigurations, cmdRemoveConfiguration, cmdChangeConfiguration, cmdAddConfiguration, cmdClearAIAgent, cmdRemoveAIAgent, cmdChangeAIAgent, cmdAddAIAgent, cmdInterfaceThemeAdd, cmdInterfaceThemeRemove, cmdInterfaceColor
 		Dim As CheckBox chkAllLNG, chkFrame, chkForeground, chkBackground, chkIndicator
 		Dim As CheckBox chkHighlightCurrentWord

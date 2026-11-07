@@ -8,12 +8,6 @@
 'The procedures of the debugger which the IDE calls do nothing here; RunWithDebug says that debugging is not available.
 'The variables of Debug.bas which the IDE uses keep their names. macOS: lldb debugs the program (DebugLLDB.bas).
 
-Enum DebuggerTypes
-	IntegratedIDEDebugger
-	IntegratedGDBDebugger
-	CustomDebugger
-End Enum
-
 Dim Shared As DebuggerTypes DefaultDebuggerType32, DefaultDebuggerType64, CurrentDebuggerType32, CurrentDebuggerType64
 Dim Shared As String  source(SRCMAX)
 Dim Shared As String  srcname(SRCMAX)

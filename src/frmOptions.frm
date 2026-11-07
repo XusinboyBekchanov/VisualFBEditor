@@ -417,7 +417,7 @@ pfOptions = @fOptions
 			.Text = ML("Default Debuggers")
 			.Align = DockStyle.alTop
 			.TabIndex = 88
-			.SetBounds 10, 0, 417, 128
+			.SetBounds 10, 0, 417, 142
 			.Parent = @pnlDebugger
 		End With
 		' grbDebuggerPaths
@@ -439,7 +439,7 @@ pfOptions = @fOptions
 			.Name = "cboDebugger32"
 			.Text = "cboCompiler321"
 			.TabIndex = 90
-			.SetBounds 18, 39, 184, 21
+			.SetBounds 85, 35, 155, 21
 			.Parent = @grbDefaultDebuggers
 		End With
 		' grbDefaultTerminal
@@ -2035,24 +2035,24 @@ pfOptions = @fOptions
 		' lblDebugger32
 		With lblDebugger32
 			.Name = "lblDebugger32"
-			.Text = ML("Debugger") & " " & ML("32-bit")
+			.Text = ML("32-bit")
 			.TabIndex = 163
-			.SetBounds 22, 21, 260, 18
+			.SetBounds 85, 16, 150, 18
 			.Parent = @grbDefaultDebuggers
 		End With
 		' cboDebugger1
 		With cboDebugger64
 			.Name = "cboDebugger64"
 			.TabIndex = 164
-			.SetBounds 18, 89, 184, 21
+			.SetBounds 250, 35, 155, 21
 			.Parent = @grbDefaultDebuggers
 		End With
 		' lblDebugger64
 		With lblDebugger64
 			.Name = "lblDebugger64"
-			.Text = ML("Debugger") & " " & ML("64-bit")
+			.Text = ML("64-bit")
 			.TabIndex = 165
-			.SetBounds 22, 71, 260, 18
+			.SetBounds 250, 16, 150, 18
 			.Parent = @grbDefaultDebuggers
 		End With
 		' grbOtherEditors
@@ -2458,10 +2458,9 @@ pfOptions = @fOptions
 		' lblDebugger321
 		With lblDebugger321
 			.Name = "lblDebugger321"
-			.Text = ML("GDB") & " " & ML("32-bit")
+			.Text = ML("Debugger")
 			.TabIndex = 190
-			'.Caption = ML("GDB") & " " & ML("32-bit")
-			.SetBounds 222, 21, 180, 18
+			.SetBounds 10, 39, 72, 18
 			.Parent = @grbDefaultDebuggers
 		End With
 		' cboGDBDebugger32
@@ -2469,16 +2468,15 @@ pfOptions = @fOptions
 			.Name = "cboGDBDebugger32"
 			.Text = "cboCompiler321"
 			.TabIndex = 192
-			.SetBounds 218, 39, 184, 21
+			.SetBounds 85, 60, 155, 21
 			.Parent = @grbDefaultDebuggers
 		End With
 		' lblDebugger641
 		With lblDebugger641
 			.Name = "lblDebugger641"
-			.Text = ML("GDB") & " " & ML("64-bit")
+			.Text = ML("GDB")
 			.TabIndex = 193
-			'.Caption = ML("GDB") & " " & ML("64-bit")
-			.SetBounds 222, 71, 180, 18
+			.SetBounds 10, 64, 72, 18
 			.Parent = @grbDefaultDebuggers
 		End With
 		' cboGDBDebugger64
@@ -2486,7 +2484,71 @@ pfOptions = @fOptions
 			.Name = "cboGDBDebugger64"
 			.Text = "cboDebugger64"
 			.TabIndex = 194
-			.SetBounds 218, 89, 184, 21
+			.SetBounds 250, 60, 155, 21
+			.Parent = @grbDefaultDebuggers
+		End With
+		' lblLLDBDebugger32
+		With lblLLDBDebugger32
+			.Name = "lblLLDBDebugger32"
+			.Text = ML("LLDB")
+			.TabIndex = 299
+			.SetBounds 10, 89, 72, 18
+			.Parent = @grbDefaultDebuggers
+		End With
+		' cboLLDBDebugger32
+		With cboLLDBDebugger32
+			.Name = "cboLLDBDebugger32"
+			.Text = "cboLLDBDebugger32"
+			.TabIndex = 300
+			.SetBounds 85, 85, 155, 21
+			.Parent = @grbDefaultDebuggers
+		End With
+		' lblLLDBDebugger64
+		With lblLLDBDebugger64
+			.Name = "lblLLDBDebugger64"
+			.Text = ML("Interface")
+			.TabIndex = 301
+			.SetBounds 10, 114, 72, 18
+			.Parent = @grbDefaultDebuggers
+		End With
+		' cboLLDBDebugger64
+		With cboLLDBDebugger64
+			.Name = "cboLLDBDebugger64"
+			.Text = "cboLLDBDebugger64"
+			.TabIndex = 302
+			.SetBounds 250, 85, 155, 21
+			.Parent = @grbDefaultDebuggers
+		End With
+		' lblGDBInterface
+		With lblGDBInterface
+			.Name = "lblGDBInterface"
+			.Text = ML("GDB")
+			.TabIndex = 303
+			.SetBounds 85, 114, 33, 18
+			.Parent = @grbDefaultDebuggers
+		End With
+		' cboGDBInterface
+		With cboGDBInterface
+			.Name = "cboGDBInterface"
+			.Text = "cboGDBInterface"
+			.TabIndex = 304
+			.SetBounds 120, 110, 120, 21
+			.Parent = @grbDefaultDebuggers
+		End With
+		' lblLLDBInterface
+		With lblLLDBInterface
+			.Name = "lblLLDBInterface"
+			.Text = ML("LLDB")
+			.TabIndex = 305
+			.SetBounds 250, 114, 38, 18
+			.Parent = @grbDefaultDebuggers
+		End With
+		' cboLLDBInterface
+		With cboLLDBInterface
+			.Name = "cboLLDBInterface"
+			.Text = "cboLLDBInterface"
+			.TabIndex = 306
+			.SetBounds 290, 110, 115, 21
 			.Parent = @grbDefaultDebuggers
 		End With
 		' chkDarkMode
@@ -3661,11 +3723,15 @@ Sub frmOptions.LoadSettings()
 		.cboDebugger64.Clear
 		.cboGDBDebugger32.Clear
 		.cboGDBDebugger64.Clear
+		.cboLLDBDebugger32.Clear
+		.cboLLDBDebugger64.Clear
 		.lvDebuggerPaths.ListItems.Clear
 		.cboDebugger32.AddItem ML("Integrated IDE Debugger")
 		.cboDebugger32.AddItem ML("Integrated GDB Debugger")
+		.cboDebugger32.AddItem ML("Integrated LLDB Debugger")
 		.cboDebugger64.AddItem ML("Integrated IDE Debugger")
 		.cboDebugger64.AddItem ML("Integrated GDB Debugger")
+		.cboDebugger64.AddItem ML("Integrated LLDB Debugger")
 		For i As Integer = 0 To pDebuggers->Count - 1
 			.lvDebuggerPaths.ListItems.Add pDebuggers->Item(i)->Key
 			.lvDebuggerPaths.ListItems.Item(i)->Text(1) = pDebuggers->Item(i)->Text
@@ -3674,11 +3740,26 @@ Sub frmOptions.LoadSettings()
 			.cboDebugger64.AddItem pDebuggers->Item(i)->Key
 			.cboGDBDebugger32.AddItem pDebuggers->Item(i)->Key
 			.cboGDBDebugger64.AddItem pDebuggers->Item(i)->Key
+			.cboLLDBDebugger32.AddItem pDebuggers->Item(i)->Key
+			.cboLLDBDebugger64.AddItem pDebuggers->Item(i)->Key
 		Next
 		.cboDebugger32.ItemIndex = IIf(DefaultDebuggerType32 = DebuggerTypes.CustomDebugger, Max(0, .cboDebugger32.IndexOf(ML(*DefaultDebugger32))), DefaultDebuggerType32)
-		.cboDebugger64.ItemIndex = IIf(DefaultDebuggerType32 = DebuggerTypes.CustomDebugger, Max(0, .cboDebugger64.IndexOf(ML(*DefaultDebugger64))), DefaultDebuggerType64)
+		.cboDebugger64.ItemIndex = IIf(DefaultDebuggerType64 = DebuggerTypes.CustomDebugger, Max(0, .cboDebugger64.IndexOf(ML(*DefaultDebugger64))), DefaultDebuggerType64)
 		.cboGDBDebugger32.ItemIndex = Max(0, .cboGDBDebugger32.IndexOf(*GDBDebugger32))
 		.cboGDBDebugger64.ItemIndex = Max(0, .cboGDBDebugger64.IndexOf(*GDBDebugger64))
+		.cboLLDBDebugger32.ItemIndex = Max(0, .cboLLDBDebugger32.IndexOf(*LLDBDebugger32))
+		.cboLLDBDebugger64.ItemIndex = Max(0, .cboLLDBDebugger64.IndexOf(*LLDBDebugger64))
+		'CLI: the commands of gdb and lldb; MI: gdb --interpreter=mi2, lldb-mi; DAP: gdb --interpreter=dap (gdb 14+ with Python), lldb-dap
+		.cboGDBInterface.Clear
+		.cboGDBInterface.AddItem "CLI"
+		.cboGDBInterface.AddItem "MI"
+		.cboGDBInterface.AddItem "DAP"
+		.cboGDBInterface.ItemIndex = Max(0, GDBInterface)
+		.cboLLDBInterface.Clear
+		.cboLLDBInterface.AddItem "CLI"
+		.cboLLDBInterface.AddItem "MI"
+		.cboLLDBInterface.AddItem "DAP"
+		.cboLLDBInterface.ItemIndex = Max(0, LLDBInterface)
 		.cboTerminal.Clear
 		.lvTerminalPaths.ListItems.Clear
 		.cboTerminal.AddItem ML("(not selected)")
@@ -4105,16 +4186,18 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 			Tool->Parameters = .lvDebuggerPaths.ListItems.Item(i)->Text(2)
 			pDebuggers->Add tempStr, .lvDebuggerPaths.ListItems.Item(i)->Text(1), Tool
 		Next
-		If *DefaultDebugger32 <> IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger32.Text)) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger32) Then
-			WLet(DefaultDebugger32, IIf(.cboDebugger32.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger32.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger32.Text)))
+		Dim As UString SelectedDebugger32 = DebuggerNameFromIndex(.cboDebugger32.ItemIndex, .cboDebugger32.Text)
+		Dim As UString SelectedDebugger64 = DebuggerNameFromIndex(.cboDebugger64.ItemIndex, .cboDebugger64.Text)
+		If *DefaultDebugger32 <> SelectedDebugger32 OrElse Not pDebuggers->ContainsKey(*CurrentDebugger32) Then
+			WLet(DefaultDebugger32, SelectedDebugger32)
 			WLet(CurrentDebugger32, *DefaultDebugger32)
-			DefaultDebuggerType32 = IIf(.cboDebugger32.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebugger32.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+			DefaultDebuggerType32 = DebuggerTypeFromName(SelectedDebugger32)
 			CurrentDebuggerType32 = DefaultDebuggerType32
 		End If
-		If *DefaultDebugger64 <> IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger64.Text)) OrElse Not pDebuggers->ContainsKey(*CurrentDebugger64) Then
-			WLet(DefaultDebugger64, IIf(.cboDebugger64.ItemIndex = 0, "Integrated IDE Debugger", IIf(.cboDebugger64.ItemIndex = 1, "Integrated GDB Debugger", .cboDebugger64.Text)))
+		If *DefaultDebugger64 <> SelectedDebugger64 OrElse Not pDebuggers->ContainsKey(*CurrentDebugger64) Then
+			WLet(DefaultDebugger64, SelectedDebugger64)
 			WLet(CurrentDebugger64, *DefaultDebugger64)
-			DefaultDebuggerType64 = IIf(.cboDebugger64.ItemIndex = 0, IntegratedIDEDebugger, IIf(.cboDebugger64.ItemIndex = 1, IntegratedGDBDebugger, CustomDebugger))
+			DefaultDebuggerType64 = DebuggerTypeFromName(SelectedDebugger64)
 			CurrentDebuggerType64 = DefaultDebuggerType64
 		End If
 		WLet(Debugger32Path, pDebuggers->Get(*CurrentDebugger32))
@@ -4123,6 +4206,12 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		WLet(GDBDebugger64, .cboGDBDebugger64.Text)
 		WLet(GDBDebugger32Path, pDebuggers->Get(*GDBDebugger32))
 		WLet(GDBDebugger64Path, pDebuggers->Get(*GDBDebugger64))
+		WLet(LLDBDebugger32, .cboLLDBDebugger32.Text)
+		WLet(LLDBDebugger64, .cboLLDBDebugger64.Text)
+		WLet(LLDBDebugger32Path, pDebuggers->Get(*LLDBDebugger32))
+		WLet(LLDBDebugger64Path, pDebuggers->Get(*LLDBDebugger64))
+		GDBInterface = Max(0, .cboGDBInterface.ItemIndex)
+		LLDBInterface = Max(0, .cboLLDBInterface.ItemIndex)
 		For i As Integer = 0 To pTerminals->Count - 1
 			_Delete(Cast(ToolType Ptr, pTerminals->Item(i)->Object))
 		Next
@@ -4404,6 +4493,10 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteString "Debuggers", "DefaultDebugger64", *DefaultDebugger64
 		piniSettings->WriteString "Debuggers", "GDBDebugger32", *GDBDebugger32
 		piniSettings->WriteString "Debuggers", "GDBDebugger64", *GDBDebugger64
+		piniSettings->WriteString "Debuggers", "LLDBDebugger32", *LLDBDebugger32
+		piniSettings->WriteString "Debuggers", "LLDBDebugger64", *LLDBDebugger64
+		piniSettings->WriteString "Debuggers", "GDBInterface", DebuggerInterfaceName(GDBInterface)
+		piniSettings->WriteString "Debuggers", "LLDBInterface", DebuggerInterfaceName(LLDBInterface)
 		For i As Integer = 0 To pDebuggers->Count - 1
 			piniSettings->WriteString "Debuggers", "Version_" & WStr(i), pDebuggers->Item(i)->Key
 			piniSettings->WriteString "Debuggers", "Path_" & WStr(i), pDebuggers->Item(i)->Text
@@ -4836,7 +4929,7 @@ Private Sub frmOptions.Form_Close(ByRef Designer As My.Sys.Object, ByRef Sender 
 End Sub
 
 Private Sub frmOptions.Form_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Form)
-	
+
 End Sub
 
 Private Sub frmOptions.TreeView1_SelChange(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode)
@@ -5482,6 +5575,10 @@ Private Sub frmOptions.cmdAddDebugger_Click(ByRef Designer As My.Sys.Object, ByR
 				.lvDebuggerPaths.ListItems.Item(.lvDebuggerPaths.ListItems.Count - 1)->Text(2) = pfPath->txtCommandLine.Text
 				.cboDebugger32.AddItem pfPath->txtVersion.Text
 				.cboDebugger64.AddItem pfPath->txtVersion.Text
+				.cboGDBDebugger32.AddItem pfPath->txtVersion.Text
+				.cboGDBDebugger64.AddItem pfPath->txtVersion.Text
+				.cboLLDBDebugger32.AddItem pfPath->txtVersion.Text
+				.cboLLDBDebugger64.AddItem pfPath->txtVersion.Text
 			Else
 				MsgBox ML("This version is exists!")
 			End If
@@ -5500,6 +5597,14 @@ Private Sub frmOptions.cmdChangeDebugger_Click(ByRef Designer As My.Sys.Object, 
 				Var i = .cboDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
 				.cboDebugger32.Item(i) = pfPath->txtVersion.Text
 				.cboDebugger64.Item(i) = pfPath->txtVersion.Text
+				'The lists of gdb and lldb have no integrated debuggers before the debuggers of Debugger Paths
+				i = .cboGDBDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
+				If i > -1 Then
+					.cboGDBDebugger32.Item(i) = pfPath->txtVersion.Text
+					.cboGDBDebugger64.Item(i) = pfPath->txtVersion.Text
+					.cboLLDBDebugger32.Item(i) = pfPath->txtVersion.Text
+					.cboLLDBDebugger64.Item(i) = pfPath->txtVersion.Text
+				End If
 				.lvDebuggerPaths.SelectedItem->Text(0) = pfPath->txtVersion.Text
 				.lvDebuggerPaths.SelectedItem->Text(1) = pfPath->txtPath.Text
 				.lvDebuggerPaths.SelectedItem->Text(2) = pfPath->txtCommandLine.Text
@@ -5517,6 +5622,11 @@ Private Sub frmOptions.cmdRemoveDebugger_Click(ByRef Designer As My.Sys.Object, 
 		If iIndex > -1 Then .cboDebugger32.RemoveItem iIndex: .cboDebugger64.RemoveItem iIndex
 		If .cboDebugger32.ItemIndex = -1 Then .cboDebugger32.ItemIndex = 0
 		If .cboDebugger64.ItemIndex = -1 Then .cboDebugger64.ItemIndex = 0
+		iIndex = .cboGDBDebugger32.IndexOf(.lvDebuggerPaths.SelectedItem->Text(0))
+		If iIndex > -1 Then
+			.cboGDBDebugger32.RemoveItem iIndex: .cboGDBDebugger64.RemoveItem iIndex
+			.cboLLDBDebugger32.RemoveItem iIndex: .cboLLDBDebugger64.RemoveItem iIndex
+		End If
 		.lvDebuggerPaths.ListItems.Remove .lvDebuggerPaths.SelectedItemIndex
 	End With
 End Sub
@@ -5527,13 +5637,17 @@ Private Sub frmOptions.cmdClearDebuggers_Click(ByRef Designer As My.Sys.Object, 
 		.cboDebugger32.Clear
 		.cboDebugger32.AddItem ML("Integrated IDE Debugger")
 		.cboDebugger32.AddItem ML("Integrated GDB Debugger")
+		.cboDebugger32.AddItem ML("Integrated LLDB Debugger")
 		.cboDebugger32.ItemIndex = 0
 		.cboDebugger64.Clear
 		.cboDebugger64.AddItem ML("Integrated IDE Debugger")
 		.cboDebugger64.AddItem ML("Integrated GDB Debugger")
+		.cboDebugger64.AddItem ML("Integrated LLDB Debugger")
 		.cboDebugger64.ItemIndex = 0
 		.cboGDBDebugger32.Clear
 		.cboGDBDebugger64.Clear
+		.cboLLDBDebugger32.Clear
+		.cboLLDBDebugger64.Clear
 	End With
 End Sub
 

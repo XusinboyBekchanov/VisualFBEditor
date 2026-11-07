@@ -4080,6 +4080,9 @@ Function CloseSession() As Boolean
 	Dim tn As TreeNode Ptr
 	Dim tnP As TreeNode Ptr
 	Dim Index As Integer
+	#ifdef __USE_EXTERNAL_DEBUGGERS__
+		If DbgActive Then DbgEnd
+	#endif
 	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 		If iFlagStartDebug = 1 Then
 			NewCommand = !"q\n"
@@ -8375,7 +8378,7 @@ Sub LoadSettings
 	#else
 		WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated IDE Debugger"))
 	#endif
-	DefaultDebuggerType32 = IIf(*DefaultDebugger32 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger32 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
+	DefaultDebuggerType32 = DebuggerTypeFromName(*DefaultDebugger32)
 	WLet(CurrentDebugger32, *DefaultDebugger32)
 	CurrentDebuggerType32 = DefaultDebuggerType32
 	WLet(Debugger32Path, Debuggers.Get(*CurrentDebugger32, ""))
@@ -8386,12 +8389,18 @@ Sub LoadSettings
 	#else
 		WLet(DefaultDebugger64, iniSettings.ReadString("Debuggers", "DefaultDebugger64", "Integrated GDB Debugger"))
 	#endif
-	DefaultDebuggerType64 = IIf(*DefaultDebugger64 = "Integrated IDE Debugger", IntegratedIDEDebugger, IIf(*DefaultDebugger64 = "Integrated GDB Debugger", IntegratedGDBDebugger, CustomDebugger))
+	DefaultDebuggerType64 = DebuggerTypeFromName(*DefaultDebugger64)
 	WLet(CurrentDebugger64, *DefaultDebugger64)
 	CurrentDebuggerType64 = DefaultDebuggerType64
 	WLet(Debugger64Path, Debuggers.Get(*CurrentDebugger64, ""))
 	WLet(GDBDebugger64, iniSettings.ReadString("Debuggers", "GDBDebugger64", ""))
 	WLet(GDBDebugger64Path, Debuggers.Get(*GDBDebugger64, ""))
+	WLet(LLDBDebugger32, iniSettings.ReadString("Debuggers", "LLDBDebugger32", ""))
+	WLet(LLDBDebugger32Path, Debuggers.Get(*LLDBDebugger32, ""))
+	WLet(LLDBDebugger64, iniSettings.ReadString("Debuggers", "LLDBDebugger64", ""))
+	WLet(LLDBDebugger64Path, Debuggers.Get(*LLDBDebugger64, ""))
+	GDBInterface = DebuggerInterfaceFromName(iniSettings.ReadString("Debuggers", "GDBInterface", "CLI"))
+	LLDBInterface = DebuggerInterfaceFromName(iniSettings.ReadString("Debuggers", "LLDBInterface", "CLI"))
 	WLet(DefaultTerminal, iniSettings.ReadString("Terminals", "DefaultTerminal", ""))
 	WLet(CurrentTerminal, *DefaultTerminal)
 	WLet(TerminalPath, Terminals.Get(*CurrentTerminal, ""))
@@ -14255,6 +14264,13 @@ Sub frmMain_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, By
 				Msg.Result = -1
 				Return
 			End If
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+		Case WM_DBGCALL
+			'A line or a message of lldb, gdb/MI or DAP (DbgCallInUIThread of DebugCommon.bas)
+			DbgHandleCall Msg.lParam
+			Msg.Result = -1
+			Return
+		#endif
 		End Select
 	#endif
 End Sub
@@ -14392,6 +14408,10 @@ Sub OnProgramQuit() Destructor
 	WDeAllocate(Debugger64Path)
 	WDeAllocate(GDBDebugger32Path)
 	WDeAllocate(GDBDebugger64Path)
+	WDeAllocate(LLDBDebugger32)
+	WDeAllocate(LLDBDebugger64)
+	WDeAllocate(LLDBDebugger32Path)
+	WDeAllocate(LLDBDebugger64Path)
 	WDeAllocate(DefaultTerminal)
 	WDeAllocate(CurrentTerminal)
 	WDeAllocate(TerminalPath)

@@ -329,12 +329,6 @@ Dim Shared exedate As Double 'serial date
 Dim Shared As String compilerversion ''compiler version retrieved stabs code = 255
 Dim Shared As String cmdlimmediat
 
-Enum DebuggerTypes
-	IntegratedIDEDebugger
-	IntegratedGDBDebugger
-	CustomDebugger
-End Enum
-
 Dim Shared As DebuggerTypes DefaultDebuggerType32, DefaultDebuggerType64, CurrentDebuggerType32, CurrentDebuggerType64
 
 '===================================================
@@ -10397,6 +10391,9 @@ End Function
 
 #ifdef __USE_WINAPI__
 	Function get_var_value(VarName As String, LineIndex As Integer) As String
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+			If DbgActive Then Return DbgGetValue(VarName)
+		#endif
 		Dim As Integer nline, lclproc, lclprocr, p, n, i, j, d, l, idx = -1
 		Dim text As ZString * 200
 		nline = LineIndex 'sendmessage(dbgrichedit,EM_EXLINEFROMCHAR,0,-1)
@@ -15031,6 +15028,10 @@ End Sub
 	
 	Sub command_debug(sCom As String)
 		
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+			If DbgActive Then DbgCommandDebug sCom: Exit Sub
+		#endif
+		
 		'iFlagThreadSignal = 0
 		
 		'run_pipe_write(sCom & !"\n")
@@ -15318,6 +15319,11 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		ThreadsLeave()
 		Exit Sub
 	End If
+	#ifdef __USE_EXTERNAL_DEBUGGERS__
+		'Integrated LLDB Debugger, the interfaces MI and DAP: this thread waits for the end of the debugger
+		Dim As UString DbgArguments = Trim(*RunArguments & " " & ProjectCommandLineArguments)
+		If DbgRunWithDebug(exename, DbgArguments, CompileLine & " " & FirstLine) Then Exit Sub
+	#endif
 	ThreadsEnter()
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	Dim As DebuggerTypes CurrentDebuggerType = IIf(Bit32, CurrentDebuggerType32, CurrentDebuggerType64)
@@ -15326,11 +15332,14 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	Dim As WString Ptr GDBDebuggerPath = IIf(Bit32, GDBDebugger32Path, GDBDebugger64Path)
 	ThreadsLeave()
 	Dim As Integer Idx = -1
+	'gdb and lldb get the program and the breakpoints of the IDE with a file of commands (-x and -s)
+	Dim As Boolean IsLLDB = CBool(InStr(LCase(GetFileName(WGet(DebuggerPath))), "lldb") > 0)
+	Dim As Boolean IsGDB = CBool(InStr(LCase(WGet(DebuggerPath)), "gdb") > 0) AndAlso CBool(Not IsLLDB)
 	If WGet(DebuggerPath) <> "" Then
 		Idx = pDebuggers->IndexOfKey(*CurrentDebugger)
 		If Idx <> -1 Then
 			Dim As ToolType Ptr Tool = pDebuggers->Item(Idx)->Object
-			WLet(CmdL, Tool->GetCommand(IIf(InStr(LCase(WGet(DebuggerPath)), "gdb"), "", GetFileName(exename))))
+			WLet(CmdL, Tool->GetCommand(IIf(IsGDB OrElse IsLLDB, "", GetFileName(exename))))
 		End If
 	End If
 	#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
@@ -15339,7 +15348,32 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	'#ifdef __USE_GTK__
 	'	If WGet(DebuggerPath) = "" AndAlso *CurrentDebugger <> ML("Integrated GDB Debugger") OrElse InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
 	'#else
-		If WGet(DebuggerPath) <> "" AndAlso runtype <> RTSTEP AndAlso InStr(LCase(WGet(DebuggerPath)), "gdb") > 0 Then
+		If CBool(WGet(DebuggerPath) <> "") AndAlso CBool(runtype <> RTSTEP) AndAlso IsLLDB Then
+			'lldb sees the lines and the variables only in the programs compiled with -gen gcc (DWARF), not with gas/gas64 (STABS)
+			Dim As Integer Fn = FreeFile_
+			Dim As UString LLDBCommandsPath = GetUserTempPath("LLDBCommands.txt")
+			If LLDBCommandsPath = "" Then Exit Sub
+			If Open(LLDBCommandsPath For Output As #Fn) <> 0 Then
+				MsgBox "Unable to create LLDB command file: " & LLDBCommandsPath
+				Exit Sub
+			End If
+			Print #Fn, "target create """ & Replace(exename, "\", "/") & """"
+			Dim As TabWindow Ptr tb
+			For jj As Integer = 0 To TabPanels.Count - 1
+				Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+				For i As Integer = 0 To ptabCode->TabCount - 1
+					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+					For j As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
+						If Not Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->Breakpoint Then Continue For
+						Print #Fn, "breakpoint set --file """ & Replace(tb->FileName, "\", "/") & """ --line " & WStr(j + 1)
+					Next
+				Next i
+			Next jj
+			Dim As UString LLDBArguments = Trim(*RunArguments & " " & ProjectCommandLineArguments)
+			Print #Fn, "process launch" & IIf(LLDBArguments = "", "", " -- " & LLDBArguments)
+			CloseFile_(Fn)
+			WAdd(CmdL, " -s """ & LLDBCommandsPath & """")
+		ElseIf CBool(WGet(DebuggerPath) <> "") AndAlso CBool(runtype <> RTSTEP) AndAlso IsGDB Then
 	'#endif
 		Dim As Integer Fn = FreeFile_
 		Dim As UString GDBCommandsPath = GetUserTempPath("GDBCommands.txt")
@@ -15595,3 +15629,7 @@ Sub RunProgramWithDebug(Param As Any Ptr)
 		RunWithDebug , "", "", MainFile, CompileLine, FirstLine
 	End If
 End Sub
+
+#ifdef __USE_EXTERNAL_DEBUGGERS__
+	#include once "DebugExternal.bas"
+#endif

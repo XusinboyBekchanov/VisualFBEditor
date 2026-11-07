@@ -15,6 +15,69 @@
 
 Declare Sub DeleteDebugCursor
 
+'Windows and Linux: Integrated LLDB Debugger and the interfaces MI and DAP of gdb and lldb (DebugExternal.bas)
+#if Not (defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)) AndAlso Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+	#define __USE_EXTERNAL_DEBUGGERS__
+	Declare Function DbgActive() As Boolean
+	Declare Function DbgCommand(ByRef sCommand As String) As Boolean
+	Declare Function DbgRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, ByRef CompileLine As WString) As Boolean
+	Declare Sub DbgEnd()
+	Declare Sub DbgSetBp()
+	Declare Sub DbgCommandDebug(ByRef sCom As String)
+	Declare Function DbgGetValue(ByRef VarName As String) As String
+#endif
+
+'The debuggers of Options and of Parameters, in the order of their lists; the debuggers of Debugger Paths follow them
+Enum DebuggerTypes
+	IntegratedIDEDebugger
+	IntegratedGDBDebugger
+	IntegratedLLDBDebugger
+	CustomDebugger
+End Enum
+
+'How the IDE talks with gdb and lldb (GDBInterface, LLDBInterface): the commands of the console (CLI), the machine
+'interface of gdb and lldb-mi (MI), the Debug Adapter Protocol of gdb 14+ and lldb-dap (DAP)
+Enum DebuggerInterfaces
+	DebuggerCLI
+	DebuggerMI
+	DebuggerDAP
+End Enum
+
+Private Function DebuggerTypeFromName(ByRef DebuggerName As WString) As DebuggerTypes
+	Select Case DebuggerName
+	Case "Integrated IDE Debugger": Return IntegratedIDEDebugger
+	Case "Integrated GDB Debugger": Return IntegratedGDBDebugger
+	Case "Integrated LLDB Debugger": Return IntegratedLLDBDebugger
+	Case Else: Return CustomDebugger
+	End Select
+End Function
+
+'The name of the item of the list of the debuggers (Options, Parameters): the integrated debuggers are the first items
+Private Function DebuggerNameFromIndex(ItemIndex As Integer, ByRef ItemText As WString) As UString
+	Select Case ItemIndex
+	Case IntegratedIDEDebugger: Return "Integrated IDE Debugger"
+	Case IntegratedGDBDebugger: Return "Integrated GDB Debugger"
+	Case IntegratedLLDBDebugger: Return "Integrated LLDB Debugger"
+	Case Else: Return ItemText
+	End Select
+End Function
+
+Private Function DebuggerInterfaceName(DebuggerInterface As Integer) As String
+	Select Case DebuggerInterface
+	Case DebuggerMI: Return "MI"
+	Case DebuggerDAP: Return "DAP"
+	Case Else: Return "CLI"
+	End Select
+End Function
+
+Private Function DebuggerInterfaceFromName(ByRef InterfaceName As String) As DebuggerInterfaces
+	Select Case UCase(InterfaceName)
+	Case "MI": Return DebuggerMI
+	Case "DAP": Return DebuggerDAP
+	Case Else: Return DebuggerCLI
+	End Select
+End Function
+
 'Enum 'type of running
 '	RTRUN
 '	RTSTEP

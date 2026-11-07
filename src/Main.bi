@@ -224,6 +224,9 @@ Common Shared As WString Ptr DefaultMakeTool, CurrentMakeTool1, CurrentMakeTool2
 Common Shared As WString Ptr DefaultDebugger32, DefaultDebugger64, GDBDebugger32, GDBDebugger64, CurrentDebugger32, CurrentDebugger64, DefaultTerminal, CurrentTerminal
 Common Shared As WString Ptr DefaultCompiler32, CurrentCompiler32, DefaultCompiler64, CurrentCompiler64
 Common Shared As WString Ptr MakeToolPath1, MakeToolPath2, Debugger32Path, Debugger64Path, GDBDebugger32Path, GDBDebugger64Path, TerminalPath, Compiler32Path, Compiler64Path
+'lldb of Integrated LLDB Debugger (Debugger Paths), the interfaces of gdb and lldb (DebuggerInterfaces of Debug.bi)
+Common Shared As WString Ptr LLDBDebugger32, LLDBDebugger64, LLDBDebugger32Path, LLDBDebugger64Path
+Common Shared As Integer GDBInterface, LLDBInterface
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave, tlockToDo, tlockGDB, tlockSuggestions
 

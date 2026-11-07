@@ -724,11 +724,17 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 		TypeName = tb->txtCode.Content.GetLeftArgTypeName(iSelEndLine, iSelEndCharFunc - 1, te, teOld, teTypeOld, OldTypeName)
 		Value = GetParameters(sWord, te, teOld)
 	End If
-	If InDebug Then
+	Dim As Boolean ShowValue = InDebug
+	#ifdef __USE_EXTERNAL_DEBUGGERS__
+		'Integrated LLDB Debugger, MI, DAP: the values of the last stop
+		If DbgActive AndAlso Not Running Then ShowValue = True
+	#endif
+	If ShowValue Then
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, True)
 		If sWord <> "" Then
 			#ifdef __USE_WINAPI__
-				Value = Value & IIf(Value = "", "", !"\rValue: ") & get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
+				Dim As String sValue = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
+				If InDebug OrElse sValue <> "" Then Value = Value & IIf(Value = "", "", !"\rValue: ") & sValue
 			#endif
 		End If
 	End If

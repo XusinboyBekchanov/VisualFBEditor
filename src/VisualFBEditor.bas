@@ -443,6 +443,10 @@ Sub ClearThreadsWindow
 End Sub
 
 Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
+	#ifdef __USE_EXTERNAL_DEBUGGERS__
+		'Integrated LLDB Debugger and the interfaces MI and DAP of gdb and lldb (DebugExternal.bas)
+		If DbgCommand(Sender.ToString) Then Exit Sub
+	#endif
 	Select Case Sender.ToString
 	Case "NewProject":                          NewProject
 	Case "OpenProject":                         OpenProject
@@ -1332,7 +1336,17 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Case "AddSpaces":                   tb->AddSpaces
 				Case "Breakpoint":
 					Dim As DebuggerTypes CurrentDebugger = IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64)
-					If CurrentDebugger = IntegratedGDBDebugger Then
+					#ifdef __USE_EXTERNAL_DEBUGGERS__
+						If DbgActive Then
+							DbgSetBp
+							CurrentDebugger = CustomDebugger
+						ElseIf CurrentDebugger = IntegratedLLDBDebugger Then
+							CurrentDebugger = CustomDebugger
+						End If
+					#endif
+					If CurrentDebugger = CustomDebugger Then
+						'Integrated LLDB Debugger, MI, DAP and the debuggers of Debugger Paths: the debugger knows it already
+					ElseIf CurrentDebugger = IntegratedGDBDebugger Then
 						#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 							If iFlagStartDebug = 1 Then
 								set_bp
