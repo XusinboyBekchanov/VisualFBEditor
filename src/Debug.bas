@@ -3368,6 +3368,10 @@ End Sub
 			If flagattach Then
 				proc_runnew
 				flagattach=False
+			ElseIf runtype=RTFRUN Then ''stop after fast run : rebuild the call stack
+				thread(threadcur).pe=False
+				proc_runnew
+				If proccurad=proc(procsv).fn Then thread(threadcur).pe=True 'is last instruction ?
 			Else
 				If proccurad=proc(procsv).first Then 'is first fbc instruction ?
 					If procsk<>thread(threadcur).stack Then ''check if not in the current proc
@@ -10039,13 +10043,27 @@ Private Sub proc_del(j As Integer,t As Integer=1)
 		thread_text(th) 'update thread text
 	End If
 	
+	'the last item of the thread is deleted so the previous proc of the same thread becomes the last
+	For ith As Integer = 0 To threadnb
+		If thread(ith).id = procr(j).thid Then
+			If thread(ith).plt = procr(j).tv Then
+				thread(ith).plt = 0
+				For i As Integer = j - 1 To 1 Step -1
+					If procr(i).thid = procr(j).thid Then thread(ith).plt = procr(i).tv: Exit For
+				Next
+			End If
+			Exit For
+		End If
+	Next
+
 	' compress procr and update vrr index
 	procrnb -= 1
 	For i As Integer =j To procrnb
 		procr(i)=procr(i+1)
 		procr(i).vr-=tempo
 	Next
-	
+	procr(procrnb+1).vr=vrrnb+1
+
 End Sub
 
 Private Sub proc_end() '07/12/2015
@@ -10960,13 +10978,16 @@ Private Sub proc_new()
 	procr(procrnb).thid=thread(threadcur).id
 	procr(procrnb).idx=procsv
 	
+	ReadProcessMemory(dbghand,Cast(LPCVOID,procsk+SizeOf(Integer)),@procr(procrnb).ret,SizeOf(Integer),0) 'return address
 	'test if first proc of thread
 	If thread(threadcur).plt=0 Then
 		procr(procrnb).cl=-1  ' no real calling line
 		libel="ThID="+Str(procr(procrnb).thid)+" "
 		tv = 0 'TVI_LAST 'insert in last position
-		thread(threadcur).tv= Tree_AddItem(NULL,"Not filled", 0, tviewthd, 0)'create item
-		thread(threadcur).ptv=thread(threadcur).tv 'last proc
+		If thread(threadcur).tv=0 Then
+			thread(threadcur).tv= Tree_AddItem(NULL,"Not filled", 0, tviewthd, 0)'create item
+			thread(threadcur).ptv=thread(threadcur).tv 'last proc
+		End If
 		thread_text()'put text not only current but all to reset previous thread text
 	Else
 		procr(procrnb).cl=thread(threadcur).od
@@ -10996,6 +11017,107 @@ Private Sub proc_new()
 	proc_watch(procrnb) 'reactivate watched var
 	'RedrawWindow tviewvar, 0, 0, 1
 End Sub
+Private Function proc_index(ad As UInteger) As Integer 'index of the proc containing the address
+	For j As Integer = 1 To procnb
+		If ad >= proc(j).db AndAlso ad <= proc(j).fn Then Return j
+	Next
+	Return 0
+End Function
+#ifdef __FB_WIN32__
+	''unwinding through code without debug data (system dlls, rtlib, etc) with dbghelp
+	Type tdbgaddress64
+		Offset As ULongInt
+		Segment As UShort
+		Mode As Long
+	End Type
+	Type tdbgstackframe64
+		AddrPC As tdbgaddress64
+		AddrReturn As tdbgaddress64
+		AddrFrame As tdbgaddress64
+		AddrStack As tdbgaddress64
+		AddrBStore As tdbgaddress64
+		FuncTableEntry As Any Ptr
+		Params(3) As ULongInt
+		Far As Long
+		Virtual As Long
+		Reserved(2) As ULongInt
+		KdHelp(63) As ULongInt 'KDHELP64, size depends on the version of dbghelp
+	End Type
+	Type tStackWalk64 As Function(ByVal MachineType As DWORD, ByVal hProcess As HANDLE, ByVal hThread As HANDLE, ByVal StackFrame As tdbgstackframe64 Ptr, ByVal ContextRecord As Any Ptr, ByVal ReadMemoryRoutine As Any Ptr, ByVal FunctionTableAccessRoutine As Any Ptr, ByVal GetModuleBaseRoutine As Any Ptr, ByVal TranslateAddress As Any Ptr) As WINBOOL
+	Type tSymInitialize As Function(ByVal hProcess As HANDLE, ByVal UserSearchPath As ZString Ptr, ByVal fInvadeProcess As WINBOOL) As WINBOOL
+	Type tSymHandle As Function(ByVal hProcess As HANDLE) As WINBOOL
+	Type tSymSetOptions As Function(ByVal SymOptions As DWORD) As DWORD
+	Dim Shared As Any Ptr dbghelplib, dbghelpprocess
+	Dim Shared As tStackWalk64 pStackWalk64
+	Dim Shared As Any Ptr pSymFunctionTableAccess64, pSymGetModuleBase64
+	Dim Shared As tSymHandle pSymRefreshModuleList, pSymCleanup
+
+	Private Function dbghelp_init() As Boolean
+		If dbghelplib = 0 Then
+			dbghelplib = DyLibLoad("dbghelp.dll")
+			If dbghelplib = 0 Then Return False
+			pStackWalk64 = DyLibSymbol(dbghelplib, "StackWalk64")
+			pSymFunctionTableAccess64 = DyLibSymbol(dbghelplib, "SymFunctionTableAccess64")
+			pSymGetModuleBase64 = DyLibSymbol(dbghelplib, "SymGetModuleBase64")
+			pSymRefreshModuleList = DyLibSymbol(dbghelplib, "SymRefreshModuleList")
+			pSymCleanup = DyLibSymbol(dbghelplib, "SymCleanup")
+		End If
+		If pStackWalk64 = 0 OrElse pSymFunctionTableAccess64 = 0 OrElse pSymGetModuleBase64 = 0 Then Return False
+		If dbghelpprocess <> dbghand Then 'new debugged process
+			If dbghelpprocess <> 0 AndAlso pSymCleanup <> 0 Then pSymCleanup(dbghelpprocess)
+			dbghelpprocess = 0
+			Dim As tSymSetOptions pSymSetOptions = DyLibSymbol(dbghelplib, "SymSetOptions")
+			Dim As tSymInitialize pSymInitialize = DyLibSymbol(dbghelplib, "SymInitialize")
+			If pSymInitialize = 0 Then Return False
+			If pSymSetOptions Then pSymSetOptions(&h00000004 Or &h00000200 Or &h00080000) 'SYMOPT_DEFERRED_LOADS, SYMOPT_FAIL_CRITICAL_ERRORS, SYMOPT_NO_PROMPTS
+			If pSymInitialize(dbghand, NULL, True) = 0 Then Return False
+			dbghelpprocess = dbghand
+		ElseIf pSymRefreshModuleList Then
+			pSymRefreshModuleList(dbghand) 'dlls loaded since
+		End If
+		Return True
+	End Function
+
+	''from a return address outside the procs with debug data, unwinds until reaching again a proc with debug data
+	''input : current context (rip, rsp, rbp) of the caller, output : rip and rbp of the found frame
+	Private Function stack_unwind_nodebug(hThread As HANDLE, ByRef regip As Integer, regsp As Integer, ByRef regbp As Integer) As Boolean
+		If dbghelp_init() = False Then Return False
+		Dim As UByte ctxbuf(SizeOf(CONTEXT) + 16)
+		Dim As CONTEXT Ptr pctx = Cast(CONTEXT Ptr, (Cast(UInteger, @ctxbuf(0)) + 15) And Not Cast(UInteger, 15)) '16 bytes aligned
+		pctx->ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
+		If GetThreadContext(hThread, pctx) = 0 Then Return False 'for the non volatile registers
+		pctx->regip = regip
+		pctx->regsp = regsp
+		pctx->regbp = regbp
+		Dim As tdbgstackframe64 frame
+		frame.AddrPC.Offset = regip: frame.AddrPC.Mode = 3 'AddrModeFlat
+		frame.AddrStack.Offset = regsp: frame.AddrStack.Mode = 3
+		frame.AddrFrame.Offset = regbp: frame.AddrFrame.Mode = 3
+		#ifdef __FB_64BIT__
+			Const machine = &h8664 'IMAGE_FILE_MACHINE_AMD64
+		#else
+			Const machine = &h014c 'IMAGE_FILE_MACHINE_I386
+		#endif
+		Dim As UInteger prevsp
+		For i As Integer = 1 To 256
+			If pStackWalk64(machine, dbghand, hThread, @frame, pctx, 0, pSymFunctionTableAccess64, pSymGetModuleBase64, 0) = 0 Then Return False
+			If frame.AddrPC.Offset = 0 Then Return False
+			If i > 1 AndAlso frame.AddrStack.Offset <= prevsp Then Return False 'the stack must go up
+			prevsp = frame.AddrStack.Offset
+			If proc_index(frame.AddrPC.Offset) Then 'back in a proc with debug data
+				regip = frame.AddrPC.Offset
+				#ifdef __FB_64BIT__
+					If pctx->regip <> regip Then Return False
+					regbp = pctx->regbp
+				#else
+					regbp = frame.AddrFrame.Offset
+				#endif
+				Return True
+			End If
+		Next
+		Return False
+	End Function
+#endif
 '=======================================================
 '' after stopping run  retrieves all procedures
 '=======================================================
@@ -11065,28 +11187,47 @@ Private Sub proc_runnew()
 		Next
 		If j>procnb Then Exit While
 		ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,SizeOf(Integer),0) 'previous RBP/EBP
+		#ifdef __FB_WIN32__
+			''return in code without debug data (eg event called by user32 or callback) : unwind until a proc with debug data
+			If proc_index(regip)=0 AndAlso proc(pridx(regbpnb)).nm<>"main" Then
+				If stack_unwind_nodebug(thread(ithd).hd,regip,regbpp(regbpnb)+2*SizeOf(Integer),regbp)=False Then Exit While
+				If regbp<=regbpp(regbpnb) Then Exit While 'the stack must go up
+			End If
+		#endif
 	Wend
 	'dbg_prt2 "in proc new run 01 regbpnb=";regbpnb
-	''skip still existing procedures or delete them
+	''keep the procrs matching the running frames (from the outermost), delete the others
+	''the frames are compared with the stack pointer and the proc index (the return address of procs created in step mode is not known)
+	Dim As Integer iframe=regbpnb,matching=True
+	Dim As Byte prdel(PROCRMAX)
 	For iprc As Integer	=1 To procrnb
-		dbg_prt2 "procr(iprc).thid,ithd="; procr(iprc).thid,ithd,thread(ithd).id
-		If procr(iprc).thid<>thread(ithd).id Then
-			dbg_prt2 "in run new proc not in this thread=";ithd,iprc
-			Continue For
-		End If
-		ReadProcessMemory(dbghand,Cast(LPCVOID,procr(iprc).sk+SizeOf(Integer)),@retadr,SizeOf(Integer),0) ''current value should be return address
-		If procr(iprc).ret<>retadr Then
-			dbg_prt2 "in run new deleting proc=";iprc
-			proc_del(iprc) ''return address not any more valid
-		Else
-			If procr(iprc).sk=regbpp(regbpnb) And procr(iprc).ret=ret(regbpnb) Then
-				regbpnb-=1
+		If procr(iprc).thid<>thread(ithd).id Then Continue For
+		If matching Then
+			While iframe>=1 AndAlso proc(pridx(iframe)).enab=False 'not followed so no procr
+				iframe-=1
+			Wend
+			If iframe>=1 AndAlso procr(iprc).idx=pridx(iframe) AndAlso procr(iprc).sk=regbpp(iframe) Then
+				procr(iprc).ret=ret(iframe)
+				iframe-=1
+				Continue For
 			End If
+			matching=False 'all the next procrs of this thread are not any more valid
+		End If
+		prdel(iprc)=1
+	Next
+	For iprc As Integer	=procrnb To 1 Step -1 'from the last to keep the indexes
+		If prdel(iprc) Then
+			dbg_prt2 "in run new deleting proc=";iprc
+			proc_del(iprc)
 		End If
 	Next
-	'dbg_prt2 "in proc new run 02 regbpnb=";regbpnb
+	procr(procrnb+1).vr=vrrnb+1
+	thread(ithd).plt=0
+	For iprc As Integer	=procrnb To 1 Step -1
+		If procr(iprc).thid=thread(ithd).id Then thread(ithd).plt=procr(iprc).tv: Exit For 'last remaining proc of thread
+	Next
 	''create new procrs
-	For k As Integer =regbpnb To 1 Step -1
+	For k As Integer =iframe To 1 Step -1
 		If procrnb=PROCRMAX Then
 			hard_closing("Max number of sub/func reached")
 			Exit Sub
@@ -11097,41 +11238,52 @@ Private Sub proc_runnew()
 		procr(procrnb).thid=thread(ithd).id
 		thread(ithd).stack=procr(procrnb).sk
 		procr(procrnb).idx=pridx(k)
-		
-		'test if first proc of thread
-		dbg_prt2 "in proc run new 02 ithd=";ithd," plt=";thread(ithd).plt
-		If thread(ithd).plt=0 Then
-			thread(ithd).tv = Tree_AddItem(0, "test000", 0, tviewthd, 0) ' AddTreeViewItem(GTVIEWTHD,"test000",Cast (HICON, 0),0,TVI_LAST,0)
+		procr(procrnb).ret=ret(k)
+
+		If thread(ithd).tv=0 Then 'create thread item
+			thread(ithd).tv = Tree_AddItem(0, "Not filled", 0, tviewthd, 0)
 			thread(ithd).ptv=thread(ithd).tv 'last proc
 			thread_text(ithd) 'put text
 			thread(ithd).st=0 'with fast no starting line could be gotten
+			thread_status()
+		End If
+		'test if first proc of thread
+		dbg_prt2 "in proc run new 02 ithd=";ithd," plt=";thread(ithd).plt
+		If thread(ithd).plt=0 Then
 			procr(procrnb).cl=-1  ' no real calling line
 			libel="ThID="+Str(procr(procrnb).thid)+" "
-			tv=thread(ithd).tv 'insert in last position
-			dbg_prt2 "in proc run new=";thread(ithd).tv
-			thread_status()
 		Else
-			tv=thread(ithd).plt 'insert after the last item of thread
-			procr(procrnb).ret=ret(k)
 			libel=""
-			procr(procrnb).cl=line_call(ret(k))
+			If proc_index(ret(k)) Then
+				procr(procrnb).cl=line_call(ret(k))
+			Else
+				procr(procrnb).cl=-1 'called from code without debug data
+			End If
 		End If
+		tv=thread(ithd).plt 'insert after the last item of thread
 		'add manage LIST
 		If flagtrace Then dbg_prt ("NEW proc "+proc(pridx(k)).nm)
 		libel+=proc(pridx(k)).nm+":"+proc_retval(pridx(k))
 		If flagverbose Then libel+=" ["+Str(proc(pridx(k)).db)+"]"
-		
-		'vrr(vrrnb).tv=AddTreeViewItem(GTVIEWVAR,"Not yet filled",cast (hicon, 0),0,TVI_LAST,0)
-		procr(procrnb).tv = Tree_AddItem(tv, libel, 0, tviewvar, 0) ' AddTreeViewItem(GTVIEWVAR,libel,Cast (HICON, 0),0,tv,0)
-		
+
+		procr(procrnb).tv = Tree_AddItem(0, libel, tv, tviewvar, 0) 'same level as the other procs, after the last item of thread
+
 		thread(ithd).plt=procr(procrnb).tv 'keep handle last item
-		thread(ithd).ptv =  Tree_AddItem(thread(ithd).ptv, proc(pridx(k)).nm, 0, tviewthd, 0) 'AddTreeViewItem(GTVIEWTHD,proc(pridx(k)).nm,Cast (HICON, 0),0,TVI_FIRST,thread(ithd).ptv)
+		#ifdef __FB_WIN32__
+			thread(ithd).ptv=Tree_AddItem(thread(ithd).ptv,"Proc : "+proc(pridx(k)).nm,TVI_FIRST,tviewthd, 0)
+		#else
+			thread(ithd).ptv = Tree_AddItem(thread(ithd).ptv, "Proc : " + proc(pridx(k)).nm, 0, tviewthd, 0)
+		#endif
 		var_ini(procrnb,proc(procr(procrnb).idx).vr,proc(procr(procrnb).idx+1).vr-1)
 		procr(procrnb+1).vr=vrrnb+1
 		If proc(procsv).nm="main" Then procr(procrnb).vr=1 'constructors for shared they are executed before main so reset index for first variable of main
 		proc_watch(procrnb) 'reactivate watched var
 	Next
-	
+	For iprc As Integer	=procrnb To 1 Step -1
+		If procr(iprc).thid=thread(ithd).id Then thread(ithd).stack=procr(iprc).sk: Exit For 'current proc
+	Next
+	If thread(ithd).tv Then thread_text(ithd)
+
 	'Next
 End Sub
 
@@ -11817,6 +11969,10 @@ End Sub
 		If flagattach Then
 			proc_runnew
 			flagattach=False
+		ElseIf runtype=RTFRUN Then ''stop after fast run (breakpoint/cursor) : the procs called meanwhile are not followed so rebuild the call stack
+			thread(threadcur).pe=False
+			proc_runnew
+			If proccurad=proc(procsv).fn Then thread(threadcur).pe=True 'is last instruction ?
 		Else
 			dbg_prt2 "in mode step runtype=";runtype,threadlistidx
 			If proccurad=proc(procsv).first Then 'is first fbc instruction ?
