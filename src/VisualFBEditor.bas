@@ -13,6 +13,12 @@
 	#define _NOT_AUTORUN_FORMS_
 #endif
 
+#if defined(__USE_COCOA__) OrElse defined(__USE_UIKIT__)
+	'macOS, iOS: the shared code of both (SysUtils.bi of MyFbFramework defines it too, later than the lines below)
+	#ifndef __USE_APPLE__
+		#define __USE_APPLE__
+	#endif
+#endif
 #if defined(__USE_WASM__) OrElse defined(__FB_JS__)
 	'Web: the page is next to Resources and Settings like the executable. -Wl gives emcc the files of the virtual file system
 	'(ExePath is empty on the Web, so the settings are read from /Settings). The headers and the sources of MyFbFramework
@@ -21,6 +27,12 @@
 	#cmdline "-s gui -x ../VisualFBEditor.html -Wl --js-library,WebIDE_lib.js,--preload-file,../Settings@/Settings,--preload-file,../Templates@/Templates,--preload-file,../Controls/MyFbFramework/Settings.ini@/Controls/MyFbFramework/Settings.ini,--preload-file,../Controls/MyFbFramework/mff@/Controls/MyFbFramework/mff,--exclude-file,*Android?Project*,--exclude-file,*/mff/*/*"
 #elseif defined(__USE_JNI__) OrElse defined(__FB_ANDROID__)
 	'Android: the name of the output (the library of the Android project) is the one of the command line
+#elseif defined(__USE_COCOA__)
+	#ifdef __FB_64BIT__
+		#cmdline "-x ../VisualFBEditor64"
+	#else
+		#cmdline "-x ../VisualFBEditor32"
+	#endif
 #elseif defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#cmdline "-x ../VisualFBEditor64.exe"
@@ -98,7 +110,7 @@ Const SIGN       = APP_TITLE + " " + VERSION
 
 Declare Sub DebugPrint_(ByRef MSG As WString)
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__) OrElse defined(__FB_JS__) OrElse defined(__FB_ANDROID__)
 	'Web and Android: the designer has no library of MyFbFramework to load, it creates the controls of the program
 	'(the procedures of mff.bi and the ones of the units which __EXPORT_PROCS__ gives)
 	#define __EXPORT_PROCS__
@@ -125,7 +137,7 @@ Declare Sub DebugPrint_(ByRef MSG As WString)
 #include once "frmTools.bi"
 #include once "frmAbout.bi"
 #include once "TabWindow.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "mff/mff.bi"
 	#include once "DesignerStatic.bi"
 #endif
@@ -586,14 +598,20 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Dim As TreeNode Ptr WebProjectNode
 		If RunWebPage(ToUtf8(GetMainFile(False, WebProject, WebProjectNode))) = 0 AndAlso SaveAllBeforeCompile Then CompileAndRun 0
 	Case "Break", "End", "StepInto", "StepOver"
-	#elseif defined(__USE_JNI__)
-		'Android: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer)
+		MsgBox ML("Compiling and running are not available on this platform yet.")
+	#elseif defined(__USE_COCOA__)
+		'macOS: the IDE compiles and starts the program itself, with Use Debugger lldb debugs it (DebugLLDB.bas)
+	Case "StartWithCompile", "Start", "Restart", "Break", "End", "StepInto", "StepOver"
+		LLDBCommand Sender.ToString
+	#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'Android, iOS: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer)
 	Case "StartWithCompile", "Start", "Restart":  If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAndRun))
 	Case "Break", "End", "StepInto", "StepOver"
+		MsgBox ML("Compiling and running are not available on this platform yet.")
 	#else
 	Case "StartWithCompile", "Start", "Break", "End", "Restart", "StepInto", "StepOver"
-	#endif
 		MsgBox ML("Compiling and running are not available on this platform yet.")
+	#endif
 	#else
 	Case "StartWithCompile"
 		ClearThreadsWindow
@@ -731,7 +749,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		'A compilation in progress: its processes are terminated, Compile ends after them (CompileJob of Main.bas)
 		If CompileRunning Then
 			CompileStopped = True
-			#ifndef __USE_GTK__
+			#ifdef __USE_COCOA__
+				If CompilePid > 0 Then kill_(-CompilePid, 15)
+			#elseif Not defined(__USE_GTK__)
 				If CompileJob <> 0 Then TerminateJobObject(CompileJob, 1)
 			#elseif defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
 				If CompilePid > 0 Then kill_(-CompilePid, 15)
@@ -993,7 +1013,10 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English") & !"\r\n" & "```MARKDOWN" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 			
-		#ifdef __USE_WIN32_COMPAT__
+		#ifdef __USE_COCOA__
+		Case "SetNextStatement", "ShowVar", "StepOut", "RunToCursor", "AddWatch"
+			LLDBCommand Sender.ToString
+		#elseif defined(__USE_WIN32_COMPAT__)
 		Case "SetNextStatement", "ShowVar", "StepOut", "RunToCursor", "AddWatch"
 			MsgBox ML("Debugging is not available on this platform.")
 		#else

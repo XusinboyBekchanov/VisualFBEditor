@@ -8,7 +8,7 @@
 
 #include once "mff/Clipboard.bi"
 #include once "Main.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: the designer compiles its Windows code with the Windows API subset of Win32Compat.bi
 	#ifndef __USE_WIN32_COMPAT__
 		#define __USE_WIN32_COMPAT__
@@ -412,6 +412,7 @@ Namespace My.Sys.Forms
 		OnInsertControl    As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Ctrl As Any Ptr, CopiedCtrl As Any Ptr, BeforeCtrl As Any Ptr, iLeft As Integer, iTop As Integer, iWidth As Integer, iHeight As Integer)
 		OnInsertComponent  As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Cpnt As Any Ptr, CopiedCpnt As Any Ptr, BeforeCpnt As Any Ptr, iLeft2 As Integer, iTop2 As Integer)
 		OnInsertObject     As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, Obj As Any Ptr, CopiedObj As Any Ptr, BeforeObj As Any Ptr)
+		IsPasting          As Boolean
 		OnInsertingControl As Sub(ByRef Sender As My.Sys.Forms.Designer, ByRef ClassName As String, ByRef sName As String)
 		OnMouseMove        As Sub(ByRef Sender As My.Sys.Forms.Designer, x As Integer, Y As Integer, ByRef Over As Any Ptr)
 		OnDblClickControl  As Sub(ByRef Sender As My.Sys.Forms.Designer, Control As Any Ptr)

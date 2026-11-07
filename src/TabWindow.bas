@@ -929,7 +929,7 @@ End Property
 Property TabWindow.Caption(ByRef Value As WString)
 	FCaptionNew = _Reallocate(FCaptionNew, (Len(Value) + 1) * SizeOf(WString))
 	*FCaptionNew = Value
-	#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'The close button of the tab is a button of its own (Web, Android)
 		Base.Caption = Value
 	#else
@@ -3008,6 +3008,22 @@ Sub DesignerInsertingControl(ByRef Sender As Designer, ByRef ClassName As String
 	Else
 		'  for Control Array
 		Dim As Integer CtrlArrayNum = -1
+		Dim As Integer CtrlIndex = tb->cboClass.Items.IndexOf(PrevName)
+		If Sender.IsPasting AndAlso CtrlIndex > 1 AndAlso InStr(PrevName, "(") < 1 Then
+			If MsgBox(ML("You already have a control named") & " """ & PrevName & """." & !"\r" & ML("Do you want to create a control array?"), , mtQuestion, btYesNo) = mrYes Then
+				' The original control becomes the first element of the array
+				Dim As Any Ptr Ctrl = tb->cboClass.Items.Item(CtrlIndex)->Object
+				Dim As UString OldName = PrevName, FirstName = PrevName & "(0)"
+				tb->txtCode.Changing "Unsurni o`zgartirish"
+				tb->ChangeName OldName, FirstName
+				tb->WriteObjProperty(Ctrl, "Name", FirstName)
+				ChangeControl(Sender, Ctrl, "Name")
+				bNotDesignForms = True
+				tb->txtCode.Changed "Unsurni o`zgartirish"
+				bNotDesignForms = False
+				PrevName = FirstName
+			End If
+		End If
 		If InStr(PrevName,"(") < 1 Then
 			Var n = 0
 			Do
@@ -10908,7 +10924,7 @@ Sub tabPanel_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Ne
 	End With
 End Sub
 
-#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 	'Android and Web: the close button of a tab of the code (CloseButton of Windows is over the tab, the TabControl
 	'draws the tabs)
 	Sub tabCode_TabClose(ByRef Designer As My.Sys.Object, ByRef Sender As TabControl, Page As TabPage Ptr)
@@ -10921,7 +10937,7 @@ End Sub
 
 Constructor TabPanel
 	tabCode.Images = @imgList
-	#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+	#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		tabCode.ShowCloseButtons = True
 		tabCode.OnTabClose = @tabCode_TabClose
 	#endif
@@ -12402,6 +12418,10 @@ Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolea
 			Return InStr(LCase(UseDefine), "__use_wasm__") > 0
 		Case "__use_jni__", "defined(__use_jni__)"
 			Return InStr(LCase(UseDefine), "__use_jni__") > 0
+		Case "__use_cocoa__", "defined(__use_cocoa__)"
+			Return InStr(LCase(UseDefine), "__use_cocoa__") > 0
+		Case "__use_uikit__", "defined(__use_uikit__)"
+			Return InStr(LCase(UseDefine), "__use_uikit__") > 0
 		Case "__fb_js__", "defined(__fb_js__)"
 			Return InStr(LCase(UseDefine), "-target js-asmjs") > 0
 		Case Else
@@ -13295,7 +13315,7 @@ End Sub
 		Dim As UString WebFolder = WGet(pText)
 		WDeAllocate(pText)
 		If Not FileExists(MainFileName) Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("File not found") & ": " & MainFile)
-		Dim As Boolean ForAndroid = Target = "android", AndroidConsole
+		Dim As Boolean ForAndroid = Target = "android", AndroidConsole, AppleRun
 		Dim As UString AndroidFolder
 		If ForAndroid Then
 			'The Android IDE: the program is compiled with Use > JNI and the Gradle project of its files (the project
@@ -13316,6 +13336,15 @@ End Sub
 			If InStr(CompileOptions, "__USE_JNI__") = 0 Then CompileOptions &= " -d __USE_JNI__"
 			WebCompileAndroidProperties AndroidFolder
 			If Parameter <> "Run" AndAlso Parameter <> "Bundle" AndAlso Parameter <> "APK" Then Parameter = ""
+		ElseIf Target = "ios" OrElse Target = "macos" Then
+			#ifdef __USE_COCOA__
+				'The iOS IDE: the program is compiled with UIKit for the Simulator (Compile of Main.bas), Run installs it there
+				If Target = "ios" AndAlso InStr(CompileOptions, "__USE_UIKIT__") = 0 Then CompileOptions &= " -d __USE_UIKIT__"
+				AppleRun = Target = "ios" AndAlso Parameter = "Run"
+				Parameter = ""
+			#else
+				Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("The programs of iOS are compiled by the IDE on the Mac"))
+			#endif
 		Else
 			'The program is compiled for the Web (the define of Use > WASM)
 			If InStr(CompileOptions, "__USE_WASM__") = 0 Then CompileOptions &= " -d __USE_WASM__ -target js-asmjs -r"
@@ -13331,7 +13360,13 @@ End Sub
 		WLet(WebCompileAndroidFolder, "")
 		WebCompileAndroidConsole = False
 		Dim As String Result = "result=" & IIf(CompileResult, "1", "0") & Chr(10)
-		If CompileResult <> 0 AndAlso Not ForAndroid Then
+		#ifdef __USE_COCOA__
+			If CompileResult <> 0 AndAlso AppleRun Then
+				Dim As UString AppFile = GetFolderName(MainFileName) & GetFileName(MainFileName, False)
+				Shell "xcrun simctl install booted '" & AppFile & ".app' && xcrun simctl launch booted 'com.myfbframework." & GetFileName(AppFile) & "'"
+			End If
+		#endif
+		If CompileResult <> 0 AndAlso (Not ForAndroid) AndAlso Target <> "ios" AndAlso Target <> "macos" Then
 			'The page of the program relative to the home folder of the server
 			Dim As UString PageFile = Replace(GetFullPath(GetExeFileName(MainFileName, " " & CompileOptions), MainFileName), "\", "/")
 			Dim As UString HomeFolder = Replace(HomeDir, "\", "/") & "/"
@@ -13541,6 +13576,10 @@ Function GetAndroidDeviceAbis(ByRef AndroidFolder As WString) As String
 End Function
 
 Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
+	#ifdef __USE_UIKIT__
+		'The server of the Mac installed and started the program (Compile with Run)
+		Exit Sub
+	#endif
 	#ifndef __FB_JS__ 'WebAssembly has no computed gotos (fb_ErrorSetHandler)
 		On Error Goto ErrorHandler
 	#endif
@@ -13673,7 +13712,73 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 		If CmdL Then _Deallocate(CmdL)
 	Else
 		WLet(ExeFileName, (GetExeFileName(MainFile, CompileLine & " " & FirstLine)))
-		#ifdef __USE_GTK__
+		#ifdef __USE_COCOA__
+			'macOS: the program runs and the IDE gets its exit code (a thread of the IDE waits here)
+			Dim As WString Ptr Arguments
+			WLet(Arguments, *RunArguments)
+			If ProjectCommandLineArguments <> "" Then WAdd(Arguments, " " & ProjectCommandLineArguments)
+			ChDir(GetFolderName(*ExeFileName))
+			Dim As UString CommandLine = """" & Replace(*ExeFileName, "\", "/") & """ " & *Arguments
+			If InStr(FirstLine & CompileLine, "__USE_UIKIT__") > 0 Then
+				'iOS (Use > UIKit): the bundle is installed in the Simulator (the first iPhone is started if none is) and
+				'started there; --console (without a terminal, which --console-pty needs: code 22) gives its output here and waits for its end
+				Dim As UString AppFolder = Replace(GetFolderName(*ExeFileName), "\", "/")
+				If EndsWith(AppFolder, "/") Then AppFolder = Left(AppFolder, Len(AppFolder) - 1)
+				If Dir(AppFolder & "/Info.plist") = "" Then
+					ThreadsEnter()
+					ShowMessages(Time & ": " & ML("File not found") & ": " & AppFolder & "/Info.plist")
+					ThreadsLeave()
+					WDeAllocate(Arguments)
+					Exit Sub
+				End If
+				CommandLine = "B=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' '" & AppFolder & "/Info.plist'); " & _
+					"xcrun simctl list devices booted | grep -q Booted || xcrun simctl boot $(xcrun simctl list devices available | grep -m 1 iPhone | grep -oE '[0-9A-F-]{36}'); " & _
+					"open -a Simulator; xcrun simctl install booted '" & AppFolder & "' && xcrun simctl launch --console --terminate-running-process booted $B " & *Arguments
+			End If
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
+			ThreadsLeave()
+			'The test of Start (.github/workflows/macos.yml): the program saves its windows and ends itself
+			Dim As String TestLog = Environ("VFBE_TEST_LOG")
+			If Environ("VFBE_TEST_RUN_SNAPSHOT") <> "" Then CommandLine = "MFF_SNAPSHOT='" & Environ("VFBE_TEST_RUN_SNAPSHOT") & "' MFF_SNAPSHOT_DELAY=3 " & CommandLine
+			If TestLog <> "" Then
+				Dim As Integer FnLog = FreeFile_
+				If Open(TestLog For Append As #FnLog) = 0 Then
+					Print #FnLog, "RunPr start: " & ToUtf8(CommandLine)
+					CloseFile_(FnLog)
+				End If
+			End If
+			If InStr(FirstLine & CompileLine, "__USE_UIKIT__") > 0 Then
+				'iOS: the messages of simctl (an error of the install or of the start) and the output of the program are in
+				'Messages (popen and fgets like Compile of Main.bas)
+				Dim As FILE Ptr PipeFile = popen(ToUtf8(CommandLine & " 2>&1"), "r")
+				Dim As ZString * 2048 Buff
+				Result = -1
+				If PipeFile <> 0 Then
+					While fgets(@Buff, SizeOf(Buff), PipeFile) <> 0
+						Buff = RTrim(Buff, Any !"\r\n")
+						ThreadsEnter()
+						ShowMessages(Buff, False)
+						ThreadsLeave()
+					Wend
+					Dim As Long Status = pclose(PipeFile)
+					Result = IIf(Status >= 0, (Status Shr 8) And &hFF, Status)
+				End If
+			Else
+				Result = Shell(CommandLine)
+			End If
+			If TestLog <> "" Then
+				Dim As Integer FnLog = FreeFile_
+				If Open(TestLog For Append As #FnLog) = 0 Then
+					Print #FnLog, "RunPr end: " & Result
+					CloseFile_(FnLog)
+				End If
+			End If
+			WDeAllocate(Arguments)
+			ThreadsEnter()
+			ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
+			ThreadsLeave()
+		#elseif defined(__USE_GTK__)
 			Dim As GPid pid = 0
 			'		Dim As GtkWidget Ptr win, vte
 			'		win = gtk_window_new(gtk_window_toplevel)

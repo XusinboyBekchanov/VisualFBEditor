@@ -1,0 +1,7 @@
+# The files of the IDE in its bundle for the iOS Simulator (Use > UIKit, mff/UIKit/build.sh): From (from this folder) To
+# (in the bundle). ../Resources is copied as AppResources by build.sh
+../Settings Settings
+../Templates Templates
+../Controls/MyFbFramework/mff Controls/MyFbFramework/mff
+../Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/Settings.ini
+../Controls/MyFbFramework/resources Controls/MyFbFramework/resources

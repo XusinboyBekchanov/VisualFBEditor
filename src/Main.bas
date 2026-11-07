@@ -981,6 +981,14 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	Dim As UString ExeFileName
 	Dim As String SearchChar
 	Dim As Long Pos1, Pos2
+	#ifdef __USE_APPLE__
+		'iOS (Use > UIKit): the bundle is next to the main file whatever -x is (Compile: mff/UIKit/build.sh)
+		If InStr(CompileWith, "__USE_UIKIT__") Then
+			Pos1 = InStrRev(pFileName, ".")
+			If Pos1 <= InStrRev(pFileName, Slash) Then Pos1 = Len(pFileName) + 1
+			Return Left(pFileName, Pos1 - 1) & ".app/" & GetFileName(Left(pFileName, Pos1 - 1))
+		End If
+	#endif
 	Pos1 = InStr(CompileWith, " -x ")
 	If Pos1 > 0 Then
 		If Mid(CompileWith, Pos1 + 4, 1) = """" Then
@@ -1012,6 +1020,9 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 				Return IIf(InStr(CompileWith, "-dll") + InStr(CompileWith, "-lib") > 0, "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", IIf(InStr(CompileWith, "-lib"), ".o", ""))
 			End If
 		#else
+			#ifdef __USE_APPLE__
+				Return Left(pFileName, Pos1 - 1)
+			#endif
 			If InStr(CompileWith, "-target js-asmjs") Then
 				Return Left(pFileName, Pos1 - 1) & ".html"
 			ElseIf InStr(CompileWith, "-target ") Then
@@ -1028,7 +1039,7 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	End If
 End Function
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The answer of the server (WebCompile of TabWindow.bas) in Messages and Problems: the lines "Name=Value", an empty
 	'line, the output of the compilation, "[problems]" and the problems. Returns the result of the compilation
 	Function ShowWebCompileAnswer(ByRef Parameter As String, ByRef Answer As UString) As Boolean
@@ -1106,7 +1117,8 @@ End Function
 	End Function
 #endif
 
-#ifdef __USE_JNI__
+#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
+	'iOS: the same through the server of the IDE on the Mac, with "target ios": the Simulator shares localhost with it
 	'Android: the IDE can not start the compiler. The files of the project are sent with POST /compile to the Web IDE
 	'Server of the desktop IDE (Service > Web IDE Server, WebCompile of TabWindow.bas) like from the Web IDE
 	'(WebIDE_lib.js), with the line "target android": the server compiles them with Use > JNI and Gradle, and Run
@@ -1133,7 +1145,12 @@ End Function
 
 	Const AndroidCompileServerPort = 8001
 	'struct dirent of bionic on all the ABIs: d_ino (8 bytes), d_off (8 bytes), d_reclen (2 bytes), d_type (1 byte), d_name
-	Const AndroidCompile_DTypeOffset = 18, AndroidCompile_DNameOffset = 19
+	#ifdef __USE_UIKIT__
+		'struct dirent of Darwin: d_ino, d_seekoff (8 bytes each), d_reclen, d_namlen (2 bytes each), d_type, d_name
+		Const AndroidCompile_DTypeOffset = 20, AndroidCompile_DNameOffset = 21
+	#else
+		Const AndroidCompile_DTypeOffset = 18, AndroidCompile_DNameOffset = 19
+	#endif
 	Const AndroidCompile_DT_UNKNOWN = 0, AndroidCompile_DT_DIR = 4
 
 	'A line of the body of the request. The literals of the IDE are wide strings and an expression with them is one too:
@@ -1203,7 +1220,12 @@ End Function
 		Dim As Long Fd = AndroidCompile_socket(2, 1, 0) 'AF_INET, SOCK_STREAM
 		If Fd < 0 Then Return "result=0" & Chr(10) & "error=" & ToUtf8(ML("Unable to create socket"))
 		Dim As AndroidCompileAddress Address
-		Address.Family = 2
+		#ifdef __USE_UIKIT__
+			'sin_len and sin_family of Darwin
+			Address.Family = (2 Shl 8) Or 16
+		#else
+			Address.Family = 2
+		#endif
 		Address.Port = (AndroidCompileServerPort Shr 8) Or ((AndroidCompileServerPort And &hFF) Shl 8)
 		Address.Address = &h0100007F '127.0.0.1
 		If AndroidCompile_connect(Fd, @Address, SizeOf(Address)) <> 0 Then
@@ -1216,7 +1238,11 @@ End Function
 		Dim As Integer Sent, Count
 		Do While Sent < Len(Request)
 			'MSG_NOSIGNAL: a closed connection is an error, not the signal SIGPIPE
-			Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, &h4000)
+			#ifdef __USE_UIKIT__
+				Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, 0)
+			#else
+				Count = AndroidCompile_send(Fd, StrPtr(Request) + Sent, Len(Request) - Sent, &h4000)
+			#endif
 			If Count <= 0 Then Exit Do
 			Sent += Count
 		Loop
@@ -1264,7 +1290,11 @@ End Function
 		AndroidCompileAddLine Body, "root ", RootUtf8
 		AndroidCompileAddLine Body, "main ", Mid(MainUtf8, Len(RootUtf8) + 1)
 		AndroidCompileAddLine Body, "options ", OptionsUtf8
-		AndroidCompileAddLine Body, "target android"
+		#ifdef __USE_UIKIT__
+			AndroidCompileAddLine Body, "target ios"
+		#else
+			AndroidCompileAddLine Body, "target android"
+		#endif
 		'Run: the server installs the program on the device and starts it, Bundle and APK: the release ones of Gradle
 		If Parameter = "Run" OrElse Parameter = "Bundle" OrElse Parameter = "APK" Then AndroidCompileAddLine Body, "parameter ", Parameter
 		Dim As LongInt Total
@@ -1294,7 +1324,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 	Dim As TreeNode Ptr ProjectNode
 	Dim As Boolean Bit32 = tbt32Bit->Checked
 	'Web IDE server: the compiler which has the library of the Web (lib/js-asmjs)
+	#ifndef __USE_APPLE__
 	If CBool(WGet(WebCompileMainFile) <> "") AndAlso CBool(WGet(WebCompileAndroidFolder) = "") AndAlso Not FolderExists(GetFolderName(GetFullPath(WGet(IIf(Bit32, Compiler32Path, Compiler64Path)))) & "lib/js-asmjs") Then Bit32 = Not Bit32
+	#endif
 	Dim As WString Ptr FbcExe, CurrentCompiler = IIf(Bit32, CurrentCompiler32, CurrentCompiler64)
 	ThreadsEnter()
 	ClearMessages
@@ -1352,7 +1384,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'Web: the browser can not start the compiler, the server compiles the files of the project
 			If Not CompileOnWebServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine) Then CompileResult = 0
 			Continue For
-		#elseif defined(__USE_JNI__)
+		#elseif defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
 			'Android: the server compiles the files of the project with Use > JNI
 			If Not CompileOnAndroidServer(Parameter, *MainFile, *ProjectPath, *FirstLine & CompileLine, Project <> 0 OrElse FileExists(*ProjectPath & "/Android/app/build.gradle")) Then CompileResult = 0
 			Continue For
@@ -1412,6 +1444,12 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Else
 			WLet(FbcExe, GetFullPath(IIf(Bit32, *Compiler32Path, *Compiler64Path)))
 		End If
+		#ifdef __USE_COCOA__
+			'macOS: the compiler next to the IDE (the package of the IDE) when Settings > Compilers has none
+			If *FbcExe = "" OrElse Not FileExists(*FbcExe) Then
+				If FileExists(ExePath & "/Compilers/fbc/bin/fbc") Then WLet(FbcExe, ExePath & "/Compilers/fbc/bin/fbc")
+			End If
+		#endif
 		If *FbcExe = "" Then
 			ThreadsEnter()
 			ShowMessages ML("Invalid defined compiler path.")
@@ -1688,19 +1726,102 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Dim As Integer Result = -1
 		Dim Buff As ZString * 2048 ' for V1.07 Line Input not working fine
 		Dim As WString Ptr ErrLinePtr
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 			WAdd(PipeCommand, " 2> """ + *LogFileName2 + """")
 		#else
 			'WLetEx PipeCommand, """" & *PipeCommand & " 2> """ + *LogFileName2 + """" & """", True
 		#endif
 		'If Parameter <> "Check" Then
-		ThreadsEnter()
-		ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
-		ThreadsLeave()
+		#ifndef __USE_COCOA__
+			ThreadsEnter()
+			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+			ThreadsLeave()
+		#endif
 		'End If
 		Dim As Dictionary CompileCommands
 		'Use > JNI: the gcc, as and ld of the NDK (their beginning) for each command of fbc, Gradle is the last command
 		Dim As WStringList JNIToolPrefixes
+		#ifdef __USE_COCOA__
+			'fbc makes the C code of the program, then clang builds it with the host of AppKit or UIKit (mff/Cocoa/build.sh).
+			'With -gen gas64 (a fast compilation on a Mac with Intel) fbc links the program itself with libmffCocoa.a
+			'(mff/Cocoa/build-lib.sh).
+			'The compiler is in <folder>/bin, the runtime of FreeBASIC in <folder>/lib/freebasic/darwin-*
+			Dim As UString MainNoExt = *MainFileNameOnly
+			Scope
+				Var PosDot = InStrRev(MainNoExt, ".")
+				If PosDot > 0 Then MainNoExt = Left(MainNoExt, PosDot - 1)
+			End Scope
+			Dim As UString PipeNoLog = *PipeCommand
+			WAdd(PipeCommand, "")
+			Dim As Long PosLog = InStrRev(*PipeCommand, " 2> ")
+			Dim As UString LogPart = IIf(PosLog > 0, Mid(*PipeCommand, PosLog), "")
+			If PosLog > 0 Then PipeNoLog = Left(*PipeCommand, PosLog - 1)
+			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
+			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
+			Dim As Boolean UseGas64 = InStr(PipeNoLog, " -gen gas64") > 0
+			'gas64 of macOS writes no information for the debugger (-g): the program for lldb is compiled with -gen gcc
+			If UseGas64 AndAlso InStr(PipeNoLog & " ", " -g ") > 0 Then
+				PipeNoLog = Replace(PipeNoLog, " -gen gas64", " -gen gcc")
+				UseGas64 = False
+				ShowMessages(Str(Time) & ": " & ML("Use Debugger") & ": -gen gas64 -> -gen gcc")
+			End If
+			'-e, -ex and -exx generate computed gotos, which clang does not accept in the C code of fbc
+			If Not UseGas64 Then
+				For iOpt As Integer = 0 To 2
+					Dim As String ErrorOption = IIf(iOpt = 0, " -exx ", IIf(iOpt = 1, " -ex ", " -e "))
+					If InStr(PipeNoLog & " ", ErrorOption) > 0 Then
+						PipeNoLog = RTrim(Replace(PipeNoLog & " ", ErrorOption, " "))
+						ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported on macOS and was removed"))
+					End If
+				Next
+			End If
+			If (Not ForIOS) AndAlso InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
+			#ifdef __FB_ARM__
+				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
+			#else
+				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-x86_64"
+			#endif
+			If UseGas64 AndAlso ForIOS Then
+				'iOS: fbc writes the assembler of the program, the clang of the Simulator builds it (mff/UIKit/build.sh)
+				If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			ElseIf UseGas64 Then
+				If InStr(PipeNoLog, " -mt") = 0 Then PipeNoLog &= " -mt"
+			Else
+				If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
+				If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			End If
+			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
+			'MyFbFramework of the IDE: the compilation runs in the folder of the program
+			PipeNoLog &= " -i """ & *MFFPathC & """"
+			'The settings of the IDE can have the paths of Windows; \" would hide the end of a path from the shell
+			PipeNoLog = Replace(PipeNoLog, "\", "/")
+			WLet(PipeCommand, PipeNoLog & LogPart)
+			ThreadsEnter()
+			ShowMessages(Str(Time) + ": " + IIf(Parameter = "MakeClean", ML("Clean"), ML("Compilation")) & ": " & *PipeCommand + WChr(13) + WChr(10))
+			ThreadsLeave()
+			CompileCommands.Add "", *PipeCommand
+			Dim As UString FbcRoot = *FbcExe
+			Scope
+				Var PosBin = InStrRev(FbcRoot, "/bin/")
+				If PosBin > 0 Then FbcRoot = Mid(FbcRoot, 1, PosBin - 1)
+			End Scope
+			'The program is next to its main file (the compilation runs in that folder); of the Simulator: in its bundle
+			'(the folder of the main file and not CurDir: the other threads of the IDE change the current folder)
+			Dim As UString ExeBase = Replace(GetFolderName(*MainFile), "\", "/") & MainNoExt
+			If InStr(ExeBase, "/") = 0 Then ExeBase = CurDir & "/" & MainNoExt
+			WLet(ExeName, ExeBase & IIf(ForIOS, ".app/" & MainNoExt, ""))
+			Dim As UString BuildScript = Replace(*MFFPathC, "\", "/") & IIf(ForIOS, "/mff/UIKit/build.sh", "/mff/Cocoa/build.sh")
+			'With -g (Use Debugger) the program keeps the information for lldb in Program.dSYM (DebugLLDB.bas)
+			Dim As String BuildDebug = IIf((Not ForIOS) AndAlso InStr(PipeNoLog & " ", " -g ") > 0, "MFF_DEBUG=1 ", "")
+			'The runtime of FreeBASIC for the Simulator (mff/UIKit/build-rtlib.sh): next to the compiler (<fbc>-ios), else the
+			'one of the package of the IDE
+			Dim As UString RuntimeRoot = FbcRoot
+			If ForIOS Then
+				RuntimeRoot = FbcRoot & "-ios"
+				If (Not FolderExists(RuntimeRoot)) AndAlso FolderExists(ExePath & "/Compilers/fbc-ios") Then RuntimeRoot = ExePath & "/Compilers/fbc-ios"
+			End If
+			If Parameter <> "Check" AndAlso (ForIOS OrElse Not UseGas64) Then CompileCommands.Add "linking :      ", BuildDebug & "sh """ & BuildScript & """ """ & ExeBase & IIf(UseGas64, ".asm", ".c") & """ """ & ExeBase & """ """ & RuntimeRoot & """"
+		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
 			Var Pos1 = InStrRev(*MainFileNameOnly, ".")
@@ -1909,6 +2030,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		Else
 			CompileCommands.Add "", *PipeCommand
 		End If
+		#endif
 		Dim As UShort bFlagErr
 		Dim As Double CompileElapsedTime = Timer
 		'A makefile or batch file decides itself where the executable goes, so its exit code tells if the build succeeded
@@ -2008,18 +2130,33 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End If
 			Dim As String TmpStrKey = "@freebasic compiler@copyright@standalone@target@backend@compiling@compiling rc@compiling rc failed@compiling c@assembling@linking@obj@creating@restarting@creating import library@archiving@"
 			Dim As WString * 2048 TmpStr
-			#ifdef __USE_GTK__
+			#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 				Dim As Integer Fn = FreeFile_
-				#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+				#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__) AndAlso Not defined(__USE_COCOA__)
 					'The command runs in its own process group (setsid) whose id it writes first: End terminates the
 					'group with all the processes of the command (fbc -> gcc, emcc -> python -> clang)
 					Dim As UString Script = "echo __VFBE_PID__$$; " & *PipeCommand
 					WLet(PipeCommand, "if command -v setsid >/dev/null; then exec setsid sh -c '" & Replace(Script, "'", "'\''") & "'; else " & *PipeCommand & "; fi")
 				#endif
+				#ifdef __USE_COCOA__
+					'The messages of clang and of the linker (mff/Cocoa/build.sh) are the last lines of the Output
+					WAdd(PipeCommand, " 2>&1")
+					'The command runs in its own process group (set -m) whose id it writes first: End terminates the group with
+					'all the processes of the command (fbc -> clang -> ld); the notes of the jobs of the shell go to /dev/null
+					WLet(PipeCommand, "exec 2>/dev/null; set -m; (" & *PipeCommand & ") & echo __VFBE_PID__$!; wait $!")
+					'popen and fgets of the C library: EOF and Line Input of FreeBASIC keep the lock of all the files of the program
+					'while they wait for the output, the main thread (FindResourceFile of a toolbar) and the other threads would wait
+					'for the end of the compilation
+					Dim As FILE Ptr PipeFile = popen(ToUtf8(*PipeCommand), "r")
+					If PipeFile <> 0 Then
+						While fgets(@Buff, SizeOf(Buff), PipeFile) <> 0
+							Buff = RTrim(Buff, Any !"\r\n")
+				#else
 				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
-						#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)
+				#endif
+						#if (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
 							If StartsWith(Buff, "__VFBE_PID__") Then
 								CompilePid = Val(Mid(Buff, 13))
 								'End was pressed before the group was known
@@ -2069,6 +2206,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							ThreadsLeave()
 						End If
 					Wend
+					#ifdef __USE_COCOA__
+						pclose(PipeFile)
+					#endif
 				End If
 				CloseFile_(Fn)
 				CompilePid = 0
@@ -2267,7 +2407,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		If CompileStopped Then Yaratilmadi = True
 		'Delete the default ManifestFile And IcoFile
 		'If ManifestIcoCopy Then Kill GetFolderName(*MainFile) & "Manifest.xml": Kill GetFolderName(*MainFile) & "Form1.rc": Kill GetFolderName(*MainFile) & "Form1.ico"
-		#ifdef __USE_GTK__
+		#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
 			Dim Fn As Integer = FreeFile_
 			Result = -1
 			Result = Open(*LogFileName2 For Input Encoding "utf-8" As #Fn)
@@ -3335,7 +3475,7 @@ Function FolderCopy(FromDir As UString, ToDir As UString) As Integer
 	Return 0
 End Function
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: Dir of the runtime finds no folders, the folder is opened with the C library
 	Extern "C"
 		Declare Function opendir_ Alias "opendir"(ByVal DirName As ZString Ptr) As Any Ptr
@@ -3345,7 +3485,7 @@ End Function
 
 Function FolderExists(ByRef FolderName As WString) As Boolean
 	If Trim(FolderName)="" Then Return False
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		Dim As String sFolderName = ToUtf8(FolderName)
 		Dim As Any Ptr DirPtr = opendir_(StrPtr(sFolderName))
 		If DirPtr = 0 Then Return False
@@ -3784,7 +3924,7 @@ Function SaveAllBeforeCompile() As Boolean
 End Function
 
 Sub PrintThis()
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web: the pages of the code (Document_PrintPage) are printed by the print dialog of the browser (Android: of the system)
 		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
@@ -3803,7 +3943,7 @@ Sub PrintPreview()
 End Sub
 
 Sub PageSetup()
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web and Android: the paper and the orientation of Page Setup are the ones of the pages of Print and Print Preview
 		If PageSetupD.Execute Then
 			PrintPreviewD.Document->PrinterSettings.PageSize = PageSetupD.PaperSize
@@ -4936,7 +5076,12 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 			#ifdef __USE_GTK__
 				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
 			#else
-				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+				#ifdef __USE_APPLE__
+					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
+					If Not FileExists(Result) Then Result = GetOSPath(ExePath & "/Compilers/fbc/include/freebasic/" & Path)
+				#else
+					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+				#endif
 			#endif
 			If FileExists(Result) Then
 				Return Result
@@ -4944,7 +5089,11 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 				#ifdef __USE_GTK__
 					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
 				#else
-					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+					#ifdef __USE_APPLE__
+						Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
+					#else
+						Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+					#endif
 				#endif
 				If FileExists(Result) Then
 					Return Result
@@ -6816,6 +6965,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
 			Dim As IniFile ini
 			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), MFF)
+			#ifdef __USE_APPLE__
+				'The settings have the paths of Windows: the folders of the library would not be found
+				Temp = GetOSPath(Temp)
+				MFF = GetOSPath(MFF)
+			#endif
 			ini.Load GetFolderName(GetRelativePath(Temp)) & "Settings.ini"
 			Var CtlLibrary = _New(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
@@ -6843,12 +6997,12 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary Then Continue For
-		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__)
+		#if defined(__USE_JNI__) OrElse defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			'Web and Android: only MyFbFramework, which is in the program of the IDE (the same handle as in Designer.bas)
 			CtlLibrary->Handle = IIf(InStr(LCase(CtlLibrary->Path), "mff"), Cast(Any Ptr, 1), 0)
 			If CtlLibrary->Handle = 0 Then Continue For
-			#ifdef __USE_JNI__
-				'The pictures of the toolbox (like the icon theme of GTK below)
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'The pictures of the toolbox (like the icon theme of GTK below): a full path, the designer changes the current folder
 				AddResourceSearchPath GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "resources")
 			#else
 				'Web: the pictures of the toolbox are loaded by the browser from the folder of the library next to the page,
@@ -7711,7 +7865,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	For i = 0 To ControlLibraries.Count - 1
 		CtlLibrary = ControlLibraries.Item(i)
 		If CtlLibrary = 0 OrElse (ForLibrary <> 0 AndAlso CtlLibrary <> ForLibrary) Then Continue For
-		If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+		'macOS, iOS: the handle of MyFbFramework is only a mark (it is in the program of the IDE, LoadToolBox)
+		#ifndef __USE_APPLE__
+			If CtlLibrary->Handle Then DyLibFree(CtlLibrary->Handle)
+		#endif
 	Next i
 	Exit Sub
 	ErrorHandler:
@@ -8135,12 +8292,13 @@ Sub LoadSettings
 	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
 	Dim As UString LoadedProjectsPath = iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects")
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) OrElse defined(__USE_APPLE__)
+		'./Projects of the settings of Windows: on macOS it would be in the folder of the IDE (or in its bundle)
 		If LoadedProjectsPath = "./Projects" Then LoadedProjectsPath = "%USERDOCUMENTS%/Visual FB Editor Projects"
 	#endif
 	WLet(ProjectsPath, LoadedProjectsPath)
-	#ifdef __USE_JNI__
-		'Android: the folder of the projects in the documents of the app is made at the first start (New Project saves
+	#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'Android, macOS, iOS: the folder of the projects in the documents is made at the first start (New Project saves
 		'the new projects in it)
 		If StartsWith(*ProjectsPath, "%USERDOCUMENTS%") Then EnsureFolderExists GetFullPath(*ProjectsPath)
 	#endif
@@ -8158,7 +8316,7 @@ Sub LoadSettings
 	DefaultFileFormat = iniSettings.ReadInteger("Options", "DefaultFileFormat", FileEncodings.Utf8BOM)
 	#ifdef __FB_WIN32__
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.WindowsCRLF)
-	#elseif __FB_DARWIN__
+	#elseif defined(__FB_DARWIN__)
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.MacOSCR)
 	#else
 		DefaultNewLineFormat = iniSettings.ReadInteger("Options", "DefaultNewLineFormat", NewLineTypes.LinuxLF)
@@ -8214,6 +8372,10 @@ Sub LoadSettings
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
+	#ifdef __USE_APPLE__
+		'macOS, iOS: the windows have the mode of the settings from the start (not the one of the system)
+		App.DarkMode = DarkMode
+	#endif
 	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
 	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
@@ -8255,7 +8417,12 @@ Sub LoadSettings
 		End If
 		LoadD2D1
 	#endif
-	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
+	#ifdef __USE_APPLE__
+		'iOS: the pictures are in AppResources of the bundle
+		EditControlFrame.LoadFromFile(FindResourceFile("Frame"))
+	#else
+		EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
+	#endif
 End Sub
 
 Sub LoadLanguageTexts
@@ -9353,6 +9520,9 @@ Sub CreateMenusAndToolBars
 	mnuJNI->Add "Android GUI", "", "AndroidGUI:__USE_JNI__ -d __USE_ANDROIDGUI__", @mClickUseDefine, True
 	mnuJNI->Add "Native GUI", "", "NativeGUI:__USE_JNI__ -d __USE_NATIVEGUI__", @mClickUseDefine, True
 	Var mnuWASM = tbButton->DropDownMenu.Add("WASM", "", "WASM:__USE_WASM__ -target js-asmjs -r", @mClickUseDefine)
+	'macOS and iOS: the programs of the IDE on the Mac (iOS: in the Simulator)
+	tbButton->DropDownMenu.Add "Cocoa", "", "Cocoa:__USE_COCOA__", @mClickUseDefine, True
+	tbButton->DropDownMenu.Add "UIKit (iOS)", "", "UIKit:__USE_UIKIT__", @mClickUseDefine, True
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
 	tbtUseGen = tbProject.Buttons.Add(Cast(ToolButtonStyle, tbsWholeDropdown Or tbsAutosize), "Apply", , @mClick, "Gen", ML("Backend") & ": " & ML("Default"), ML("Backend") & " (-gen)", True)
@@ -9490,6 +9660,11 @@ tbForm.Buttons.Add tbsSeparator
 	AndroidDesignDpi = 160
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 150)
 	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", 150)
+	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 110)
+#elseif defined(__USE_UIKIT__)
+	'iPhone: the panels leave the place to the editor
+	tabLeftWidth = 110
+	tabRightWidth = 110
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", 110)
 #else
 	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", 200)
@@ -11442,7 +11617,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
 		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
-	#elseif defined(__USE_WASM__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		'Web: the cell of the selected row (the row of the table, the item is the selected one)
 		TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
 	#elseif defined(__USE_WIN32_COMPAT__)
@@ -11549,7 +11724,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		cboPropertyValue.Width = cboPropertyValue.UnScaleX(lpRect.Right - lpRect.Left) + 2
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 	End If
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web, Android: the editors have no frames outside of them like on Windows, they are in the cell (the button is square)
 		Dim As Integer iCellWidth = pnlPropertyValue.Width, iCellHeight = pnlPropertyValue.Height
 		cboPropertyValue.SetBounds 0, 0, iCellWidth, iCellHeight
@@ -11565,6 +11740,10 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		'Android: the editor is in the page of the list, over the list (the Spinner is transparent: the panel under it is
 		'the background of the cell like the one of an editor of Windows)
 		pnlPropertyValue.BackColor = &hFFFFFF
+		pnlPropertyValue.BringToFront
+	#elseif defined(__USE_APPLE__)
+		'Over the text of the cell (the editors are transparent)
+		pnlPropertyValue.BackColor = IIf(g_darkModeEnabled, BGR(30, 30, 30), clWhite)
 		pnlPropertyValue.BringToFront
 	#endif
 	'#endif
@@ -11620,7 +11799,7 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 			gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 			gtk_tree_path_free(TreePath)
 			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
 		#elseif defined(__USE_WIN32_COMPAT__)
 			lpRect = Type(0, 0, 0, 0)
@@ -12942,10 +13121,10 @@ pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
 
-#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WINAPI__) OrElse defined(__USE_GTK__) OrElse defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'The margins of Page Setup on the page: Web and Android - the page is in pixels at 96 DPI (Printer.PrintableWidth),
 	'the margins are millimeters
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		#define PrintMargin(m) ((m) * 96 / 25.4)
 	#else
 		#define PrintMargin(m) (m)
@@ -13408,7 +13587,7 @@ tbToolBox.Groups.Item(4)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it
 
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web and Android: there are no compilers to find or to run (the Web IDE Server compiles), the start of the IDE
 		'(new project, default file) goes on
 		Return True
@@ -13488,9 +13667,13 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	#else
 		#define PANELS_CLOSED False
 	#endif
-	tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
+	#ifndef __USE_UIKIT__
+		tabLeftWidth = iniSettings.ReadInteger("MainWindow", "LeftWidth", tabLeftWidth)
+	#endif
 	SetLeftClosedStyle iniSettings.ReadBool("MainWindow", "LeftClosed", PANELS_CLOSED)
-	tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
+	#ifndef __USE_UIKIT__
+		tabRightWidth = iniSettings.ReadInteger("MainWindow", "RightWidth", tabRightWidth)
+	#endif
 	SetRightClosedStyle iniSettings.ReadBool("MainWindow", "RightClosed", PANELS_CLOSED)
 	tabBottomHeight = iniSettings.ReadInteger("MainWindow", "BottomHeight", tabBottomHeight)
 	SetBottomClosedStyle iniSettings.ReadBool("MainWindow", "BottomClosed", PANELS_CLOSED)
@@ -13611,6 +13794,21 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 			MainReBar.Bands.Item(i)->Maximize
 		Next
 	#endif
+	#ifdef __USE_APPLE__
+		'The test of Start of the IDE (.github/workflows/macos.yml): the file is opened, compiled and started like with the
+		'button; the program saves its windows as VFBE_TEST_RUN_SNAPSHOT
+		'VFBE_TEST_OPEN: the form is only opened in the designer
+		If Environ("VFBE_TEST_TOOLBOX") <> "" Then tabLeft.SelectedTabIndex = 1
+		If Environ("VFBE_TEST_OPEN") <> "" Then
+			OpenFiles Environ("VFBE_TEST_OPEN")
+			Exit Sub
+		End If
+		If Environ("VFBE_TEST_FILE") <> "" Then
+			OpenFiles Environ("VFBE_TEST_FILE")
+			ThreadCounter(ThreadCreate_(@CompileAndRun))
+			Exit Sub
+		End If
+	#endif
 	Select Case WhenVisualFBEditorStarts
 	Case 3:
 		Select Case LastOpenedFileType
@@ -13648,6 +13846,10 @@ Function utf16BeByte2wchars( ta() As UByte ) ByRef As WString
 End Function
 
 Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	#ifdef __USE_COCOA__
+		'The test of Compile (mff/Apple/test-compile-server.py)
+		If Environ("VFBE_WEB_SERVER") <> "" Then StartWebIDEServer(False)
+	#endif
 	Var MainMaximized = iniSettings.ReadBool("MainWindow", "Maximized", False)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_GTK__
@@ -13688,7 +13890,7 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	End If
 	If bSharedFind Then
 		Select Case WhenVisualFBEditorStarts
-		Case 1: If Not bFileOpening Then NewProject 'pfTemplates->ShowModal
+		Case 1: If (Not bFileOpening) AndAlso Environ("VFBE_TEST_FILE") = "" AndAlso Environ("VFBE_TEST_OPEN") = "" Then NewProject 'pfTemplates->ShowModal
 		Case 2: If Not bFileOpening Then AddNew ExePath & Slash & "Templates" & Slash & WGet(DefaultProjectFile)
 		Case 3:
 			'Select Case LastOpenedFileType
@@ -13718,11 +13920,14 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'			OpenFiles GetFullPath(*RecentFiles)
 	'		End Select
 	'	End If
-	If ShowTipoftheDay Then frmTipOfDay.ShowModal *pfrmMain
+	'iPhone: the tips of the desktop do not fit on the screen
+	#ifndef __USE_UIKIT__
+		If ShowTipoftheDay AndAlso Environ("VFBE_TEST_FILE") = "" AndAlso Environ("VFBE_TEST_OPEN") = "" Then frmTipOfDay.ShowModal *pfrmMain
+	#endif
 	
 End Sub
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	Function FileTimeToVariantTime(ByRef FT As FILETIME) As DATE_
 		Return FT
 	End Function

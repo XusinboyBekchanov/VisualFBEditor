@@ -12,14 +12,14 @@
 #include once "mff/Clipboard.bi"
 #include once "mff/Application.bi"
 #include once "mff/ListView.bi"
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	#include once "mff/LinkLabel.bi"
 #else
 	#include once "mff/ToolTips.bi"
 #endif
 #ifdef __USE_WINAPI__
 	#include once "mff/D2D1/D2D1_MFF.bi"
-#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__)
+#elseif defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 	'Web and Android: EditControl compiles its Windows code with the Windows API subset of Win32Compat.bi
 	#ifndef __USE_WIN32_COMPAT__
 		#define __USE_WIN32_COMPAT__
