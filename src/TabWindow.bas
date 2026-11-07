@@ -365,6 +365,7 @@ Sub ChangeMenuItemsEnabled
 	miDefine->Enabled = bEnabledTab
 	miAddProcedure->Enabled = bEnabledTab
 	miAddType->Enabled = bEnabledTab
+	miAddVariable->Enabled = bEnabledTab
 	mnuSplitHorizontally->Enabled = bEnabledTab
 	mnuSplitVertically->Enabled = bEnabledTab
 	miSave->Enabled = bEnabled
@@ -4601,6 +4602,14 @@ Sub FindComboIndex(tb As TabWindow Ptr, ByRef sLine As WString, iEndChar As Inte
 	WDeAllocate(sTempRight)
 End Sub
 
+Function GetElementComment(te As TypeElement Ptr, ByRef sName As WString) As UString
+	If te->ElementType = E_Keyword OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub Then Return te->Comment
+	'MC returns the name itself when there is no translated comment
+	Dim As UString sComment = MC(sName)
+	If sComment = sName Then Return te->Comment
+	Return sComment
+End Function
+
 Sub FillIntellisenseByName(Value As String, TypeName As String, Starts As String = "", bLocal As Boolean = False, bAll As Boolean = False, NotClear As Boolean = False, TypesOnly As Boolean = False, Oldte As TypeElement Ptr = 0)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 Then Exit Sub
@@ -5060,7 +5069,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Link1 = te->FileName & "|" & WStr(te->StartLine) & "|" & FuncName & "|" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
+						If te->Comment <> "" Then Comments &= "" & GetElementComment(te, te->Name)
 					End If
 				Next
 			End If
@@ -5075,7 +5084,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
+						If te->Comment <> "" Then Comments &= "" & GetElementComment(te, FuncName)
 					End If
 				End If
 			Next
@@ -5090,7 +5099,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 						Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 						ParametersList.Add te->Parameters
 						Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-						If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
+						If te->Comment <> "" Then Comments &= "" & GetElementComment(te, FuncName)
 					End If
 				End If
 			Next
@@ -5165,7 +5174,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
+									If te->Comment <> "" Then Comments &= "" & GetElementComment(te, FuncName)
 								End If
 							Next
 						End If
@@ -5181,7 +5190,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
+									If te->Comment <> "" Then Comments &= "" & GetElementComment(te, FuncName)
 								End If
 							End If
 						Next
@@ -5196,7 +5205,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 									ParametersList.Add te->Parameters
 									Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
-									If te->Comment <> "" Then Comments &= "" & MC(FuncName) 'te->Comment
+									If te->Comment <> "" Then Comments &= "" & GetElementComment(te, FuncName)
 								End If
 							End If
 						Next
@@ -5226,7 +5235,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 			Next n
 			Erase res1
 			ParametersList.Add te->Parameters
-			If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
+			If te->Comment <> "" Then Comments &= "" & GetElementComment(te, te->Name)
 		End If
 		If CBool(FECLine > 0) AndAlso FECLine->InAsm AndAlso ShowKeywordsToolTip Then
 			Index = GlobalAsmFunctionsHelp.IndexOf(sWord)
@@ -5267,7 +5276,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 							Link1 = te->FileName & "|" & Str(te->StartLine) & "|" & FuncName & "|" & FuncName
 							Parameters &= IIf(Parameters = "", "", !"\r") & ..Left(Parameter, iPos - 1) & "<a href=""" & Link1 & """>" & FuncName & "</a>" & Mid(Parameter, iPos + Len(sWord))
 							ParametersList.Add te->Parameters
-							If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
+							If te->Comment <> "" Then Comments &= "" & GetElementComment(te, te->Name)
 						End If
 					Else
 						Exit For
@@ -5323,7 +5332,7 @@ Function GetParameters(sWord As String, te As TypeElement Ptr, teOld As TypeElem
 									Next n
 									Erase res
 									ParametersList.Add te->Parameters
-									If te->Comment <> "" Then Comments &= "" & IIf(te->ElementType = E_Keyword  OrElse te->ElementType = E_KeywordFunction OrElse te->ElementType = E_KeywordOperator OrElse te->ElementType = E_KeywordSub, te->Comment, MC(te->Name))
+									If te->Comment <> "" Then Comments &= "" & GetElementComment(te, te->Name)
 								End If
 							End If
 						End If
@@ -7532,6 +7541,21 @@ Sub SetLineAndCharParameters(te As TypeElement Ptr, ByRef ECLines As List)
 	te->EndChar = u + Len(te->Name)
 End Sub
 
+'The comment beside a parameter in the lines of the procedure
+Function GetParameterComment(ByRef ECLines As List, ByRef sName As WString) As UString
+	Dim As UString sText, sLine
+	For i As Integer = 0 To ECLines.Count - 1
+		sText &= *Cast(EditControlLine Ptr, ECLines.Item(i))->Text & Chr(10)
+	Next
+	Dim As WString Ptr res(Any)
+	Split GetParametersComments(sText), !"\r", res()
+	For i As Integer = 0 To UBound(res)
+		If sLine = "" AndAlso StartsWith(LCase(*res(i)), LCase(sName) & " - ") Then sLine = Mid(*res(i), Len(sName) + 4)
+		_Deallocate(res(i))
+	Next
+	Return sLine
+End Function
+
 Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As WString, ByRef FileName As WString, func As TypeElement Ptr, LineIndex As Integer, ECLine As EditControlLine Ptr, ByRef ECLines As List, ByRef InCondition As String, Declaration As Boolean, AddArgs As Boolean, tb As TabWindow Ptr = 0, u1 As Integer = 0)
 	If Parameters <> "" Then
 		If CBool(ECLine <> 0) AndAlso AddArgs Then ECLine->Args.Add func
@@ -7615,12 +7639,26 @@ Sub SplitParameters(ByRef bTrim As WString, Pos5 As Integer, ByRef Parameters As
 			te->StartChar = u
 			te->EndChar = u + Len(*res1(n))
 			te->Parameters = *res1(n) & " As " & CurType
+			te->Comment = GetParameterComment(ECLines, te->Name)
+			If te->Comment <> "" AndAlso func <> 0 Then
+				'The procedure shows the comments of its parameters, also from a closed file
+				If func->Comment <> "" AndAlso Not EndsWith(func->Comment, Chr(10)) Then func->Comment &= !"\r"
+				func->Comment &= te->Name & " - " & te->Comment
+			End If
 			te->FileName = FileName
 			te->Tag = tb
 			SetLineAndCharParameters te, ECLines
 			func->Elements.Add te->Name, te
 			WDeAllocate(res1(n))
 		Next
+		'Comments between the parameters leave spaces in the text of the procedure
+		If func <> 0 AndAlso (InStr(func->Parameters, "  ") > 0 OrElse InStr(func->Parameters, " ,") > 0 OrElse InStr(func->Parameters, " )") > 0) Then
+			Dim As UString sParameters = func->Parameters
+			Do While InStr(sParameters, "  ") > 0
+				sParameters = Replace(sParameters, "  ", " ")
+			Loop
+			func->Parameters = Replace(Replace(sParameters, " )", ")"), " ,", ",")
+		End If
 	End If
 End Sub
 
@@ -7856,11 +7894,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 				Comments = ""
 				Continue For
 			Else
-				Pos1 = InStr(b1, "'")
-				If Pos1 > 0 Then
-					Comments = Trim(Mid(b1, Pos1 + 1))
-					b1 = Mid(b1, 1, Pos1)
-				End If
+				b1 = GetLineWithoutComments(b1, Comments)
 			End If
 			'Dim As UString res(Any)
 			'Split(b1, """", res())
@@ -7910,7 +7944,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					For iii As Integer = i To Content.Lines.Count - 1
 						ECLine2 = Content.Lines.Items[iii]
 						If iii > i Then
-							b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & Replace(*ECLine2->Text, !"\t", " ")
+							Dim As UString sIgnored
+								b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & GetLineWithoutComments(Replace(*ECLine2->Text, !"\t", " "), sIgnored)
 							ECLine2->Args.Clear
 							ECLines.Add ECLine2
 						End If
@@ -8404,6 +8439,10 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						te->EndLine = i
 						te->FileName = sFileName
 						te->Tag = tb
+						'The name of the procedure, or the word after Declare for a constructor and a destructor
+						Dim As Integer iNameChar = InStr(IIf(Pos1 > 0, Pos1, 1), bTrimLCase, LCase(te->Name))
+						If iNameChar = 0 Then iNameChar = InStr(bTrimLCase, " ") + 1
+						te->StartChar = u + iNameChar - 1
 						SetLineAndCharParameters te, ECLines
 						'ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
@@ -8446,7 +8485,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As WString * 2048 b2 = b0Trim
 							Dim As Integer uu, ct
-							If StartsWith(LCase(b2), "dim ") OrElse StartsWith(LCase(b2), "redim ") OrElse StartsWith(LCase(b2), "static ") OrElse StartsWith(LCase(b2), "var ") OrElse StartsWith(LCase(b2), "const ") OrElse StartsWith(LCase(b2), "common ") OrElse StartsWith(LCase(b2), "for ") Then
+							If StartsWith(LCase(b2), "dim ") OrElse StartsWith(LCase(b2), "redim ") OrElse StartsWith(LCase(b2), "static ") OrElse StartsWith(LCase(b2), "var ") OrElse StartsWith(LCase(b2), "const ") OrElse StartsWith(LCase(b2), "common ") OrElse StartsWith(LCase(b2), "extern ") OrElse StartsWith(LCase(b2), "for ") Then
 								b2 = Trim(Mid(b0Trim, InStr(b0Trim, " ")))
 								u += Len(b0Trim) - Len(b2)
 							End If
@@ -8455,6 +8494,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 							Dim As Boolean bShared, bOldAs
 							'Pos1 = InStr(b2, "'")
 							'If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							If StartsWith(LCase(b2), "preserve ") Then u += Len(b2) - Len(Trim(Mid(b2, 9))): b2 = Trim(Mid(b2, 9))
 							If StartsWith(LCase(b2), "shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
@@ -8572,7 +8612,8 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								te->StartLine = i
 								te->EndLine = i
-								te->Parameters = res1(n) & " As " & CurType
+								te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
+								If Comments <> "" Then te->Comment = Comments
 								te->FileName = sFileName
 								te->Tag = tb
 								SetLineAndCharParameters te, ECLines
@@ -8611,6 +8652,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								_Deallocate(res1(n))
 							Next
 							Erase res1
+							Comments = ""
 						End If
 					End If
 				End If
@@ -9222,11 +9264,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 				Comments = ""
 				Continue For
 			Else
-				Pos1 = InStr(b1, "'")
-				If Pos1 > 0 Then
-					Comments = Trim(Mid(b1, Pos1 + 1))
-					b1 = Mid(b1, 1, Pos1)
-				End If
+				b1 = GetLineWithoutComments(b1, Comments)
 			End If
 			'Dim As WString Ptr res(Any)
 			'Split(b1, """", res())
@@ -9281,7 +9319,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					For iii As Integer = i To ptxtCode->Content.Lines.Count - 1
 						ECLine2 = ptxtCode->Content.Lines.Items[iii]
 						If iii > i Then
-							b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & Replace(*ECLine2->Text, !"\t", " ")
+							Dim As UString sIgnored
+								b1 = IIf(EndsWith(RTrim(b1), " _"), ..Left(b1, Len(RTrim(b1)) - 1) & Space(Len(b1) - Len(RTrim(b1)) + 1), b1) & GetLineWithoutComments(Replace(*ECLine2->Text, !"\t", " "), sIgnored)
 							If ptxtCode = @txtCode Then
 								ECLine2->Args.Clear
 							End If
@@ -9856,6 +9895,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 						te->EndLine = i
 						te->FileName = sFileName
 						te->Tag = tb
+						'The name of the procedure, or the word after Declare for a constructor and a destructor
+						Dim As Integer iNameChar = InStr(IIf(Pos1 > 0, Pos1, 1), bTrimLCase, LCase(te->Name))
+						If iNameChar = 0 Then iNameChar = InStr(bTrimLCase, " ") + 1
+						te->StartChar = u + iNameChar - 1
 						SetLineAndCharParameters te, ECLines
 						'ECLine->InConstruction = te
 						If Comments <> "" Then te->Comment = Comments: Comments = ""
@@ -9897,7 +9940,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							CInt(StartsWith(bTrimLCase, "var ")) Then
 							Dim As WString * 2048 b2 = b0Trim
 							Dim As Integer uu, ct
-							If StartsWith(LCase(b2), "dim ") OrElse StartsWith(LCase(b2), "redim ") OrElse StartsWith(LCase(b2), "static ") OrElse StartsWith(LCase(b2), "var ") OrElse StartsWith(LCase(b2), "const ") OrElse StartsWith(LCase(b2), "common ") OrElse StartsWith(LCase(b2), "for ") Then
+							If StartsWith(LCase(b2), "dim ") OrElse StartsWith(LCase(b2), "redim ") OrElse StartsWith(LCase(b2), "static ") OrElse StartsWith(LCase(b2), "var ") OrElse StartsWith(LCase(b2), "const ") OrElse StartsWith(LCase(b2), "common ") OrElse StartsWith(LCase(b2), "extern ") OrElse StartsWith(LCase(b2), "for ") Then
 								b2 = Trim(Mid(b0Trim, InStr(b0Trim, " ")))
 								u += Len(b0Trim) - Len(b2)
 							ElseIf InStr(LCase(b2), "cast(sub(") > 0 Then
@@ -9910,6 +9953,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							Dim As Boolean bShared, bOldAs
 							Pos1 = InStr(b2, "'")
 							If Pos1 > 0 Then b2 = Trim(..Left(b2, Pos1 - 1))
+							If StartsWith(LCase(b2), "preserve ") Then u += Len(b2) - Len(Trim(Mid(b2, 9))): b2 = Trim(Mid(b2, 9))
 							If StartsWith(LCase(b2), "shared ") Then bShared = True: u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "import ") Then u += Len(b2) - Len(Trim(Mid(b2, 7))): b2 = Trim(Mid(b2, 7))
 							If StartsWith(LCase(b2), "byref ") Then u += Len(b2) - Len(Trim(Mid(b2, 6))): b2 = Trim(Mid(b2, 6))
@@ -10024,7 +10068,8 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								End If
 								te->StartLine = i
 								te->EndLine = i
-								te->Parameters = *res1(n) & " As " & CurType
+								te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
+								If Comments <> "" Then te->Comment = Comments
 								te->FileName = sFileName
 								te->Tag = tb
 								SetLineAndCharParameters te, ECLines
@@ -10068,6 +10113,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								_Deallocate(res1(n))
 							Next n
 							Erase res1
+							Comments = ""
 						End If
 					End If
 				End If
@@ -15322,6 +15368,15 @@ Sub TabWindow.Define
 				End If
 			Next
 		End If
+		'The same element comes from more than one list
+		For i As Integer = .Count - 1 To 1 Step -1
+			For j As Integer = 0 To i - 1
+				If .Item(i)->Text(0) = .Item(j)->Text(0) AndAlso .Item(i)->Text(1) = .Item(j)->Text(1) AndAlso .Item(i)->Text(2) = .Item(j)->Text(2) AndAlso .Item(i)->Text(3) = .Item(j)->Text(3) AndAlso .Item(i)->Text(4) = .Item(j)->Text(4) Then
+					.Remove i
+					Exit For
+				End If
+			Next
+		Next
 		If .Count = 0 Then
 		ElseIf .Count = 1 Then
 			SelectSearchResult .Item(0)->Text(4), Val(.Item(0)->Text(2)), IIf(.Item(0)->Text(3) = "0", -1, Val(.Item(0)->Text(3))), , .Item(0)->Tag, sWord

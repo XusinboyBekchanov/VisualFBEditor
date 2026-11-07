@@ -677,6 +677,7 @@ Namespace My.Sys.Forms
 				dst[w + 1] = 32
 				lastSpace = 1
 				i += 1  ' skip the next char of /'
+				If Not WithoutDoubleSpaces Then w += 1  ' both chars became spaces, the positions stay the same
 				
 				' ---------------------------
 				' 2.3 End of block comment '/
@@ -688,6 +689,7 @@ Namespace My.Sys.Forms
 				lastSpace = 1
 				If cc <= 0 Then c = False
 				i += 1  ' skip the next char of '/
+				If Not WithoutDoubleSpaces Then w += 1  ' both chars became spaces, the positions stay the same
 				
 				' ---------------------------
 				' 2.4 Inside string or block comment

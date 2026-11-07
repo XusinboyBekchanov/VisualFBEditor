@@ -105,7 +105,7 @@ Dim Shared As MenuItem Ptr miSaveProject, miSaveProjectAs, miCloseProject, miClo
 Dim Shared As MenuItem Ptr miUndo, miRedo, miCutCurrentLine, miCut, miCopy, miPaste, miSingleComment, miBlockComment, miUncommentBlock, miDuplicate, miSelectAll, miIndent, miOutdent, miFormat, miUnformat, miFormatProject, miUnformatProject, miAddSpaces, miDeleteBlankLines, miSuggestions, miCompleteWord, miParameterInfo, miStepInto, miStepOver, miStepOut, miRunToCursor, miGDBCommand, miAddWatch, miToggleBreakpoint, miClearAllBreakpoints, miSetNextStatement, miShowNextStatement
 Dim Shared As MenuItem Ptr miNumbering, miMacroNumbering, miRemoveNumbering, miProcedureNumbering, miProcedureMacroNumbering, miRemoveProcedureNumbering, miProjectMacroNumbering, miProjectMacroNumberingStartsOfProcedures, miRemoveProjectNumbering, miModuleMacroNumbering, miModuleMacroNumberingStartsOfProcedures, miRemoveModuleNumbering, miPreprocessorNumbering, miRemovePreprocessorNumbering, miProjectPreprocessorNumbering, miRemoveProjectPreprocessorNumbering, miModulePreprocessorNumbering, miRemoveModulePreprocessorNumbering, miOnErrorResumeNext, miOnErrorGoto, miOnErrorGotoResumeNext, miOnLocalErrorGoto, miOnLocalErrorGotoResumeNext, miRemoveErrorHandling
 Dim Shared As MenuItem Ptr dmiNumbering, dmiMacroNumbering, dmiRemoveNumbering, dmiProcedureNumbering, dmiProcedureMacroNumbering, dmiRemoveProcedureNumbering, dmiModuleMacroNumbering, dmiModuleMacroNumberingStartsOfProcedures, dmiRemoveModuleNumbering, dmiPreprocessorNumbering, dmiRemovePreprocessorNumbering, dmiModulePreprocessorNumbering, dmiRemoveModulePreprocessorNumbering, dmiOnErrorResumeNext, dmiOnErrorGoto, dmiOnErrorGotoResumeNext, dmiOnLocalErrorGoto, dmiOnLocalErrorGotoResumeNext, dmiRemoveErrorHandling, dmiMake, dmiMakeClean
-Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miGotoCodeForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miAddType, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
+Dim Shared As MenuItem Ptr miCode, miForm, miCodeAndForm, miGotoCodeForm, miCollapseCurrent, miCollapseAllProcedures, miCollapseAll, miUnCollapseCurrent, miUnCollapseAllProcedures, miUnCollapseAll, miImageManager, miAddProcedure, miAddType, miAddVariable, miFind, miReplace, miFindNext, miFindPrevious, miGoto, miDefine, miToggleBookmark, miNextBookmark, miPreviousBookmark, miClearAllBookmarks, miSyntaxCheck, miCompile, miCompileAll, miBuildBundle, miBuildAPK, miGenerateSignedBundle, miGenerateSignedAPK, miMake, miMakeClean
 Dim Shared As MenuItem Ptr miAlignLefts, miAlignCenters, miAlignRights, miAlignTops, miAlignMiddles, miAlignBottoms, miAlignToGrid, miMakeSameSizeWidth, miMakeSameSizeHeight, miMakeSameSizeBoth, miSizeToGrid, miHorizontalSpacingMakeEqual, miHorizontalSpacingIncrease, miHorizontalSpacingDecrease, miHorizontalSpacingRemove, miVerticalSpacingMakeEqual, miVerticalSpacingIncrease, miVerticalSpacingDecrease, miVerticalSpacingRemove, miCenterInParentHorizontally, miCenterInParentVertically, miOrderBringToFront, miOrderSendToBack, miLockControls
 Dim Shared As MenuItem Ptr miShowWithFolders, miShowWithoutFolders, miShowAsFolder
 Dim Shared As ToolButton Ptr tbtAlignLefts, tbtAlignCenters, tbtAlignRights, tbtAlignTops, tbtAlignMiddles, tbtAlignBottoms, tbtAlignToGrid, tbtMakeSameSizeWidth, tbtMakeSameSizeHeight, tbtMakeSameSizeBoth, tbtSizeToGrid, tbtHorizontalSpacingMakeEqual, tbtHorizontalSpacingIncrease, tbtHorizontalSpacingDecrease, tbtHorizontalSpacingRemove, tbtVerticalSpacingMakeEqual, tbtVerticalSpacingIncrease, tbtVerticalSpacingDecrease, tbtVerticalSpacingRemove, tbtCenterInParentHorizontally, tbtCenterInParentVertically, tbtOrderBringToFront, tbtOrderSendToBack, tbtLockControls
@@ -292,7 +292,7 @@ Function MS cdecl(ByRef V As WString, ...) As UString
 	If Not bFind Then Result = V
 	Dim args As Cva_List
 	Cva_Start(args, V)
-	For i As Integer = 1 To Min(InStrCount(V, "$"), InStrCount(Result, "$"))
+	For i As Integer = 1 To min(InStrCount(V, "$"), InStrCount(Result, "$"))
 		Result = Replace(Result, "$" & Trim(Str(i)), * (Cva_Arg(args, WString Ptr)))
 	Next
 	MS = Result
@@ -314,6 +314,107 @@ Function MC(ByRef V As WString) ByRef As WString
 	Dim As Integer tIndex = mcKeys.IndexOfKey(TempV) 'David Changed
 	If tIndex >= 0 Then Return mcKeys.Item(tIndex)->Text
 	Return V
+End Function
+
+'Block comments become spaces, so the positions of the code stay the same, and the line ends before a comment.
+'sComment gets the comment at the end of the line, unless the line goes on with " _".
+Function GetLineWithoutComments(ByRef sLine As WString, ByRef sComment As UString) As UString
+	Dim As UString sText = sLine, sChar
+	Dim As Boolean bString
+	Dim As Integer j = 1, iEnd
+	Do While j <= Len(sText)
+		sChar = Mid(sText, j, 1)
+		If sChar = Chr(34) Then
+			bString = Not bString
+		ElseIf bString Then
+		ElseIf Mid(sText, j, 2) = "/'" Then
+			iEnd = InStr(j + 2, sText, "'/")
+			If iEnd = 0 Then Return ..Left(sText, j - 1)
+			sText = ..Left(sText, j - 1) & Space(iEnd + 2 - j) & Mid(sText, iEnd + 2)
+			j = iEnd + 2
+			Continue Do
+		ElseIf sChar = "'" Then
+			If Not EndsWith(RTrim(..Left(sText, j - 1)), " _") Then sComment = Trim(Mid(sText, j + 1))
+			Return ..Left(sText, j - 1)
+		End If
+		j += 1
+	Loop
+	Return sText
+End Function
+
+'The comments beside the parameters as "Name - comment" lines: Name /'comment'/ or Name, _ 'comment
+'sText holds the lines of the procedure with their comments, separated by Chr(10)
+Function GetParametersComments(ByRef sText As WString) As UString
+	Dim As UString sResult, sChar, sCurrent, sCurrentComment, sLastName, sWord
+	Dim As Integer iDepth, j = 1, iEnd
+	Dim As Boolean bString, bAddLast
+	Do While j <= Len(sText)
+		sChar = Mid(sText, j, 1)
+		bAddLast = False
+		If sChar = Chr(10) Then
+			'Only the sign of the line continuation is left of the line
+			If Trim(sCurrent, Any !"\t _") = "" Then sCurrent = ""
+		ElseIf sChar = Chr(34) Then
+			bString = Not bString
+			If iDepth > 0 Then sCurrent &= sChar
+		ElseIf bString Then
+			If iDepth > 0 Then sCurrent &= sChar
+		ElseIf Mid(sText, j, 2) = "/'" OrElse sChar = "'" Then
+			If sChar = "/" Then
+				iEnd = InStr(j + 2, sText, "'/")
+				If iEnd = 0 Then Exit Do
+				sWord = Trim(Mid(sText, j + 2, iEnd - j - 2))
+				j = iEnd + 1
+			Else
+				iEnd = InStr(j, sText, Chr(10))
+				If iEnd = 0 Then iEnd = Len(sText) + 1
+				sWord = Trim(Mid(sText, j + 1, iEnd - j - 1))
+				j = iEnd - 1
+			End If
+			'After a comma the comment belongs to the parameter before it
+			If iDepth > 0 Then
+				If Trim(sCurrent, Any !"\t _") <> "" Then
+					sCurrentComment = sWord
+				ElseIf sLastName <> "" AndAlso sWord <> "" Then
+					If sResult <> "" Then sResult &= !"\r"
+					sResult &= sLastName & " - " & sWord
+				End If
+			End If
+		ElseIf sChar = "(" Then
+			iDepth += 1
+			If iDepth > 1 Then sCurrent &= sChar
+		ElseIf sChar = ")" OrElse (sChar = "," AndAlso iDepth = 1) Then
+			If sChar = ")" Then iDepth -= 1
+			If iDepth > 0 AndAlso sChar = ")" Then
+				sCurrent &= sChar
+			ElseIf iDepth >= 0 Then
+				sWord = Trim(Replace(sCurrent, !"\t", " "))
+				If StartsWith(LCase(sWord), "byval ") OrElse StartsWith(LCase(sWord), "byref ") Then sWord = LTrim(Mid(sWord, 7))
+				If InStr(sWord, " ") > 0 Then sWord = ..Left(sWord, InStr(sWord, " ") - 1)
+				If InStr(sWord, "(") > 0 Then sWord = ..Left(sWord, InStr(sWord, "(") - 1)
+				sLastName = sWord
+				If sCurrentComment <> "" AndAlso sWord <> "" Then
+					If sResult <> "" Then sResult &= !"\r"
+					sResult &= sWord & " - " & sCurrentComment
+				End If
+				sCurrent = ""
+				sCurrentComment = ""
+				If sChar = ")" Then Exit Do
+			End If
+		ElseIf iDepth > 0 Then
+			sCurrent &= sChar
+		End If
+		j += 1
+	Loop
+	Return sResult
+End Function
+
+Function GetVariableParameters(ByRef sName As WString, ByRef sTypeName As WString, ByRef sValue As WString, bConstant As Boolean) As UString
+	'Const and Var can be without a type, then the value tells more than an empty As
+	Dim As UString sParameters = sName
+	If sTypeName <> "" Then sParameters &= " As " & sTypeName
+	If sValue <> "" AndAlso (bConstant OrElse sTypeName = "") Then sParameters &= " = " & sValue
+	Return sParameters
 End Function
 
 Function MP(ByRef V As WString) ByRef As WString
@@ -5024,11 +5125,11 @@ End Sub
 
 #ifndef __USE_GTK__
 	Sub tbToolBox_MouseWheel(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
+		scrTool.Position = min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 	End Sub
 	
 	Sub scrTool_MouseWheel(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Direction As Integer, x As Integer, y As Integer, Shift As Integer)
-		scrTool.Position = Min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
+		scrTool.Position = min(scrTool.MaxValue, Max(scrTool.MinValue, scrTool.Position + -Direction * scrTool.ArrowChangeSize))
 	End Sub
 #endif
 
@@ -5272,11 +5373,30 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 			Comment = ""
 			Continue For
 		Else
-			Pos1 = MAX(InStrRev(b1, Chr(34)),1)
-			Pos1 = InStr(Pos1, b1, "'")
-			If Pos1 > 0 Then
-				Comment = Trim(Mid(b1, Pos1 + 1))
-				b1 = Mid(b1, 1, Pos1)
+			'The next lines of a statement join its first line, their comments stay for the procedure
+			Dim As UString sRawLine = b1, sNextLine, sParametersComments, sLineComment
+			Dim As Integer iFirstLine = i
+			b1 = GetLineWithoutComments(b1, sLineComment)
+			Do While EndsWith(RTrim(b1), " _") AndAlso i < Lines.Count - 1
+				i += 1
+				sNextLine = Replace(Lines.Item(i), !"\t", " ")
+				sRawLine &= Chr(10) & sNextLine
+				b1 = ..Left(RTrim(b1), Len(RTrim(b1)) - 1) & GetLineWithoutComments(sNextLine, sLineComment)
+			Loop
+			If sLineComment <> "" Then Comment = sLineComment
+			If InStr(sRawLine, "/'") > 0 OrElse i > iFirstLine Then
+				Do While InStr(b1, "  ") > 0
+					b1 = Replace(b1, "  ", " ")
+				Loop
+				b1 = Replace(Replace(Replace(b1, " )", ")"), " ,", ","), "( ", "(")
+				Dim As UString sLowerLine = " " & LCase(b1)
+				If InStr(sLowerLine, " sub ") > 0 OrElse InStr(sLowerLine, " function ") > 0 OrElse InStr(sLowerLine, " property ") > 0 OrElse InStr(sLowerLine, " operator ") > 0 OrElse InStr(sLowerLine, " constructor") > 0 Then
+					sParametersComments = GetParametersComments(sRawLine)
+					If sParametersComments <> "" Then
+						If Trim(Comment) <> "" Then Comment &= !"\r"
+						Comment &= sParametersComments
+					End If
+				End If
 			End If
 		End If
 		Dim As WString Ptr res(Any)
@@ -5871,7 +5991,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->ElementType = IIf(StartsWith(bTrimLCase, "const "), E_Constant, IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Field))
 							te->Locals = inPubProPri
 							te->StartLine = i
-							te->Parameters = *res1(n) & " As " & CurType
+							te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
 							te->FileName = PathFunction
 							te->CtlLibrary = CtlLibrary
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
@@ -6380,7 +6500,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Value = ElementValue
 							te->Locals = 0 'IIf(bShared, 0, 2)
 							te->StartLine = i
-							te->Parameters = *res1(n) & " As " & CurType
+							te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
 							te->FileName = PathFunction
 							te->CtlLibrary = CtlLibrary
 							If Comment <> "" Then te->Comment = Comment: Comment = ""
@@ -6923,7 +7043,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	#else
 		#ifndef __USE_GTK2__
 			#ifdef __FB_WIN32__
-				#ifdef __FB_64BIT_
+				#ifdef __FB_64BIT__
 					#ifdef __USE_GTK4__
 						MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk4.dll", "")
 					#else
@@ -6945,7 +7065,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			#endif
 		#else
 			#ifdef __FB_WIN32__
-				#ifdef __FB_64BIT_
+				#ifdef __FB_64BIT__
 					MFF = IIf(i = 0, "Controls/MyFbFramework/mff64_gtk2.dll", "")
 				#else
 					MFF = IIf(i = 0, "Controls/MyFbFramework/mff32_gtk2.dll", "")
@@ -9164,6 +9284,7 @@ Sub CreateMenusAndToolBars
 	miXizmat = mnuMain.Add(ML("Servi&ce"), "", "Service")
 	miAddProcedure = miXizmat->Add(ML("Add &Procedure") & "..." & HK("AddProcedure"), "", "AddProcedure", @mClick, , , False)
 	miAddType = miXizmat->Add(ML("Add &Type") & "..." & HK("AddType"), "", "AddType", @mClick, , , False)
+	miAddVariable = miXizmat->Add(ML("Add &Variable") & "..." & HK("AddVariable"), "", "AddVariable", @mClick, , , False)
 	miXizmat->Add("-")
 	miXizmat->Add(ML("&Add-Ins") & "..." & HK("AddIns"), "", "AddIns", @mClick)
 	miXizmat->Add("-")
