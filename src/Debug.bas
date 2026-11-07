@@ -19,6 +19,9 @@ Dim Shared As KCC_STATE ccstate
 Dim Shared As Integer debugevent
 Dim Shared As Integer debugdata ''index of bp or address of BP (case BP on mem)
 Dim Shared As String  libelexception
+''crash (exception/signal) : exact line, first frame with debug data and call stack
+Dim Shared As Integer crashline, craship, crashbp
+Dim Shared As String  crashstack
 Dim Shared As Integer ssadr ''address of line for restoring breakcpu when singlestepping
 Dim Shared As Integer firsttime
 Dim Shared As Integer srcstart
@@ -1320,6 +1323,67 @@ End Sub
 '===========================================
 Private Sub exception_handle(adr As Integer)
 	Dim As String linetext
+	Dim As Boolean crashinfo = crashline <> 0
+	#ifndef __FB_WIN32__
+		crashinfo = True 'adr is the signal number, the line (if found) is in crashline
+		Dim As Long sig = adr
+	#endif
+	If crashinfo Then
+		''exact line found : display it and rebuild the call stack (procs/variables) from the first frame with debug data
+		''gest_brk is not used as it changes the instruction pointer and resumes when the address is out of the procs
+		Dim As String stk
+		If crashline Then
+			rlinecur = crashline
+			procsv = rline(crashline).px
+			thread(threadcur).pe = False
+			thread(threadcur).rtype = RTSTEP
+			thread(threadcur).sts = KTHD_STOP
+			thread_status()
+			proc_runnew(craship, crashbp)
+			If runtype = RTFRUN Then 'stepping possible after the crash : restore CC on all lines
+				#ifdef __FB_WIN32__
+					For i As Integer = 1 To linenb
+						If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(rline(i).sx)), mainfolder) Then
+						Else
+							WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+						End If
+					Next
+					ccstate = KCC_ALL
+				#endif
+			End If
+			runtype = RTSTEP
+			dsp_change(crashline)
+		End If
+		stk = crashstack
+		str_replace(stk, Chr(13), Chr(13, 10))
+		ShowMessages(Time & ": " & ML("EXCEPTION") & ": " & Replace(RTrim(libelexception, Chr(13)), Chr(13), " - ") & WStr(Chr(13, 10)) & ML("Call stack") & ":" & WStr(Chr(13, 10)) & stk)
+		If crashline Then
+			libelexception &= Chr(13) & ML("File") & "  : " & source(rline(crashline).sx) & Chr(13) & _
+			ML("Proc") & "  : " & proc(rline(crashline).px).nm & Chr(13) & _
+			ML("Line") & "  : " & rline(crashline).nu & " " & ML("(selected and put in red)") & Chr(13)
+		End If
+		libelexception &= Chr(13) & ML("Call stack") & ":" & Chr(13) & crashstack & Chr(13) & Chr(13) & _
+		ML("Try To continue? (if yes change values and/or use [M]odify execution)") & Chr(13)
+		ThreadsEnter
+		debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception, , mtError, btYesNo)  ''used in thread2
+		ThreadsLeave
+		libelexception = ""
+		#ifndef __FB_WIN32__
+			If debugdata <> IDYES Then ''the signal is delivered to the debuggee (usually it ends)
+				MutexLock blocker
+				msgcmd = KPT_CONTSIG
+				msgdata = sig
+				bool2 = True
+				CondSignal(condid)
+				While bool1 <> True
+					CondWait(condid, blocker)
+				Wend
+				bool1 = False
+				MutexUnlock blocker
+			End If
+		#endif
+		Exit Sub
+	End If
 	'gest_brk(rline(thread(threadcur).sv).ad)
 	gest_brk(adr)
 	'source_change(rline(thread(threadcur).sv).sx) 'display source
@@ -1342,6 +1406,7 @@ Private Sub exception_handle(adr As Integer)
 	ThreadsEnter
 	debugdata = MsgBox(ML("EXCEPTION") & ": " & libelexception, , , btYesNo)  ''used in thread2
 	ThreadsLeave
+	libelexception = ""
 End Sub
 '===================================================
 '' handles the debug events  (triggered by timer)
@@ -2463,6 +2528,66 @@ End Sub
 		#endif
 	End Function
 	'==========================================
+	Declare Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
+	#ifndef SIGBUS
+		#define SIGBUS 7
+	#endif
+	#ifndef SIGFPE
+		#define SIGFPE 8
+	#endif
+	''called by thread2 when the debuggee receives SIGSEGV/SIGILL/SIGFPE/SIGBUS : finds the exact line and the call stack
+	''sets crashline, craship/crashbp (first frame with debug data), crashstack and libelexception
+	Private Sub crash_analyze_linux(sig As Long)
+		Dim As tsiginfo siginfo
+		Dim As Long tid = thread(threadcur).id
+		ptrace(PTRACE_GETREGS, tid, NULL, @regs)
+		ptrace(PTRACE_GETSIGINFO, tid, NULL, @siginfo)
+		Dim As Integer regip = regs.xip, regbp = regs.xbp, nfrm = 0, ret, prevbp, lineadr, w
+		crashline = 0: craship = 0: crashbp = 0: crashstack = ""
+		Select Case sig
+		Case SIGSEGV: libelexception = "SIGSEGV (segmentation fault)"
+		Case SIGILL: libelexception = "SIGILL (illegal instruction)"
+		Case SIGFPE: libelexception = "SIGFPE (arithmetic error, e.g. integer divide by zero)"
+		Case SIGBUS: libelexception = "SIGBUS (bus error)"
+		Case Else: libelexception = "SIGNAL " & sig
+		End Select
+		libelexception &= Chr(13)
+		If sig = SIGSEGV OrElse sig = SIGBUS Then libelexception &= "AT ADR 0x" & Hex(siginfo.si_addr) & Chr(13)
+		If Cast(UInteger, siginfo.si_addr) < &h10000 AndAlso (sig = SIGSEGV OrElse sig = SIGBUS) Then libelexception = RTrim(libelexception, Chr(13)) & " (null pointer)" & Chr(13)
+		libelexception &= "Instruction 0x" & Hex(regip) & Chr(13)
+		If proc_index(regip) = 0 Then
+			''crash in code without debug data (libc, fb runtime) : the first return address into a proc with debug data found on the stack
+			crashstack = "#0  0x" & Hex(regip) & "  (no debug data)": nfrm = 1
+			Dim As Integer sp = regs.xsp, found
+			For i As Integer = 0 To 4095
+				ReadProcessMemory_th2(tid, Cast(Any Ptr, sp + i * SizeOf(Integer)), @w, SizeOf(Integer))
+				If proc_index(w) Then found = sp + i * SizeOf(Integer): Exit For
+			Next
+			If found = 0 Then Exit Sub
+			regip = w
+			If regbp <= found Then 'rbp used by the code without debug data : the frame of the caller is just after the return address ?
+				ReadProcessMemory_th2(tid, Cast(Any Ptr, found + SizeOf(Integer)), @regbp, SizeOf(Integer))
+				If regbp <= found Then Exit Sub
+			End If
+			lineadr = regip - 1
+		Else
+			lineadr = regip
+		End If
+		crashline = line_from_adr(lineadr)
+		craship = regip: crashbp = regbp
+		For i As Integer = 1 To 256
+			If proc_index(regip) = 0 Then Exit For
+			If crashstack <> "" Then crashstack &= Chr(13)
+			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
+			If proc(proc_index(regip)).nm = "main" Then Exit For
+			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp + SizeOf(Integer)), @ret, SizeOf(Integer))
+			prevbp = regbp
+			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp), @regbp, SizeOf(Integer))
+			regip = ret
+			If regbp <= prevbp Then Exit For 'the stack must go up
+		Next
+	End Sub
+
 	Private Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
 		Dim As Integer integersize=SizeOf(Integer),i,j=lg\integersize
 		Dim As Integer buf(j)
@@ -2710,6 +2835,15 @@ End Sub
 				
 				Exit While
 				
+			Case KPT_CONTSIG
+				dbg_prt2 "continue with signal=";msgdata
+				thread(threadcur).sts=KTHD_RUN
+				ptrace(PTRACE_CONT,thread(threadcur).id,0,Cast(Any Ptr,msgdata))
+				bool1=True
+				CondSignal(condid)
+				MutexUnlock blocker
+				Exit While
+
 			Case KPT_KILL
 				dbg_prt2 "sending sigkill"
 				linux_kill(debugpid,9) ''send SIGKILL
@@ -3003,20 +3137,19 @@ End Sub
 						End If
 					End If
 					
-				Case SIGSEGV
-					ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs)
-					dbg_prt2 "sigsegv=";Hex(regs.xip)
-					Dim As tsiginfo siginfo
-					ptrace(PTRACE_GETSIGINFO, thread(threadcur).id, NULL, @siginfo)
-					dbg_prt2 "siginfo=";siginfo.si_signo, siginfo.si_code, siginfo.si_errno,Hex(siginfo.si_addr)
-					
-				Case SIGILL
-					ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs)
-					dbg_prt2 "sigill=";Hex(regs.xip)
-					Dim As tsiginfo siginfo
-					ptrace(PTRACE_GETSIGINFO, thread(threadcur).id, NULL, @siginfo)
-					dbg_prt2 "siginfo=";siginfo.si_signo, siginfo.si_code, siginfo.si_errno,Hex(siginfo.si_addr)
-					
+				Case SIGSEGV, SIGILL, SIGFPE, SIGBUS
+					''crash : stop on the exact line with the call stack, the user chooses to continue (signal delivered) or not
+					Dim As Long sig = WSTOPSIG(status)
+					crash_analyze_linux(sig)
+					dbg_prt2 "crash signal=";sig;" xip=";Hex(regs.xip);" line=";crashline
+					If crashline Then
+						thread(threadcur).od = thread(threadcur).sv: thread(threadcur).sv = crashline
+					End If
+					thread(threadcur).sts = KTHD_STOP
+					stopcode = CSACCVIOL
+					runtype = RTSTEP
+					brp_stop(threadcur, CSACCVIOL, sig, KDBGEXCEPT) ''waiting for the user's answer (KPT_CONTSIG or other commands)
+
 				Case SIGCHLD
 					ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs)
 					dbg_prt2 "sigchld="; Hex(regs.xip)
@@ -11020,6 +11153,26 @@ Private Function proc_index(ad As UInteger) As Integer 'index of the proc contai
 	Next
 	Return 0
 End Function
+''index of the line containing the address : the line with the highest start address <= ad inside the same proc
+''(the lines are not always sorted, so no binary search)
+Private Function line_from_adr(ad As UInteger) As Integer
+	Dim As Integer p = proc_index(ad), best = 0
+	If p = 0 Then Return 0
+	For i As Integer = 1 To linenb
+		If rline(i).px = p AndAlso rline(i).ad <= ad Then
+			If best = 0 OrElse rline(i).ad >= rline(best).ad Then best = i
+		End If
+	Next
+	Return best
+End Function
+''text of a frame with debug data : proc name and source location
+Private Function crash_frame_text(nfrm As Integer, ad As UInteger) As String
+	Dim As Integer l = line_from_adr(ad)
+	Dim As String s = "#" & nfrm & "  "
+	If l = 0 Then Return s & "0x" & Hex(ad)
+	s &= proc(rline(l).px).nm & "  " & GetFileName(source(rline(l).sx)) & "(" & rline(l).nu & ")"
+	Return s
+End Function
 #ifdef __FB_WIN32__
 	''unwinding through code without debug data (system dlls, rtlib, etc) with dbghelp
 	Type tdbgaddress64
@@ -11077,7 +11230,9 @@ End Function
 
 	''from a return address outside the procs with debug data, unwinds until reaching again a proc with debug data
 	''input : current context (rip, rsp, rbp) of the caller, output : rip and rbp of the found frame
-	Private Function stack_unwind_nodebug(hThread As HANDLE, ByRef regip As Integer, regsp As Integer, ByRef regbp As Integer) As Boolean
+	Declare Function sym_text(ad As ULongInt) As String
+	''pframes/pnfrm : if not null, the frames without debug data are added to the text (call stack of a crash)
+	Private Function stack_unwind_nodebug(hThread As HANDLE, ByRef regip As Integer, regsp As Integer, ByRef regbp As Integer, pframes As String Ptr = 0, pnfrm As Integer Ptr = 0) As Boolean
 		If dbghelp_init() = False Then Return False
 		Dim As UByte ctxbuf(SizeOf(CONTEXT) + 16)
 		Dim As CONTEXT Ptr pctx = Cast(CONTEXT Ptr, (Cast(UInteger, @ctxbuf(0)) + 15) And Not Cast(UInteger, 15)) '16 bytes aligned
@@ -11111,15 +11266,95 @@ End Function
 				#endif
 				Return True
 			End If
+			If pframes Then
+				If *pframes <> "" Then *pframes &= Chr(13)
+				*pframes &= "#" & (*pnfrm) & "  " & sym_text(frame.AddrPC.Offset): *pnfrm += 1
+			End If
 		Next
 		Return False
 	End Function
+
+	''module!symbol+offset for an address without debug data (system dll, fb runtime, etc)
+	Type tSymFromAddr As Function(ByVal hProcess As HANDLE, ByVal Address As ULongInt, ByVal Displacement As ULongInt Ptr, ByVal Symbol As Any Ptr) As WINBOOL
+	Type tGetModuleBaseNameW As Function(ByVal hProcess As HANDLE, ByVal hModule As HMODULE, ByVal lpBaseName As WString Ptr, ByVal nSize As DWORD) As DWORD
+	Function sym_text(ad As ULongInt) As String
+		Dim As String s
+		Dim As ULongInt modbase
+		If dbghelp_init() Then
+			Dim As Function(ByVal As HANDLE, ByVal As ULongInt) As ULongInt pGetBase = pSymGetModuleBase64
+			modbase = pGetBase(dbghand, ad)
+		End If
+		If modbase Then
+			Static As tGetModuleBaseNameW pGetModuleBaseNameW
+			If pGetModuleBaseNameW = 0 Then pGetModuleBaseNameW = DyLibSymbol(DyLibLoad("kernel32.dll"), "K32GetModuleBaseNameW")
+			If pGetModuleBaseNameW Then
+				Dim As WString * 261 wnm
+				If pGetModuleBaseNameW(dbghand, Cast(HMODULE, Cast(UInteger, modbase)), @wnm, 260) Then s = Str(wnm)
+			End If
+			If s = "" Then s = "0x" & Hex(modbase)
+		End If
+		Static As tSymFromAddr pSymFromAddr
+		If pSymFromAddr = 0 AndAlso dbghelplib <> 0 Then pSymFromAddr = DyLibSymbol(dbghelplib, "SymFromAddr")
+		If pSymFromAddr <> 0 AndAlso modbase <> 0 Then
+			''SYMBOL_INFO : SizeOfStruct at 0 (=88), MaxNameLen at 80, Name at 84
+			Dim As UByte syminfo(88 + 256)
+			Dim As ULongInt displ
+			*Cast(ULong Ptr, @syminfo(0)) = 88
+			*Cast(ULong Ptr, @syminfo(80)) = 255
+			If pSymFromAddr(dbghand, ad, @displ, @syminfo(0)) Then
+				Return s & "!" & *Cast(ZString Ptr, @syminfo(84)) & "+0x" & Hex(displ) & "  (no debug data)"
+			End If
+		End If
+		If modbase Then Return s & "+0x" & Hex(ad - modbase) & "  (no debug data)"
+		Return "0x" & Hex(ad) & "  (no debug data)"
+	End Function
+
+	''called by the debugger thread when an exception is received : finds the exact line and the call stack
+	''sets crashline (line index), craship/crashbp (first frame with debug data) and crashstack (text)
+	Private Sub crash_analyze(hThread As HANDLE, excadr As UInteger)
+		Dim As UByte ctxbuf(SizeOf(CONTEXT) + 16)
+		Dim As CONTEXT Ptr pctx = Cast(CONTEXT Ptr, (Cast(UInteger, @ctxbuf(0)) + 15) And Not Cast(UInteger, 15)) '16 bytes aligned otherwise GetThreadContext fails
+		pctx->ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
+		GetThreadContext(hThread, pctx)
+		Dim As CONTEXT vcontext = *pctx
+		Dim As Integer regip = excadr, regbp = vcontext.regbp, nfrm = 0, ret, prevbp, lineadr
+		crashline = 0: craship = 0: crashbp = 0: crashstack = ""
+		If proc_index(regip) = 0 Then 'crash in code without debug data, unwinding until a proc with debug data
+			''the frames without debug data (the first is the crash address) are added by stack_unwind_nodebug
+			If stack_unwind_nodebug(hThread, regip, vcontext.regsp, regbp, @crashstack, @nfrm) = False Then
+				If crashstack = "" Then crashstack = "#0  " & sym_text(regip)
+				Exit Sub
+			End If
+			lineadr = regip - 1 'return address --> calling instruction
+		Else
+			lineadr = regip
+		End If
+		crashline = line_from_adr(lineadr)
+		craship = regip: crashbp = regbp
+		''frames with debug data (rbp/ebp chain), going through code without debug data if needed (callbacks)
+		For i As Integer = 1 To 256
+			If proc_index(regip) = 0 Then Exit For
+			If crashstack <> "" Then crashstack &= Chr(13)
+			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
+			If proc(proc_index(regip)).nm = "main" Then Exit For
+			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp + SizeOf(Integer)), @ret, SizeOf(Integer), 0) 'return EIP/RIP
+			prevbp = regbp
+			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp), @regbp, SizeOf(Integer), 0) 'previous RBP/EBP
+			regip = ret
+			If proc_index(regip) = 0 Then
+				If stack_unwind_nodebug(hThread, regip, prevbp + 2 * SizeOf(Integer), regbp, @crashstack, @nfrm) = False Then Exit For
+				If regbp <= prevbp Then Exit For 'the stack must go up
+			ElseIf regbp <= prevbp Then
+				Exit For
+			End If
+		Next
+	End Sub
 #endif
 '=======================================================
 '' after stopping run  retrieves all procedures
 '=======================================================
-Private Sub proc_runnew()
-	
+Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
+
 	#ifdef __FB_WIN32__
 		Dim As Integer dummy
 		Dim vcontext As CONTEXT
@@ -11171,19 +11406,27 @@ Private Sub proc_runnew()
 		regip=regs.xip
 		'dbg_prt2 "in proc new run xip=";hex(regip),hex(regbp)
 	#endif
-	While 1
+	If startip<>0 Then 'crash in code without debug data : start from the first frame with debug data
+		regip=startip
+		regbp=startbp
+	End If
+	Dim As Integer prevregbp
+	While regbpnb < PROCRMAX - 1 ''protection against an endless loop (bad frame chain)
 		For j =1 To procnb
 			If regip>=proc(j).db And regip<=proc(j).fn Then
 				regbpnb+=1
 				regbpp(regbpnb)=regbp
-				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+SizeOf(Integer)),@regip,SizeOf(Integer),0) 'return EIP/RIP
+				If regbp=0 OrElse ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+SizeOf(Integer)),@regip,SizeOf(Integer),0)=0 Then regip=0 'return EIP/RIP
 				ret(regbpnb)=regip
 				pridx(regbpnb)=j
 				Exit For
 			End If
 		Next
 		If j>procnb Then Exit While
-		ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,SizeOf(Integer),0) 'previous RBP/EBP
+		If regip=0 Then Exit While 'frame not readable
+		prevregbp=regbp
+		If ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,SizeOf(Integer),0)=0 Then Exit While 'previous RBP/EBP
+		If Cast(UInteger,regbp)<=Cast(UInteger,prevregbp) Then Exit While 'the stack must go up, otherwise the chain is broken (endless loop)
 		#ifdef __FB_WIN32__
 			''return in code without debug data (eg event called by user32 or callback) : unwind until a proc with debug data
 			If proc_index(regip)=0 AndAlso proc(pridx(regbpnb)).nm<>"main" Then
@@ -12329,24 +12572,40 @@ End Sub
 							Next
 							
 							'07/10/2014
-							libel=excep_lib(DebugEv.u.Exception.ExceptionRecord.ExceptionCode)+Chr(13)+Chr(10) 'need chr(10) to dbg_prt otherwise bad print
+							libel=excep_lib(DebugEv.u.Exception.ExceptionRecord.ExceptionCode) & " (0x" & Hex(DebugEv.u.Exception.ExceptionRecord.ExceptionCode, 8) & ")" & Chr(13)
 							If DebugEv.u.Exception.ExceptionRecord.ExceptionCode=EXCEPTION_ACCESS_VIOLATION Then
-								libel += Accviolstr(.ExceptionInformation(0)) + " AT ADR (dec/hex) : " + Str(.ExceptionInformation(1)) + " / " + Hex(.ExceptionInformation(1)) + Chr(13) + Chr(10)
+								Dim As Integer acc = .ExceptionInformation(0)
+								If acc = 8 Then
+									libel &= "TRYING TO EXECUTE"
+								ElseIf acc = 1 Then
+									libel &= Accviolstr(1)
+								Else
+									libel &= Accviolstr(0)
+								End If
+								libel &= " AT ADR 0x" & Hex(.ExceptionInformation(1))
+								If .ExceptionInformation(1) < &h10000 Then libel &= " (null pointer)"
+								libel &= Chr(13)
 							End If
-							
+							libel += "Instruction 0x" & Hex(adr) & Chr(13)
 							If flagverbose Then
-								libel+=Chr(13)+Chr(10)+"Thread ID "+Str(DebugEv.dwThreadId)+" adr : "+Str(adr)+" / "+Hex(adr)+Chr(13)+Chr(10)
+								libel+="Thread ID "+Str(DebugEv.dwThreadId)+Chr(13)
 							End If
-							
-							If runtype=RTFRUN OrElse runtype=RTFREE Then
-								runtype=RTFRUN
+
+							''exact line (the exception is in the middle of the line or in code without debug data) and call stack
+							crash_analyze(threadcontext, adr)
+							If crashline Then
+								thread(threadcur).od=thread(threadcur).sv:thread(threadcur).sv=crashline
+							ElseIf runtype=RTFRUN OrElse runtype=RTFREE Then
 								For i As Integer =1 To linenb
-									'WriteProcessMemory(dbghand,Cast(LPVOID,rline(i).ad),@breakcpu,1,0)'restore CC
 									If rline(i).ad<=adr AndAlso rline(i+1).ad>adr Then
 										thread(threadcur).od=thread(threadcur).sv:thread(threadcur).sv=i
 										Exit For ''2016/02/04 move "exit for" inside test
 									End If
 								Next
+							End If
+							libelexception = libel
+							If runtype=RTFRUN OrElse runtype=RTFREE Then
+								runtype=RTFRUN
 							Else
 								runtype=RTSTEP
 							End If

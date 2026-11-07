@@ -206,6 +206,7 @@ End Function
 		KPT_SSTEP   ''executing single_step
 		KPT_XIP     ''for updating xip
 		KPT_SIGNAL  ''pending signal
+		KPT_CONTSIG ''continue the current thread delivering the signal msgdata (crash not handled by the user)
 	End Enum
 
 	Enum
@@ -1054,7 +1055,10 @@ Declare Sub str_replace(strg As String, srch As String, repl As String)
 Declare Sub attach_debuggee(p As Any Ptr)
 Declare Sub brk_marker(brkidx As Integer)
 Declare Sub thread_text(th As Integer=-1)
-Declare Sub proc_runnew()
+Declare Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
+Declare Function line_from_adr(ad As UInteger) As Integer 'line containing the address (exact, not only the line start)
+Declare Function proc_index(ad As UInteger) As Integer 'index of the proc containing the address
+Declare Function crash_frame_text(nfrm As Integer, ad As UInteger) As String
 Declare Function line_call(regip As UInteger) As Integer 'find the calling line for proc
 Declare Sub proc_new()
 Declare Sub proc_end()

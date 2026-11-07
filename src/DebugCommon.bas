@@ -31,7 +31,7 @@
 		#ifdef __FB_DARWIN__
 			Declare Function dbg_environ Alias "_NSGetEnviron" () As ZString Ptr Ptr Ptr
 		#else
-			Extern environ Alias "environ" As ZString Ptr Ptr
+			Extern dbg_environ_ptr Alias "environ" As ZString Ptr Ptr
 		#endif
 	End Extern
 #endif
@@ -645,7 +645,7 @@ End Sub
 		#ifdef __FB_DARWIN__
 			Dim As Long SpawnResult = dbg_spawnp(@Pid, StrPtr(sProgram), Actions, 0, @Argv(0), *dbg_environ())
 		#else
-			Dim As Long SpawnResult = dbg_spawnp(@Pid, StrPtr(sProgram), Actions, 0, @Argv(0), environ)
+			Dim As Long SpawnResult = dbg_spawnp(@Pid, StrPtr(sProgram), Actions, 0, @Argv(0), dbg_environ_ptr)
 		#endif
 		dbg_spawn_destroy(Actions)
 		Deallocate(Actions)
