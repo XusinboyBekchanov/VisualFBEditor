@@ -179,10 +179,15 @@ Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningT
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 'The compilation in progress: End stops it (CompileStopped), on Windows the job of its processes is terminated, on
-'Linux its process group (CompilePid)
+'Linux and macOS its process group (CompilePid)
 Common Shared As Boolean CompileRunning, CompileStopped
 Common Shared As Any Ptr CompileJob
 Common Shared As Long CompilePid
+#ifdef __USE_COCOA__
+	'The output of the compilation is read with popen (Compile of Main.bas), End terminates the group of its processes
+	#include once "crt/stdio.bi"
+	Declare Function kill_ Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long
+#endif
 'Web IDE server (WebCompile of TabWindow.bas): Compile compiles this file with these options (of the Web IDE). For the
 'Android IDE the program is compiled with Use > JNI and the Gradle project WebCompileAndroidFolder
 Common Shared As WString Ptr WebCompileMainFile, WebCompileOptions, WebCompileAndroidFolder

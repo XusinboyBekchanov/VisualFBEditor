@@ -12418,6 +12418,10 @@ Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolea
 			Return InStr(LCase(UseDefine), "__use_wasm__") > 0
 		Case "__use_jni__", "defined(__use_jni__)"
 			Return InStr(LCase(UseDefine), "__use_jni__") > 0
+		Case "__use_cocoa__", "defined(__use_cocoa__)"
+			Return InStr(LCase(UseDefine), "__use_cocoa__") > 0
+		Case "__use_uikit__", "defined(__use_uikit__)"
+			Return InStr(LCase(UseDefine), "__use_uikit__") > 0
 		Case "__fb_js__", "defined(__fb_js__)"
 			Return InStr(LCase(UseDefine), "-target js-asmjs") > 0
 		Case Else
@@ -13715,6 +13719,22 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 			If ProjectCommandLineArguments <> "" Then WAdd(Arguments, " " & ProjectCommandLineArguments)
 			ChDir(GetFolderName(*ExeFileName))
 			Dim As UString CommandLine = """" & Replace(*ExeFileName, "\", "/") & """ " & *Arguments
+			If InStr(FirstLine & CompileLine, "__USE_UIKIT__") > 0 Then
+				'iOS (Use > UIKit): the bundle is installed in the Simulator (the first iPhone is started if none is) and
+				'started there; --console (without a terminal, which --console-pty needs: code 22) gives its output here and waits for its end
+				Dim As UString AppFolder = Replace(GetFolderName(*ExeFileName), "\", "/")
+				If EndsWith(AppFolder, "/") Then AppFolder = Left(AppFolder, Len(AppFolder) - 1)
+				If Dir(AppFolder & "/Info.plist") = "" Then
+					ThreadsEnter()
+					ShowMessages(Time & ": " & ML("File not found") & ": " & AppFolder & "/Info.plist")
+					ThreadsLeave()
+					WDeAllocate(Arguments)
+					Exit Sub
+				End If
+				CommandLine = "B=$(/usr/libexec/PlistBuddy -c 'Print CFBundleIdentifier' '" & AppFolder & "/Info.plist'); " & _
+					"xcrun simctl list devices booted | grep -q Booted || xcrun simctl boot $(xcrun simctl list devices available | grep -m 1 iPhone | grep -oE '[0-9A-F-]{36}'); " & _
+					"open -a Simulator; xcrun simctl install booted '" & AppFolder & "' && xcrun simctl launch --console --terminate-running-process booted $B " & *Arguments
+			End If
 			ThreadsEnter()
 			ShowMessages(Time & ": " & ML("Run") & ": " & CommandLine + " ...")
 			ThreadsLeave()
@@ -13728,7 +13748,25 @@ Sub RunPr(Debugger As String = "", ByRef ProjectFileName As WString, ByRef Proje
 					CloseFile_(FnLog)
 				End If
 			End If
-			Result = Shell(CommandLine)
+			If InStr(FirstLine & CompileLine, "__USE_UIKIT__") > 0 Then
+				'iOS: the messages of simctl (an error of the install or of the start) and the output of the program are in
+				'Messages (popen and fgets like Compile of Main.bas)
+				Dim As FILE Ptr PipeFile = popen(ToUtf8(CommandLine & " 2>&1"), "r")
+				Dim As ZString * 2048 Buff
+				Result = -1
+				If PipeFile <> 0 Then
+					While fgets(@Buff, SizeOf(Buff), PipeFile) <> 0
+						Buff = RTrim(Buff, Any !"\r\n")
+						ThreadsEnter()
+						ShowMessages(Buff, False)
+						ThreadsLeave()
+					Wend
+					Dim As Long Status = pclose(PipeFile)
+					Result = IIf(Status >= 0, (Status Shr 8) And &hFF, Status)
+				End If
+			Else
+				Result = Shell(CommandLine)
+			End If
 			If TestLog <> "" Then
 				Dim As Integer FnLog = FreeFile_
 				If Open(TestLog For Append As #FnLog) = 0 Then

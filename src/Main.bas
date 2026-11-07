@@ -981,6 +981,14 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	Dim As UString ExeFileName
 	Dim As String SearchChar
 	Dim As Long Pos1, Pos2
+	#ifdef __USE_APPLE__
+		'iOS (Use > UIKit): the bundle is next to the main file whatever -x is (Compile: mff/UIKit/build.sh)
+		If InStr(CompileWith, "__USE_UIKIT__") Then
+			Pos1 = InStrRev(pFileName, ".")
+			If Pos1 <= InStrRev(pFileName, Slash) Then Pos1 = Len(pFileName) + 1
+			Return Left(pFileName, Pos1 - 1) & ".app/" & GetFileName(Left(pFileName, Pos1 - 1))
+		End If
+	#endif
 	Pos1 = InStr(CompileWith, " -x ")
 	If Pos1 > 0 Then
 		If Mid(CompileWith, Pos1 + 4, 1) = """" Then
@@ -1734,7 +1742,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		'Use > JNI: the gcc, as and ld of the NDK (their beginning) for each command of fbc, Gradle is the last command
 		Dim As WStringList JNIToolPrefixes
 		#ifdef __USE_COCOA__
-			'macOS: fbc makes the C code of the program, then clang builds it with the host of AppKit (mff/Cocoa/build.sh).
+			'fbc makes the C code of the program, then clang builds it with the host of AppKit or UIKit (mff/Cocoa/build.sh).
+			'With -gen gas64 (a fast compilation on a Mac with Intel) fbc links the program itself with libmffCocoa.a
+			'(mff/Cocoa/build-lib.sh).
 			'The compiler is in <folder>/bin, the runtime of FreeBASIC in <folder>/lib/freebasic/darwin-*
 			Dim As UString MainNoExt = *MainFileNameOnly
 			Scope
@@ -1746,24 +1756,40 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim As Long PosLog = InStrRev(*PipeCommand, " 2> ")
 			Dim As UString LogPart = IIf(PosLog > 0, Mid(*PipeCommand, PosLog), "")
 			If PosLog > 0 Then PipeNoLog = Left(*PipeCommand, PosLog - 1)
-			'-e, -ex and -exx generate computed gotos, which clang does not accept in the C code of fbc
-			For iOpt As Integer = 0 To 2
-				Dim As String ErrorOption = IIf(iOpt = 0, " -exx ", IIf(iOpt = 1, " -ex ", " -e "))
-				If InStr(PipeNoLog & " ", ErrorOption) > 0 Then
-					PipeNoLog = RTrim(Replace(PipeNoLog & " ", ErrorOption, " "))
-					ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported on macOS and was removed"))
-				End If
-			Next
 			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
 			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
+			Dim As Boolean UseGas64 = InStr(PipeNoLog, " -gen gas64") > 0
+			'gas64 of macOS writes no information for the debugger (-g): the program for lldb is compiled with -gen gcc
+			If UseGas64 AndAlso InStr(PipeNoLog & " ", " -g ") > 0 Then
+				PipeNoLog = Replace(PipeNoLog, " -gen gas64", " -gen gcc")
+				UseGas64 = False
+				ShowMessages(Str(Time) & ": " & ML("Use Debugger") & ": -gen gas64 -> -gen gcc")
+			End If
+			'-e, -ex and -exx generate computed gotos, which clang does not accept in the C code of fbc
+			If Not UseGas64 Then
+				For iOpt As Integer = 0 To 2
+					Dim As String ErrorOption = IIf(iOpt = 0, " -exx ", IIf(iOpt = 1, " -ex ", " -e "))
+					If InStr(PipeNoLog & " ", ErrorOption) > 0 Then
+						PipeNoLog = RTrim(Replace(PipeNoLog & " ", ErrorOption, " "))
+						ShowMessages(Str(Time) & ": " & ML("Option") & " " & Trim(ErrorOption) & " " & ML("is not supported on macOS and was removed"))
+					End If
+				Next
+			End If
 			If (Not ForIOS) AndAlso InStr(PipeNoLog, "__USE_COCOA__") = 0 Then PipeNoLog &= " -d __USE_COCOA__"
 			#ifdef __FB_ARM__
 				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-aarch64"
 			#else
 				If InStr(PipeNoLog, " -target ") = 0 Then PipeNoLog &= " -target darwin-x86_64"
 			#endif
-			If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
-			If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			If UseGas64 AndAlso ForIOS Then
+				'iOS: fbc writes the assembler of the program, the clang of the Simulator builds it (mff/UIKit/build.sh)
+				If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			ElseIf UseGas64 Then
+				If InStr(PipeNoLog, " -mt") = 0 Then PipeNoLog &= " -mt"
+			Else
+				If InStr(PipeNoLog, " -gen ") = 0 Then PipeNoLog &= " -gen gcc"
+				If InStr(PipeNoLog, " -r ") = 0 Then PipeNoLog &= " -r"
+			End If
 			If InStr(PipeNoLog, " -m ") = 0 Then PipeNoLog &= " -m """ & MainNoExt & """"
 			'MyFbFramework of the IDE: the compilation runs in the folder of the program
 			PipeNoLog &= " -i """ & *MFFPathC & """"
@@ -1780,10 +1806,21 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 				If PosBin > 0 Then FbcRoot = Mid(FbcRoot, 1, PosBin - 1)
 			End Scope
 			'The program is next to its main file (the compilation runs in that folder); of the Simulator: in its bundle
-			Dim As UString ExeBase = CurDir & "/" & MainNoExt
+			'(the folder of the main file and not CurDir: the other threads of the IDE change the current folder)
+			Dim As UString ExeBase = Replace(GetFolderName(*MainFile), "\", "/") & MainNoExt
+			If InStr(ExeBase, "/") = 0 Then ExeBase = CurDir & "/" & MainNoExt
 			WLet(ExeName, ExeBase & IIf(ForIOS, ".app/" & MainNoExt, ""))
 			Dim As UString BuildScript = Replace(*MFFPathC, "\", "/") & IIf(ForIOS, "/mff/UIKit/build.sh", "/mff/Cocoa/build.sh")
-			If Parameter <> "Check" Then CompileCommands.Add "linking :      ", "sh """ & BuildScript & """ """ & MainNoExt & ".c"" """ & ExeBase & """ """ & FbcRoot & IIf(ForIOS, "-ios", "") & """"
+			'With -g (Use Debugger) the program keeps the information for lldb in Program.dSYM (DebugLLDB.bas)
+			Dim As String BuildDebug = IIf((Not ForIOS) AndAlso InStr(PipeNoLog & " ", " -g ") > 0, "MFF_DEBUG=1 ", "")
+			'The runtime of FreeBASIC for the Simulator (mff/UIKit/build-rtlib.sh): next to the compiler (<fbc>-ios), else the
+			'one of the package of the IDE
+			Dim As UString RuntimeRoot = FbcRoot
+			If ForIOS Then
+				RuntimeRoot = FbcRoot & "-ios"
+				If (Not FolderExists(RuntimeRoot)) AndAlso FolderExists(ExePath & "/Compilers/fbc-ios") Then RuntimeRoot = ExePath & "/Compilers/fbc-ios"
+			End If
+			If Parameter <> "Check" AndAlso (ForIOS OrElse Not UseGas64) Then CompileCommands.Add "linking :      ", BuildDebug & "sh """ & BuildScript & """ """ & ExeBase & IIf(UseGas64, ".asm", ".c") & """ """ & ExeBase & """ """ & RuntimeRoot & """"
 		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
@@ -2101,10 +2138,25 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 					Dim As UString Script = "echo __VFBE_PID__$$; " & *PipeCommand
 					WLet(PipeCommand, "if command -v setsid >/dev/null; then exec setsid sh -c '" & Replace(Script, "'", "'\''") & "'; else " & *PipeCommand & "; fi")
 				#endif
+				#ifdef __USE_COCOA__
+					'The messages of clang and of the linker (mff/Cocoa/build.sh) are the last lines of the Output
+					WAdd(PipeCommand, " 2>&1")
+					'The command runs in its own process group (set -m) whose id it writes first: End terminates the group with
+					'all the processes of the command (fbc -> clang -> ld); the notes of the jobs of the shell go to /dev/null
+					WLet(PipeCommand, "exec 2>/dev/null; set -m; (" & *PipeCommand & ") & echo __VFBE_PID__$!; wait $!")
+					'popen and fgets of the C library: EOF and Line Input of FreeBASIC keep the lock of all the files of the program
+					'while they wait for the output, the main thread (FindResourceFile of a toolbar) and the other threads would wait
+					'for the end of the compilation
+					Dim As FILE Ptr PipeFile = popen(ToUtf8(*PipeCommand), "r")
+					If PipeFile <> 0 Then
+						While fgets(@Buff, SizeOf(Buff), PipeFile) <> 0
+							Buff = RTrim(Buff, Any !"\r\n")
+				#else
 				If Open Pipe(*PipeCommand For Input As #Fn) = 0 Then
 					While Not EOF(Fn)
 						Line Input #Fn, Buff
-						#if defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__) AndAlso Not defined(__USE_COCOA__)
+				#endif
+						#if (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
 							If StartsWith(Buff, "__VFBE_PID__") Then
 								CompilePid = Val(Mid(Buff, 13))
 								'End was pressed before the group was known
@@ -2154,6 +2206,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 							ThreadsLeave()
 						End If
 					Wend
+					#ifdef __USE_COCOA__
+						pclose(PipeFile)
+					#endif
 				End If
 				CloseFile_(Fn)
 				CompilePid = 0
@@ -5021,7 +5076,12 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 			#ifdef __USE_GTK__
 				Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
 			#else
-				Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+				#ifdef __USE_APPLE__
+					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler32Path))) & "include/freebasic/" & Path)
+					If Not FileExists(Result) Then Result = GetOSPath(ExePath & "/Compilers/fbc/include/freebasic/" & Path)
+				#else
+					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler32Path)) & "inc\" & Path)
+				#endif
 			#endif
 			If FileExists(Result) Then
 				Return Result
@@ -5029,7 +5089,11 @@ Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") 
 				#ifdef __USE_GTK__
 					Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
 				#else
-					Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+					#ifdef __USE_APPLE__
+						Result = GetOSPath(GetFolderName(GetFolderName(GetFullPath(*Compiler64Path))) & "include/freebasic/" & Path)
+					#else
+						Result = GetOSPath(GetFolderName(GetFullPath(*Compiler64Path)) & "inc\" & Path)
+					#endif
 				#endif
 				If FileExists(Result) Then
 					Return Result
@@ -6901,6 +6965,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		Do Until iniSettings.KeyExists("ControlLibraries", "Path_" & WStr(i)) = -1
 			Dim As IniFile ini
 			Temp = iniSettings.ReadString("ControlLibraries", "Path_" & WStr(i), MFF)
+			#ifdef __USE_APPLE__
+				'The settings have the paths of Windows: the folders of the library would not be found
+				Temp = GetOSPath(Temp)
+				MFF = GetOSPath(MFF)
+			#endif
 			ini.Load GetFolderName(GetRelativePath(Temp)) & "Settings.ini"
 			Var CtlLibrary = _New(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
@@ -6932,8 +7001,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			'Web and Android: only MyFbFramework, which is in the program of the IDE (the same handle as in Designer.bas)
 			CtlLibrary->Handle = IIf(InStr(LCase(CtlLibrary->Path), "mff"), Cast(Any Ptr, 1), 0)
 			If CtlLibrary->Handle = 0 Then Continue For
-			#ifdef __USE_JNI__
-				'The pictures of the toolbox (like the icon theme of GTK below)
+			#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+				'The pictures of the toolbox (like the icon theme of GTK below): a full path, the designer changes the current folder
 				AddResourceSearchPath GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "resources")
 			#else
 				'Web: the pictures of the toolbox are loaded by the browser from the folder of the library next to the page,
@@ -8223,12 +8292,13 @@ Sub LoadSettings
 	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
 	Dim As UString LoadedProjectsPath = iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects")
-	#ifdef __USE_GTK__
+	#if defined(__USE_GTK__) OrElse defined(__USE_APPLE__)
+		'./Projects of the settings of Windows: on macOS it would be in the folder of the IDE (or in its bundle)
 		If LoadedProjectsPath = "./Projects" Then LoadedProjectsPath = "%USERDOCUMENTS%/Visual FB Editor Projects"
 	#endif
 	WLet(ProjectsPath, LoadedProjectsPath)
-	#ifdef __USE_JNI__
-		'Android: the folder of the projects in the documents of the app is made at the first start (New Project saves
+	#if defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+		'Android, macOS, iOS: the folder of the projects in the documents is made at the first start (New Project saves
 		'the new projects in it)
 		If StartsWith(*ProjectsPath, "%USERDOCUMENTS%") Then EnsureFolderExists GetFullPath(*ProjectsPath)
 	#endif
@@ -8302,6 +8372,10 @@ Sub LoadSettings
 	DisplayMenuIcons = iniSettings.ReadBool("Options", "DisplayMenuIcons", True)
 	ShowMainToolBar = iniSettings.ReadBool("Options", "ShowMainToolbar", True)
 	DarkMode = iniSettings.ReadBool("Options", "DarkMode", True)
+	#ifdef __USE_APPLE__
+		'macOS, iOS: the windows have the mode of the settings from the start (not the one of the system)
+		App.DarkMode = DarkMode
+	#endif
 	'gLocalToolBox = iniSettings.ReadBool("Options", "ShowToolBoxLocal", False)
 	gLocalProperties = iniSettings.ReadBool("Options", "PropertiesLocal", False)
 	'gLocalKeyWords = iniSettings.ReadBool("Options", "KeyWordsLocal", False)
@@ -8343,7 +8417,12 @@ Sub LoadSettings
 		End If
 		LoadD2D1
 	#endif
-	EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
+	#ifdef __USE_APPLE__
+		'iOS: the pictures are in AppResources of the bundle
+		EditControlFrame.LoadFromFile(FindResourceFile("Frame"))
+	#else
+		EditControlFrame.LoadFromFile(ExePath & "/Resources/Frame.png")
+	#endif
 End Sub
 
 Sub LoadLanguageTexts
@@ -9441,6 +9520,9 @@ Sub CreateMenusAndToolBars
 	mnuJNI->Add "Android GUI", "", "AndroidGUI:__USE_JNI__ -d __USE_ANDROIDGUI__", @mClickUseDefine, True
 	mnuJNI->Add "Native GUI", "", "NativeGUI:__USE_JNI__ -d __USE_NATIVEGUI__", @mClickUseDefine, True
 	Var mnuWASM = tbButton->DropDownMenu.Add("WASM", "", "WASM:__USE_WASM__ -target js-asmjs -r", @mClickUseDefine)
+	'macOS and iOS: the programs of the IDE on the Mac (iOS: in the Simulator)
+	tbButton->DropDownMenu.Add "Cocoa", "", "Cocoa:__USE_COCOA__", @mClickUseDefine, True
+	tbButton->DropDownMenu.Add "UIKit (iOS)", "", "UIKit:__USE_UIKIT__", @mClickUseDefine, True
 	mnuDefault->Checked = True
 	miUseDefine = mnuDefault
 	tbtUseGen = tbProject.Buttons.Add(Cast(ToolButtonStyle, tbsWholeDropdown Or tbsAutosize), "Apply", , @mClick, "Gen", ML("Backend") & ": " & ML("Default"), ML("Backend") & " (-gen)", True)
@@ -11535,7 +11617,7 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 		gtk_tree_path_free(TreePath)
 		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
-	#elseif defined(__USE_WASM__)
+	#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		'Web: the cell of the selected row (the row of the table, the item is the selected one)
 		TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
 	#elseif defined(__USE_WIN32_COMPAT__)
@@ -11659,6 +11741,10 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 		'the background of the cell like the one of an editor of Windows)
 		pnlPropertyValue.BackColor = &hFFFFFF
 		pnlPropertyValue.BringToFront
+	#elseif defined(__USE_APPLE__)
+		'Over the text of the cell (the editors are transparent)
+		pnlPropertyValue.BackColor = IIf(g_darkModeEnabled, BGR(30, 30, 30), clWhite)
+		pnlPropertyValue.BringToFront
 	#endif
 	'#endif
 	'If te->Comment <> 0 Then
@@ -11713,7 +11799,7 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 			gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
 			gtk_tree_path_free(TreePath)
 			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
-		#elseif defined(__USE_WASM__)
+		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
 		#elseif defined(__USE_WIN32_COMPAT__)
 			lpRect = Type(0, 0, 0, 0)
@@ -13712,6 +13798,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		'The test of Start of the IDE (.github/workflows/macos.yml): the file is opened, compiled and started like with the
 		'button; the program saves its windows as VFBE_TEST_RUN_SNAPSHOT
 		'VFBE_TEST_OPEN: the form is only opened in the designer
+		If Environ("VFBE_TEST_TOOLBOX") <> "" Then tabLeft.SelectedTabIndex = 1
 		If Environ("VFBE_TEST_OPEN") <> "" Then
 			OpenFiles Environ("VFBE_TEST_OPEN")
 			Exit Sub

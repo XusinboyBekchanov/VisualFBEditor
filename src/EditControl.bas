@@ -6910,7 +6910,12 @@ Namespace My.Sys.Forms
 			End If
 			DropDownLineTop = VCaretPos - dwCharY
 			DropDownLineBottom = VCaretPos
-			pnlIntellisense.SetBounds HCaretPos, iListTop, 250, iListHeight
+			#ifdef __USE_APPLE__
+				'All of its width in the editor (a narrow one beside the designer)
+				pnlIntellisense.SetBounds Max(0, Min(HCaretPos, dwClientX - 250)), iListTop, 250, iListHeight
+			#else
+				pnlIntellisense.SetBounds HCaretPos, iListTop, 250, iListHeight
+			#endif
 			cboIntellisense.SetBounds 0, 0, 250, iListHeight
 			pnlIntellisense.Visible = True
 			pnlIntellisense.BringToFront
@@ -9991,6 +9996,9 @@ Namespace My.Sys.Forms
 			cboIntellisense.Top = -22
 			cboIntellisense.Width = 250
 			cboIntellisense.Height = 7 * 22
+			#ifdef __USE_APPLE__
+				cboIntellisense.UseListView
+			#endif
 			pnlIntellisense.Add @cboIntellisense
 			This.Add @pnlIntellisense
 			#ifdef __USE_WIN32_COMPAT__
@@ -10057,8 +10065,17 @@ Sub LoadKeyWords
 	Dim b As String
 	Dim As WStringOrStringList Ptr keywordlist
 	Dim As Integer k = -1
+	'Asm has to be the first list (the keywords outside of Asm blocks are searched from the second one), but only on Windows
+	'Dir gives the files sorted
+	Dim As WStringList FileNames
+	FileNames.Sorted = True
 	Dim As WString * MAX_PATH FileName = Dir(ExePath & "/Settings/Keywords/*")
 	Do Until FileName = ""
+		FileNames.Add FileName
+		FileName = Dir()
+	Loop
+	For iFile As Integer = 0 To FileNames.Count - 1
+		FileName = FileNames.Item(iFile)
 		k += 1
 		ReDim Preserve Keywords(k)
 		keywordlist = _New(WStringOrStringList)
@@ -10080,6 +10097,5 @@ Sub LoadKeyWords
 			keywordlist->Add b
 		Loop
 		CloseFile_(Fn)
-		FileName = Dir()
-	Loop
+	Next
 End Sub

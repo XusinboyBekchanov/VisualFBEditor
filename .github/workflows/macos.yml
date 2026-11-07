@@ -203,6 +203,7 @@ jobs:
         run: |
           sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c IDEiOS "$RUNNER_TEMP/fbc-ios" > buildios.log 2>&1 || { cat buildios.log; grep -E 'error|ld:|^ *"_' buildios.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
           cp -R Settings Templates IDEiOS.app/
+          cp -R Resources IDEiOS.app/AppResources
           mkdir -p IDEiOS.app/Controls/MyFbFramework iostest
           cp -R Controls/MyFbFramework/mff Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/resources IDEiOS.app/Controls/MyFbFramework/
           cp Controls/MyFbFramework/examples/Hello.bas iostest/
@@ -386,6 +387,7 @@ jobs:
             exit 1
           fi
           cp -R Settings Templates VisualFBEditor.app/
+          cp -R Resources VisualFBEditor.app/AppResources
           mkdir -p VisualFBEditor.app/Controls/MyFbFramework
           cp -R Controls/MyFbFramework/mff Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/resources VisualFBEditor.app/Controls/MyFbFramework/
 

@@ -3033,6 +3033,10 @@ Namespace My.Sys.Forms
 			Dim As Integer BackColor
 			Dim As SymbolsType Ptr st = Symbols(DesignControl)
 			If st AndAlso st->ReadPropertyFunc Then BackColor = QInteger(st->ReadPropertyFunc(DesignControl, "BackColor"))
+			#ifdef __USE_APPLE__
+				'A form has no color of its own on macOS (0): the color of a window
+				If BackColor <= 0 Then BackColor = IIf(g_darkModeEnabled, BGR(45, 45, 48), BGR(236, 236, 236))
+			#endif
 			Dim As HBRUSH Brush = CreateSolidBrush(BackColor)
 			#ifdef __USE_JNI__
 				'Android: a dot of the density of the screen (a pixel is not seen)
@@ -3040,7 +3044,13 @@ Namespace My.Sys.Forms
 			#else
 				Dim As Integer GridDot = 1
 			#endif
-			Dim As HBRUSH DotBrush = IIf(GridDot > 1, CreateSolidBrush(0), 0)
+			#ifdef __USE_APPLE__
+				'A dot seen on the form: black ones are not seen on the dark form of the dark mode
+				Dim As Boolean BackIsDark = (BackColor And &hFF) * 3 + ((BackColor Shr 8) And &hFF) * 6 + ((BackColor Shr 16) And &hFF) < 1280
+				Dim As HBRUSH DotBrush = CreateSolidBrush(IIf(BackIsDark, BGR(170, 170, 170), 0))
+			#else
+				Dim As HBRUSH DotBrush = IIf(GridDot > 1, CreateSolidBrush(0), 0)
+			#endif
 			FHDC = BeginPaint(FDialog,@Ps)
 			GetClientRect(FDialog, @R)
 			If BitmapHandle <> 0 Then

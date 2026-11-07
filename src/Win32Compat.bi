@@ -667,9 +667,9 @@ End Sub
 		Return 0
 	End Function
 #elseif defined(__USE_APPLE__)
-	'macOS, iOS: a designed form is a plain view in the panel of the designer, without a title bar
+	'macOS, iOS: a designed form is a plain view in the panel of the designer, lower than its place by its title bar
 	Private Function Win32CompatCaptionHeight(ByVal Ctrl As My.Sys.Forms.Control Ptr) As Integer
-		Return 0
+		Return Ctrl->ScaleY(Ctrl->DesignCaptionHeight)
 	End Function
 #elseif defined(__USE_JNI__)
 	'Android: the view of the designed form is lower than its place by its title bar (Component.DesignCaptionHeight)
@@ -1973,13 +1973,14 @@ End Function
 Private Function GetTextMetrics(ByVal hdc As HDC, ByVal lptm As TEXTMETRIC Ptr) As BOOL
 	If lptm = 0 Then Return 0
 	Dim As Size sz
-	Dim As WString * 2 wChar = "x"
-	GetTextExtentPoint32(hdc, @wChar, 1, @sz)
+	'The width of one character is rounded up (6.0 of Courier New is 7): the width of 100 characters / 100
+	Dim As WString * 101 wChars = WString(100, Asc("x"))
+	GetTextExtentPoint32(hdc, @wChars, 100, @sz)
 	lptm->tmHeight = sz.cy
 	lptm->tmAscent = sz.cy * 0.8
 	lptm->tmDescent = sz.cy - lptm->tmAscent
-	lptm->tmAveCharWidth = sz.cx
-	wChar = "W"
+	lptm->tmAveCharWidth = IIf(sz.cx < 100, 1, CInt(sz.cx / 100))
+	Dim As WString * 2 wChar = "W"
 	GetTextExtentPoint32(hdc, @wChar, 1, @sz)
 	lptm->tmMaxCharWidth = sz.cx
 	lptm->tmWeight = 400
