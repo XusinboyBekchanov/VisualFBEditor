@@ -179,7 +179,13 @@ Private Sub DapSetFileBreakpoints(ByRef FileName As WString, ByRef Lines As Stri
 	Dim As WString Ptr Items()
 	Split Lines, ",", Items()
 	For j As Integer = 0 To UBound(Items)
-		If *Items(j) <> "" Then sBreakpoints &= IIf(sBreakpoints = "", "", ",") & "{""line"":" & *Items(j) & "}"
+		If *Items(j) <> "" Then
+			'Breakpoint Hit Count: the stop on the N-th hit (hitCondition)
+			Dim As Integer nCount = DbgBreakpointCount(FileName, Val(*Items(j)))
+			Dim As String sCond = DbgBreakpointCondition(FileName, Val(*Items(j))), sCondArg
+			If sCond <> "" Then sCondArg = ",""condition"":" & DapJson(sCond)
+			sBreakpoints &= IIf(sBreakpoints = "", "", ",") & "{""line"":" & *Items(j) & IIf(nCount > 1, ",""hitCondition"":""" & nCount & """", "") & sCondArg & "}"
+		End If
 		_Deallocate(Items(j))
 	Next
 	Erase Items
@@ -260,7 +266,13 @@ Private Sub DapLaunch()
 		If DapStopAtStart Then sLaunch &= ",""stopAtBeginningOfMainSubprogram"":true"
 	End If
 	sLaunch &= "}"
-	DapSend "launch", sLaunch
+	If AttachPid <> 0 Then
+		'Attach to Process
+		DapSend "attach", "{""pid"":" & AttachPid & ",""program"":" & DapJsonW(DapExeFile) & "}", "launch"
+		AttachPid = 0
+	Else
+		DapSend "launch", sLaunch
+	End If
 End Sub
 
 Private Sub DapVariables(ByRef r As DbgRecord, ByRef Request As DapRequestType)
@@ -376,6 +388,7 @@ Private Sub DapMessage(ByRef Json As String)
 		Next
 		DbgFrameIndex = DbgProgramFrame
 		DbgClearVariables
+		DbgViewDataChanging
 		lvLocals.Nodes.Clear
 		lvGlobals.Nodes.Clear
 		If DbgFrameIndex < 0 AndAlso Not DapMainThreadAsked Then
@@ -425,6 +438,27 @@ Private Sub DapMessage(ByRef Json As String)
 		End If
 	Case "evaluate"
 		DbgShowText r.Get("body.result")
+	Case "dumpaddr"
+		'Variable Dump: the address of the variable, then its memory
+		Dim As String sReference = r.Get("body.memoryReference")
+		If sReference = "" Then
+			Dim As String sResult = r.Get("body.result")
+			Dim As Integer p = InStr(LCase(sResult), "0x")
+			If p > 0 Then
+				Dim As Integer e = p + 2
+				While e <= Len(sResult) AndAlso InStr("0123456789abcdefABCDEF", Mid(sResult, e, 1)) > 0
+					e += 1
+				Wend
+				sReference = Mid(sResult, p, e - p)
+			End If
+		End If
+		If sReference = "" Then
+			ShowMessages ML("The memory is not read") & ": " & DbgText(r.Get("body.result")), False
+		Else
+			DapSend "readMemory", "{""memoryReference"":" & DapJson(sReference) & ",""count"":" & (dumplines * 16) & "}", "dump"
+		End If
+	Case "dump"
+		mem_show r.Get("body.address"), DbgBase64Bytes(r.Get("body.data"))
 	Case "gotoTargets"
 		If r.Count("body.targets") > 0 Then
 			DeleteDebugCursor
@@ -521,6 +555,7 @@ Sub DapRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, ByRef 
 			If DbgCursorPlace(CursorFile, CursorLine) Then DapTempFile = CursorFile: DapTempLine = CursorLine
 		End If
 		Running = True
+		DbgViewDataChanging
 		lvLocals.Nodes.Clear
 		lvGlobals.Nodes.Clear
 		ChangeEnabledDebug False, True, True
@@ -615,6 +650,13 @@ Sub DapRestart()
 End Sub
 
 'The command of the GDB sRequest window: evaluate in the console of the debugger
+'Variable Dump, Pointed data Dump: the address of sExpression (evaluate), then readMemory
+Sub DapMemoryDump(ByRef sExpression As String)
+	Dim As String sFrame
+	If DbgFrameIndex >= 0 AndAlso DbgFrameIndex <= UBound(DapFrameIds) Then sFrame = ",""frameId"":" & DapFrameIds(DbgFrameIndex)
+	DapSend "evaluate", "{""expression"":" & DapJson(sExpression) & ",""context"":""watch""" & sFrame & "}", "dumpaddr"
+End Sub
+
 Sub DapCommandDebug(ByRef sCom As String)
 	If Not DapActive Then
 		ShowMessages ML("The debugger is not started.")

@@ -152,6 +152,7 @@ End Sub
 
 Sub GdbMiShowStop()
 	DbgClearVariables
+	DbgViewDataChanging
 	lvLocals.Nodes.Clear
 	lvGlobals.Nodes.Clear
 	Dim As Integer n = GdbMiLocals.Count("variables")
@@ -188,6 +189,7 @@ Private Sub GdbMiResult(Token As Long, ByRef sClass As String, ByRef r As DbgRec
 			If Purpose <> "types" Then GdbMiLocals.Clear
 			GdbMiShowStop
 		Case Else
+			If StartsWith(Purpose, "value:") Then Exit Sub 'the value stays <error reading variable>
 			If StartsWith(Purpose, "wstr:") Then
 				'The memory ends before 512 bytes: 64 bytes, else the address only (wstr:Index:Address:64)
 				Dim As Integer p1 = InStr(6, Purpose, ":")
@@ -231,6 +233,13 @@ Private Sub GdbMiResult(Token As Long, ByRef sClass As String, ByRef r As DbgRec
 		End If
 	Case "locals"
 		GdbMiLocals = r
+		'-gen gas (stabs): the lists of gdb show <error reading variable>, the expression of each variable has its value
+		'(the answers come before the answer of types)
+		For j As Integer = 0 To GdbMiLocals.Count("variables") - 1
+			If GdbMiLocals.Get("variables." & j & ".value") = "<error reading variable>" Then
+				GdbMiWrite "-data-evaluate-expression --thread " & GdbMiFramesThread & " --frame " & DbgFrameIndex & " " & GdbMiLocals.Get("variables." & j & ".name"), "value:" & j
+			End If
+		Next
 		GdbMiWrite "-stack-list-variables --thread " & GdbMiFramesThread & " --frame " & DbgFrameIndex & " --simple-values", "types"
 	Case "types"
 		'The types of the variables of the list of their values
@@ -254,9 +263,16 @@ Private Sub GdbMiResult(Token As Long, ByRef sClass As String, ByRef r As DbgRec
 	Case "user"
 		GdbMiUserPending = False
 		If r.Has("value") Then ShowMessages DbgText(r.Get("value")), False
+	Case "dump"
+		'Variable Dump: the bytes of the memory (mem_show of Debug.bas)
+		mem_show r.Get("memory.0.begin"), DbgHexBytes(r.Get("memory.0.contents"))
 	Case Else
 		If StartsWith(Purpose, "wstr:") Then
 			GdbMiWideResult Purpose, r.Get("memory.0.contents")
+			Exit Sub
+		End If
+		If StartsWith(Purpose, "value:") Then
+			GdbMiLocals.Set "variables." & Mid(Purpose, 7) & ".value", r.Get("value")
 			Exit Sub
 		End If
 		If StartsWith(Purpose, "bp:") AndAlso r.Has("bkpt.number") Then
@@ -266,6 +282,11 @@ Private Sub GdbMiResult(Token As Long, ByRef sClass As String, ByRef r As DbgRec
 			GdbMiBpNumbers(n) = r.Get("bkpt.number")
 		End If
 	End Select
+End Sub
+
+'Variable Dump, Pointed data Dump: the memory at the address sExpression
+Sub GdbMiMemoryDump(ByRef sExpression As String)
+	GdbMiWrite "-data-read-memory-bytes """ & sExpression & """ " & (dumplines * 16), "dump"
 End Sub
 
 Private Sub GdbMiStopped(ByRef r As DbgRecord)
@@ -377,6 +398,7 @@ Private Sub GdbMiRunOnce(ByRef ExeFile As WString, ByRef Arguments As WString, B
 	Erase DbgFrames
 	DbgClearVariables
 	Running = True
+	DbgViewDataChanging
 	lvLocals.Nodes.Clear
 	lvGlobals.Nodes.Clear
 	ChangeEnabledDebug False, True, True
@@ -385,6 +407,8 @@ Private Sub GdbMiRunOnce(ByRef ExeFile As WString, ByRef Arguments As WString, B
 	If Not IsLLDB Then
 		GdbMiWrite "-gdb-set pagination off", "init"
 		GdbMiWrite "-gdb-set print elements 1000", "init"
+		'-gen gas (stabs): the language of FreeBASIC is unknown to gdb, the values are <error reading variable>
+		GdbMiWrite "-gdb-set language c", "init"
 		#ifdef __FB_WIN32__
 			'The program has its console: its output and its input
 			GdbMiWrite "-gdb-set new-console on", "init"
@@ -400,7 +424,10 @@ Private Sub GdbMiRunOnce(ByRef ExeFile As WString, ByRef Arguments As WString, B
 		Dim As WString Ptr Items()
 		Split Lines(i), ",", Items()
 		For j As Integer = 0 To UBound(Items)
-			GdbMiWrite "-break-insert " & GdbMiPlace(Files(i), Val(*Items(j))), "bp:" & ToUtf8(DbgPath(Files(i))) & ":" & *Items(j)
+			Dim As Integer nIgnore = DbgIgnoreCount(Files(i), Val(*Items(j)))
+			Dim As String sCond = DbgBreakpointCondition(Files(i), Val(*Items(j))), sCondArg
+			If sCond <> "" Then sCondArg = "-c """ & Replace(sCond, """", "\""") & """ "
+			GdbMiWrite "-break-insert " & IIf(nIgnore, "-i " & nIgnore & " ", "") & sCondArg & GdbMiPlace(Files(i), Val(*Items(j))), "bp:" & ToUtf8(DbgPath(Files(i))) & ":" & *Items(j)
 			_Deallocate(Items(j))
 		Next
 		Erase Items
@@ -414,7 +441,12 @@ Private Sub GdbMiRunOnce(ByRef ExeFile As WString, ByRef Arguments As WString, B
 		GdbMiWrite "-break-insert -t main"
 	End If
 	GdbMiStopAtStart = False
-	GdbMiWrite "-exec-run", "run"
+	If AttachPid <> 0 Then
+		GdbMiWrite "-target-attach " & AttachPid, "run" 'Attach to Process
+		AttachPid = 0
+	Else
+		GdbMiWrite "-exec-run", "run"
+	End If
 	ThreadsLeave
 	DbgReadLines GdbMiProcess, @GdbMiLine
 	MutexLock DbgWriteMutex
@@ -545,6 +577,9 @@ Sub GdbMiSetBp()
 			End If
 		Next
 	Else
-		GdbMiWrite "-break-insert " & GdbMiPlace(FileName, LineNo), "bp:" & sPlace
+		Dim As Integer nIgnore = DbgIgnoreCount(FileName, LineNo)
+		Dim As String sCond = DbgBreakpointCondition(FileName, LineNo), sCondArg
+		If sCond <> "" Then sCondArg = "-c """ & Replace(sCond, """", "\""") & """ "
+		GdbMiWrite "-break-insert " & IIf(nIgnore, "-i " & nIgnore & " ", "") & sCondArg & GdbMiPlace(FileName, LineNo), "bp:" & sPlace
 	End If
 End Sub

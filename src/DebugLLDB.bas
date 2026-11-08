@@ -21,13 +21,15 @@
 #define LLDB_PROMPT "(vfbe) "
 #define LLDB_LOCALS "frame variable -D 3"
 #define LLDB_GLOBALS "frame variable --no-args --no-locals --show-globals -D 1"
+'Variable Dump (LLDBMemoryDump): the section of its answer
+#define LLDB_MEMORY "memory read --size 1 --format x --count "
 
 Dim Shared As DbgProcessType LLDBProcess
 Dim Shared As Long LLDBProgramPid
 Dim Shared As Boolean LLDBRunning
 'The command whose answer lldb writes, the command of the GDB Command window (its answer goes to the Output)
 Dim Shared As String LLDBSection, LLDBUserCommand
-Dim Shared As String LLDBLocalsText, LLDBGlobalsText
+Dim Shared As String LLDBLocalsText, LLDBGlobalsText, LLDBMemoryText
 Dim Shared As UString LLDBOutputFile
 Dim Shared As LongInt LLDBOutputRead
 'Step Into / Step Over before the start: the program stops at its first line; Restart: the end of the program before
@@ -124,7 +126,9 @@ Private Sub LLDBSetBreakpoints()
 		Dim As WString Ptr Items()
 		Split Lines(i), ",", Items()
 		For j As Integer = 0 To UBound(Items)
-			LLDBWrite "breakpoint set -f " & DbgQuote(GetFileName(Files(i))) & " -l " & *Items(j)
+			Dim As Integer nIgnore = DbgIgnoreCount(Files(i), Val(*Items(j)))
+			Dim As String sCond = DbgBreakpointCondition(Files(i), Val(*Items(j)))
+			LLDBWrite "breakpoint set" & IIf(nIgnore, " -i " & nIgnore, "") & IIf(sCond <> "", " -c '" & sCond & "'", "") & " -f " & DbgQuote(GetFileName(Files(i))) & " -l " & *Items(j)
 			_Deallocate(Items(j))
 		Next
 		Erase Items
@@ -201,8 +205,10 @@ End Sub
 Private Sub LLDBShowStop()
 	LLDBShowProgramOutput
 	DbgClearVariables
+	DbgViewDataChanging
 	lvLocals.Nodes.Clear
 	LLDBAddVariables @lvLocals, LLDBLocalsText
+	DbgViewDataChanging
 	lvGlobals.Nodes.Clear
 	LLDBAddVariables @lvGlobals, LLDBGlobalsText
 	DbgShowCaptions
@@ -243,6 +249,10 @@ Private Sub LLDBLine(ByRef sLine As String)
 			LLDBWrite "vfbe_vars_end"
 		Case "vfbe_vars_end"
 			LLDBShowStop
+		Case "vfbe_mem_end"
+			'Variable Dump: the lines of memory read (mem_show_text of Debug.bas)
+			mem_show_text LLDBMemoryText
+			LLDBMemoryText = ""
 		Case "bt"
 			Erase DbgFrames
 		End Select
@@ -274,6 +284,10 @@ Private Sub LLDBLine(ByRef sLine As String)
 		Exit Sub
 	End If
 	'The answers of the commands
+	If StartsWith(LLDBSection, LLDB_MEMORY) Then
+		If InStr(Text, "error:") > 0 Then ShowMessages "lldb: " & DbgText(Text), False Else LLDBMemoryText &= Text & Chr(10)
+		Exit Sub
+	End If
 	Select Case LLDBSection
 	Case LLDB_LOCALS
 		If Text <> LLDB_LOCALS Then LLDBLocalsText &= Text & Chr(10)
@@ -412,6 +426,7 @@ Sub LLDBRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, ByRef
 		iFlagStartDebug = 1
 	#endif
 	Running = True
+	DbgViewDataChanging
 	lvLocals.Nodes.Clear
 	lvGlobals.Nodes.Clear
 	ChangeEnabledDebug False, True, True
@@ -425,6 +440,7 @@ Sub LLDBRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, ByRef
 	LLDBWrite "settings set frame-format ""__VFBE_FRAME__|${frame.index}|{${function.name}}|{${line.file.fullpath}}|{${line.number}}\n"""
 	LLDBWrite "command alias vfbe_bt_end settings show auto-confirm"
 	LLDBWrite "command alias vfbe_vars_end settings show auto-confirm"
+	LLDBWrite "command alias vfbe_mem_end settings show auto-confirm"
 	LLDBWrite "type summary add -s ""${var.data%s}"" FBSTRING"
 	'WString (uint32 of C) and ZString * N as their texts
 	Dim As UString ScriptFile = LLDBScript
@@ -455,6 +471,7 @@ Sub LLDBRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, ByRef
 	#endif
 	LLDBLaunchCommand = "process launch -i " & NullDevice & " -o " & DbgQuote(LLDBOutputFile) & " -e " & DbgQuote(LLDBOutputFile) & " -w " & DbgQuote(GetFolderName(ExeFile))
 	If Trim(Arguments) <> "" Then LLDBLaunchCommand &= " -- " & Arguments
+	If AttachPid <> 0 Then LLDBLaunchCommand = "process attach --pid " & AttachPid: AttachPid = 0 'Attach to Process
 	LLDBWrite LLDBLaunchCommand
 	ThreadsLeave
 	'The answers of lldb up to its end
@@ -512,12 +529,21 @@ Sub LLDBKillDebug()
 End Sub
 
 'The command of the GDB Command window, "print X" of Watches
+'Variable Dump, Pointed data Dump: the memory at the address sExpression, its lines up to vfbe_mem_end
+Sub LLDBMemoryDump(ByRef sExpression As String)
+	If Not LLDBActive Then ShowMessages ML("The debugger is not started."): Exit Sub
+	LLDBMemoryText = ""
+	LLDBWrite LLDB_MEMORY & (dumplines * 16) & " -- " & sExpression
+	LLDBWrite "vfbe_mem_end"
+End Sub
+
 Sub LLDBCommandDebug(sCom As String)
 	If StartsWith(sCom, "print ") Then
 		If WatchIndex >= 0 AndAlso WatchIndex < lvWatches.Nodes.Count Then
 			Dim As String sType, sValue = DbgFindValue(Mid(sCom, 7), sType)
 			lvWatches.Nodes.Item(WatchIndex)->Text(1) = IIf(DbgHasValue(Mid(sCom, 7)), DbgText(sValue), ML("No symbol in the current context"))
 			lvWatches.Nodes.Item(WatchIndex)->Text(2) = sType
+			DbgViewInvalidate
 		End If
 		Exit Sub
 	End If
@@ -542,7 +568,9 @@ Sub LLDBSetBp(Temporary As Boolean = False)
 	ElseIf Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[LineNo - 1])->Breakpoint Then
 		LLDBWrite "breakpoint clear" & Place
 	Else
-		LLDBWrite "breakpoint set" & Place
+		Dim As Integer nIgnore = DbgIgnoreCount(FileName, LineNo)
+		Dim As String sCond = DbgBreakpointCondition(FileName, LineNo)
+		LLDBWrite "breakpoint set" & IIf(nIgnore, " -i " & nIgnore, "") & IIf(sCond <> "", " -c '" & sCond & "'", "") & Place
 	End If
 End Sub
 

@@ -434,6 +434,8 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, * (.Text))
 				If FECLine->Text = 0 Then Return
 				FECLine->Breakpoint = .Breakpoint
+				FECLine->BreakpointCount = .BreakpointCount
+				FECLine->BreakpointCondition = .BreakpointCondition
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
@@ -519,6 +521,8 @@ Namespace My.Sys.Forms
 				WLet(FECLine->Text, * (.Text))
 				If FECLine->Text = 0 Then Return
 				FECLine->Breakpoint = .Breakpoint
+				FECLine->BreakpointCount = .BreakpointCount
+				FECLine->BreakpointCondition = .BreakpointCondition
 				FECLine->Bookmark = .Bookmark
 				FECLine->CommentIndex = .CommentIndex
 				FECLine->ConstructionIndex = .ConstructionIndex
@@ -9753,7 +9757,9 @@ Namespace My.Sys.Forms
 				g_signal_connect(TextDropTarget, "leave", G_CALLBACK(@EditControl_OnGtk4DropLeave), @This)
 				gtk_widget_add_controller(widget, GTK_EVENT_CONTROLLER(TextDropTarget))
 			#else
-			ECDragTargets(0).target = Cast(gchar Ptr, @Str("UTF8_STRING"))
+			'The name stays: GTK keeps the pointer (the address of the temporary result of Str was freed)
+			Static As ZString * 12 UTF8Target = "UTF8_STRING"
+			ECDragTargets(0).target = Cast(gchar Ptr, @UTF8Target)
 			ECDragTargets(0).flags  = 0
 			ECDragTargets(0).info   = 0
 

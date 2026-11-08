@@ -254,6 +254,8 @@ Namespace My.Sys.Forms
 	Type EditControlLine
 		Bookmark As Boolean
 		Breakpoint As Boolean
+		BreakpointCount As Integer 'Breakpoint Hit Count: the debugger stops when the line is reached for the N-th time (0, 1: every time)
+		BreakpointCondition As String 'Breakpoint Condition (FreeBASIC syntax): the debugger stops when it is true
 		Collapsed As Boolean
 		CollapsedFully As Boolean
 		Collapsible As Boolean

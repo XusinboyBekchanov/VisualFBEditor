@@ -49,12 +49,7 @@ Function DbgRunWithDebug(ByRef ExeFile As WString, ByRef Arguments As WString, B
 		Return True
 	End If
 	DbgCheckCompileLine CompileLine
-	tvVar.Visible = False
-	lvLocals.Visible = True
-	tvThd.Visible = False
-	lvThreads.Visible = True
-	tvWch.Visible = False
-	lvWatches.Visible = True
+	DbgViewSetDebugger False
 	tpLocals->SelectTab
 	ThreadsLeave
 	Dim As UString DebuggerPath = DbgDebuggerPath(IsLLDB)
@@ -105,6 +100,7 @@ Sub DbgCommandDebug(ByRef sCom As String)
 			Dim As String sName = Mid(sCom, 7), sType, sValue = DbgFindValue(sName, sType)
 			lvWatches.Nodes.Item(WatchIndex)->Text(1) = IIf(DbgHasValue(sName), DbgText(sValue), ML("No symbol in the current context"))
 			lvWatches.Nodes.Item(WatchIndex)->Text(2) = sType
+			DbgViewInvalidate
 		End If
 		Exit Sub
 	End If
@@ -127,7 +123,8 @@ End Sub
 'A command of the IDE: True if it is of these debuggers
 Function DbgCommand(ByRef sCommand As String) As Boolean
 	Select Case sCommand
-	Case "StartWithCompile", "Start", "Restart", "Break", "End", "StepInto", "StepOver", "StepOut", "RunToCursor", "SetNextStatement", "ShowVar", "AddWatch"
+	Case "StartWithCompile", "Start", "Restart", "Break", "End", "StepInto", "StepOver", "StepOut", "RunToCursor", "SetNextStatement", "ShowVar", "AddWatch", _
+		"VariableDump", "PointedDataDump", "MemoryDumpWatch"
 	Case Else: Return False
 	End Select
 	If DbgBackend = DbgNone AndAlso DbgSelectedBackend = DbgNone Then Return False
@@ -140,6 +137,7 @@ Function DbgCommand(ByRef sCommand As String) As Boolean
 		End If
 		'Without Use Debugger the program runs without the debugger (the code of VisualFBEditor.bas)
 		If Not UseDebugger Then Return False
+		DbgViewDataChanging
 		lvThreads.Nodes.Clear
 		If sCommand = "StartWithCompile" Then
 			If SaveAllBeforeCompile Then
@@ -189,6 +187,7 @@ Function DbgCommand(ByRef sCommand As String) As Boolean
 			GdbMiStopAtStart = StopAtStart
 			DapStopAtStart = StopAtStart
 			RunningToCursor = sCommand = "RunToCursor"
+			DbgViewDataChanging
 			lvThreads.Nodes.Clear
 			ChangeEnabledDebug False, True, True
 			ThreadCounter(ThreadCreate_(@DbgStartThread))
@@ -205,6 +204,17 @@ Function DbgCommand(ByRef sCommand As String) As Boolean
 	Case "ShowVar", "AddWatch"
 		If Not bActive Then Return False
 		DbgShowWord sCommand
+	Case "VariableDump", "PointedDataDump", "MemoryDumpWatch"
+		'The memory of the selected variable in the Memory window (mem_show of Debug.bas)
+		If Not bActive Then Return False
+		If Running Then Return True
+		Dim As String sExpression = mem_expression(sCommand)
+		If sExpression = "" Then ShowMessages ML("Select a variable"): Return True
+		Select Case DbgBackend
+		Case DbgLLDBCLI: LLDBMemoryDump sExpression
+		Case DbgMI: GdbMiMemoryDump sExpression
+		Case DbgDAP: DapMemoryDump sExpression
+		End Select
 	End Select
 	Return True
 End Function

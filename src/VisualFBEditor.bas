@@ -438,6 +438,7 @@ Sub SelectNextControl
 End Sub
 
 Sub ClearThreadsWindow
+	DbgViewDataChanging
 	lvThreads.Nodes.Clear
 	tpThreads->Caption = ML("Threads")
 End Sub
@@ -591,7 +592,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "Parameters":                          pfParameters->ShowModal *pfrmMain : pfParameters->CenterToParent
 	Case "GDBCommand":                          GDBCommand
 	Case "LocateProcedure":                     proc_loc
-	Case "EnableDisable":                       proc_enable
+	Case "EnableDisable":                       proc_enable: DbgViewDirty(dpProcedures) = True: DbgViewInvalidate 'Followed of the list (DebugView.bas)
 	#ifdef __USE_WIN32_COMPAT__
 		'Web and Android: the compiler and the debugger cannot be started
 	#ifdef __USE_WASM__
@@ -1141,6 +1142,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "PinBottom":                       SetBottomClosedStyle Not tbBottom.Buttons.Item("PinBottom")->Checked, False
 	Case "EraseOutputWindow":               txtOutput.Text = ""
 	Case "EraseImmediateWindow":            txtImmediate.Text = ""
+	Case "RemoveWatch":                     DbgViewRemoveWatch
+	Case "DebugListView":                   DbgViewSetList tbBottom.Buttons.Item("DebugListView")->Checked
 	Case "Update":
 		#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 			iStateMenu = IIf(tbBottom.Buttons.Item("Update")->Checked, 2, 1): If Running = False Then command_debug("")
@@ -1180,15 +1183,53 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			tb->NewLineType = NewLineType
 			tb->Modified = True
 		End If
-	Case "VariableDump":                var_dump(tviewvar)
-	Case "PointedDataDump":             var_dump(tviewvar, 1)
-	Case "MemoryDumpWatch":             var_dump(tviewwch)
-		#ifndef __USE_GTK__
-		Case "ShowStringWatch":             string_sh(tviewwch)
-		Case "ShowExpandVariableWatch":     shwexp_new(tviewwch)
-		Case "ShowString":                  string_sh(tviewvar)
-		Case "ShowExpandVariable":          shwexp_new(tviewvar)
-		#endif
+	Case "BreakpointHitCount"
+		'The debugger stops when the line of the cursor is reached for the N-th time (its breakpoint is set again)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb = 0 Then Exit Sub
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim As EditControlLine Ptr ECLine = tb->txtCode.Content.Lines.Items[iSelEndLine]
+		Dim As UString sCount = InputBox(ML("Breakpoint Hit Count"), ML("Line") & " " & (iSelEndLine + 1) & ": " & ML("stop when it is reached for the N-th time") & WChr(10) & "(0, 1 - " & ML("every time") & ")", Str(ECLine->BreakpointCount))
+		If sCount = "" Then Exit Sub
+		Dim As Integer nCount = Val(sCount)
+		If nCount < 0 Then nCount = 0
+		If ECLine->Breakpoint Then
+			'The debugger gets the breakpoint again with the count
+			mClick Designer_, *miToggleBreakpoint
+			ECLine->BreakpointCount = nCount
+			mClick Designer_, *miToggleBreakpoint
+		Else
+			ECLine->BreakpointCount = nCount
+			mClick Designer_, *miToggleBreakpoint
+		End If
+		If ECLine->Breakpoint Then ShowMessages ML("Breakpoint Hit Count") & ": " & ML("Line") & " " & (iSelEndLine + 1) & " - " & IIf(nCount > 1, WStr(nCount), ML("every time"))
+	Case "Breakpoints", "CallChain", "AttachToProcess", "BreakOnMemory", "ChangeArrayIndex", "TrackArrayIndex", "StopArrayTracking", "EditMemory", "GoToAddress", "RefreshMemory"
+		DbgViewDebugCommand Sender.ToString
+	Case "BreakpointCondition"
+		'The debugger stops at the breakpoint of the line of the cursor when the condition is true (its breakpoint is set again)
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb = 0 Then Exit Sub
+		Dim As Integer iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		tb->txtCode.GetSelection iSelStartLine, iSelEndLine, iSelStartChar, iSelEndChar
+		Dim As EditControlLine Ptr ECLine = tb->txtCode.Content.Lines.Items[iSelEndLine]
+		Dim As UString sOldCond = ECLine->BreakpointCondition
+		If sOldCond = "" Then sOldCond = "?"
+		Dim As UString sCond = InputBox(ML("Breakpoint Condition"), ML("Line") & " " & (iSelEndLine + 1) & ": " & ML("stop when the condition is true, ? - always") & WChr(10) & "I > 10 AndAlso S <> 0", sOldCond)
+		If sCond = "" Then Exit Sub 'Cancel
+		If Trim(sCond) = "?" Then sCond = ""
+		If ECLine->Breakpoint Then
+			mClick Designer_, *miToggleBreakpoint
+			ECLine->BreakpointCondition = Trim(sCond)
+			mClick Designer_, *miToggleBreakpoint
+		Else
+			ECLine->BreakpointCondition = Trim(sCond)
+			mClick Designer_, *miToggleBreakpoint
+		End If
+		If ECLine->Breakpoint Then ShowMessages ML("Breakpoint Condition") & ": " & ML("Line") & " " & (iSelEndLine + 1) & " - " & IIf(Trim(sCond) = "", ML("always"), UString(Trim(sCond)))
+	Case "EditValue", "EditValueWatch", "BreakOnVariable", "BreakOnVariableValue", "BreakOnVariableCancel", "BreakOnVariableWatch", "BreakOnVariableValueWatch", "BreakOnVariableCancelWatch", _
+		"VariableDump", "PointedDataDump", "MemoryDumpWatch", "ShowStringWatch", "ShowExpandVariableWatch", "ShowString", "ShowExpandVariable"
+		DbgViewVariableCommand Sender.ToString
 	Case "Undo", "Redo", "CutCurrentLine", "Cut", "Copy", "Paste", "SelectAll", "Duplicate", "SingleComment", "BlockComment", "UnComment", _
 		"Indent", "Outdent", "Format", "Unformat", "AddSpaces", "NumberOn", "MacroNumberOn", "NumberOff", "ProcedureNumberOn", "ProcedureMacroNumberOn", "ProcedureNumberOff", _
 		"PreprocessorNumberOn", "PreprocessorNumberOff", "Breakpoint", "ToggleBookmark", "CollapseAll", "UnCollapseAll", "CollapseAllProcedures", "UnCollapseAllProcedures", _

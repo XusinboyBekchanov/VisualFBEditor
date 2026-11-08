@@ -10,6 +10,7 @@
 
 Dim Shared As DebuggerTypes DefaultDebuggerType32, DefaultDebuggerType64, CurrentDebuggerType32, CurrentDebuggerType64
 Dim Shared As String  source(SRCMAX)
+Dim Shared As String  srcpath(SRCMAX) 'the paths as they are (TimerProc of Main.bas)
 Dim Shared As String  srcname(SRCMAX)
 Dim Shared As Integer sourcenb = -1
 Dim Shared shwtab As UShort = 0

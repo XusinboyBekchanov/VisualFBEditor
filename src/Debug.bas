@@ -8,6 +8,98 @@
 
 #include once "Debug.bi"
 
+#ifdef __FB_WIN32__
+	'The registers of a thread of the debugged program used by the debugger (CONTEXT of x64 or of x86, WOW64_CONTEXT of a
+	'32-bit program in the 64-bit IDE): DbgGetThreadContext, DbgSetThreadContext instead of GetThreadContext, SetThreadContext
+	#ifdef __FB_64BIT__
+		'Wow64GetThreadContext, Wow64SetThreadContext: the headers declare them only for _WIN32_WINNT >= &h0600
+		Type tWow64Context As Function(ByVal hThread As HANDLE, ByVal lpContext As Any Ptr) As WINBOOL
+		Dim Shared As tWow64Context pWow64GetThreadContext, pWow64SetThreadContext
+		Sub wow64_init()
+			If pWow64GetThreadContext = 0 Then
+				Dim As Any Ptr hKernel = GetModuleHandle("kernel32.dll")
+				pWow64GetThreadContext = DyLibSymbol(hKernel, "Wow64GetThreadContext")
+				pWow64SetThreadContext = DyLibSymbol(hKernel, "Wow64SetThreadContext")
+			End If
+		End Sub
+	#endif
+	
+	Type DBGCONTEXT
+		ContextFlags As DWORD 'not used: all the registers are read
+		regip As Integer
+		regsp As Integer
+		regbp As Integer
+		EFlags As DWORD
+		Dr0 As Integer
+		Dr6 As Integer
+		Dr7 As Integer
+		'The whole context read by DbgGetThreadContext (CONTEXT or WOW64_CONTEXT): DbgSetThreadContext writes it with the
+		'changed registers, without reading it again (the thread is stopped between them)
+		hRaw As HANDLE
+		raw(SizeOf(CONTEXT) + 16) As UByte
+	End Type
+	
+	'The context in raw: CONTEXT aligned on 16 bytes
+	#define DBGCONTEXT_RAW(pc) Cast(Any Ptr, (Cast(UInteger, @(pc)->raw(0)) + 15) And Not Cast(UInteger, 15))
+	
+	Function DbgGetThreadContext(hThread As HANDLE, pc As DBGCONTEXT Ptr) As WINBOOL
+		pc->hRaw = 0
+		#ifdef __FB_64BIT__
+			If dbgT32 Then
+				Dim As WOW64_CONTEXT Ptr w = DBGCONTEXT_RAW(pc)
+				w->ContextFlags = WOW64_CONTEXT_FULL Or WOW64_CONTEXT_DEBUG_REGISTERS
+				wow64_init(): If pWow64GetThreadContext = 0 Then Return 0
+				Function = pWow64GetThreadContext(hThread, w)
+				pc->regip = w->Eip: pc->regsp = w->Esp: pc->regbp = w->Ebp: pc->EFlags = w->EFlags
+				pc->Dr0 = w->Dr0: pc->Dr6 = w->Dr6: pc->Dr7 = w->Dr7
+				pc->hRaw = hThread
+				Exit Function
+			End If
+		#endif
+		Dim As CONTEXT Ptr pctx = DBGCONTEXT_RAW(pc)
+		pctx->ContextFlags = CONTEXT_FULL Or CONTEXT_DEBUG_REGISTERS
+		Function = GetThreadContext(hThread, pctx)
+		pc->regip = pctx->regip: pc->regsp = pctx->regsp: pc->regbp = pctx->regbp: pc->EFlags = pctx->EFlags
+		pc->Dr0 = pctx->Dr0: pc->Dr6 = pctx->Dr6: pc->Dr7 = pctx->Dr7
+		pc->hRaw = hThread
+	End Function
+	
+	'The registers of DBGCONTEXT written in the context of the thread (the others stay)
+	Function DbgSetThreadContext(hThread As HANDLE, pc As DBGCONTEXT Ptr) As WINBOOL
+		If pc->hRaw <> hThread Then
+			'Not read from this thread: the registers which are not changed are read first
+			Dim As DBGCONTEXT cur
+			If DbgGetThreadContext(hThread, @cur) = 0 Then Return 0
+			cur.regip = pc->regip: cur.regsp = pc->regsp: cur.regbp = pc->regbp: cur.EFlags = pc->EFlags
+			cur.Dr0 = pc->Dr0: cur.Dr6 = pc->Dr6: cur.Dr7 = pc->Dr7
+			Return DbgSetThreadContext(hThread, @cur)
+		End If
+		#ifdef __FB_64BIT__
+			If dbgT32 Then
+				Dim As WOW64_CONTEXT Ptr w = DBGCONTEXT_RAW(pc)
+				w->Eip = pc->regip: w->Esp = pc->regsp: w->Ebp = pc->regbp: w->EFlags = pc->EFlags
+				w->Dr0 = pc->Dr0: w->Dr6 = pc->Dr6: w->Dr7 = pc->Dr7
+				Return pWow64SetThreadContext(hThread, w)
+			End If
+		#endif
+		Dim As CONTEXT Ptr pctx = DBGCONTEXT_RAW(pc)
+		pctx->regip = pc->regip: pctx->regsp = pc->regsp: pctx->regbp = pc->regbp: pctx->EFlags = pc->EFlags
+		pctx->Dr0 = pc->Dr0: pctx->Dr6 = pc->Dr6: pctx->Dr7 = pc->Dr7
+		Return SetThreadContext(hThread, pctx)
+	End Function
+
+#endif
+
+'Edit Value, Break on Variable Value: InputBox of MyFbFramework (OK, Cancel: "")
+Function DbgInputBox(ByRef sCaption As WString, ByRef sMessage As WString, ByRef sDefault As WString, ByRef sResult As UString) As Boolean
+	#ifdef __USE_WINAPI__
+		sResult = InputBox(sCaption, sMessage, sDefault, , , pfrmMain->Handle)
+	#else
+		sResult = InputBox(sCaption, sMessage, sDefault)
+	#endif
+	Return sResult <> ""
+End Function
+
 'mutex for blocking second thread before continue
 Dim Shared As Any Ptr blocker
 blocker = MutexCreate
@@ -34,6 +126,7 @@ Dim Shared stoplibel(20) As String*17 =>{"","BP On line","BP perm/tempo","BP con
 ''source files
 Dim Shared As String  source(SRCMAX)        ''source names with path
 Dim Shared As String  srcname(SRCMAX)       ''source names without path
+Dim Shared As String  srcpath(SRCMAX)       ''source names with path as they are (source() is in lower case on Windows)
 Dim Shared As tlist   srclist(SRCMAX)       ''to sort
 Dim Shared As Integer srclistfirst          ''first sorted element
 Dim Shared As Integer srccombocur           ''current combo choice
@@ -210,6 +303,10 @@ Dim Shared wtchnew As Integer 'to keep index after creating new watched
 
 ''breakpoint on line
 Dim Shared As tbrkol brkol(BRKMAX)
+Dim Shared As String brkcond(BRKMAX) ''Breakpoint Condition of each breakpoint (FreeBASIC syntax)
+''Attach to Process: the process of the next start of the debugger (0 - the program is started) and its exe
+Dim Shared As Integer AttachPid
+Dim Shared As String AttachExe
 Dim Shared As Integer brknb
 Dim Shared As String brkexe(9,BRKMAX) 'to save breakpoints by session
 Dim Shared As Any Ptr hbrkbx ''window for managing breakpoints
@@ -253,6 +350,7 @@ Dim Shared dumpbase  As Integer =0 'value dump dec=0 or hexa=50
 Dim Shared dumpadrbase   As Integer =1 'address display in dec (1) or hex (0)
 Dim Shared dumpnbcol As Integer
 Dim Shared dumptyp   As Integer =2
+Dim Shared GdbMemoryPending As Boolean ''Variable Dump of the Integrated GDB Debugger (CLI): the answer of x/ (run_debug)
 
 Dim Shared htviewvar As Any Ptr 'running proc/var
 Dim Shared htviewprc As Any Ptr 'all proc
@@ -286,34 +384,61 @@ Dim Shared As tindexdata indexdata
 
 udt(0).nm="Unknown"
 
+'The names and the sizes of the standard types of the debugged program (32-bit or 64-bit: udt_target_init)
+Sub udt_target_init()
+	If T64 Then
+		udt(1).nm = "Long": udt(1).lg = 4
+		udt(8).nm = "ULong": udt(8).lg = 4
+		udt(9).nm = "Integer": udt(9).lg = 8
+		udt(10).nm = "UInteger": udt(10).lg = 8
+	Else
+		udt(1).nm = "Integer": udt(1).lg = 4
+		udt(8).nm = "UInteger": udt(8).lg = 4
+		udt(9).nm = "LongInt": udt(9).lg = 8
+		udt(10).nm = "ULongInt": udt(10).lg = 8
+	End If
+	udt(4).lg = TSZ: udt(7).lg = TSZ: udt(14).lg = TSZ: udt(15).lg = TSZ: udt(18).lg = TSZ
+	udt(13).lg = 3 * TSZ 'String: data, length, size
+End Sub
+
+#ifdef __FB_WIN32__
+	'An Integer of the debugged program at the address (4 bytes of a 32-bit program, signed)
+	Function rd_sint(ad As Integer) As Integer
+		Dim As LongInt v
+		ReadProcessMemory(dbghand, Cast(LPCVOID, ad), @v, TSZ, 0)
+		If T64 Then Return v
+		Return *Cast(Long Ptr, @v)
+	End Function
+#endif
+
 #ifdef __FB_64BIT__
-	udt(1).nm="long":udt(1).lg=Len(Long)
+	udt(1).nm="Long":udt(1).lg=Len(Long)
 #else
 	udt(1).nm="Integer":udt(1).lg=Len(Integer)
 #endif
 udt(2).nm="Byte":udt(2).lg=Len(Byte)
-udt(3).nm="Ubyte":udt(3).lg=Len(UByte)
-udt(4).nm="Zstring":udt(4).lg=Len(Integer)
+udt(3).nm="UByte":udt(3).lg=Len(UByte)
+udt(4).nm="ZString":udt(4).lg=Len(Integer)
 udt(5).nm="Short":udt(5).lg=Len(Short)
-udt(6).nm="Ushort":udt(6).lg=Len(UShort)
+udt(6).nm="UShort":udt(6).lg=Len(UShort)
 udt(7).nm="Void":udt(7).lg=Len(Integer)
 
 #ifdef __FB_64BIT__
-	udt(8).nm="Ulong":udt(8).lg=Len(ULong)
+	udt(8).nm="ULong":udt(8).lg=Len(ULong)
 #else
-	udt(8).nm="Uinteger":udt(8).lg=Len(UInteger)
+	udt(8).nm="UInteger":udt(8).lg=Len(UInteger)
 #endif
 
 #ifdef __FB_64BIT__
 	udt(9).nm="Integer":udt(9).lg=Len(Integer)
 #else
-	udt(9).nm="Longint":udt(9).lg=Len(LongInt)
+	udt(9).nm="LongInt":udt(9).lg=Len(LongInt)
 #endif
 
 #ifdef __FB_64BIT__
-	udt(10).nm="Uinteger":udt(10).lg=Len(UInteger)
+	udt(10).nm="UInteger":udt(10).lg=Len(UInteger)
 #else
-	udt(10).nm="Ulongint":udt(10).lg=Len(ULongInt)
+	udt(10).nm="ULongInt":udt(10).lg=Len(ULongInt)
 #endif
 
 udt(11).nm="Single":udt(11).lg=Len(Single)
@@ -322,7 +447,7 @@ udt(13).nm="String":udt(13).lg=Len(String)
 udt(14).nm="Fstring":udt(14).lg=Len(Integer)
 udt(15).nm="fb_Object":udt(15).lg=Len(UInteger)
 udt(16).nm = "Boolean": udt(16).lg = Len(Boolean)
-udt(18).nm = "Wstring": udt(18).lg = Len(Integer)
+udt(18).nm = "WString": udt(18).lg = Len(Integer)
 
 reinit()
 
@@ -663,8 +788,8 @@ Private Function brk_test Overload (adr1 As Integer, adr2 As Integer = 0, dataty
 	'adr=vrr(brkv.ivr).ini
 	'ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,4,0)
 	'If adr<>brkv.arr Then brkv.adr+=brkv.arr-adr:brkv.arr=adr 'compute delta then add it if needed
-	'temp2=vrr(brkv.ivr).ini+2*SizeOf(Integer) 'adr global size
-	'ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,SizeOf(Integer),0)
+	'temp2=vrr(brkv.ivr).ini+2*TSZ 'adr global size
+	'ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,TSZ,0)
 	'If brkv.adr>adr+temp3 Then 'out of limit ?
 	'brkv_set(0) 'erase
 	'Return FALSE
@@ -690,7 +815,17 @@ Private Function brk_test Overload (adr1 As Integer, adr2 As Integer = 0, dataty
 	Else
 		recup2=data2
 	End If
-	
+	#ifdef __FB_64BIT__
+		'Long and ULong are 4 bytes, vinteger and vuinteger are 8 bytes in 64-bit: only the first 4 bytes are compared
+		If datatype = 1 Then
+			Dim As Long l1 = *Cast(Long Ptr, @recup1), l2 = *Cast(Long Ptr, @recup2)
+			recup1.vlongint = l1: recup2.vlongint = l2
+		ElseIf datatype = 8 Then
+			Dim As ULong u1 = *Cast(ULong Ptr, @recup1), u2 = *Cast(ULong Ptr, @recup2)
+			recup1.vulongint = u1: recup2.vulongint = u2
+		End If
+	#endif
+
 	Select Case datatype
 	Case 2 'byte
 		If recup2.vbyte>recup1.vbyte Then
@@ -842,7 +977,7 @@ Private Function brk_test Overload (adr1 As Integer, adr2 As Integer = 0, dataty
 		''strings not yet handled
 		'Case 4,13,14
 		'If brkv.typ=13 Then  ' normal string
-		'ReadProcessMemory(dbghand,Cast(LPCVOID,brkv.adr),@adr,SizeOf(Integer),0) 'address ptr 25/07/2015 64bit
+		'ReadProcessMemory(dbghand,Cast(LPCVOID,brkv.adr),@adr,TSZ,0) 'address ptr 25/07/2015 64bit
 		'Else
 		'adr=brkv.adr
 		'End If
@@ -1369,7 +1504,7 @@ Private Sub exception_handle(adr As Integer)
 		ThreadsLeave
 		libelexception = ""
 		#ifndef __FB_WIN32__
-			If debugdata <> IDYES Then ''the signal is delivered to the debuggee (usually it ends)
+			If debugdata <> mrYes Then ''the signal is delivered to the debuggee (usually it ends)
 				MutexLock blocker
 				msgcmd = KPT_CONTSIG
 				msgdata = sig
@@ -1426,10 +1561,19 @@ Private Function debug_event() As Integer
 		Else
 			gest_brk(brkol(debugdata).ad,brkol(debugdata).index) ''address and line index
 		End If
+		#ifdef __FB_WIN32__
+			If stopcode = CSVAR OrElse stopcode = CSMEM Then brkv_stopped()
+		#endif
 		
 	Case KDBGCREATEPROCESS
 		srcstart=sourcenb+1
 		#ifdef __FB_WIN32__
+			#ifdef __FB_64BIT__
+				'A 32-bit program (WOW64) in the 64-bit IDE
+				Dim As WINBOOL bWow64
+				dbgT32 = IsWow64Process(dbghand, @bWow64) <> 0 AndAlso bWow64 <> 0
+			#endif
+			udt_target_init()
 			If debug_extract(debugdata,exename)=0 Then ''otherwise there is a problem (no debug data or when reading debuggee memory)
 				init_debuggee(srcstart)
 			Else
@@ -1745,7 +1889,7 @@ End Sub
 Private Sub exec_mod() 'execution from cursor
 	#ifdef __FB_WIN32__
 		Dim As Integer dummy ''used to align vcontext on 16 bytes
-		Dim vcontext As CONTEXT
+		Dim vcontext As DBGCONTEXT
 		vcontext.ContextFlags=CONTEXT_CONTROL
 	#endif
 	Dim cln As Integer,rln As Integer',b As Integer
@@ -1780,9 +1924,9 @@ Private Sub exec_mod() 'execution from cursor
 	thread(threadcur).od=thread(threadcur).sv:thread(threadcur).sv=rln
 	'get and update registers
 	#ifdef __FB_WIN32__
-		GetThreadContext(threadhs,@vcontext)
+		DbgGetThreadContext(threadhs, @vcontext)
 		vcontext.regip=rline(rln).ad
-		SetThreadContext(threadhs,@vcontext)
+		DbgSetThreadContext(threadhs, @vcontext)
 	#else
 		'dbg_prt2 "changing exec=";hex(rline(rln).ad),rline(rln).nu
 		MutexLock blocker
@@ -2480,7 +2624,7 @@ End Sub
 	End Function
 	'===============================================================
 	Private Function writeprocessmemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0)As Integer
-		Dim As Integer integersize=SizeOf(Integer),i,j=lg\integersize
+		Dim As Integer integersize=TSZ,i,j=lg\integersize
 		Dim As Integer buf,errn
 		If addrdbge=0 Or addrdbgr=0 Then
 			dbg_prt2 "write addrdbge=";Hex(addrdbge),"addrdbgr=";Hex(addrdbgr)
@@ -2520,7 +2664,7 @@ End Sub
 			Dim As Integer value
 			value=ptrace(PTRACE_PEEKDATA,child, Cast(Any Ptr,addrdbge),NULL)
 			lgint=value
-			addrdbge+=SizeOf(Integer)
+			addrdbge+=TSZ
 			value=ptrace(PTRACE_PEEKDATA,child, Cast(Any Ptr,addrdbge),NULL)
 			lgint2=value
 			lgint+=lgint2 Shl 32
@@ -2528,7 +2672,6 @@ End Sub
 		#endif
 	End Function
 	'==========================================
-	Declare Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
 	#ifndef SIGBUS
 		#define SIGBUS 7
 	#endif
@@ -2560,13 +2703,13 @@ End Sub
 			crashstack = "#0  0x" & Hex(regip) & "  (no debug data)": nfrm = 1
 			Dim As Integer sp = regs.xsp, found
 			For i As Integer = 0 To 4095
-				ReadProcessMemory_th2(tid, Cast(Any Ptr, sp + i * SizeOf(Integer)), @w, SizeOf(Integer))
-				If proc_index(w) Then found = sp + i * SizeOf(Integer): Exit For
+				ReadProcessMemory_th2(tid, Cast(Any Ptr, sp + i * TSZ), @w, TSZ)
+				If proc_index(w) Then found = sp + i * TSZ: Exit For
 			Next
 			If found = 0 Then Exit Sub
 			regip = w
 			If regbp <= found Then 'rbp used by the code without debug data : the frame of the caller is just after the return address ?
-				ReadProcessMemory_th2(tid, Cast(Any Ptr, found + SizeOf(Integer)), @regbp, SizeOf(Integer))
+				ReadProcessMemory_th2(tid, Cast(Any Ptr, found + TSZ), @regbp, TSZ)
 				If regbp <= found Then Exit Sub
 			End If
 			lineadr = regip - 1
@@ -2580,16 +2723,16 @@ End Sub
 			If crashstack <> "" Then crashstack &= Chr(13)
 			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
 			If proc(proc_index(regip)).nm = "main" Then Exit For
-			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp + SizeOf(Integer)), @ret, SizeOf(Integer))
+			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp + TSZ), @ret, TSZ)
 			prevbp = regbp
-			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp), @regbp, SizeOf(Integer))
+			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp), @regbp, TSZ)
 			regip = ret
 			If regbp <= prevbp Then Exit For 'the stack must go up
 		Next
 	End Sub
 
 	Private Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
-		Dim As Integer integersize=SizeOf(Integer),i,j=lg\integersize
+		Dim As Integer integersize=TSZ,i,j=lg\integersize
 		Dim As Integer buf(j)
 		If addrdbge=0 Or addrdbgr=0 Then
 			'dbg_prt2 "read addrdbge=";hex(addrdbge),"addrdbgr=";hex(addrdbgr)
@@ -2708,11 +2851,13 @@ End Sub
 	End Sub
 	'=====================================================
 	Private Sub thread_rsm()
+		DbgViewIntegratedStopped False 'the tree views change while the program runs (DebugView.bas)
 		dbg_prt2 "in thread_rsm executing KPT_CONTALL"
 		exec_order(KPT_CONTALL)
 	End Sub
 	'=====================================================
 	Private Sub singlestep_rsm(rln As Integer)
+		DbgViewIntegratedStopped False
 		msgad=rline(rln).ad
 		msgdata=rline(rln).sv
 		dbg_prt2 "in singlestep_rsm=";rln,Hex(msgad),rline(rln).nu,msgdata
@@ -3412,7 +3557,7 @@ End Sub
 			If rline(rln).sv=85 Then'check if the first instruction is push ebp opcode=85 / push rbp opcode=&h55=85dec
 				'in this case there is a prologue
 				'at the beginning of proc EBP not updated so use ESP
-				procsk=regs.xsp-SizeOf(Integer)
+				procsk=regs.xsp-TSZ
 			Else
 				If procrnb<>0 Then  'no main and no prologue so naked proc, procrnb not yet updated
 					procsk=regs.xsp
@@ -3421,7 +3566,7 @@ End Sub
 					ThreadsEnter
 					MsgBox("Main procedure problem", "No standard prologue --> random behaviour")
 					ThreadsLeave
-					procsk=regs.xsp-SizeOf(Integer)
+					procsk=regs.xsp-TSZ
 				End If
 			End If
 		Else
@@ -3838,6 +3983,31 @@ runtype = RTOFF
 			MsgBox("PROBLEM", "no debugged pgm -->" + exename+ Chr(10) + "error :" + Str(GetLastError()), MB_SYSTEMMODAL)
 			ThreadsLeave
 		End If
+	End Sub
+	'====================================================
+	'' Attach to Process (Windows): the running process AttachPid is debugged; with CC on every line it stops at its next line
+	'====================================================
+	Private Sub attach_pgm(p As Any Ptr)
+		Dim As Integer pid = AttachPid
+		AttachPid = 0
+		If DebugActiveProcess(pid) = 0 Then
+			ThreadsEnter
+			MsgBox ML("Attach to Process") & ": " & ML("The process is not attached") & " (PID " & pid & ", " & ML("error") & " " & GetLastError() & ")"
+			ChangeEnabledDebug True, False, False
+			InDebug = False
+			ThreadsLeave
+			Exit Sub
+		End If
+		dbgprocid = pid
+		dbghand = OpenProcess(PROCESS_ALL_ACCESS, False, pid)
+		pinfo.hProcess = dbghand
+		pinfo.dwProcessId = pid
+		prun = True
+		flagattach = True
+		ThreadsEnter
+		ShowMessages Time & ": " & ML("Attach to Process") & ": " & exename & " (PID " & pid & ")"
+		ThreadsLeave
+		wait_debug()
 	End Sub
 	'===================================================
 	'' Loads dll elements
@@ -6136,6 +6306,31 @@ End Sub
 
 '' -------------------------------
 '' Handling main source code=100
+'' The path of the file as it is in the file system: fbc writes the paths of the sources in upper case (stabs of -gen gas)
+Function real_path_case(ByRef sPath As String) As String
+	#ifdef __FB_WIN32__
+		Static As Function(ByVal hFile As HANDLE, ByVal lpszFilePath As WString Ptr, ByVal cchFilePath As DWORD, ByVal dwFlags As DWORD) As DWORD pGetFinalPathName
+		Static As Boolean bLoaded
+		If Not bLoaded Then
+			bLoaded = True
+			pGetFinalPathName = DyLibSymbol(DyLibLoad("kernel32"), "GetFinalPathNameByHandleW")
+		End If
+		If pGetFinalPathName = 0 Then Return sPath
+		Dim As WString * 1024 wPath = sPath, wResult
+		Dim As HANDLE h = CreateFileW(@wPath, 0, FILE_SHARE_READ Or FILE_SHARE_WRITE Or FILE_SHARE_DELETE, NULL, OPEN_EXISTING, FILE_FLAG_BACKUP_SEMANTICS, NULL)
+		If h = INVALID_HANDLE_VALUE Then Return sPath
+		Dim As DWORD n = pGetFinalPathName(h, @wResult, 1023, 0)
+		CloseHandle h
+		If n = 0 OrElse n >= 1023 Then Return sPath
+		Dim As String Result = wResult
+		If Left(Result, 8) = "\\?\UNC\" Then Return "\\" & Mid(Result, 9)
+		If Left(Result, 4) = "\\?\" Then Return Mid(Result, 5)
+		Return Result
+	#else
+		Return sPath ''the names of the files are sensitive on Linux
+	#endif
+End Function
+
 '' -------------------------------
 Private Sub dbg_file(strg As String, value As Integer)
 	Static As String path
@@ -6147,6 +6342,7 @@ Private Sub dbg_file(strg As String, value As Integer)
 		If Right(strg,4)<>".bas" And Right(strg,3)<>".bi" Then
 			path=strg
 		Else
+			Dim As String sPath = path + strg
 			#ifdef __FB_WIN32__
 				fullname=LCase(path+strg)
 			#else
@@ -6158,6 +6354,7 @@ Private Sub dbg_file(strg As String, value As Integer)
 			If check_source(fullname)=-1 Then ''useful check_source ???
 				sourcenb+=1
 				source(sourcenb)=fullname
+				srcpath(sourcenb)=real_path_case(sPath)
 				srcname(sourcenb)=source_name(source(sourcenb))
 				list_insert(srclist(),StrPtr(srcname(sourcenb)),sourcenb+1,srclistfirst) ''zero based so add 1
 				sourceix=sourcenb
@@ -6180,6 +6377,7 @@ Private Sub dbg_include(strg As String)
 		strg = Left(MainFile, InStrRev(MainFile, Any "/\")) + strg ''adding path
 		'strg=Left(source(0),InStrRev(source(0),Any "/\"))+strg ''adding path
 	End If
+	Dim As String sPath = strg
 	#ifdef __FB_WIN32__
 		strg=LCase(strg) ''only WDS file names are sensitive on LNX
 	#endif
@@ -6188,6 +6386,7 @@ Private Sub dbg_include(strg As String)
 	If temp=-1 Then
 		sourcenb+=1
 		source(sourcenb)=strg
+		srcpath(sourcenb)=real_path_case(sPath)
 		sourceix=sourcenb
 		srcname(sourcenb)=source_name(source(sourcenb))
 		list_insert(srclist(),StrPtr(srcname(sourcenb)),sourcenb+1,srclistfirst) ''zero based so add 1
@@ -6245,9 +6444,9 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 			If flagmain=True And procname="main" Then
 				procmain=procnb+1
 				flagmain=False
-				#ifndef __FB_64BIT__
+				If Not T64 Then
 					linenb-=1 ''skip stabd
-				#endif
+				End If
 				'flagstabd=TRUE'first main ok but not the others
 				'dbg_prt2 "main found=";procnb+1
 			End If
@@ -6289,11 +6488,7 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 		'dbg_prt2 "Checking procedure added by compiler =";proc(procnb).nm,proc(procnb).nu,rline(linenb).nu,hex(proc(procnb).db),hex(proc(procnb).fn)
 		'If proc(procnb).nu=rline(linenb).nu AndAlso linenb>2 then
 		If procnb <> procmain Then
-			#ifdef __FB_64BIT__
-			If rline(linenb).nu = 1 Then
-			#else
-			If proc(procnb).nu=rline(linenb).nu Then
-			#endif
+			If IIf(T64, rline(linenb).nu = 1, proc(procnb).nu=rline(linenb).nu) Then
 			proc(procnb).nu=-1
 			linenb-=1
 			dbg_prt2 "Procedure added by compiler (constructor, etc) ="; proc(procnb).nm
@@ -6589,7 +6784,7 @@ Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As TreeNode Ptr, vo
 						vrr(vrrnb).ini=vrr(vrrnb).ad
 						'dbg_prt2("reset for dyn arr cudt="+Str(vrr(vrrnb).ini+4))
 						If mem<>4 Then
-							WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@ad,SizeOf(Integer),0) 'reset area ptr 25/07/2015 64bit
+							WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+TSZ),@ad,TSZ,0) 'reset area ptr 25/07/2015 64bit
 						End If
 					End If
 					vrr(vrrnb).ad=0
@@ -6622,7 +6817,7 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 				'dynamic array not yet known so initialise address with null
 				If Cast(Integer,.arr)=-1 Then
 					vrr(vrrnb).ad=0
-					If .mem <>4 Then adr=0:WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+SizeOf(Integer)),@adr,SizeOf(Integer),0) '05/05/2014 25/07/2015 64bit
+					If .mem <>4 Then adr=0:WriteProcessMemory(dbghand,Cast(LPVOID,vrr(vrrnb).ini+TSZ),@adr,TSZ,0) '05/05/2014 25/07/2015 64bit
 				Else
 					For k As Integer =0 To 4 'clear index puting lbound
 						vrr(vrrnb).ix(k)=.arr->nlu(k).lb
@@ -6631,7 +6826,7 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 			End If
 			If .mem =4 Then 'modif for byref only real address
 				vrr(vrrnb).ini=adr
-				ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,SizeOf(Integer),0)'05/05/2014 25/07/2015 64bit
+				ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,TSZ,0)'05/05/2014 25/07/2015 64bit
 				If Cast(Integer,.arr)=-1 Then vrr(vrrnb).ini=adr Else vrr(vrrnb).ad=adr
 			End If
 			vrr(vrrnb).tv = Tree_AddItem(procr(j).tv, "Not filled", 0, tviewvar, vrrnb) 'Tree_AddItem(procr(j).tv,"Not filled", TVI_LAST, tviewvar, vrrnb)
@@ -6779,7 +6974,7 @@ Private Sub var_dump(tv As Any Ptr, ptd As Long = 0)
 
 	If ptd Then 'dumping pointed data
 		If varfind.pt = 0 Then ThreadsEnter: MsgBox("Dumping pointed data", "The selected variable is not a pointer"): ThreadsLeave: Exit Sub
-		ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,SizeOf(Integer),0)
+		ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,TSZ,0)
 	EndIf
 
 	If udt(varfind.ty).en Then
@@ -6793,7 +6988,7 @@ Private Sub var_dump(tv As Any Ptr, ptd As Long = 0)
 	   Select Case dumptyp
 		Case 13 'string
 			 dumptyp=2 'default for string
-			 ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,SizeOf(Integer),0) ''string address
+			 ReadProcessMemory(dbghand,Cast(LPCVOID,dumpadr),@dumpadr,TSZ,0) ''string address
 		Case 4, 14, 18 'f or zstring or wstring
 			dumptyp=2
 		Case Is>TYPESTD
@@ -6886,6 +7081,113 @@ Private Function watch_find() As Integer
 	Next
 End Function
 
+#ifdef __USE_WINAPI__
+	Const ARRSHOWMAX = 1000 'the elements of an array shown under its line
+
+	'An array of a standard type (not a structure) of the line i of vrr: the address of its first element, its bounds,
+	'the size of an element. Returns the number of elements (0: not sized, -1: not such an array)
+	Function arr_info(i As Integer, ByRef adr As Integer, lb() As Integer, ub() As Integer, ByRef nbdim As Integer, ByRef udtlg As Integer, ByRef typ As Integer, ByRef pt As Integer, ByRef fxlen As Integer, bAny As Boolean = False) As Integer
+		Dim As tarr Ptr arradr
+		If i <= 0 OrElse i > vrrnb Then Return -1
+		If vrr(i).vr < 0 Then
+			With cudt(Abs(vrr(i).vr))
+				typ = .typ: pt = .pt: fxlen = .fxlen: arradr = .arr
+			End With
+		ElseIf vrr(i).vr > 0 Then
+			With vrb(vrr(i).vr)
+				typ = .typ: pt = .pt: fxlen = .fxlen: arradr = .arr
+			End With
+		Else
+			Return -1
+		End If
+		If arradr = 0 OrElse Cast(Integer, arradr) < -1 Then Return -1
+		If CBool(Not bAny) AndAlso CBool((typ > TYPESTD AndAlso pt = 0) OrElse typ = TYPEMAX) Then Return -1 'structure: its fields are the children of its line
+		If pt Then
+			udtlg = TSZ
+		ElseIf typ = 4 OrElse typ = 14 Then
+			udtlg = fxlen
+		ElseIf typ = 18 Then
+			udtlg = fxlen * WSTRSIZE
+		Else
+			udtlg = udt(typ).lg
+		End If
+		If udtlg <= 0 Then Return -1
+		adr = 0
+		If Cast(Integer, arradr) = -1 Then 'dynamic (like var_sh1)
+			If vrr(i).ini = 0 Then Return 0
+			ReadProcessMemory(dbghand, Cast(LPCVOID, vrr(i).ini + TSZ), @adr, TSZ, 0)
+			If adr = 0 Then Return 0
+			Dim As Integer temp2 = vrr(i).ini + 4 * TSZ
+			nbdim = rd_sint(temp2)
+			nbdim -= 1
+			If nbdim < 0 OrElse nbdim > 4 Then Return 0
+			For k As Integer = 0 To nbdim
+				temp2 += 2 * TSZ
+				lb(k) = rd_sint(temp2)
+				temp2 += TSZ
+				ub(k) = rd_sint(temp2)
+			Next
+		Else 'fixed length
+			adr = vrr(i).ini
+			If adr = 0 Then Return 0
+			nbdim = arradr->dm - 1
+			If nbdim < 0 OrElse nbdim > 4 Then Return 0
+			For k As Integer = 0 To nbdim
+				lb(k) = arradr->nlu(k).lb: ub(k) = arradr->nlu(k).ub
+			Next
+		End If
+		Dim As Integer total = 1
+		For k As Integer = 0 To nbdim
+			If ub(k) < lb(k) Then Return 0
+			total *= ub(k) - lb(k) + 1
+		Next
+		Return total
+	End Function
+
+	'The indexes of the element e (from 0) of the array: "(1, 2)"
+	Function arr_index_text(e As Integer, lb() As Integer, ub() As Integer, nbdim As Integer, idx() As Integer) As String
+		Dim As Integer r = e
+		For k As Integer = nbdim To 0 Step -1
+			idx(k) = lb(k) + r Mod (ub(k) - lb(k) + 1)
+			r \= ub(k) - lb(k) + 1
+		Next
+		Dim As String s = "("
+		For k As Integer = 0 To nbdim
+			If k > 0 Then s &= ", "
+			s &= Str(idx(k))
+		Next
+		Return s & ")"
+	End Function
+
+	'An element of an array (a line without vrr under the line of the array): the array with this index (vrr().ix)
+	Function arr_element_select(hitem As HTREEITEM) As Integer
+		Dim tvi As TVITEM
+		tvi.mask = TVIF_PARAM: tvi.hItem = hitem
+		TreeView_GetItem(tviewvar, @tvi)
+		If tvi.lParam <> 0 Then Return -1
+		Dim As HTREEITEM hParent = TreeView_GetParent(tviewvar, hitem), h
+		If hParent = 0 Then Return -1
+		tvi.hItem = hParent
+		TreeView_GetItem(tviewvar, @tvi)
+		Dim As Integer i = tvi.lParam, adr, lb(4), ub(4), idx(4), nbdim, udtlg, typ, pt, fxlen, e
+		If arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen) <= 0 Then Return -1
+		h = TreeView_GetChild(tviewvar, hParent)
+		While h <> 0 AndAlso h <> hitem
+			e += 1
+			h = TreeView_GetNextSibling(tviewvar, h)
+		Wend
+		If h = 0 OrElse e >= ARRSHOWMAX Then Return -1
+		Dim As String sIndex = arr_index_text(e, lb(), ub(), nbdim, idx())
+		For k As Integer = 0 To nbdim
+			vrr(i).ix(k) = idx(k)
+		Next
+		var_sh1(i) 'the address of the element (vrr(i).ad)
+		var_fill(i)
+		varfind.nm &= sIndex
+		Return i
+	End Function
+#endif
+
 Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 	Dim hitem As Any Ptr, idx As Integer
 	If tv=tviewvar Then
@@ -6902,6 +7204,11 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 				Return i
 			End If
 		Next
+		#ifdef __USE_WINAPI__
+			'An element of an array
+			idx = arr_element_select(Cast(HTREEITEM, hitem))
+			If idx > 0 Then Return idx
+		#endif
 		ThreadsEnter: MsgBox(ML("Variable selection error2: Select only a variable")): ThreadsLeave
 		Return -1
 	ElseIf tv=tviewwch Then
@@ -6944,11 +7251,6 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 End Function
 
 #ifdef __USE_WINAPI__
-	Dim Shared frm As Form, txt As TextBox
-	frm.SetBounds 2,2,400,260
-	txt.Align = DockStyle.alClient
-	frm.Add @txt
-	
 	Sub string_sh(tv As Any Ptr)
 		Static As Byte wrapflag,buf(32004)
 		If var_find2(tv)=-1 Then Exit Sub 'search index variable under cursor
@@ -6958,14 +7260,15 @@ End Function
 			Exit Sub
 		End If
 		stringadr=varfind.ad
+		frmShowString.Text = ML("Show String") & ": " & varfind.nm
 		If varfind.pt Then
-			ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,SizeOf(Integer),0) 'string ptr 27/07/2015 64bit
-			If varfind.pt=2 Then ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,SizeOf(Integer),0) 'if two levels
+			ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,TSZ,0) 'string ptr 27/07/2015 64bit
+			If varfind.pt=2 Then ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,TSZ,0) 'if two levels
 		End If
 		Dim f As Integer,inc As Integer=32000,wstrg As WString *32001,bufw As UShort
 		If varfind.ty <> 18 Then
 			If varfind.ty=13 Then 'string
-				ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,SizeOf(Integer),0)'string address
+				ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@stringadr,TSZ,0)'string address
 			End If
 			
 			
@@ -6981,8 +7284,8 @@ End Function
 			ReadProcessMemory(dbghand,Cast(LPCVOID,stringadr),@buf(0),f-stringadr,0)
 			buf(f-stringadr+1)=0 'end of string if length >32000
 			
-			frm.Show *pfrmMain
-			SetWindowTextA(txt.Handle,@buf(0))
+			frmShowString.Show *pfrmMain
+			SetWindowTextA(txtShowString.Handle,@buf(0))
 			'txt.Text = *Cast(String Ptr, @buf(0))
 			'If helpbx=0 Then helptyp=4:fb_Dialog(@help_box,"String : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,260)
 		Else
@@ -6995,8 +7298,8 @@ End Function
 				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr + inc * 2), @bufw, WSTRSIZE, 0)
 			Wend
 			wstrg[inc]=0 'end of wstring
-			txt.Text = wstrg
-			frm.Show *pfrmMain
+			txtShowString.Text = wstrg
+			frmShowString.Show *pfrmMain
 			'SendMessage (hedit1,WM_SETFONT,Cast(WPARAM,fonthdl),0)
 			'setwindowtextw(hedit1,wstrg)
 			'If helpbx=0 Then helptyp=5:fb_Dialog(@help_box,"WString (ushort) : "+varfind.nm+"       (To change value use dump)" ,windmain,2,2,400,250)
@@ -7012,13 +7315,13 @@ End Function
 		End If
 		stringadr = varfind.ad
 		If varfind.pt Then
-			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'string ptr 27/07/2015 64bit
-			If varfind.pt = 2 Then ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'if two levels
+			ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, TSZ, 0) 'string ptr 27/07/2015 64bit
+			If varfind.pt = 2 Then ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, TSZ, 0) 'if two levels
 		End If
 		Dim f As Integer, inc As Integer = 32000, wstrg As WString * 32001, bufw As UShort
 		If varfind.ty <> 6 Then
 			If varfind.ty = 13 Then 'string Then
-				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, SizeOf(Integer), 0) 'string address
+				ReadProcessMemory(dbghand, Cast(LPCVOID, stringadr), @stringadr, TSZ, 0) 'string address
 			End If
 			
 			f = stringadr
@@ -7128,6 +7431,43 @@ End Function
 	End Sub
 #endif
 
+'' The return value of a running proc for Show/Expand Variable (its node in the tree of Locals): "Type>=value",
+'' "" when it is not a function (the address like shwexp_new)
+Function proc_return_label(hItem As Any Ptr) As String
+	Dim As Integer temp, typ, pt, rvadr
+	Dim As UInteger addr
+	For i As Integer = 1 To procrnb
+		If procr(i).tv = hItem Then
+			temp = procr(i).idx
+			addr = procr(i).sk
+			rvadr = proc(procr(i).idx).rvadr
+			Exit For
+		End If
+	Next
+	If temp = 0 Then Return ""
+	typ = proc(temp).rv
+	pt = proc(temp).pt
+	If typ = 7 AndAlso pt = 0 Then Return "" 'a sub
+	If rvadr <> 0 Then 'gcc/dwarf
+		If typ = 13 Then pt -= 1
+		If typ > TYPESTD Then addr += 8 Else addr += rvadr
+	Else 'gas or gcc/stabs
+		If pt Then
+			addr -= 4
+		ElseIf typ = 13 Then
+			addr -= 12
+		ElseIf typ > TYPESTD Then
+			addr += 8
+			pt = 1
+		ElseIf udt(typ).lg > 4 Then
+			addr -= 8
+		Else
+			addr -= 4
+		End If
+	End If
+	Return var_sh2(typ, addr, pt)
+End Function
+
 Private Function enum_find(t As Integer,v As Integer) As String
 	'find the text associated with an enum value
 	For i As Integer =udt(t).lb To udt(t).ub
@@ -7171,13 +7511,14 @@ Private Function var_sh2(t As Integer, pany As UInteger, p As UByte = 0, sOffset
 			varlib=String(p,Str("*"))+" "+udt(t).nm+">"
 		End If
 		
-		If flagverbose Then varlib += "[sz " + Str(SizeOf(Integer)) + " / " + sOffset + Str(pany) + "]" '25/07/2015
+		If flagverbose Then varlib += "[sz " + Str(TSZ) + " / " + sOffset + Str(pany) + "]" '25/07/2015
 		If pany Then
-			ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0) '25/07/2015
+			ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),TSZ,0) '25/07/2015
+			Dim As ULongInt uptr = IIf(T64, *Ptrs.puLongint, CULngInt(*Ptrs.puinteger))
 			If p>200 Then
-				varlib+="="+proc_name(*Ptrs.puinteger) 'proc name
+				varlib+="="+proc_name(uptr) 'proc name
 			Else
-				varlib += "=" + Str(*Ptrs.puinteger) 'just the value
+				varlib += "=" + Str(uptr) 'just the value
 			End If
 		Else
 			varlib+=" No valid value"
@@ -7211,7 +7552,7 @@ Private Function var_sh2(t As Integer, pany As UInteger, p As UByte = 0, sOffset
 					varlib+=Str(*Ptrs.pubyte)
 				Case 4,13,14 'stringSSSS
 					If t=13 Then  ' normal string
-						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@adr,SizeOf(Integer),0) 'address ptr 25/07/2015
+						ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@adr,TSZ,0) 'address ptr 25/07/2015
 					Else
 						adr=pany
 					End If
@@ -7223,8 +7564,13 @@ Private Function var_sh2(t As Integer, pany As UInteger, p As UByte = 0, sOffset
 						End If
 					End If
 					varlib+=*Ptrs.pzstring
-				Case 18
-					varlib += " Use show z/w/string option"
+				Case 18 'wstring: its first 70 characters like the strings (all of them with Show String)
+					Dim As WString * 71 wtext
+					Clear wtext, 0, SizeOf(wtext)
+					ReadProcessMemory(dbghand, Cast(LPCVOID, pany), @wtext, 70 * SizeOf(WString), 0)
+					'WString * N (a ByRef WString parameter has the length 1)
+					If fxlen > 1 AndAlso fxlen < 70 Then wtext[fxlen] = 0
+					varlib += wtext
 				Case 5 'short
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
 					varlib+=Str(*Ptrs.pshort)
@@ -7232,7 +7578,7 @@ Private Function var_sh2(t As Integer, pany As UInteger, p As UByte = 0, sOffset
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),2,0)
 					varlib += Str(*Ptrs.pushort)
 				Case 7 'void  '25/07/2015
-					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),SizeOf(Integer),0)
+					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),TSZ,0)
 					varlib+=Str(*Ptrs.pvoid)
 				Case 8 'uinteger/ulong
 					ReadProcessMemory(dbghand,Cast(LPCVOID,pany),@recup(0),4,0)
@@ -7924,8 +8270,11 @@ Sub brk_apply
 								brkol(brknumber).index=k
 								brkol(brknumber).ad   =rline(k).ad
 								brkol(brknumber).typ  =1
-								'brkol(brknb).cntrsav=cntr
-								'brkol(brknb).counter=cntr
+								'Breakpoint Hit Count: the passes before the N-th one
+								brkol(brknumber).cntrsav = 0
+								If brknumber > 0 AndAlso Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[s])->BreakpointCount > 1 Then brkol(brknumber).cntrsav = Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[s])->BreakpointCount - 1
+								brkol(brknumber).counter = brkol(brknumber).cntrsav
+								If brknumber > 0 Then brkcond(brknumber) = Trim(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[s])->BreakpointCondition) Else brkcond(0) = ""
 								'brk_color(brknb)
 								f = True 'flag for managing breakpoint
 								Exit For
@@ -8290,7 +8639,7 @@ End Sub
 			vrmem=1 'local
 			If InStr(dwln,"OP_fbreg") Then 'ESP/RSP ?
 				'OLD 32 BIT Version -->>>>    vradr=8 'by default ebp=esp+8
-				vradr=2*SizeOf(Integer) 'by default ebp=esp+8 or rbp=rsp+16 ?????
+				vradr=2*TSZ 'by default ebp=esp+8 or rbp=rsp+16 ?????
 			ElseIf InStr(dwln,"OP_breg5") Then 'EBP/RBP
 				vradr=0 'local direct adr
 			Else
@@ -8410,7 +8759,7 @@ End Sub
 		vrb(vrbloc).typ=ValInt("&h"+Mid(dwln,InStr(dwln,":")+5))
 		Line Input #dwff, dwln
 		'vrb(vrbloc).adr=ValInt(Mid(dwln,InStr(InStr(dwln,"DW_OP_"),dwln,":")+2))+8'by default ebp=esp+8
-		vrb(vrbloc).adr=ValInt(Mid(dwln,InStr(InStr(dwln,"DW_OP_"),dwln,":")+2))+2*SizeOf(Integer)'by default ebp=esp+8 or rbp=rsp+16 ?????
+		vrb(vrbloc).adr=ValInt(Mid(dwln,InStr(InStr(dwln,"DW_OP_"),dwln,":")+2))+2*TSZ'by default ebp=esp+8 or rbp=rsp+16 ?????
 		If Left(vrb(vrbloc).nm,4)="tmp$" Then vrbloc-=1:Exit Sub 'not removed before cause could be used for var array
 		vrb(vrbloc).mem=5 'by default param byval see load_debug for change value
 	End Sub
@@ -8473,12 +8822,13 @@ End Sub
 			End If
 			
 			sourceidx=-1
+			Dim As String sPath = fullname
 			fullname=LCase(fullname)'warning for linux sensitive cas
 			For i As Integer=0 To sourcenb
 				If EqualPaths(source(i), fullname) Then sourceidx=i:Exit For
 			Next
 			If sourceidx=-1 Then
-				sourcenb+=1:source(sourcenb)=fullname:srccomp(sourcenb)=2 '2=gencc+dwarf
+				sourcenb+=1:source(sourcenb)=fullname:srcpath(sourcenb)=real_path_case(sPath):srccomp(sourcenb)=2 '2=gencc+dwarf
 				sourceidx=sourcenb
 				#ifdef dbg_prt2
 					dbg_prt2("fullname "+Str(sourcenb)+" "+fullname) '23/07/2015
@@ -9127,32 +9477,25 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 	ReadProcessMemory(dbghand,Cast(LPCVOID,exebase+&h3C),@pe,4,0)
 	pe+=exebase+6 'adr nb section
 	ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@secnb,2,0)
-	#ifdef __FB_64BIT__ '22/07/2015
+	If T64 Then '22/07/2015
 		pe+=42
-	#else
+	Else
 		pe+= 46 'adr compiled baseimage
-	#endif
-	ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@baseimg,SizeOf(Integer),0) '22/07/2015
-	#ifdef __FB_64BIT__ '22/07/2015
+	End If
+	baseimg = 0
+	ReadProcessMemory(dbghand,Cast(LPCVOID,pe),@baseimg,TSZ,0) '22/07/2015
+	If T64 Then '22/07/2015
 		pe+=&hD8
-	#else
+	Else
 		pe+=&hC4 'adr sections
-	#endif
+	End If
 	For i As UShort =1 To secnb
 		Dim As UInteger basedata,sizedata
 		secnm = String(9, 0) 'Init var
 		ReadProcessMemory(dbghand, Cast(LPCVOID, pe), @secnm, 8, 0) 'read 8 bytes max name size
-		#ifdef __FB_64BIT__
-			If secnm = ".dbgdat" Then
-		#else
-			If secnm = ".stab" Then
-		#endif
+		If secnm = IIf(T64, ".dbgdat", ".stab") Then
 			ReadProcessMemory(dbghand,Cast(LPCVOID,pe+12),@basestab,4,0)
-			#ifdef __FB_64BIT__
-			ElseIf secnm = ".dbgstr" Then
-			#else
-			ElseIf secnm = ".stabstr" Then
-			#endif
+		ElseIf secnm = IIf(T64, ".dbgstr", ".stabstr") Then
 			ReadProcessMemory(dbghand,Cast(LPCVOID,pe+12),@basestabs,4,0)
 			ReadProcessMemory(dbghand,Cast(LPCVOID,pe+8),@sizestabs,4,0)
 			'ElseIf secnm=".data" AndAlso flagdll=NODLL Then 'compinfo
@@ -9183,7 +9526,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 			Return -1
 		End If
 	Else
-		#ifndef __FB_64BIT__
+		If Not T64 Then
 			If flagdll=NODLL Then
 				If baseimg<>&h400000 Then
 					baseimg-=&h400000 ''with new version of gcc the base image is changed
@@ -9197,16 +9540,18 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					baseimg=0
 				End If
 			End If
-		#else
+		Else
 			baseimg=0
-		#endif
-		basestab += exebase + SizeOf(udtstab) ''12 for 32bit / 16 for 64bit could be greater if udtstab is changed
+		End If
+		Dim As Integer stabsz = IIf(T64, 16, 12) 'a stab: 12 bytes for 32bit / 16 for 64bit
+		basestab += exebase + stabsz
 		basestabs += exebase
 		#ifdef __FB_WIN32__
 			gengcc = 0 'by default
 		#endif
 		While 1
-			If ReadProcessMemory(dbghand, Cast(LPCVOID, basestab), @recupstab, SizeOf(udtstab), 0) = 0 Then
+			recupstab.ad = 0
+			If ReadProcessMemory(dbghand, Cast(LPCVOID, basestab), @recupstab, stabsz, 0) = 0 Then
 				#ifdef fulldbg_prt
 					#ifdef __FB_WIN32__
 						dbg_prt ("error reading memory " + GetErrorString(GetLastError))
@@ -9280,7 +9625,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 						'dbg_prt2 "Unknow stab cod=";recupstab.code
 					End Select
 					'=========================================
-					basestab += SizeOf(udtstab)
+					basestab += stabsz
 				'#else
 				'	Select Case recupstab.code
 				'	Case 36 'proc
@@ -9642,6 +9987,7 @@ End Sub
 
 #ifdef __FB_WIN32__
 	Sub thread_rsm()
+		DbgViewIntegratedStopped False 'the tree views change while the program runs (DebugView.bas)
 		WriteProcessMemory(dbghand,Cast(LPVOID,rline(thread(threadcur).sv).ad),@rline(thread(threadcur).sv).sv,1,0) 'restore old value for execution
 		ResumeThread(threadhs)
 	End Sub
@@ -9672,6 +10018,7 @@ End Sub
 '' restore instruction and resume thread
 '===========================================
 Private Sub thread_resume(thd As Integer=-1)
+	DbgViewIntegratedStopped False 'the tree views change while the program runs (DebugView.bas)
 	Dim As Integer thdbeg=0,thdend=threadnb
 	#ifdef __FB_WIN32__
 		''todo move to dbg_windows.bas
@@ -10018,8 +10365,502 @@ Private Sub brkv_set(a As Integer) 'breakon variable
 	brkv2.txt = Left(ztxt, InStr(ztxt, "<")) + var_sh2(brkv2.typ, brkv2.adr, p)
 	
 	'fb_MDialog(@brkv_box,"Test for break on value",windmain,283,25,350,50)
-	
+
 End Sub
+
+#ifdef __FB_WIN32__
+	'==================== Break on Variable of the IDE ====================
+	'The program runs with CC on every line (like fbdebugger), on each line the variable is tested (brk_test in wait_debug):
+	'it stops when the variable changes (brkvChange) or when its value meets the condition (brkv.ttb, brkv.Val)
+	Dim Shared As Boolean brkvChange    'stop on every change of the value
+	Dim Shared As Boolean brkvLastTrue  'the test was true on the previous line: it stops only when it becomes true
+	Dim Shared As Boolean brkvScopeEnded 'the procedure of the local variable has ended
+	Dim Shared As Integer brkvShowTyp, brkvShowPt, brkvThreadId
+	Dim Shared As String brkvName
+
+	'The value of the variable (the text after "=" of var_sh2)
+	Function brkv_value(adr As Integer) As String
+		Dim As String s = var_sh2(brkvShowTyp, adr, brkvShowPt)
+		Dim As Integer p = InStr(s, "=")
+		If p Then Return Mid(s, p + 1) Else Return s
+	End Function
+
+	'==================== Breakpoint Condition of the Integrated IDE Debugger ====================
+	'"NAME op VALUE" or "NAME op NAME" (=, <>, >, <, >=, <=), several of them with AndAlso, OrElse (from the left).
+	'The names: the variables of the procedure of the breakpoint (its frame: RBP/EBP) and the global ones
+
+	'The address and the type (of brk_test) of the variable sName in the procedure px with the frame rbp
+	Function brk_cond_var(ByRef sName As String, px As Integer, rbp As Integer, ByRef adr As Integer, ByRef t As Integer) As Boolean
+		Dim As String sU = UCase(Trim(sName))
+		Dim As Integer iv = -1
+		If px > 0 AndAlso px <= procnb Then
+			For i As Integer = proc(px).vr To proc(px + 1).vr - 1
+				If UCase(vrb(i).nm) = sU AndAlso vrb(i).arr = 0 Then iv = i: Exit For
+			Next
+		End If
+		If iv = -1 Then
+			For i As Integer = 1 To vrbgbl
+				If UCase(vrb(i).nm) = sU AndAlso vrb(i).arr = 0 Then iv = i: Exit For
+			Next
+		End If
+		If iv = -1 Then Return False
+		With vrb(iv)
+			Select Case .mem
+			Case 2, 3, 6: adr = .adr
+			Case 4: ReadProcessMemory(dbghand, Cast(LPCVOID, .adr + rbp), @adr, TSZ, 0)
+			Case Else: adr = .adr + rbp
+			End Select
+			t = .typ
+			If .pt Then
+				#ifdef __FB_64BIT__
+					t = 10
+				#else
+					t = 8
+				#endif
+			ElseIf t = 16 Then
+				t = 3
+			ElseIf t > TYPESTD AndAlso udt(t).en Then
+				t = 1
+			End If
+		End With
+		Select Case t
+		Case 1, 2, 3, 5, 6, 8, 9, 10, 11, 12: Return True
+		End Select
+		Return False
+	End Function
+
+	'One comparison "A op B"
+	Function brk_cond_one(ByRef sPart As String, px As Integer, rbp As Integer, ByRef bOk As Boolean) As Boolean
+		Dim As String ops(5) = {">=", "<=", "<>", "=", ">", "<"}
+		Dim As Byte ttbs(5) = {2, 1, 16, 32, 8, 4}
+		Dim As Integer p, k
+		For k = 0 To 5
+			p = InStr(sPart, ops(k))
+			If p Then Exit For
+		Next
+		If p = 0 Then bOk = False: Return True
+		Dim As String sA = Trim(Left(sPart, p - 1)), sB = Trim(Mid(sPart, p + Len(ops(k))))
+		Dim As Integer adr1, t1, adr2, t2
+		If Not brk_cond_var(sA, px, rbp, adr1, t1) Then bOk = False: Return True
+		Dim As valeurs v
+		If brk_cond_var(sB, px, rbp, adr2, t2) Then
+			If t2 <> t1 Then
+				'Different types: the value of B as a number of the type of A
+				Dim As valeurs v2
+				ReadProcessMemory(dbghand, Cast(LPCVOID, adr2), @v2, 8, 0)
+				Dim As Double d
+				Select Case t2
+				Case 2: d = v2.vbyte
+				Case 3: d = v2.vubyte
+				Case 5: d = v2.vshort
+				Case 6: d = v2.vushort
+				Case 1: d = *Cast(Long Ptr, @v2)
+				Case 8: d = *Cast(ULong Ptr, @v2)
+				Case 9: d = v2.vlongint
+				Case 10: d = v2.vulongint
+				Case 11: d = v2.vsingle
+				Case 12: d = v2.vdouble
+				End Select
+				sB = Str(d)
+				adr2 = 0
+			End If
+		Else
+			adr2 = 0
+		End If
+		If adr2 = 0 Then
+			Select Case t1
+			Case 11: v.vsingle = Val(sB)
+			Case 12: v.vdouble = Val(sB)
+			Case 3, 6, 8, 10
+				If UCase(sB) = "TRUE" Then
+					v.vulongint = 1
+				ElseIf UCase(sB) = "FALSE" Then
+					v.vulongint = 0
+				Else
+					v.vulongint = ValULng(sB)
+				End If
+			Case Else: v.vlongint = ValLng(sB)
+			End Select
+		End If
+		bOk = True
+		Return brk_test(adr1, adr2, t1, v, ttbs(k)) <> 0
+	End Function
+
+	'The condition of the breakpoint ibrk in the thread tid: True - it stops (also when it is not understood)
+	Function brk_cond_test(ibrk As Integer, tid As Integer) As Boolean
+		Dim As Integer rbp
+		For i As Integer = 0 To threadnb
+			If thread(i).id = tid Then
+				Dim As Integer dummy 'used to align vcontext
+				Dim vcontext As DBGCONTEXT
+				vcontext.ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
+				DbgGetThreadContext(thread(i).hd, @vcontext)
+				rbp = vcontext.regbp
+				Exit For
+			End If
+		Next
+		Dim As Integer px = rline(brkol(ibrk).index).px
+		Dim As String s = brkcond(ibrk), sU, sPart, sOp
+		Dim As Boolean bResult, bFirst = True, bOk
+		Do
+			'The next part before AndAlso / OrElse
+			sU = UCase(s)
+			Dim As Integer pA = InStr(sU, " ANDALSO "), pO = InStr(sU, " ORELSE "), pN, lA = 9, lO = 8, lN
+			If pA = 0 Then pA = InStr(sU, " AND "): lA = 5
+			If pO = 0 Then pO = InStr(sU, " OR "): lO = 4
+			If pA > 0 AndAlso (pO = 0 OrElse pA < pO) Then pN = pA: lN = lA Else pN = pO: lN = lO
+			sPart = IIf(pN, Left(s, pN - 1), s)
+			Dim As Boolean b = brk_cond_one(sPart, px, rbp, bOk)
+			If Not bOk Then Return True
+			If bFirst Then
+				bResult = b
+			ElseIf sOp = "AND" Then
+				bResult = bResult AndAlso b
+			Else
+				bResult = bResult OrElse b
+			End If
+			bFirst = False
+			If pN = 0 Then Exit Do
+			sOp = IIf(pN = pA, "AND", "OR")
+			s = Mid(s, pN + lN)
+		Loop
+		Return bResult
+	End Function
+
+	'The hardware watch (DR0, DR7 of every thread): the processor stops after a write to the address (EXCEPTION_SINGLE_STEP
+	'with the bit 0 of DR6), the program runs at its full speed. Without it (an address not aligned to the size, 8 bytes in
+	'32-bit) every line is tested (CC on every line, slow)
+	Dim Shared As Boolean brkvHw       'the hardware watch is used
+	Dim Shared As Boolean brkvHwPending 'the value has changed: the program stops at the next line (CC on every line)
+	Dim Shared As Integer brkvHwSize
+
+	Sub brkv_hw_thread(hThread As HANDLE, bOn As Boolean, bSuspend As Boolean)
+		If hThread = 0 Then Exit Sub
+		Dim As Integer dummy 'used to align vcontext
+		Dim vcontext As DBGCONTEXT
+		vcontext.ContextFlags = CONTEXT_DEBUG_REGISTERS
+		If bSuspend Then SuspendThread(hThread)
+		DbgGetThreadContext(hThread, @vcontext)
+		vcontext.Dr7 And= Not Cast(Integer, &hF0003) 'L0, G0, RW0, LEN0
+		vcontext.Dr6 = 0
+		If bOn Then
+			'LEN: 00 - 1 byte, 01 - 2, 11 - 4, 10 - 8; RW: 01 - write
+			Dim As Integer iLen = IIf(brkvHwSize = 1, 0, IIf(brkvHwSize = 2, 1, IIf(brkvHwSize = 4, 3, 2)))
+			vcontext.Dr0 = brkv.adr1
+			vcontext.Dr7 Or= 1 Or (1 Shl 16) Or (iLen Shl 18)
+		Else
+			vcontext.Dr0 = 0
+		End If
+		DbgSetThreadContext(hThread, @vcontext)
+		If bSuspend Then ResumeThread(hThread)
+	End Sub
+
+	Sub brkv_hw_all(bOn As Boolean)
+		For i As Integer = 0 To threadnb
+			brkv_hw_thread(thread(i).hd, bOn, True)
+		Next
+	End Sub
+
+	'The size of the value: the hardware watch if the address is aligned to it (1, 2, 4 bytes, 8 in 64-bit)
+	Sub brkv_hw_choose(sz As Integer)
+		If brkvHw Then brkv_hw_all(False)
+		brkvHw = False
+		brkvHwPending = False
+		brkvHwSize = sz
+		If sz <> 1 AndAlso sz <> 2 AndAlso sz <> 4 AndAlso (sz <> 8 OrElse CInt(Not T64)) Then Exit Sub
+		If (brkv.adr1 Mod sz) <> 0 Then Exit Sub
+		brkvHw = True
+		brkv_hw_all(True)
+	End Sub
+
+	'The size in bytes of the type t of brk_test
+	Function brkv_type_size(t As Integer) As Integer
+		Select Case t
+		Case 2, 3: Return 1
+		Case 5, 6: Return 2
+		Case 1, 8, 11: Return 4
+		Case 9, 10, 12: Return 8
+		End Select
+		Return 0
+	End Function
+
+	'mode: 0 cancels, 1 stops when the variable changes, 2 stops when its value meets a condition (asked)
+	'tv: tviewvar (Locals, Globals) or tviewwch (Watches)
+	Sub brkv_set_ide(tv As Any Ptr, mode As Integer)
+		If mode = 0 Then
+			If brkv.adr1 = 0 Then
+				ShowMessages ML("Break on Variable") & ": " & ML("is not set")
+			Else
+				ShowMessages ML("Break on Variable") & ": " & brkv.txt & " - " & ML("cancelled")
+			End If
+			If brkvHw Then brkv_hw_all(False)
+			brkvHw = False: brkvHwPending = False
+			brkv.adr1 = 0: brkv.adr2 = 0: brkv.ivr1 = 0
+			Exit Sub
+		End If
+		If var_find2(tv) = -1 Then Exit Sub
+		If varfind.ad = 0 Then MsgBox ML("Break on Variable") & ": " & ML("The variable has no address"): Exit Sub
+		Dim As Integer t = varfind.ty
+		If varfind.pt Then
+			#ifdef __FB_64BIT__
+				t = 10 'pointer: UInteger (ULongInt)
+			#else
+				t = 8
+			#endif
+		ElseIf t = 16 Then
+			t = 3 'boolean: one byte
+		ElseIf t > TYPESTD AndAlso udt(t).en Then
+			t = 1 'enum: Long
+		End If
+		Select Case t
+		Case 1, 2, 3, 5, 6, 8, 9, 10, 11, 12
+		Case Else
+			MsgBox ML("Break on Variable") & ": " & ML("Only numeric variables, Boolean, Enum and pointers") & " (" & varfind.nm & " <" & udt(varfind.ty).nm & ">)"
+			Exit Sub
+		End Select
+		brkvShowTyp = varfind.ty: brkvShowPt = varfind.pt
+		Dim As String sCur = brkv_value(varfind.ad), sOp = "<>", sVal
+		Dim As Byte ttb = 16
+		Dim As valeurs v
+		If mode = 1 Then
+			ReadProcessMemory(dbghand, Cast(LPCVOID, varfind.ad), @v, 8, 0)
+			sVal = sCur
+		Else
+			Dim As UString sInput
+			If Not DbgInputBox(ML("Break on Variable"), varfind.nm & " = " & sCur & WChr(10) & ML("Stop when the value becomes") & " (=, <>, >, <, >=, <= " & ML("and the value") & "):", "= " & sCur, sInput) Then Exit Sub
+			Dim As String s = Trim(sInput)
+			If s = "" Then Exit Sub
+			Dim As String ops(5) = {">=", "<=", "<>", "=", ">", "<"}
+			Dim As Byte ttbs(5) = {2, 1, 16, 32, 8, 4}
+			sOp = "=": ttb = 32
+			For k As Integer = 0 To 5
+				If Left(s, Len(ops(k))) = ops(k) Then sOp = ops(k): ttb = ttbs(k): s = Trim(Mid(s, Len(ops(k)) + 1)): Exit For
+			Next
+			sVal = s
+			Select Case t
+			Case 11: v.vsingle = Val(s)
+			Case 12: v.vdouble = Val(s)
+			Case 3, 6, 8, 10
+				If UCase(s) = "TRUE" Then
+					v.vulongint = 1
+				ElseIf UCase(s) = "FALSE" Then
+					v.vulongint = 0
+				Else
+					v.vulongint = ValULng(s)
+				End If
+			Case Else: v.vlongint = ValLng(s)
+			End Select
+		End If
+		brkv.typ = t
+		brkv.adr1 = varfind.ad
+		brkv.adr2 = 0
+		brkv.ivr1 = 1 'not memory: CSVAR
+		brkv.Val = v
+		brkv.ttb = ttb
+		brkv.vst = sCur
+		brkvChange = (mode = 1)
+		brkvName = varfind.nm
+		brkvScopeEnded = False
+		brkvThreadId = thread(threadcur).id
+		If brkvChange Then brkv.txt = varfind.nm & " " & ML("changes") Else brkv.txt = varfind.nm & " " & sOp & " " & sVal
+		'A local variable (or parameter): the stack of its procedure, to know when it has ended
+		brkv.psk = 0
+		If varfind.iv > 0 AndAlso varfind.iv <= vrrnb Then
+			Dim As Integer master = varfind.iv
+			If vrr(master).vr < 0 Then master = var_parent(vrr(master).tv)
+			If master > 0 AndAlso vrr(master).vr > 0 Then
+				Select Case vrb(vrr(master).vr).mem
+				Case 1, 4, 5
+					For j As Integer = procrnb To 1 Step -1
+						If master >= procr(j).vr Then brkv.psk = procr(j).sk: Exit For
+					Next
+				End Select
+			End If
+		End If
+		brkvLastTrue = brk_test(brkv.adr1, brkv.adr2, brkv.typ, brkv.Val, brkv.ttb) <> 0
+		brkv_hw_choose(brkv_type_size(t))
+		ShowMessages ML("Break on Variable") & ": " & brkv.txt & " (" & varfind.nm & " = " & sCur & ") - " & IIf(brkvHw, ML("hardware watch, the program runs at its full speed"), ML("Continue (F5) runs with a test on every line"))
+	End Sub
+
+	'Break on Memory Address: the value of Size bytes (1, 2, 4, 8) at the address changes. Address As Integer, mode 1 - change
+	Sub brkv_set_memory(Address As Integer, Size As Integer)
+		Dim As Integer t = IIf(Size = 1, 3, IIf(Size = 2, 6, IIf(Size = 4, 8, 10)))
+		Dim As valeurs v
+		If ReadProcessMemory(dbghand, Cast(LPCVOID, Address), @v, Size, 0) = 0 Then ShowMessages ML("Break on Memory Address") & ": " & ML("The memory is not read") & " (&H" & Hex(Address) & ")": Exit Sub
+		brkvShowTyp = t: brkvShowPt = 0
+		brkv.typ = t
+		brkv.adr1 = Address
+		brkv.adr2 = 0
+		brkv.ivr1 = 0 'memory: CSMEM
+		brkv.Val = v
+		brkv.ttb = 16
+		brkv.vst = brkv_value(Address)
+		brkv.psk = 0
+		brkvChange = True
+		brkvName = "&H" & Hex(Address) & " (" & Size & " " & ML("bytes") & ")"
+		brkv.txt = brkvName & " " & ML("changes")
+		brkvScopeEnded = False
+		brkvLastTrue = False
+		brkvThreadId = thread(threadcur).id
+		brkv_hw_choose(Size)
+		ShowMessages ML("Break on Memory Address") & ": " & brkv.txt & " (" & brkv.vst & ") - " & IIf(brkvHw, ML("hardware watch, the program runs at its full speed"), ML("Continue (F5) runs with a test on every line"))
+	End Sub
+
+	'The local variable of the Break on Variable: its procedure has ended (the stack is above its frame)
+	Function brkv_out_of_scope(tid As Integer) As Boolean
+		If brkv.psk <= 0 OrElse tid <> brkvThreadId Then Return False
+		For i As Integer = 0 To threadnb
+			If thread(i).id = tid Then
+				Dim As Integer dummy 'used to align vcontext
+				Dim vcontext As DBGCONTEXT
+				vcontext.ContextFlags = CONTEXT_CONTROL
+				DbgGetThreadContext(thread(i).hd, @vcontext)
+				Return vcontext.regsp > brkv.psk
+			End If
+		Next
+		Return False
+	End Function
+
+	'The stop of the Break on Variable (debug_event, after gest_brk)
+	Sub brkv_stopped()
+		If brkv.adr1 = 0 Then Exit Sub
+		If brkvScopeEnded Then
+			ShowMessages ML("Break on Variable") & ": " & brkv.txt & " - " & ML("the procedure of the variable has ended, cancelled")
+			If brkvHw Then brkv_hw_all(False)
+			brkvHw = False
+			brkv.adr1 = 0: brkv.ivr1 = 0: brkvScopeEnded = False
+			Exit Sub
+		End If
+		Dim As String sNew = brkv_value(brkv.adr1)
+		If brkvChange Then
+			ShowMessages ML("Break on Variable") & ": " & brkvName & " " & ML("changed") & ": " & brkv.vst & " -> " & sNew
+			'The next stop: the next change
+			ReadProcessMemory(dbghand, Cast(LPCVOID, brkv.adr1), @brkv.Val, 8, 0)
+			brkvLastTrue = False
+		Else
+			ShowMessages ML("Break on Variable") & ": " & brkv.txt & " (" & brkvName & " = " & sNew & ")"
+		End If
+		brkv.vst = sNew
+	End Sub
+
+	#ifdef __USE_WINAPI__
+		'Track Array Index off (like array_tracking_remove)
+		Sub arr_track_off()
+			If trckarr(0).idx <> 0 Then vrr(trckarr(0).idx).arrid = 0: trckarr(0).idx = 0
+			For i As Long = 0 To 4
+				trckarr(i).memadr = 0
+			Next
+		End Sub
+		
+		'The array of the selected line of Locals, Globals (its index vrr().ix is shown with its fields): 0 - not an array
+		Function arr_selected() As Integer
+			Dim As HTREEITEM hItem = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_CARET, 0))
+			If hItem = 0 Then Return 0
+			Dim tvi As TVITEM
+			tvi.mask = TVIF_PARAM: tvi.hItem = hItem
+			TreeView_GetItem(tviewvar, @tvi)
+			If tvi.lParam = 0 Then
+				'An element: its array
+				tvi.hItem = TreeView_GetParent(tviewvar, hItem)
+				If tvi.hItem = 0 Then Return 0
+				TreeView_GetItem(tviewvar, @tvi)
+			End If
+			Dim As Integer i = tvi.lParam, adr, lb(4), ub(4), nbdim, udtlg, typ, pt, fxlen
+			If i <= 0 OrElse i > vrrnb Then Return 0
+			If arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen, True) <= 0 Then Return 0
+			Return i
+		End Function
+
+		'Change Array Index: the element of an array of structures shown with its fields (and its value)
+		Sub arr_index_change()
+			Dim As Integer i = arr_selected(), adr, lb(4), ub(4), nbdim, udtlg, typ, pt, fxlen
+			If i = 0 Then ShowMessages ML("Change Array Index") & ": " & ML("Select a sized array"): Exit Sub
+			arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen, True)
+			Dim As String sCur, sBounds
+			For k As Integer = 0 To nbdim
+				sCur &= IIf(k, ", ", "") & vrr(i).ix(k)
+				sBounds &= IIf(k, ", ", "") & lb(k) & " To " & ub(k)
+			Next
+			Dim As UString sNew = InputBox(ML("Change Array Index"), ML("Index") & " (" & sBounds & "):", sCur)
+			If sNew = "" Then Exit Sub
+			Dim As String s = Trim(sNew, Any "() "), sPart
+			For k As Integer = 0 To nbdim
+				Dim As Integer p = InStr(s, ",")
+				If p Then sPart = Left(s, p - 1): s = Mid(s, p + 1) Else sPart = s: s = ""
+				Dim As Integer v = ValInt(Trim(sPart))
+				If v < lb(k) Then v = lb(k)
+				If v > ub(k) Then v = ub(k)
+				vrr(i).ix(k) = v
+			Next
+			var_sh()
+			DbgViewInvalidate
+		End Sub
+
+		'Track Array Index: the index of the array follows the value of a variable (one variable for each dimension)
+		Sub arr_track()
+			Dim As Integer i = arr_selected(), adr, lb(4), ub(4), nbdim, udtlg, typ, pt, fxlen
+			If i = 0 Then ShowMessages ML("Track Array Index") & ": " & ML("Select a sized array"): Exit Sub
+			arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen, True)
+			Dim As UString sNew = InputBox(ML("Track Array Index"), ML("The variables of the index") & " (" & (nbdim + 1) & ", " & ML("separated with commas") & "):", "")
+			If sNew = "" Then Exit Sub
+			'The variables of the procedure where the program is stopped, then the global ones
+			Dim As Integer rbp, px = rline(thread(threadcur).sv).px
+			Dim As Integer dummy 'used to align vcontext
+			Dim vcontext As DBGCONTEXT
+			vcontext.ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
+			DbgGetThreadContext(thread(threadcur).hd, @vcontext)
+			rbp = vcontext.regbp
+			arr_track_off
+			Dim As String s = sNew
+			For k As Integer = 0 To nbdim
+				Dim As Integer p = InStr(s, ",")
+				Dim As String sName
+				If p Then sName = Trim(Left(s, p - 1)): s = Mid(s, p + 1) Else sName = Trim(s): s = ""
+				Dim As Integer vadr, vt
+				If sName = "" OrElse CBool(Not brk_cond_var(sName, px, rbp, vadr, vt)) Then
+					ShowMessages ML("Track Array Index") & ": " & ML("Variable not found") & ": " & sName
+					trckarr(0).idx = 0
+					Exit Sub
+				End If
+				trckarr(k).memadr = vadr
+				'The type for var_sh2 (brk_cond_var gives the type of brk_test)
+				trckarr(k).typ = vt
+			Next
+			trckarr(0).idx = i
+			vrr(i).arrid = 1
+			var_sh()
+			DbgViewInvalidate
+			ShowMessages ML("Track Array Index") & ": " & sNew
+		End Sub
+
+		Sub arr_track_stop()
+			If trckarr(0).idx = 0 Then ShowMessages ML("Track Array Index") & ": " & ML("is not set"): Exit Sub
+			arr_track_off
+			ShowMessages ML("Track Array Index") & ": " & ML("cancelled")
+		End Sub
+
+		'Call Chain of the Integrated IDE Debugger: the procedures of the stopped thread, the last one first.
+		'Lines: the line where each one is stopped (the current line, the line of the call of the next one)
+		Function call_chain(Names() As String, Files() As String, Lines() As Integer) As Integer
+			Dim As Integer n, frames(Any), nf
+			For i As Integer = 1 To procrnb
+				If procr(i).thid = thread(threadcur).id Then ReDim Preserve frames(nf): frames(nf) = i: nf += 1
+			Next
+			For k As Integer = nf - 1 To 0 Step -1
+				Dim As Integer rln = IIf(k = nf - 1, thread(threadcur).sv, procr(frames(k + 1)).cl)
+				ReDim Preserve Names(n), Files(n), Lines(n)
+				Names(n) = proc(procr(frames(k)).idx).nm
+				If rln > 0 AndAlso rln <= linenb Then
+					Files(n) = source(rline(rln).sx): Lines(n) = rline(rln).nu
+				Else
+					Files(n) = source(proc(procr(frames(k)).idx).sr): Lines(n) = proc(procr(frames(k)).idx).nu
+				End If
+				n += 1
+			Next
+			Return n
+		End Function
+	#endif
+#endif
 
 'Type ttrckarr
 '	typ    As UByte     ''type or lenght ???
@@ -10279,10 +11120,10 @@ Private Sub watch_array()
 		If wtch(k).psk=-1 OrElse wtch(k).psk=-3 OrElse wtch(k).psk=-4 Then Continue For
 		If wtch(k).arr Then 'watching dyn array element ?
 			adr=vrr(wtch(k).ivr).ini
-			ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,SizeOf(Integer),0) '25/07/2015
+			ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,TSZ,0) '25/07/2015
 			If adr<>wtch(k).arr Then wtch(k).adr+=wtch(k).arr-adr:wtch(k).arr=adr 'compute delta then add it if needed
-			temp2=vrr(wtch(k).ivr).ini+2*SizeOf(Integer) 'adr global size '25/07/2015
-			ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,SizeOf(Integer),0) '25/072015
+			temp2=vrr(wtch(k).ivr).ini+2*TSZ 'adr global size '25/07/2015
+			ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,TSZ,0) '25/072015
 			If wtch(k).adr>adr+temp3 Then 'out of limit ?
 				watch_del(k) ' then erase
 			End If
@@ -10368,13 +11209,13 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 	If arradr Then ''fixed lenght or dynamic array
 		If Cast(Integer, arradr)=-1 Then ''dynamic
 			If vrr(i).ini Then 'initialized so it's possible to get data, otherwise adr=0 only usefull for cudt array, var always true
-				adr=vrr(i).ini+SizeOf(Integer)  'ptr not data
-				ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,SizeOf(Integer),0)
+				adr=vrr(i).ini+TSZ  'ptr not data
+				ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,TSZ,0)
 			End If
 			If adr Then 'sized ?
 				text+="[ Dyn "
-				temp2=vrr(i).ini+4*SizeOf(Integer) ''adr nb dim
-				ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,SizeOf(Integer),0)
+				temp2=vrr(i).ini+4*TSZ ''adr nb dim
+				temp3 = rd_sint(temp2)
 				
 				temp3-=1
 				For k As Integer =0 To temp3
@@ -10387,8 +11228,8 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 						End If
 					End If
 					
-					temp2+=2*SizeOf(Integer) ' 'lbound
-					ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp1,SizeOf(Integer),0)
+					temp2+=2*TSZ ' 'lbound
+					temp1 = rd_sint(temp2)
 					If vrr(i).ad=0 Then 'init index lbound
 						vrr(i).ix(k)=temp1
 					Else
@@ -10397,8 +11238,8 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 					text+=Str(temp1)+"-"
 					vlbound(k)=temp1
 					
-					temp2+=SizeOf(Integer)' 'ubound
-					ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp1,SizeOf(Integer),0)
+					temp2+=TSZ' 'ubound
+					temp1 = rd_sint(temp2)
 					If vrr(i).ix(k)>temp1 Then vrr(i).ix(k)=temp1 'index can't be >ubound
 					text+=Str(temp1)+":"+Str(vrr(i).ix(k))+" "
 					vubound(k)=temp1
@@ -10473,7 +11314,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				text += "<" + var_sh2(.typ, vrr(i).ad, .pt, soffset, .fxlen)
 			End If
 			#ifdef __USE_WINAPI__
-				If InStr(text, "Ushort") > 0 Then
+				If InStr(text, "UShort") > 0 Then
 					Dim As UString result = get_sh(i)
 					If Len(result) > 75 Then
 						result = Left(result, 75) & "..."
@@ -10497,19 +11338,19 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 			Case 3
 				text+="<Static / "
 			Case 4 'use *adr
-				text+="<Byref param / "
+				text+="<ByRef param / "
 				' ini keep the stack adr but not for param array() in this case always dyn so structure
 				If Cast(Integer,.arr)<>-1 Then soffset=Str(.adr)+" / "+Str(vrr(i).gofs)+" / " 'to be checked
 			Case 5
-				text+="<Byval param / "
+				text+="<ByVal param / "
 				soffset=Str(.adr)+" / "
 			Case 6
 				text+="<Common / "
 			End Select
-			If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini+SizeOf(Integer))+" >> "  '25/07/2015
+			If Cast(Integer,.arr)=-1 Then soffset+=Str(vrr(i).ini+TSZ)+" >> "  '25/07/2015
 			text += var_sh2(.typ, adr, .pt, soffset, .fxlen)
 			#ifdef __USE_WINAPI__
-				If InStr(text, "Ushort") > 0 Then
+				If InStr(text, "UShort") > 0 Then
 					Dim As UString result = get_sh(i)
 					If Len(result) > 75 Then
 						result = Left(result, 75) & "..."
@@ -10523,6 +11364,28 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 End Function
 
 #ifdef __USE_WINAPI__
+	'The value of the hint of the editor: "NAME <Type> = value", the text of a string between quotes
+	'(var_sh1: "TXT <ByRef param / WString>(1) =Font" -> "TXT <ByRef param / WString (1)> = "Font"")
+	Function var_hint_text(ByRef s As String) As String
+		Dim As Integer p1 = InStr(s, "<")
+		If p1 = 0 Then Return s
+		Dim As Integer p2 = InStr(p1 + 1, s, ">")
+		If p2 = 0 Then Return s
+		Dim As String sName = RTrim(Left(s, p1 - 1)), sType = Trim(Mid(s, p1 + 1, p2 - p1 - 1)), sRest = Mid(s, p2 + 1), sExtra, sVal
+		Dim As Integer p3 = InStr(sRest, "=")
+		If p3 Then
+			sExtra = Trim(Left(sRest, p3 - 1))
+			sVal = Mid(sRest, p3 + 1)
+		Else
+			sExtra = Trim(sRest)
+		End If
+		If sExtra <> "" Then sType &= " " & sExtra
+		If p3 = 0 Then Return sName & " <" & sType & ">"
+		'A string (not a pointer): its text between quotes
+		If InStr(LCase(sType), "string") > 0 AndAlso InStr(sType, "*") = 0 AndAlso Left(sVal, 1) <> """" Then sVal = """" & sVal & """"
+		Return sName & " <" & sType & "> = " & sVal
+	End Function
+	
 	Function get_var_value(VarName As String, LineIndex As Integer) As String
 		#ifdef __USE_EXTERNAL_DEBUGGERS__
 			If DbgActive Then Return DbgGetValue(VarName)
@@ -10556,7 +11419,16 @@ End Function
 				lclproc = rline(i).px: Exit For ' with known line we know also the proc...
 			End If
 		Next
-		
+		If lclproc = 0 Then
+			'Not an executable line (the line of Sub/Function with the parameters, Dim without a value):
+			'the proc of the next executable line
+			Dim As Integer iNext
+			For i As Integer = 1 To linenb
+				If rline(i).sx = shwtab AndAlso rline(i).nu > nline AndAlso (iNext = 0 OrElse rline(i).nu < rline(iNext).nu) Then iNext = i
+			Next
+			If iNext Then lclproc = rline(iNext).px
+		End If
+
 		'search inside
 		'if no lclproc --> should be in main
 		If lclproc Then
@@ -10585,18 +11457,126 @@ End Function
 			End If
 		End If
 		'============== end of mod ==============
-		Return var_sh1(idx)
+		Return var_hint_text(var_sh1(idx))
 		
 	End Function
 	
+	'A watch typed in the Watches window (List view): the variable of the current procedure or a global one
+	'Returns the line of the watch in the Watches tree (0: not found)
+	Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
+		Dim As String text = UCase(Trim(VarName))
+		If text = "" OrElse Left(text, 1) = "." OrElse procrnb = 0 Then Return 0
+		Dim vname(10) As String, varray As Integer, vnb As Integer, p As Integer, d As Integer = 1, l As Integer, idx As Integer = -1
+		text += ".": l = Len(text)
+		While d < l AndAlso vnb < 10
+			vnb += 1
+			p = InStr(d, text, ".")
+			vname(vnb) = Mid(text, d, p - d)
+			If Right(vname(vnb), 1) = "(" Then
+				varray = 1: vname(vnb) = Mid(text, d, p - d - 1): d = p + 2
+			Else
+				varray = 0: d = p + 1
+			End If
+		Wend
+		'The procedure of the stop, then the others from the last one, then the globals (procr(0), globals_load)
+		Dim As Integer lclproc = rline(thread(threadcur).sv).px
+		For i As Integer = procrnb To 1 Step -1
+			If procr(i).idx = lclproc Then idx = var_search(i, vname(), vnb, varray): Exit For
+		Next
+		For i As Integer = procrnb To 0 Step -1
+			If idx <> -1 Then Exit For
+			idx = var_search(i, vname(), vnb, varray)
+		Next
+		If idx = -1 Then Return 0
+		'The slots never used are free (watch_add looks for psk = -1, the slots are 0 at the start)
+		For k As Integer = 0 To WTCHMAX
+			If wtch(k).tvl = 0 AndAlso wtch(k).psk = 0 Then wtch(k).psk = -1
+		Next
+		'Like the command Watch of the menu of the variables: the selected variable
+		SendMessage(tviewvar, TVM_SELECTITEM, TVGN_CARET, Cast(LPARAM, vrr(idx).tv))
+		If var_find2(tviewvar) = -1 Then Return 0
+		wtchnew = -1: wtchidx = -1
+		watch_set()
+		If wtchnew >= 0 Then Return wtch(wtchnew).tvl 'new
+		If wtchidx >= 0 Then Return wtch(wtchidx).tvl 'already watched
+		Return 0
+	End Function
+	
+	'Removes the watch of the line hItem of the Watches window
+	Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
+		If hItem = 0 Then Exit Sub
+		For k As Integer = 0 To WTCHMAX
+			If wtch(k).psk <> -1 AndAlso wtch(k).tvl = hItem Then watch_del(k): Exit For
+		Next
+	End Sub
+	
+	'The elements of an array of a standard type: the lines under the line of the array (without vrr, lParam=0),
+	'their values when it is expanded (or bExpanding, before it is expanded)
+	Sub arr_elements_sh(i As Integer, hItem As HTREEITEM, bExpanding As Boolean = False)
+		Dim As Integer adr, lb(4), ub(4), idx(4), nbdim, udtlg, typ, pt, fxlen
+		Dim As Integer total = arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen)
+		If total < 0 Then Exit Sub
+		Dim As Integer n = IIf(total > ARRSHOWMAX, ARRSHOWMAX, total), nLines = n + IIf(total > n, 1, 0), nOld
+		Dim As HTREEITEM h = TreeView_GetChild(tviewvar, hItem)
+		While h <> 0
+			nOld += 1
+			h = TreeView_GetNextSibling(tviewvar, h)
+		Wend
+		If nOld <> nLines Then
+			'New or resized (dynamic array): the lines again
+			h = TreeView_GetChild(tviewvar, hItem)
+			While h <> 0
+				Dim As HTREEITEM hNext = TreeView_GetNextSibling(tviewvar, h)
+				TreeView_DeleteItem(tviewvar, h)
+				h = hNext
+			Wend
+			Dim tvIns As TVINSERTSTRUCT
+			Dim As WString * 64 wText
+			tvIns.hParent = hItem
+			tvIns.hInsertAfter = TVI_LAST
+			tvIns.item.mask = TVIF_TEXT Or TVIF_PARAM
+			tvIns.item.lParam = 0
+			tvIns.item.pszText = @wText
+			For e As Integer = 0 To nLines - 1
+				If e < n Then wText = arr_index_text(e, lb(), ub(), nbdim, idx()) Else wText = "... (" & total & " " & ML("elements") & ")"
+				TreeView_InsertItem(tviewvar, @tvIns)
+			Next
+		End If
+		If n = 0 Then Exit Sub
+		If CBool(Not bExpanding) AndAlso (TreeView_GetItemState(tviewvar, hItem, TVIS_EXPANDED) And TVIS_EXPANDED) = 0 Then Exit Sub
+		h = TreeView_GetChild(tviewvar, hItem)
+		For e As Integer = 0 To n - 1
+			If h = 0 Then Exit For
+			Tree_upditem(h, arr_index_text(e, lb(), ub(), nbdim, idx()) & " <" & var_sh2(typ, adr + e * udtlg, pt, "", fxlen), tviewvar)
+			h = TreeView_GetNextSibling(tviewvar, h)
+		Next
+	End Sub
+
 	Sub UpdateItems(root As HTREEITEM)
 		Dim As HTREEITEM node = root
+		If node <> NULL Then
+			'The first line under an array being expanded: its elements
+			Dim tvp As TVITEM
+			tvp.mask = TVIF_PARAM: tvp.hItem = node
+			TreeView_GetItem(tviewvar, @tvp)
+			If tvp.lParam = 0 Then
+				tvp.hItem = TreeView_GetParent(tviewvar, node)
+				If tvp.hItem <> 0 Then
+					TreeView_GetItem(tviewvar, @tvp)
+					If tvp.lParam <> 0 Then arr_elements_sh(tvp.lParam, tvp.hItem, True)
+					Exit Sub
+				End If
+			End If
+		End If
 		While node <> NULL
 			Dim tvi As TVITEM
 			tvi.mask = TVIF_PARAM Or TVIF_STATE
 			tvi.hItem = node
 			TreeView_GetItem(tviewvar, @tvi)
-			If tvi.lParam <> 0 Then Tree_upditem(node, var_sh1(tvi.lParam), tviewvar)
+			If tvi.lParam <> 0 Then
+				Tree_upditem(node, var_sh1(tvi.lParam), tviewvar)
+				arr_elements_sh(tvi.lParam, node)
+			End If
 			If tvi.state = 96 OrElse tvi.state = 98 Then UpdateItems(TreeView_GetNextItem(tviewvar, node, TVGN_CHILD))
 			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
 		Wend
@@ -10727,6 +11707,89 @@ Private Sub dump_sh()
 	Next
 End Sub
 
+'==========================================
+'' Memory of GDB and LLDB with CLI, MI, DAP (Variable Dump): the bytes read by the debugger, like dump_sh (bytes in hex)
+'==========================================
+Sub mem_show(ByRef sAddress As String, ByRef Bytes As String)
+	Dim As String ascii
+	Dim As ULongInt ad
+	If Len(Bytes) = 0 Then
+		ShowMessages ML("The memory is not read") & IIf(sAddress = "", "", ": " & sAddress)
+		Exit Sub
+	End If
+	If StartsWith(LCase(Trim(sAddress)), "0x") Then ad = ValULng("&H" & Mid(Trim(sAddress), 3)) Else ad = ValULng(sAddress)
+	dumpadr = ad 'Edit Memory, Refresh
+	dumptyp = 2: dumpbase = 50 'byte, hex
+	dump_set()
+	lvMemory.ListItems.Clear
+	For jline As Integer = 0 To (Len(Bytes) - 1) \ 16
+		lvMemory.ListItems.Add Hex(ad + jline * 16)
+		ascii = ""
+		For icol As Integer = 1 To 16
+			Dim As Integer k = jline * 16 + icol
+			If k > Len(Bytes) Then Exit For
+			Dim As UByte c = Bytes[k - 1]
+			lvMemory.ListItems.Item(jline)->Text(icol) = Right("0" & Hex(c), 2)
+			If c >= 32 AndAlso c < 127 Then ascii &= Chr(c) Else ascii &= "."
+		Next
+		lvMemory.ListItems.Item(jline)->Text(17) = ascii
+	Next
+	tpMemory->SelectTab
+End Sub
+
+'The text of "x/320xb" of gdb and "memory read" of lldb: 0x4c7020 <GOUTER>:<Tab>0x01<Tab>0x00 ...
+Sub mem_show_text(ByRef sText As String)
+	Dim As String sAddress, Bytes, sLine
+	Dim As Integer i = 1, j
+	Do While i <= Len(sText)
+		j = InStr(i, sText, Chr(10))
+		If j = 0 Then j = Len(sText) + 1
+		sLine = Trim(Mid(sText, i, j - i), Any Chr(9, 13, 32))
+		i = j + 1
+		Dim As Integer p = InStr(sLine, ":")
+		If p = 0 OrElse CInt(Not StartsWith(LCase(sLine), "0x")) Then Continue Do
+		If sAddress = "" Then
+			Dim As Integer q = InStr(sLine, Any " :" & Chr(9))
+			sAddress = Left(sLine, q - 1)
+		End If
+		Dim As String sBytes = Mid(sLine, p + 1) & " "
+		Dim As Integer k = 1
+		Do While k <= Len(sBytes)
+			Dim As Integer e = InStr(k, sBytes, Any " " & Chr(9))
+			Dim As String sTok = Mid(sBytes, k, e - k)
+			k = e + 1
+			If CBool(Len(sTok) >= 3) AndAlso CBool(Len(sTok) <= 4) AndAlso StartsWith(LCase(sTok), "0x") Then Bytes &= Chr(ValInt("&H" & Mid(sTok, 3)))
+		Loop
+	Loop
+	If Bytes = "" Then
+		If Trim(sText, Any Chr(9, 10, 13, 32)) <> "" Then ShowMessages Trim(sText, Any Chr(9, 10, 13, 32))
+		ShowMessages ML("The memory is not read")
+		Exit Sub
+	End If
+	mem_show sAddress, Bytes
+End Sub
+
+'The expression of the selected variable of Locals, Globals, Watches for the memory (GDB and LLDB with CLI, MI, DAP):
+'its address, or its value for Pointed data Dump
+Function mem_expression(ByRef sCommand As String) As String
+	Dim As TreeListViewItem Ptr Item = mem_selected_item(sCommand)
+	If Item = 0 Then Return ""
+	Dim As String sPath, sName
+	Do While Item
+		sName = ToUtf8(Trim(Item->Text(0)))
+		If sPath = "" Then
+			sPath = sName
+		ElseIf Left(sPath, 1) = "[" Then
+			sPath = sName & sPath
+		Else
+			sPath = sName & "." & sPath
+		End If
+		Item = Item->ParentItem
+	Loop
+	If sCommand = "PointedDataDump" Then Return sPath
+	Return "&" & sPath
+End Function
+
 Private Function proc_retval(prcnb As Integer) As String
 	Dim p As Integer = proc(prcnb).pt
 	If p Then
@@ -10792,6 +11855,47 @@ Private Sub proc_loc()
 	source_change(proc(temp).sr) ''display source
 	line_display(proc(temp).nu,1)  ''Select Line
 End Sub
+
+#ifdef __USE_WINAPI__
+	'Threads of the Integrated IDE Debugger: the line of the thread or of the procedure of hItem.
+	'The tree of a thread is its call chain: thread > main > ... > the running procedure (the frames of procr of the thread)
+	Sub thread_loc(hItem As HTREEITEM)
+		If hItem = 0 Then Exit Sub
+		Dim As Integer nLevel, th = -1
+		Dim As HTREEITEM hRoot = hItem, hParent = TreeView_GetParent(tviewthd, hItem)
+		While hParent <> 0
+			nLevel += 1
+			hRoot = hParent
+			hParent = TreeView_GetParent(tviewthd, hParent)
+		Wend
+		For i As Integer = 0 To threadnb
+			If thread(i).tv = hRoot Then th = i: Exit For
+		Next
+		If th < 0 Then Exit Sub
+		Dim As Integer rln = thread(th).sv 'the line of the thread: where it is stopped
+		If nLevel > 0 Then
+			Dim As Integer frames(Any), n
+			For i As Integer = 1 To procrnb
+				If procr(i).thid = thread(th).id Then ReDim Preserve frames(n): frames(n) = i: n += 1
+			Next
+			Dim As Integer k = nLevel - 1
+			If k < n - 1 Then
+				'A calling procedure: the line of its call of the next one
+				rln = procr(frames(k + 1)).cl
+				If rln <= 0 OrElse rln > linenb Then
+					Dim As Integer idx = procr(frames(k)).idx
+					If proc(idx).nu = -1 Then Exit Sub
+					source_change(proc(idx).sr)
+					line_display(proc(idx).nu, 1)
+					Exit Sub
+				End If
+			End If
+		End If
+		If rln <= 0 OrElse rln > linenb Then Exit Sub
+		source_change(rline(rln).sx)
+		line_display(rline(rln).nu, 1)
+	End Sub
+#endif
 '===============================================================
 '' calling line
 '===============================================================
@@ -10900,7 +12004,8 @@ Private Sub proc_sh()
 	listidx=proclistfirst
 	While listidx<>-1
 		With proc(listidx)
-			libel = .nm + ":" + proc_retval(listidx) + "   in : " + source_name(source(.sr))
+			'The path as it is (source() is in lower case on Windows)
+			libel = .nm + ":" + proc_retval(listidx) + "   in : " + IIf(srcpath(.sr) <> "" AndAlso LCase(srcpath(.sr)) = LCase(source(.sr)), srcpath(.sr), source(.sr))
 			If .enab = True Then
 				libel += " <E> " '' for indicating if the proc is enabled : followed
 			Else
@@ -11018,13 +12123,17 @@ Private Sub dsp_change(index As Integer)
 		'      Next
 		''==================================================
 	End If
+	'Stopped (also after Start, RTFRUN): the copies of the tree views on the screen (DebugView.bas)
+	ThreadsEnter
+	DbgViewIntegratedStopped True
+	ThreadsLeave
 End Sub
 
 #ifdef __FB_WIN32__
 	Sub exe_mod() 'execution from cursor
 		Dim l As Integer,i As Integer, b As Integer
 		'Dim range As CHARRANGE
-		Dim vcontext As CONTEXT
+		Dim vcontext As DBGCONTEXT
 		Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
 		'range.cpmin=-1 :range.cpmax=0
@@ -11058,9 +12167,9 @@ End Sub
 		thread(threadcur).od=thread(threadcur).sv:thread(threadcur).sv=i
 		'get and update registers
 		vcontext.ContextFlags=CONTEXT_CONTROL
-		GetThreadContext(threadhs,@vcontext)
+		DbgGetThreadContext(threadhs, @vcontext)
 		vcontext.regip=rline(i).ad
-		SetThreadContext(threadhs, @vcontext)
+		DbgSetThreadContext(threadhs, @vcontext)
 		
 		dsp_change(i)
 	End Sub
@@ -11108,7 +12217,7 @@ Private Sub proc_new()
 	procr(procrnb).thid=thread(threadcur).id
 	procr(procrnb).idx=procsv
 	
-	ReadProcessMemory(dbghand,Cast(LPCVOID,procsk+SizeOf(Integer)),@procr(procrnb).ret,SizeOf(Integer),0) 'return address
+	ReadProcessMemory(dbghand,Cast(LPCVOID,procsk+TSZ),@procr(procrnb).ret,TSZ,0) 'return address
 	'test if first proc of thread
 	If thread(threadcur).plt=0 Then
 		procr(procrnb).cl=-1  ' no real calling line
@@ -11234,6 +12343,36 @@ End Function
 	''pframes/pnfrm : if not null, the frames without debug data are added to the text (call stack of a crash)
 	Private Function stack_unwind_nodebug(hThread As HANDLE, ByRef regip As Integer, regsp As Integer, ByRef regbp As Integer, pframes As String Ptr = 0, pnfrm As Integer Ptr = 0) As Boolean
 		If dbghelp_init() = False Then Return False
+		#ifdef __FB_64BIT__
+			If dbgT32 Then
+				'A 32-bit program: StackWalk64 of I386 with WOW64_CONTEXT
+				Dim w As WOW64_CONTEXT
+				w.ContextFlags = WOW64_CONTEXT_FULL
+				wow64_init(): If pWow64GetThreadContext = 0 OrElse pWow64GetThreadContext(hThread, @w) = 0 Then Return False
+				w.Eip = regip: w.Esp = regsp: w.Ebp = regbp
+				Dim As tdbgstackframe64 frame32
+				frame32.AddrPC.Offset = regip: frame32.AddrPC.Mode = 3
+				frame32.AddrStack.Offset = regsp: frame32.AddrStack.Mode = 3
+				frame32.AddrFrame.Offset = regbp: frame32.AddrFrame.Mode = 3
+				Dim As UInteger prevsp32
+				For i As Integer = 1 To 256
+					If pStackWalk64(&h014c, dbghand, hThread, @frame32, @w, 0, pSymFunctionTableAccess64, pSymGetModuleBase64, 0) = 0 Then Return False
+					If frame32.AddrPC.Offset = 0 Then Return False
+					If i > 1 AndAlso frame32.AddrStack.Offset <= prevsp32 Then Return False
+					prevsp32 = frame32.AddrStack.Offset
+					If proc_index(frame32.AddrPC.Offset) Then
+						regip = frame32.AddrPC.Offset
+						regbp = frame32.AddrFrame.Offset
+						Return True
+					End If
+					If pframes Then
+						If *pframes <> "" Then *pframes &= Chr(13)
+						*pframes &= "#" & (*pnfrm) & "  " & sym_text(frame32.AddrPC.Offset): *pnfrm += 1
+					End If
+				Next
+				Return False
+			End If
+		#endif
 		Dim As UByte ctxbuf(SizeOf(CONTEXT) + 16)
 		Dim As CONTEXT Ptr pctx = Cast(CONTEXT Ptr, (Cast(UInteger, @ctxbuf(0)) + 15) And Not Cast(UInteger, 15)) '16 bytes aligned
 		pctx->ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
@@ -11312,11 +12451,8 @@ End Function
 	''called by the debugger thread when an exception is received : finds the exact line and the call stack
 	''sets crashline (line index), craship/crashbp (first frame with debug data) and crashstack (text)
 	Private Sub crash_analyze(hThread As HANDLE, excadr As UInteger)
-		Dim As UByte ctxbuf(SizeOf(CONTEXT) + 16)
-		Dim As CONTEXT Ptr pctx = Cast(CONTEXT Ptr, (Cast(UInteger, @ctxbuf(0)) + 15) And Not Cast(UInteger, 15)) '16 bytes aligned otherwise GetThreadContext fails
-		pctx->ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
-		GetThreadContext(hThread, pctx)
-		Dim As CONTEXT vcontext = *pctx
+		Dim vcontext As DBGCONTEXT
+		DbgGetThreadContext(hThread, @vcontext)
 		Dim As Integer regip = excadr, regbp = vcontext.regbp, nfrm = 0, ret, prevbp, lineadr
 		crashline = 0: craship = 0: crashbp = 0: crashstack = ""
 		If proc_index(regip) = 0 Then 'crash in code without debug data, unwinding until a proc with debug data
@@ -11337,12 +12473,12 @@ End Function
 			If crashstack <> "" Then crashstack &= Chr(13)
 			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
 			If proc(proc_index(regip)).nm = "main" Then Exit For
-			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp + SizeOf(Integer)), @ret, SizeOf(Integer), 0) 'return EIP/RIP
+			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp + TSZ), @ret, TSZ, 0) 'return EIP/RIP
 			prevbp = regbp
-			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp), @regbp, SizeOf(Integer), 0) 'previous RBP/EBP
+			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp), @regbp, TSZ, 0) 'previous RBP/EBP
 			regip = ret
 			If proc_index(regip) = 0 Then
-				If stack_unwind_nodebug(hThread, regip, prevbp + 2 * SizeOf(Integer), regbp, @crashstack, @nfrm) = False Then Exit For
+				If stack_unwind_nodebug(hThread, regip, prevbp + 2 * TSZ, regbp, @crashstack, @nfrm) = False Then Exit For
 				If regbp <= prevbp Then Exit For 'the stack must go up
 			ElseIf regbp <= prevbp Then
 				Exit For
@@ -11357,7 +12493,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 
 	#ifdef __FB_WIN32__
 		Dim As Integer dummy
-		Dim vcontext As CONTEXT
+		Dim vcontext As DBGCONTEXT
 		
 		'if cast(integer,@vcontext) mod 16 <>0 then
 		'messbox("PRBM","Context not 16byte aligned")
@@ -11380,7 +12516,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 	'if thread(ithd).sv=-1 then continue for ''2022/01/21
 	regbpnb=0
 	#ifdef __FB_WIN32__
-		GetThreadContext(thread(ithd).hd, @vcontext)
+		DbgGetThreadContext(thread(ithd).hd, @vcontext)
 		regbp=vcontext.regbp
 		regip=vcontext.regip 'current proc
 	#else
@@ -11416,7 +12552,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 			If regip>=proc(j).db And regip<=proc(j).fn Then
 				regbpnb+=1
 				regbpp(regbpnb)=regbp
-				If regbp=0 OrElse ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+SizeOf(Integer)),@regip,SizeOf(Integer),0)=0 Then regip=0 'return EIP/RIP
+				If regbp=0 OrElse ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+TSZ),@regip,TSZ,0)=0 Then regip=0 'return EIP/RIP
 				ret(regbpnb)=regip
 				pridx(regbpnb)=j
 				Exit For
@@ -11425,12 +12561,12 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 		If j>procnb Then Exit While
 		If regip=0 Then Exit While 'frame not readable
 		prevregbp=regbp
-		If ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,SizeOf(Integer),0)=0 Then Exit While 'previous RBP/EBP
+		If ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,TSZ,0)=0 Then Exit While 'previous RBP/EBP
 		If Cast(UInteger,regbp)<=Cast(UInteger,prevregbp) Then Exit While 'the stack must go up, otherwise the chain is broken (endless loop)
 		#ifdef __FB_WIN32__
 			''return in code without debug data (eg event called by user32 or callback) : unwind until a proc with debug data
 			If proc_index(regip)=0 AndAlso proc(pridx(regbpnb)).nm<>"main" Then
-				If stack_unwind_nodebug(thread(ithd).hd,regip,regbpp(regbpnb)+2*SizeOf(Integer),regbp)=False Then Exit While
+				If stack_unwind_nodebug(thread(ithd).hd,regip,regbpp(regbpnb)+2*TSZ,regbp)=False Then Exit While
 				If regbp<=regbpp(regbpnb) Then Exit While 'the stack must go up
 			End If
 		#endif
@@ -11617,7 +12753,9 @@ End Sub
 				brkol(brknb).isrc=shwtab
 				brkol(brknb).ad=rline(ln).ad
 				brkol(brknb).cntrsav=0
-				brkol(brknb).counter=0
+				If Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[l])->BreakpointCount > 1 Then brkol(brknb).cntrsav = Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[l])->BreakpointCount - 1 'Breakpoint Hit Count
+				brkol(brknb).counter=brkol(brknb).cntrsav
+				brkcond(brknb) = Trim(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[l])->BreakpointCondition) 'Breakpoint Condition
 				If t=3 Then 'change value counter
 					inputval="0"
 					inputtyp=7 'ulong
@@ -11770,8 +12908,8 @@ End Sub
 			adr=vrr(brkv.ivr).ini
 			ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,4,0)
 			If adr<>brkv.arr Then brkv.adr+=brkv.arr-adr:brkv.arr=adr 'compute delta then add it if needed
-			temp2=vrr(brkv.ivr).ini+2*SizeOf(Integer) 'adr global size 25/07/2015 64bit
-			ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,SizeOf(Integer),0)
+			temp2=vrr(brkv.ivr).ini+2*TSZ 'adr global size 25/07/2015 64bit
+			ReadProcessMemory(dbghand,Cast(LPCVOID,temp2),@temp3,TSZ,0)
 			If brkv.adr>adr+temp3 Then 'out of limit ?
 				brkv_set(0) 'erase
 				Return False
@@ -11835,7 +12973,7 @@ End Sub
 			End If
 		Case 4,13,14
 			If brkv.typ=13 Then  ' normal string
-				ReadProcessMemory(dbghand,Cast(LPCVOID,brkv.adr),@adr,SizeOf(Integer),0) 'address ptr 25/07/2015 64bit
+				ReadProcessMemory(dbghand,Cast(LPCVOID,brkv.adr),@adr,TSZ,0) 'address ptr 25/07/2015 64bit
 			Else
 				adr=brkv.adr
 			End If
@@ -11872,7 +13010,7 @@ End Function
 
 #ifdef __FB_WIN32__
 	Private Sub proc_newfast()
-		Dim vcontext As CONTEXT
+		Dim vcontext As DBGCONTEXT
 		Dim libel As String
 		Dim As UInteger regbp,regip,regbpnb,regbpp(PROCRMAX)
 		Dim As ULong j,k,pridx(PROCRMAX),calin(PROCRMAX)
@@ -11881,7 +13019,7 @@ End Function
 		'loading with rbp/ebp and proc index
 		For i As Integer =0 To threadnb
 			regbpnb=0
-			GetThreadContext(thread(i).hd,@vcontext)
+			DbgGetThreadContext(thread(i).hd, @vcontext)
 			regbp=vcontext.regbp:regip=vcontext.regip 'current proc
 			j = 0
 			While 1
@@ -11893,8 +13031,8 @@ End Function
 					End If
 				Next
 				If j>procnb Then Exit While
-				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+SizeOf(Integer)),@regip,SizeOf(Integer),0) 'return EIP/RIP    12/07/2015 4 replaced by sizeof(integer)
-				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp)                ,@regbp,SizeOf(Integer),0) 'previous RBP/EBP
+				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+TSZ),@regip,TSZ,0) 'return EIP/RIP    12/07/2015 4 replaced by sizeof(integer)
+				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp)                ,@regbp,TSZ,0) 'previous RBP/EBP
 				
 				calin(regbpnb)=line_call(regip)
 			Wend
@@ -11958,14 +13096,14 @@ End Function
 '====================================================================
 Private Sub singlestep_on(tid As Integer,rln As Integer,running As Integer =1)
 	Dim As Integer dummy ''used to align vcontext on 16bit
-	Dim vcontext As CONTEXT
+	Dim vcontext As DBGCONTEXT
     For i As Integer = 0 To threadnb
 		If tid=thread(i).id Then
 			threadcontext=thread(i).hd
 
 			'get context
 			vcontext.ContextFlags=CONTEXT_CONTROL
-			GetThreadContext(threadcontext,@vcontext)
+			DbgGetThreadContext(threadcontext, @vcontext)
 
 			If running Then ''when not running initial code is already restored and no need to decrease EIP
 				''restore initial code
@@ -11977,7 +13115,7 @@ Private Sub singlestep_on(tid As Integer,rln As Integer,running As Integer =1)
 			''set Trace flag on
 			vcontext.EFlags=BitSet(vcontext.EFlags,8)
 			''update context
-			SetThreadContext(threadcontext,@vcontext)
+			DbgSetThreadContext(threadcontext, @vcontext)
 			''rline for restoring BP
 			ssadr=rline(rln).ad
 			Exit Sub
@@ -12034,13 +13172,57 @@ End Sub
 '========================================================
 ''  handles breakpoints
 '========================================================
+	'Attach to Process: the program stops at once (a program waiting in Windows, for example in GetMessage, does not reach
+	'a line with CC). The main thread is suspended where it is, its frame with debug data (the stack unwound) is shown
+	'like a stop at its line; Step, Continue resume it (CC on every line). False: no frame with debug data
+	Private Function attach_stop() As Boolean
+		Dim As Integer ith = 0 'the main thread (CREATE_PROCESS_DEBUG_EVENT)
+		If thread(ith).hd = 0 Then Return False
+		Dim As Integer dummy 'used to align vcontext
+		Dim vcontext As DBGCONTEXT
+		If DbgGetThreadContext(thread(ith).hd, @vcontext) = 0 Then Return False
+		Dim As Integer regip = vcontext.regip, regbp = vcontext.regbp, rln
+		If proc_index(regip) Then
+			rln = line_from_adr(regip)
+		Else
+			If stack_unwind_nodebug(thread(ith).hd, regip, vcontext.regsp, regbp) = False Then Return False
+			rln = line_from_adr(regip - 1) 'the return address: the line of the call
+		End If
+		If rln <= 0 Then Return False
+		'The thread of the break of the attach (created by Windows, without debug data) ends
+		If threadhs <> 0 AndAlso threadhs <> thread(ith).hd Then ResumeThread(threadhs)
+		flagattach = False
+		threadcur = ith
+		threadcontext = thread(ith).hd
+		threadhs = threadcontext
+		SuspendThread(threadhs)
+		thread(ith).od = rln
+		thread(ith).sv = rln
+		thread(ith).sts = KTHD_STOP
+		thread(ith).pe = False
+		rlinecur = rln
+		procsv = rline(rln).px
+		proccurad = rline(rln).ad
+		runtype = RTFRUN 'proc_runnew: the frames from the stack
+		proc_runnew(regip, regbp)
+		runtype = RTSTEP
+		thread(ith).rtype = RTSTEP
+		stopcode = CSUSER
+		thread_status()
+		dsp_change(rln)
+		ShowMessages Time & ": " & ML("Attach to Process") & ": " & ML("the program is stopped") & " (" & proc(rline(rln).px).nm & ", " & ML("Line") & " " & rline(rln).nu & ")"
+		Return True
+	End Function
+	
 	Private Sub gest_brk(ad As Integer, ByVal rln As Integer = -1)
 		Dim As Integer dummy
-		Dim vcontext As CONTEXT
+		Dim vcontext As DBGCONTEXT
 			vcontext.ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
 			Dim As UInteger i, debut = 1, fin = linenb + 1, adr, iold
 		'egality added in case attach (example access violation) without -g option, ad=procfn=0....
 		If ad>=procfn Then
+				'Attach to Process: the break of Windows, the program stops at once
+				If flagattach AndAlso attach_stop() Then Exit Sub
 				thread_resume()
 				Exit Sub 'out of normal area, the first exception breakpoint is dummy or in case of use of debugbreak
 			End If
@@ -12088,7 +13270,7 @@ End Sub
 		procsv = rline(rln).px
 		'get and update registers
 		'vcontext.ContextFlags = CONTEXT_CONTROL Or CONTEXT_INTEGER
-		GetThreadContext(threadcontext,@vcontext)
+		DbgGetThreadContext(threadcontext, @vcontext)
 		
 		If proccurad=proc(procsv).db Then 'is first proc instruction
 			thread(threadcur).cl = thread(threadcur).od ''done here to avoid a wrong assignment
@@ -12096,14 +13278,14 @@ End Sub
 				
 				'in this case there is a prologue
 				'at the beginning of proc EBP not updated so use ESP
-				procsk=vcontext.regsp-SizeOf(Integer) 'ESP-4 for respecting prologue : push EBP then mov ebp,esp / 64bit push rbp then mov rbp,rsp
+				procsk=vcontext.regsp-TSZ 'ESP-4 for respecting prologue : push EBP then mov ebp,esp / 64bit push rbp then mov rbp,rsp
 			Else
 				If procrnb<>0 Then  'no main and no prologue so naked proc, procrnb not yet updated
 					procsk=vcontext.regsp
 					thread(threadcur).nk=procsk
 				Else
 						MsgBox("Main procedure problem", "No standard prologue --> random behaviour")
-					procsk=vcontext.regsp-SizeOf(Integer) 'if gcc>3 for main prologue is different
+					procsk=vcontext.regsp-TSZ 'if gcc>3 for main prologue is different
 				End If
 			End If
 		Else
@@ -12117,7 +13299,7 @@ End Sub
 		End If
 		vcontext.regip=ad
 		
-		SetThreadContext(threadcontext,@vcontext)
+		DbgSetThreadContext(threadcontext, @vcontext)
 		
 		'		If runtype = RTRUN Then
 		'			For i As Integer = 1 To linenb 'restore CC
@@ -12330,6 +13512,36 @@ dbg_prt2 "rLine(thread(threadcur).sv).nu=";rline(thread(threadcur).sv).nu
 #endif
 	
 Sub fastrun() 'running until cursor or breakpoint !!! Be carefull
+	#ifdef __FB_WIN32__
+		If brkv.adr1 <> 0 Then
+			'The value now (it could change while stepping): the next change, the condition becomes true
+			If brkvChange Then
+				ReadProcessMemory(dbghand, Cast(LPCVOID, brkv.adr1), @brkv.Val, 8, 0)
+				brkv.vst = brkv_value(brkv.adr1)
+				brkvLastTrue = False
+			Else
+				brkvLastTrue = brk_test(brkv.adr1, brkv.adr2, brkv.typ, brkv.Val, brkv.ttb) <> 0
+			End If
+			brkvHwPending = False
+		End If
+		If brkv.adr1 <> 0 AndAlso brkvHw Then brkv_hw_all(True) 'the threads created meanwhile
+		If brkv.adr1 <> 0 AndAlso CBool(Not brkvHw) Then
+			'Break on Variable: CC on every line, the variable is tested on each one (wait_debug)
+			DeleteDebugCursor
+			For i As Integer = 1 To linenb
+				If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(rline(i).sx)), mainfolder) Then
+				Else
+					WriteProcessMemory(dbghand, Cast(LPVOID, rline(i).ad), @breakcpu, 1, 0)
+				End If
+			Next
+			runtype = RTFRUN
+			fasttimer = Timer
+			'The current line: its CC is put back after its first instruction
+			singlestep_on(thread(threadcur).id, thread(threadcur).sv, 0)
+			thread_rsm()
+			Exit Sub
+		End If
+	#endif
 	Dim As Integer ad = rline(thread(threadcur).sv).ad
 	Dim As Boolean bInBreakPoint
 	For j As Integer = 0 To brknb 'breakpoint
@@ -12427,12 +13639,46 @@ End Sub
 				If FirstChance Then 'if =0 second try so no compute code
 					Select Case (DebugEv.u.Exception.ExceptionRecord.ExceptionCode)
 					'========================== code 80000004
-					Case EXCEPTION_SINGLE_STEP
+					Case EXCEPTION_SINGLE_STEP, &h4000001E 'STATUS_WX86_SINGLE_STEP: a 32-bit program
 						'==========================
-						WriteProcessMemory(dbghand, Cast(LPVOID, ssadr), @breakcpu, 1, 0)
+						Dim As Boolean bHwHit, bTrace = True
+						If brkv.adr1 <> 0 AndAlso brkvHw Then
+							'The hardware watch (DR6 bit 0); bit 14 (BS): also the trace of singlestep_on
+							For ith As Integer = 0 To threadnb
+								If thread(ith).id = DebugEv.dwThreadId Then
+									Dim As Integer dummy 'used to align vcontext
+									Dim vcontext As DBGCONTEXT
+									vcontext.ContextFlags = CONTEXT_DEBUG_REGISTERS
+									DbgGetThreadContext(thread(ith).hd, @vcontext)
+									If vcontext.Dr6 And 1 Then
+										bHwHit = True
+										bTrace = (vcontext.Dr6 And &h4000) <> 0
+										vcontext.Dr6 = 0
+										DbgSetThreadContext(thread(ith).hd, @vcontext)
+									End If
+									Exit For
+								End If
+							Next
+						End If
+						If bHwHit AndAlso CBool(runtype = RTFRUN) AndAlso CBool(Not brkvHwPending) Then
+							Dim As Boolean bTrue = brk_test(brkv.adr1, brkv.adr2, brkv.typ, brkv.Val, brkv.ttb) <> 0
+							If bTrue AndAlso CBool(Not brkvLastTrue) Then
+								If brkv_out_of_scope(DebugEv.dwThreadId) Then brkvScopeEnded = True
+								'The program stops at the next line: CC on every line
+								brkvHwPending = True
+								For iline As Integer = 1 To linenb
+									If LimitDebug AndAlso Not EqualPaths(GetFolderName(source(rline(iline).sx)), mainfolder) Then
+									Else
+										WriteProcessMemory(dbghand, Cast(LPVOID, rline(iline).ad), @breakcpu, 1, 0)
+									End If
+								Next
+							End If
+							brkvLastTrue = bTrue
+						End If
+						If bTrace Then WriteProcessMemory(dbghand, Cast(LPVOID, ssadr), @breakcpu, 1, 0)
 						ContinueDebugEvent(DebugEv.dwProcessId, DebugEv.dwThreadId, dwContinueStatus)
 						'========================= code 80000003
-					Case EXCEPTION_BREAKPOINT:
+					Case EXCEPTION_BREAKPOINT, &h4000001F: 'STATUS_WX86_BREAKPOINT: a 32-bit program
 						'=========================
 						'For i As Integer = 0 To threadnb 'if msg from thread then flag off
 						'	If DebugEv.dwThreadId = thread(i).id Then
@@ -12459,6 +13705,53 @@ End Sub
 									EndIf
 								Next
 								Exit While
+							End If
+							If CBool(runtype=RTFRUN) AndAlso CBool(brkv.adr1<>0) AndAlso brkvHwPending Then
+								'The hardware watch: the value has changed, the first line after the change
+								brkvHwPending = False
+								thread_search(DebugEv.dwThreadId,IIf(brkv.ivr1=0,CSMEM,CSVAR),adr)
+								Exit While
+							End If
+							If CBool(runtype=RTFRUN) AndAlso CBool(brkv.adr1<>0) AndAlso CBool(Not brkvHw) Then
+								'Break on Variable: CC on every line (fastrun), the variable is tested on each one
+								Dim As Boolean bTrue = brk_test(brkv.adr1,brkv.adr2,brkv.typ,brkv.Val,brkv.ttb) <> 0
+								If bTrue AndAlso CBool(Not brkvLastTrue) Then
+									brkvLastTrue = True
+									If brkv_out_of_scope(DebugEv.dwThreadId) Then brkvScopeEnded = True
+									thread_search(DebugEv.dwThreadId,IIf(brkv.ivr1=0,CSMEM,CSVAR),adr)
+									Exit While
+								End If
+								brkvLastTrue = bTrue
+								'Not a breakpoint (or the cursor): the original instruction is executed, then CC is put back (EXCEPTION_SINGLE_STEP)
+								Dim As Boolean bUserBP, bLine
+								For ibrk As Integer = 0 To brknb
+									If brkol(ibrk).typ > 0 AndAlso brkol(ibrk).typ < 3 AndAlso brkol(ibrk).ad = adr Then bUserBP = True: Exit For
+								Next
+								If Not bUserBP Then
+									For irln As Integer = 1 To linenb
+										If rline(irln).ad = adr Then singlestep_on(DebugEv.dwThreadId, irln): bLine = True: Exit For
+									Next
+									If bLine Then Exit While
+								End If
+							End If
+							If runtype=RTFRUN Then
+								'Breakpoint Hit Count: the breakpoint is passed until its counter is 0
+								Dim As Boolean bPassed
+								For ibrk As Integer = 1 To brknb
+									If brkol(ibrk).typ > 0 AndAlso brkol(ibrk).typ < 3 AndAlso brkol(ibrk).ad = adr Then
+										If brkcond(ibrk) <> "" AndAlso CBool(Not brk_cond_test(ibrk, DebugEv.dwThreadId)) Then
+											'Breakpoint Condition: false, the line is passed (the hit count counts only the true conditions)
+											singlestep_on(DebugEv.dwThreadId, brkol(ibrk).index)
+											bPassed = True
+										ElseIf brkol(ibrk).counter > 0 Then
+											brkol(ibrk).counter -= 1
+											singlestep_on(DebugEv.dwThreadId, brkol(ibrk).index)
+											bPassed = True
+										End If
+										Exit For
+									End If
+								Next
+								If bPassed Then Exit While
 							End If
 							If runtype=RTRUN Or runtype=RTAUTO Then
 								If brkv.adr1<>0 Then
@@ -12681,6 +13974,7 @@ End Sub
 						thread(threadnb).exc=0 'no exec auto
 						thread(threadnb).sts=KTHD_INIT
 					    thread(threadnb).rtype= runtype
+					    If brkv.adr1 <> 0 AndAlso brkvHw Then brkv_hw_thread(.hThread, True, False) 'the hardware watch of Break on Variable
 					Else
 						MsgBox ML("Threads limit") & ": " & WStr(threadnb) & " > " & WStr(THREADMAX)
 						Exit Do
@@ -12915,6 +14209,10 @@ End Sub
 '==============================
 Private Sub reinit()
 	vrbgbl=0:vrbloc=VGBLMAX:vrbgblprev=0
+	brkv.adr1=0:brkv.adr2=0:brkv.ivr1=0 ''Break on Variable
+	#ifdef __FB_WIN32__
+		brkvHw = False: brkvHwPending = False
+	#endif
 	prun=False
 	runtype=RTOFF
 	stopcode=0
@@ -12980,12 +14278,10 @@ End Sub
 Private Function check_bitness(ByRef fullname As WString) As Integer
 	#ifdef __FB_WIN32__
 		Dim As Long bintype
-		GetBinaryType(@fullname, @bintype) ''a control to prevent 32bit<>64bit
+		'A control to prevent 32bit<>64bit (the type is not known: the debugger tries)
+		If GetBinaryType(@fullname, @bintype) = 0 Then Return 1
 		#ifdef __FB_64BIT__
-			If bintype=SCS_32BIT_BINARY Then
-				MsgBox(ML("Can not be used for debugging 32bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
-				Return 0
-			End If
+			'A 32-bit exe: WOW64 (dbgT32 when the process is created)
 		#else
 			If bintype=SCS_64BIT_BINARY Then
 				MsgBox(ML("Can not be used for debugging 64bit exe..."), App.Title & ": " & ML("Integrated IDE Debugger"))
@@ -14106,6 +15402,7 @@ End Sub
 		Loop
 		
 		tpGlobals->Caption = ML("Globals") & " (" & lvGlobals.Nodes.Count & " " & ML("Pos") & ")"
+		DbgViewInvalidate
 		
 		Return iIndex
 		
@@ -14172,6 +15469,7 @@ End Sub
 	
 	Function fill_threads(sBuf As String, iFlagAutoUpdate As Long = 0) As Long
 		
+		DbgViewDataChanging
 		lvThreads.Nodes.Clear
 		
 		Dim As UString res()
@@ -14205,6 +15503,7 @@ End Sub
 			lvThreads.Nodes.Item(0)->Expand
 		End If
 		tpThreads->Caption = ML("Threads") & " (" & lvThreads.Nodes.Count & " " & ML("Pos") & ")"
+		DbgViewInvalidate
 		
 		Return 1
 		
@@ -14238,6 +15537,7 @@ End Sub
 			
 		End If
 		
+		DbgViewDataChanging
 		lvLocals.Nodes.Clear
 		
 		Dim As Long iCountItems = lvLocals.Nodes.Count, iItem 'Getitemcountlistview(E_LISTVIEW)
@@ -14389,6 +15689,7 @@ End Sub
 		Loop
 		
 		tpLocals->Caption = ML("Locals") & " (" & lvLocals.Nodes.Count & " " & ML("Pos") & ")"
+		DbgViewInvalidate
 		
 		Return 1
 		
@@ -14759,8 +16060,10 @@ End Sub
 		
 		ShowMessages(ML("Wait, process loading..."))
 		
+		DbgViewDataChanging
 		lvLocals.Nodes.Clear
 		
+		DbgViewDataChanging
 		lvGlobals.Nodes.Clear
 		
 		ThreadsLeave
@@ -14941,8 +16244,19 @@ End Sub
 		Else
 			
 			run_pipe_write(!"break " & sTemp & !"\n")
-			
+
 			readpipe()
+
+			'Breakpoint Hit Count: the stops before the N-th one are ignored
+			If Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[iSelEndLine])->BreakpointCount > 1 Then
+				run_pipe_write("ignore $bpnum " & (Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[iSelEndLine])->BreakpointCount - 1) & !"\n")
+				readpipe()
+			End If
+			'Breakpoint Condition
+			If Trim(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[iSelEndLine])->BreakpointCondition) <> "" Then
+				run_pipe_write("condition $bpnum " & gdb_condition(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[iSelEndLine])->BreakpointCondition) & !"\n")
+				readpipe()
+			End If
 			
 			'sendmessage ( Cast(Any Ptr , pd.sci(iCursel)) ,  SCI_MARKERADD , iLine , 0)
 			
@@ -15062,6 +16376,7 @@ End Sub
 		If Result = "" Then Result = "No symbol """ & UCase(lvWatches.Nodes.Item(WatchIndex)->Text(0)) & """ in current context."
 		lvWatches.Nodes.Item(WatchIndex)->Text(1) = Result
 		If StartsWith(Result, "{") Then lvWatches.Nodes.Item(WatchIndex)->Nodes.Add Else lvWatches.Nodes.Item(WatchIndex)->Nodes.Clear
+		DbgViewInvalidate
 	End Sub
 	
 	Sub run_debug(iFlag As Long)
@@ -15105,6 +16420,14 @@ End Sub
 						
 						writepipe(!"break """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1) & !"\n")
 						readpipe()
+						If Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount > 1 Then
+							writepipe("ignore $bpnum " & (Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount - 1) & !"\n")
+							readpipe()
+						End If
+						If Trim(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCondition) <> "" Then
+							writepipe("condition $bpnum " & gdb_condition(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCondition) & !"\n")
+							readpipe()
+						End If
 					Next
 				Next i
 			Next jj
@@ -15129,7 +16452,12 @@ End Sub
 			'#endif
 			
 			'run_pipe_write(!"r\n" , 300)
-			writepipe !"r\n"
+			If AttachPid <> 0 Then
+				writepipe "attach " & AttachPid & !"\n" 'Attach to Process
+				AttachPid = 0
+			Else
+				writepipe !"r\n"
+			End If
 			
 			MutexLock tlockGDB
 			Dim As String Result
@@ -15199,6 +16527,11 @@ End Sub
 						UpdateWatch WatchIndex, Result
 						ThreadsLeave
 						WatchIndex = -1
+					ElseIf GdbMemoryPending Then
+						GdbMemoryPending = False
+						ThreadsEnter
+						mem_show_text Result
+						ThreadsLeave
 					Else
 						fcurlig = -2
 						line_highlight iStateMenu
@@ -15303,6 +16636,16 @@ End Sub
 		
 		MutexUnlock tlockGDB
 		
+	End Sub
+	
+	'Variable Dump, Pointed data Dump of the Integrated GDB Debugger (CLI): the answer is read in run_debug
+	Sub gdb_memory_dump(ByRef sCommand As String)
+		If iFlagStartDebug = 0 Then ShowMessages ML("The debugger is not started."): Exit Sub
+		If Running Then Exit Sub
+		Dim As String sExpression = mem_expression(sCommand)
+		If sExpression = "" Then ShowMessages ML("Select a variable"): Exit Sub
+		GdbMemoryPending = True
+		command_debug "x/" & (dumplines * 16) & "xb " & sExpression
 	End Sub
 	
 	Sub step_debug(s As String)
@@ -15564,6 +16907,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		exename = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
+		If AttachPid <> 0 Then exename = AttachExe 'Attach to Process
 	Else
 		Restarting = False
 	End If
@@ -15624,7 +16968,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 					tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 					For j As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
 						If Not Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->Breakpoint Then Continue For
-						Print #Fn, "breakpoint set --file """ & Replace(tb->FileName, "\", "/") & """ --line " & WStr(j + 1)
+						Print #Fn, "breakpoint set" & IIf(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount > 1, " -i " & (Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount - 1), "") & " --file """ & Replace(tb->FileName, "\", "/") & """ --line " & WStr(j + 1)
 					Next
 				Next i
 			Next jj
@@ -15653,6 +16997,8 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				For j As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
 					If Not Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->Breakpoint Then Continue For
 					Print #Fn, "b """ & Replace(tb->FileName, "\", "/") & """:" & WStr(j + 1)
+					If Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount > 1 Then Print #Fn, "ignore $bpnum " & (Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCount - 1)
+					If Trim(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCondition) <> "" Then Print #Fn, "condition $bpnum " & gdb_condition(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[j])->BreakpointCondition)
 				Next
 			Next i
 		Next jj
@@ -15722,12 +17068,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 					ThreadsEnter()
 					ShowMessages(Time & ": " & ML("Run") & ": " & exename + " ...")
-					tvVar.Visible = False
-					lvLocals.Visible = True
-					tvThd.Visible = False
-					lvThreads.Visible = True
-					tvWch.Visible = False
-					lvWatches.Visible = True
+					DbgViewSetDebugger False
 					'				gtk_widget_show_all(lvGlobals.Handle)
 					'				lvGlobals.Parent->RequestAlign
 					ThreadsLeave()
@@ -15754,17 +17095,12 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				ThreadsEnter: If kill_process(ML("Trying to launch but debuggee still running")) = False Then ThreadsLeave: Exit Sub Else ThreadsLeave
 				flagrestart = -1
 				ThreadsEnter()
-				lvLocals.Visible = False
-				tvVar.Visible = True
-				lvThreads.Visible = False
-				tvThd.Visible = True
-				lvWatches.Visible = False
-				tvWch.Visible = True
+				DbgViewSetDebugger True
 				InDebug = True
 				tpLocals->SelectTab
 				ThreadsLeave()
 				
-				If ThreadCreate(@start_pgm) = 0 Then
+				If ThreadCreate(IIf(AttachPid <> 0, Cast(Any Ptr, @attach_pgm), Cast(Any Ptr, @start_pgm))) = 0 Then
 					KillTimer(0, GTIMER001)
 					ThreadsEnter: MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee"): ThreadsLeave
 				EndIf
@@ -15806,12 +17142,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 			'Shell """" & WGet(Debugger) & """ """ & exename & """"
 		Else
 			If CurrentDebuggerType = IntegratedGDBDebugger Then
-				tvVar.Visible = False
-				lvLocals.Visible = True
-				tvThd.Visible = False
-				lvThreads.Visible = True
-				tvWch.Visible = False
-				lvWatches.Visible = True
+				DbgViewSetDebugger False
 				If load_file(exename, GetFullPath(*GDBDebuggerPath)) Then
 					ShowMessages(Time & ": " & ML("Debugging finished."))
 					ChangeEnabledDebug True, False, False
@@ -15827,12 +17158,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
 				If kill_process(ML("Trying to launch but debuggee still running")) = False Then Exit Sub
 				flagrestart = -1
-				lvLocals.Visible = False
-				tvVar.Visible = True
-				lvThreads.Visible = False
-				tvThd.Visible = True
-				lvWatches.Visible = False
-				tvWch.Visible = True
+				DbgViewSetDebugger True
 				InDebug = True
 				tpLocals->SelectTab
 				
@@ -15891,4 +17217,356 @@ End Sub
 
 #ifdef __USE_EXTERNAL_DEBUGGERS__
 	#include once "DebugExternal.bas"
+#endif
+
+#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+	'Break on Variable of GDB and LLDB (CLI, MI, DAP): a watchpoint on the selected variable of Locals, Globals, Watches
+	'mode: 0 cancels, 1 stops when the variable changes, 2 stops when it changes and its value meets the condition (asked)
+	Dim Shared As String DbgWatchpointExpr
+
+	'GDB with CLI (Debug.bas) or GDB and LLDB with CLI, MI, DAP (DebugExternal.bas)
+	'Breakpoint Condition for gdb with CLI (Debug.bas): the syntax of C
+	Function gdb_condition(ByRef sCondition As String) As String
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+			Return DbgCCondition(sCondition)
+		#else
+			Return sCondition
+		#endif
+	End Function
+
+	Sub gdb_kind(ByRef bExternal As Boolean, ByRef IsLLDB As Boolean, ByRef IsDAP As Boolean)
+		bExternal = False: IsLLDB = False: IsDAP = False
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+			bExternal = DbgActive
+			If bExternal Then
+				IsLLDB = (DbgBackend = DbgLLDBCLI) OrElse (DbgBackend = DbgMI AndAlso GdbMiIsLLDB) OrElse (DbgBackend = DbgDAP AndAlso DapIsLLDB)
+				IsDAP = DbgBackend = DbgDAP
+			End If
+		#endif
+	End Sub
+
+	'The lines of sCommands (Chr(10) between them) are commands of the console of the debugger
+	Sub gdb_send_commands(ByRef sCommands As String)
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If bExternal Then
+			#ifdef __USE_EXTERNAL_DEBUGGERS__
+				Dim As Integer p1 = 1, p2
+				Do
+					p2 = InStr(p1, sCommands, Chr(10))
+					Dim As String sCom = IIf(p2, Mid(sCommands, p1, p2 - p1), Mid(sCommands, p1))
+					If IsDAP AndAlso IsLLDB Then sCom = "`" & sCom 'a command of lldb in the console of lldb-dap
+					DbgCommandDebug sCom
+					p1 = p2 + 1
+				Loop While p2
+			#endif
+		Else
+			command_debug sCommands 'the lines of the commands for gdb
+		End If
+	End Sub
+
+	Sub gdb_break_on_variable(ByRef sCommand As String, mode As Integer)
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If CBool(Not bExternal) AndAlso iFlagStartDebug = 0 Then ShowMessages ML("The debugger is not started."): Exit Sub
+		If Running Then ShowMessages ML("Break on Variable") & ": " & ML("Stop the program first"): Exit Sub
+		Dim As String sCancel = IIf(IsLLDB, "watchpoint delete -f", "delete $vfbe_watch"), sCommands
+		If mode = 0 Then
+			If DbgWatchpointExpr = "" Then ShowMessages ML("Break on Variable") & ": " & ML("is not set"): Exit Sub
+			sCommands = sCancel
+		Else
+			Dim As String sExpr = mem_expression(sCommand)
+			If Left(sExpr, 1) = "&" Then sExpr = Mid(sExpr, 2)
+			If sExpr = "" Then ShowMessages ML("Select a variable"): Exit Sub
+			#ifdef __USE_EXTERNAL_DEBUGGERS__
+				If bExternal Then sExpr = DbgCExpression(sExpr)
+			#endif
+			Dim As String sCondition
+			If mode = 2 Then
+				Dim As TreeListViewItem Ptr Item = mem_selected_item(sCommand)
+				Dim As String sCur
+				If Item Then sCur = ToUtf8(Trim(Item->Text(1)))
+				Dim As UString sInput
+				If Not DbgInputBox(ML("Break on Variable"), sExpr & " = " & sCur & WChr(10) & ML("Stop when the value becomes") & " (=, <>, >, <, >=, <= " & ML("and the value") & "):", "= " & sCur, sInput) Then Exit Sub
+				Dim As String s = Trim(sInput)
+				If s = "" Then Exit Sub
+				Dim As String ops(7) = {"==", "!=", ">=", "<=", "<>", "=", ">", "<"}, cops(7) = {"==", "!=", ">=", "<=", "!=", "==", ">", "<"}
+				Dim As String sOp = "=="
+				For k As Integer = 0 To 7
+					If Left(s, Len(ops(k))) = ops(k) Then sOp = cops(k): s = Trim(Mid(s, Len(ops(k)) + 1)): Exit For
+				Next
+				If UCase(s) = "TRUE" Then s = "1"
+				If UCase(s) = "FALSE" Then s = "0"
+				sCondition = sExpr & " " & sOp & " " & s
+			End If
+			'Only one watchpoint of the IDE: the previous one is removed
+			If DbgWatchpointExpr <> "" Then sCommands = sCancel & Chr(10)
+			If IsLLDB Then
+				sCommands &= "watchpoint set variable " & sExpr
+				If sCondition <> "" Then sCommands &= Chr(10) & "watchpoint modify -c """ & sCondition & """"
+			Else
+				sCommands &= "watch " & sExpr
+				If sCondition <> "" Then sCommands &= " if " & sCondition
+				sCommands &= Chr(10) & "set $vfbe_watch = $bpnum"
+			End If
+			If sCondition <> "" Then DbgWatchpointExpr = sCondition Else DbgWatchpointExpr = sExpr & " " & ML("changes")
+		End If
+		gdb_send_commands sCommands
+		If mode = 0 Then
+			ShowMessages ML("Break on Variable") & ": " & DbgWatchpointExpr & " - " & ML("cancelled")
+			DbgWatchpointExpr = ""
+		Else
+			ShowMessages ML("Break on Variable") & ": " & DbgWatchpointExpr & " (" & ML("watchpoint") & ")"
+		End If
+	End Sub
+
+	'The memory of the Memory window is read again (the address dumpadr)
+	Sub mem_refresh()
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If bExternal Then
+			#ifdef __USE_EXTERNAL_DEBUGGERS__
+				Select Case DbgBackend
+				Case DbgLLDBCLI: LLDBMemoryDump "0x" & Hex(dumpadr)
+				Case DbgMI: GdbMiMemoryDump "0x" & Hex(dumpadr)
+				Case DbgDAP: DapMemoryDump "0x" & Hex(dumpadr)
+				End Select
+			#endif
+		ElseIf iFlagStartDebug <> 0 Then
+			GdbMemoryPending = True
+			command_debug "x/" & (dumplines * 16) & "xb 0x" & Hex(dumpadr)
+		End If
+	End Sub
+
+	'The bytes "XX XX ..." (hex) of Edit Memory written at the address by GDB or LLDB
+	Sub gdb_memory_write(Address As LongInt, Bytes() As UByte, n As Integer)
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If CBool(Not bExternal) AndAlso iFlagStartDebug = 0 Then ShowMessages ML("The debugger is not started."): Exit Sub
+		If Running Then ShowMessages ML("Edit Memory") & ": " & ML("Stop the program first"): Exit Sub
+		Dim As String sCommands
+		If IsLLDB Then
+			sCommands = "memory write 0x" & Hex(Address)
+			For i As Integer = 0 To n - 1
+				sCommands &= " 0x" & Hex(Bytes(i), 2)
+			Next
+		Else
+			For i As Integer = 0 To n - 1
+				If i Then sCommands &= Chr(10)
+				sCommands &= "set {unsigned char}0x" & Hex(Address + i) & " = " & Bytes(i)
+			Next
+		End If
+		If bExternal Then
+			gdb_send_commands sCommands
+			mem_refresh
+		Else
+			'One command for gdb with CLI: the lines and the memory again
+			GdbMemoryPending = True
+			command_debug sCommands & Chr(10) & "x/" & (dumplines * 16) & "xb 0x" & Hex(dumpadr)
+		End If
+	End Sub
+
+	'Break on Memory Address of GDB and LLDB: a watchpoint on Size bytes at the address
+	Sub gdb_break_on_memory(Address As LongInt, Size As Integer)
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If CBool(Not bExternal) AndAlso iFlagStartDebug = 0 Then ShowMessages ML("The debugger is not started."): Exit Sub
+		If Running Then ShowMessages ML("Break on Memory Address") & ": " & ML("Stop the program first"): Exit Sub
+		Dim As String sCommands, sType = IIf(Size = 1, "unsigned char", IIf(Size = 2, "unsigned short", IIf(Size = 4, "unsigned int", "unsigned long long")))
+		If DbgWatchpointExpr <> "" Then sCommands = IIf(IsLLDB, "watchpoint delete -f", "delete $vfbe_watch") & Chr(10)
+		If IsLLDB Then
+			sCommands &= "watchpoint set expression -w write -s " & Size & " -- 0x" & Hex(Address)
+		Else
+			sCommands &= "watch *(" & sType & " *)0x" & Hex(Address) & Chr(10) & "set $vfbe_watch = $bpnum"
+		End If
+		DbgWatchpointExpr = "0x" & Hex(Address) & " (" & Size & " " & ML("bytes") & ")"
+		gdb_send_commands sCommands
+		ShowMessages ML("Break on Memory Address") & ": " & DbgWatchpointExpr & " (" & ML("watchpoint") & ")"
+	End Sub
+	
+	'Edit Value of GDB and LLDB (CLI, MI, DAP): the selected variable of Locals, Globals, Watches gets the value sValue.
+	'Returns True if the command is sent
+	Function gdb_set_value(ByRef sCommand As String, ByRef sValue As WString) As Boolean
+		Dim As Boolean bExternal, IsLLDB, IsDAP
+		gdb_kind bExternal, IsLLDB, IsDAP
+		If CBool(Not bExternal) AndAlso iFlagStartDebug = 0 Then ShowMessages ML("The debugger is not started."): Return False
+		If Running Then ShowMessages ML("Edit Value") & ": " & ML("Stop the program first"): Return False
+		Dim As String sExpr = mem_expression(sCommand)
+		If Left(sExpr, 1) = "&" Then sExpr = Mid(sExpr, 2)
+		If sExpr = "" Then ShowMessages ML("Select a variable"): Return False
+		#ifdef __USE_EXTERNAL_DEBUGGERS__
+			If bExternal Then sExpr = DbgCExpression(sExpr)
+		#endif
+		Dim As String sVal = Trim(ToUtf8(sValue))
+		If sVal = "" Then Return False
+		If UCase(sVal) = "TRUE" Then sVal = "1"
+		If UCase(sVal) = "FALSE" Then sVal = "0"
+		If UCase(Left(sVal, 2)) = "&H" Then sVal = "0x" & Mid(sVal, 3)
+		If IsLLDB Then
+			gdb_send_commands "expression " & sExpr & " = " & sVal
+		Else
+			gdb_send_commands "set var " & sExpr & " = " & sVal
+		End If
+		Return True
+	End Function
+#endif
+
+#ifdef __USE_WINAPI__
+	'Edit Value of the Integrated IDE Debugger: the new value of the selected variable (tviewvar: Locals, Globals,
+	'tviewwch: Watches) is written in the memory of the program. Returns True if it is written
+	Function var_set_value(tv As Any Ptr, ByRef sText As WString) As Boolean
+		If var_find2(tv) = -1 Then Return False
+		Dim As Integer adr = varfind.ad, t = varfind.ty, sz
+		If adr = 0 Then ShowMessages ML("Edit Value") & ": " & ML("The variable has no address"): Return False
+		Dim As String s = Trim(sText)
+		Dim As valeurs v
+		If varfind.pt Then
+			sz = TSZ: v.vulongint = ValULng(s)
+		ElseIf t = 16 Then
+			sz = 1: v.vubyte = IIf(UCase(s) = "TRUE" OrElse (UCase(s) <> "FALSE" AndAlso Val(s) <> 0), 1, 0)
+		ElseIf t = 11 Then
+			sz = 4: v.vsingle = Val(s)
+		ElseIf t = 12 Then
+			sz = 8: v.vdouble = Val(s)
+		ElseIf t > TYPESTD AndAlso udt(t).en Then
+			sz = 4: v.vlongint = ValLng(s)
+		ElseIf t = 1 OrElse t = 2 OrElse t = 5 OrElse t = 9 Then
+			sz = udt(t).lg: v.vlongint = ValLng(s)
+		ElseIf t = 3 OrElse t = 6 OrElse t = 8 OrElse t = 10 Then
+			sz = udt(t).lg: v.vulongint = ValULng(s)
+		End If
+		If sz > 0 Then
+			If WriteProcessMemory(dbghand, Cast(LPVOID, adr), @v, sz, 0) = 0 Then ShowMessages ML("Edit Value") & ": " & ML("The memory is not written"): Return False
+		Else
+			'Strings: the text between quotes
+			Dim As UString us = Trim(sText)
+			If Len(us) >= 2 AndAlso Left(us, 1) = """" AndAlso Right(us, 1) = """" Then us = Mid(us, 2, Len(us) - 2)
+			s = us
+			Select Case t
+			Case 4, 14 'ZString * N, String * N
+				If varfind.fxlen <= 0 Then ShowMessages ML("Edit Value") & ": " & ML("Unknown length"): Return False
+				s = Left(s, varfind.fxlen - 1)
+				WriteProcessMemory(dbghand, Cast(LPVOID, adr), StrPtr(s), Len(s) + 1, 0)
+			Case 18 'WString * N
+				If varfind.fxlen <= 0 Then ShowMessages ML("Edit Value") & ": " & ML("Unknown length"): Return False
+				Dim As Integer n = Len(us)
+				If n > varfind.fxlen - 1 Then n = varfind.fxlen - 1
+				Dim As UShort w(n)
+				Dim As WString * 4097 ws = Left(us, 4096)
+				If n > 4096 Then n = 4096
+				For k As Integer = 0 To n - 1
+					w(k) = ws[k]
+				Next
+				WriteProcessMemory(dbghand, Cast(LPVOID, adr), @w(0), (n + 1) * 2, 0)
+			Case 13 'String: the new text in the memory of the string (data, length, size)
+				Dim As Integer d(2)
+				d(0) = rd_sint(adr): d(1) = rd_sint(adr + TSZ): d(2) = rd_sint(adr + 2 * TSZ)
+				If d(0) = 0 OrElse Len(s) + 1 > d(2) Then
+					ShowMessages ML("Edit Value") & ": " & ML("The new text is longer than the memory of the string") & " (" & IIf(d(2) > 0, d(2) - 1, 0) & ")"
+					Return False
+				End If
+				WriteProcessMemory(dbghand, Cast(LPVOID, d(0)), StrPtr(s), Len(s) + 1, 0)
+				d(1) = Len(s)
+				WriteProcessMemory(dbghand, Cast(LPVOID, adr + TSZ), @d(1), TSZ, 0)
+			Case Else
+				ShowMessages ML("Edit Value") & ": " & ML("Only numbers, Boolean, Enum, pointers and strings") & " (" & varfind.nm & " <" & udt(t).nm & ">)"
+				Return False
+			End Select
+		End If
+		var_sh() 'the new values in the trees
+		Return True
+	End Function
+#endif
+
+'==================== Memory window: Edit Memory, Go to Address, Refresh (all debuggers) ====================
+#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+	'"&H4C7020" or "0x4C7020" or "4C7020h" (hex), a decimal number
+	Function mem_parse_address(ByRef sText As String) As LongInt
+		Dim As String s = UCase(Trim(sText))
+		If StartsWith(s, "&H") Then Return ValLng(s)
+		If StartsWith(s, "0X") Then Return ValLng("&H" & Mid(s, 3))
+		If Right(s, 1) = "H" Then Return ValLng("&H" & Left(s, Len(s) - 1))
+		Return ValLng(s)
+	End Function
+
+	'Edit Memory: the bytes of the selected line of the Memory window "ADDRESS: XX XX ..." (hex)
+	Sub mem_edit()
+		If dumpnbcol = 0 OrElse lvMemory.ListItems.Count = 0 Then ShowMessages ML("Edit Memory") & ": " & ML("Dump the memory first (Variable Dump)"): Exit Sub
+		Dim As Integer iRow = lvMemory.SelectedItemIndex
+		If iRow < 0 Then iRow = 0
+		Dim As LongInt ad = dumpadr + iRow * 16
+		Dim As String sBytes
+		If InDebug Then
+			#ifdef __USE_WINAPI__
+				Dim As UByte b(15)
+				ReadProcessMemory(dbghand, Cast(LPCVOID, ad), @b(0), 16, 0)
+				For i As Integer = 0 To 15
+					sBytes &= IIf(i, " ", "") & Hex(b(i), 2)
+				Next
+			#endif
+		Else
+			For i As Integer = 1 To 16
+				sBytes &= IIf(i > 1, " ", "") & lvMemory.ListItems.Item(iRow)->Text(i)
+			Next
+		End If
+		Dim As UString sNew = InputBox(ML("Edit Memory"), ML("Address") & ": " & ML("the bytes in hex") & " (" & ML("fewer bytes - only they are written") & ")", Hex(ad) & ": " & sBytes)
+		If sNew = "" Then Exit Sub
+		Dim As String s = sNew
+		Dim As Integer p = InStr(s, ":")
+		If p = 0 Then ShowMessages ML("Edit Memory") & ": " & ML("ADDRESS: XX XX ..."): Exit Sub
+		Dim As LongInt adNew = ValLng("&H" & Trim(Left(s, p - 1), Any " &Hh"))
+		If StartsWith(LCase(Trim(Left(s, p - 1))), "0x") Then adNew = ValLng("&H" & Mid(Trim(Left(s, p - 1)), 3))
+		Dim As UByte Bytes(255)
+		Dim As Integer n
+		s = Trim(Mid(s, p + 1)) & " "
+		Do While Len(Trim(s)) > 0 AndAlso n <= 255
+			s = LTrim(s)
+			Dim As Integer e = InStr(s, " ")
+			Dim As String sTok = Left(s, e - 1)
+			s = Mid(s, e + 1)
+			If StartsWith(LCase(sTok), "0x") Then sTok = Mid(sTok, 3)
+			Bytes(n) = ValInt("&H" & sTok)
+			n += 1
+		Loop
+		If n = 0 Then Exit Sub
+		If InDebug Then
+			#ifdef __USE_WINAPI__
+				If WriteProcessMemory(dbghand, Cast(LPVOID, adNew), @Bytes(0), n, 0) = 0 Then ShowMessages ML("Edit Memory") & ": " & ML("The memory is not written"): Exit Sub
+				dump_sh()
+				var_sh()
+				DbgViewInvalidate
+			#endif
+		Else
+			gdb_memory_write adNew, Bytes(), n
+		End If
+		ShowMessages ML("Edit Memory") & ": &H" & Hex(adNew) & " (" & n & " " & ML("bytes") & ")"
+	End Sub
+
+	'Go to Address: the memory at an address in the Memory window
+	Sub mem_goto()
+		Dim As UString sNew = InputBox(ML("Go to Address"), ML("Address") & " (&H..., 0x... " & ML("or decimal") & "):", "&H" & Hex(dumpadr))
+		If sNew = "" Then Exit Sub
+		Dim As LongInt ad = mem_parse_address(sNew)
+		If ad = 0 Then Exit Sub
+		dumpadr = ad
+		If InDebug Then
+			#ifdef __USE_WINAPI__
+				If dumpnbcol = 0 Then dumptyp = 2: dump_set()
+				dump_sh()
+				tpMemory->SelectTab
+			#endif
+		Else
+			mem_refresh
+		End If
+	End Sub
+
+	Sub mem_refresh_any()
+		If InDebug Then
+			#ifdef __USE_WINAPI__
+				If dumpnbcol <> 0 Then dump_sh()
+			#endif
+		Else
+			mem_refresh
+		End If
+	End Sub
 #endif

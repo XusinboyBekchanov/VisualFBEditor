@@ -92,13 +92,34 @@ End Function
 
 'The name of a variable of the C code of fbc: I$0 -> I; the temporary variables (vr$5, tmp$1, fb$result$1) and the ones
 'of the runtime (__FB_ARGC__) are not shown
+'The names shown (ARR) and their names in the C code (ARR$0, COUNTER$) for the commands of the debugger
+Dim Shared As String DbgShownNames(Any), DbgCNames(Any)
+
 Function DbgName(ByRef CName As String) As String
 	Dim As String s = CName
 	Dim As Integer p = InStrRev(s, "$")
 	If p > 1 AndAlso p < Len(s) AndAlso Trim(Mid(s, p + 1), Any "0123456789") = "" Then s = Left(s, p - 1)
 	If InStr(s, "$") > 0 OrElse StartsWith(s, "__FB_") Then Return ""
 	If s <> UCase(s) Then Return ""
+	If s <> CName Then
+		Dim As Integer n = UBound(DbgShownNames) + 1
+		For i As Integer = 0 To n - 1
+			If DbgShownNames(i) = s Then DbgCNames(i) = CName: Return s
+		Next
+		ReDim Preserve DbgShownNames(n), DbgCNames(n)
+		DbgShownNames(n) = s: DbgCNames(n) = CName
+	End If
 	Return s
+End Function
+
+'The expression of the C code of a shown expression (ARR(1) -> ARR$0[1], COUNTER -> COUNTER$): its first name
+Function DbgCExpression(ByRef sExpr As String) As String
+	Dim As Integer p = InStr(sExpr, Any ".[(")
+	Dim As String sFirst = IIf(p, Left(sExpr, p - 1), sExpr)
+	For i As Integer = 0 To UBound(DbgShownNames)
+		If DbgShownNames(i) = sFirst Then Return DbgCNames(i) & IIf(p, Mid(sExpr, p), "")
+	Next
+	Return sExpr
 End Function
 
 'The type of the characters of WString in the C code of fbc: wchar_t of Windows has 2 bytes
@@ -218,11 +239,84 @@ Function DbgIsCompound(ByRef Value As String) As Boolean
 	Return Left(Value, 1) = "(" AndAlso Right(Value, 1) = ")" AndAlso InStr(Value, " = ") > 0
 End Function
 
+Declare Function DbgWideText(ByRef Bytes As String) As String
+
+'gdb with -gen gas (stabs): wchar is a char, a WString is "T\000a\000h\000o\000m\000a\000": its text L"Tahoma"
+'(every quoted text of the value, also the fields of {...})
+Function DbgWideCharsValue(ByRef sValue As String, ByRef sType As String = "") As String
+	Dim As String Result, Bytes
+	Dim As Integer i = 1, p1, iCount
+	Do While i <= Len(sValue)
+		Dim As String c = Mid(sValue, i, 1)
+		If c <> """" OrElse (i > 1 AndAlso Mid(sValue, i - 1, 1) = "L") Then
+			'Not a text, or a text of wchar_t (L"...")
+			If c = """" Then
+				p1 = i
+				i += 1
+				Do While i <= Len(sValue) AndAlso Mid(sValue, i, 1) <> """"
+					If Mid(sValue, i, 1) = "\" Then i += 1
+					i += 1
+				Loop
+				Result &= Mid(sValue, p1, i - p1 + 1)
+				i += 1
+			Else
+				Result &= c
+				i += 1
+			End If
+			Continue Do
+		End If
+		'The bytes of the text
+		p1 = i
+		Bytes = ""
+		i += 1
+		Do While i <= Len(sValue)
+			c = Mid(sValue, i, 1)
+			If c = """" Then Exit Do
+			If c = "\" AndAlso i < Len(sValue) Then
+				Dim As String e = Mid(sValue, i + 1, 1)
+				Select Case e
+				Case "0" To "7"
+					Dim As Integer Code, k = i + 1
+					While k <= Len(sValue) AndAlso k <= i + 3 AndAlso Mid(sValue, k, 1) >= "0" AndAlso Mid(sValue, k, 1) <= "7"
+						Code = Code * 8 + Val(Mid(sValue, k, 1))
+						k += 1
+					Wend
+					Bytes &= Chr(Code And 255)
+					i = k
+				Case "n": Bytes &= Chr(10): i += 2
+				Case "t": Bytes &= Chr(9): i += 2
+				Case "r": Bytes &= Chr(13): i += 2
+				Case Else: Bytes &= e: i += 2
+				End Select
+			Else
+				Bytes &= c
+				i += 1
+			End If
+		Loop
+		iCount += 1
+		'A WString: the bytes after the characters are 0 (or the type is wchar)
+		Dim As Boolean bWide = Len(Bytes) >= 2
+		If bWide AndAlso InStr(LCase(sType), "wchar") = 0 Then
+			For j As Integer = 2 To Len(Bytes) Step 2
+				If Bytes[j - 1] <> 0 Then bWide = False: Exit For
+			Next
+		End If
+		If bWide Then
+			Result &= DbgWideText(Bytes & Chr(0, 0, 0, 0))
+		Else
+			Result &= Mid(sValue, p1, i - p1 + 1)
+		End If
+		i += 1
+	Loop
+	Return Result
+End Function
+
 'A variable in Locals, Globals or a field of a variable; its name for Watches: Path
 Function DbgAddVariable(lv As TreeListView Ptr, Parent As TreeListViewItem Ptr, ByRef Path As String, ByRef sName As String, ByRef sValue As String, ByRef sType As String) As TreeListViewItem Ptr
 	If DbgVariablesCount >= 2000 Then Return 0
 	Dim As TreeListViewItem Ptr Item
 	Dim As String sShown = IIf(sType = "String" OrElse sType = "FBSTRING", DbgStringValue(sValue), sValue)
+	sShown = DbgWideCharsValue(sShown, IIf(DbgIsCompound(sShown), "", sType))
 	If Parent = 0 Then
 		Item = lv->Nodes.Add(DbgText(sName))
 	Else
@@ -266,6 +360,7 @@ End Sub
 
 Sub DbgClearVariables()
 	Erase DbgNames, DbgValues, DbgTypes
+	Erase DbgShownNames, DbgCNames
 	DbgVariablesCount = 0
 End Sub
 
@@ -327,6 +422,7 @@ Sub DbgShowWord(ByRef sCommand As String)
 		Item->Text(2) = sType
 		lvWatches.Nodes.Add
 		tpWatches->Caption = ML("Watches") & " (" & Str(lvWatches.Nodes.Count - 1) & " " & ML("Pos") & ")"
+		DbgViewInvalidate
 		tpWatches->SelectTab
 	End If
 End Sub
@@ -427,6 +523,7 @@ Function DbgProgramFrame() As Integer
 End Function
 
 Sub DbgShowFrames()
+	DbgViewDataChanging
 	lvThreads.Nodes.Clear
 	For i As Integer = 0 To UBound(DbgFrames)
 		Var Item = lvThreads.Nodes.Add(DbgText(DbgFrames(i).Func))
@@ -459,6 +556,7 @@ End Sub
 Sub DbgShowCaptions()
 	tpLocals->Caption = ML("Locals") & " (" & lvLocals.Nodes.Count & " " & ML("Pos") & ")"
 	tpGlobals->Caption = ML("Globals") & " (" & lvGlobals.Nodes.Count & " " & ML("Pos") & ")"
+	DbgViewInvalidate
 End Sub
 
 'The current line of the editor: Breakpoint, Run To Cursor, Set Next Statement
@@ -473,6 +571,94 @@ Function DbgCursorPlace(ByRef FileName As UString, ByRef LineNo As Integer) As B
 End Function
 
 'The files with breakpoints and their lines: Files(i), Lines(i) = "7,12"
+'Breakpoint Hit Count of the line LineNo (from 1) of the open file FileName: 0 - every time
+Function DbgBreakpointCount(ByRef FileName As WString, LineNo As Integer) As Integer
+	For jj As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode_ = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Integer = 0 To ptabCode_->TabCount - 1
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode_->Tabs[i])
+			If EqualPaths(tb->FileName, FileName) Then
+				If LineNo < 1 OrElse LineNo > tb->txtCode.Content.Lines.Count Then Return 0
+				Return Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[LineNo - 1])->BreakpointCount
+			End If
+		Next
+	Next
+	Return 0
+End Function
+
+'The line LineNo (from 1) of the open file FileName
+Function DbgBreakpointLine(ByRef FileName As WString, LineNo As Integer) As EditControlLine Ptr
+	For jj As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode_ = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Integer = 0 To ptabCode_->TabCount - 1
+			Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode_->Tabs[i])
+			If EqualPaths(tb->FileName, FileName) Then
+				If LineNo < 1 OrElse LineNo > tb->txtCode.Content.Lines.Count Then Return 0
+				Return tb->txtCode.Content.Lines.Items[LineNo - 1]
+			End If
+		Next
+	Next
+	Return 0
+End Function
+
+'A condition of FreeBASIC for gdb and lldb (the syntax of C): =, <>, AndAlso, OrElse, Not; the shown names of the
+'variables become their names of the C code when they are known (DbgShownNames: ARR -> ARR$0)
+Function DbgCCondition(ByRef sCondition As String) As String
+	Dim As String s = Trim(sCondition), r, w
+	Dim As Integer i = 1, n = Len(s)
+	Do While i <= n
+		Dim As String c = Mid(s, i, 1)
+		If c = """" Then
+			Dim As Integer e = InStr(i + 1, s, """")
+			If e = 0 Then e = n
+			r &= Mid(s, i, e - i + 1): i = e + 1
+		ElseIf (c >= "A" AndAlso c <= "Z") OrElse (c >= "a" AndAlso c <= "z") OrElse c = "_" Then
+			Dim As Integer e = i
+			Do While e <= n AndAlso InStr("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789_", Mid(s, e, 1)) > 0
+				e += 1
+			Loop
+			w = Mid(s, i, e - i)
+			Select Case UCase(w)
+			Case "ANDALSO", "AND": r &= "&&"
+			Case "ORELSE", "OR": r &= "||"
+			Case "NOT": r &= "!"
+			Case "MOD": r &= "%"
+			Case "TRUE": r &= "1"
+			Case "FALSE": r &= "0"
+			Case Else
+				Dim As String sC = UCase(w)
+				For k As Integer = 0 To UBound(DbgShownNames)
+					If DbgShownNames(k) = sC Then sC = DbgCNames(k): Exit For
+				Next
+				r &= sC
+			End Select
+			i = e
+		ElseIf c = "<" AndAlso Mid(s, i + 1, 1) = ">" Then
+			r &= "!=": i += 2
+		ElseIf c = "=" AndAlso Mid(s, i - 1, 1) <> "<" AndAlso Mid(s, i - 1, 1) <> ">" AndAlso Mid(s, i - 1, 1) <> "!" AndAlso Mid(s, i - 1, 1) <> "=" AndAlso Mid(s, i + 1, 1) <> "=" Then
+			r &= "==": i += 1
+		ElseIf c = "&" AndAlso UCase(Mid(s, i + 1, 1)) = "H" Then
+			r &= "0x": i += 2
+		Else
+			r &= c: i += 1
+		End If
+	Loop
+	Return r
+End Function
+
+'The condition of the breakpoint of the line for gdb and lldb ("" - none)
+Function DbgBreakpointCondition(ByRef FileName As WString, LineNo As Integer) As String
+	Dim As EditControlLine Ptr ECLine = DbgBreakpointLine(FileName, LineNo)
+	If ECLine = 0 OrElse Trim(ECLine->BreakpointCondition) = "" Then Return ""
+	Return DbgCCondition(ECLine->BreakpointCondition)
+End Function
+
+'The ignore count of gdb and lldb for the hit count: the stops before the N-th one
+Function DbgIgnoreCount(ByRef FileName As WString, LineNo As Integer) As Integer
+	Dim As Integer n = DbgBreakpointCount(FileName, LineNo)
+	Return IIf(n > 1, n - 1, 0)
+End Function
+
 Sub DbgBreakpoints(Files() As UString, Lines() As String)
 	Erase Files, Lines
 	Dim As TabWindow Ptr tb

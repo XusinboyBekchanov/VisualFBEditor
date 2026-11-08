@@ -95,12 +95,18 @@ End Function
 	#define regbp rbp
 	#define regsp rsp
 	#define ver3264 "(64bit) "
+	'The debugged program is 32-bit (WOW64) in the 64-bit IDE: its pointers, its registers, its debug data
+	Common Shared As Boolean dbgT32
+	#define T64 (Not dbgT32)
 #else
+	#define T64 False
 	#define regip eip
 	#define regbp ebp
 	#define regsp esp
 	#define ver3264 "(32bit) "
 #endif
+'The size of a pointer, an Integer of the debugged program
+#define TSZ IIf(T64, 8, 4)
 
 '#define fulldbg_prt 'uncomment to get more information
 #define dbg_prt2 Rem ' dbg_prt 'used temporary for debugging, change rem by print 
@@ -432,11 +438,8 @@ Type tlist
 End Type
 
 #define TYPESTD 18 ''upper limit for standard type, now 17 for va_list 2020/02/05
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
-	Const STYPESTD = ":t18"
-#else
-	Const STYPESTD = ":t" + Str(TYPESTD)
-#endif
+'":t" & TYPESTD: Str in Const is not a constant for every target of fbc
+Const STYPESTD = ":t18"
 
 '' DATA STAB
 Type udtstab
@@ -1029,6 +1032,24 @@ Declare Sub ini_write()
 Declare Sub singlestep_on(tid As Integer,rln As Integer,running As Integer =1)
 Declare Sub brk_del(n As Integer)
 Declare Sub brkv_set(a As Integer)
+#ifdef __FB_WIN32__
+	Declare Sub brkv_set_ide(tv As Any Ptr, mode As Integer)
+	Declare Sub brkv_stopped()
+	Declare Sub brkv_set_memory(Address As Integer, Size As Integer)
+#endif
+#ifdef __USE_WINAPI__
+	Declare Function var_set_value(tv As Any Ptr, ByRef sText As WString) As Boolean
+#endif
+#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+	Declare Sub gdb_break_on_variable(ByRef sCommand As String, mode As Integer)
+	Declare Function gdb_set_value(ByRef sCommand As String, ByRef sValue As WString) As Boolean
+	Declare Function gdb_condition(ByRef sCondition As String) As String
+	Declare Sub mem_edit()
+	Declare Sub mem_goto()
+	Declare Sub mem_refresh_any()
+	Declare Function mem_parse_address(ByRef sText As String) As LongInt
+	Declare Sub gdb_break_on_memory(Address As LongInt, Size As Integer)
+#endif
 Declare Sub brk_apply()
 Declare Sub brk_sav()
 Declare Sub process_list()
@@ -1042,6 +1063,11 @@ Declare Sub resume_exec()
 Declare Function proc_find(thid As Integer,t As Byte) As Integer
 Declare Function proc_name(ad As UInteger) As String
 Declare Sub proc_sh()
+Declare Function mem_selected_item(ByRef sCommand As String) As TreeListViewItem Ptr
+#ifdef __USE_WINAPI__
+	Declare Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
+	Declare Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
+#endif
 Declare Function proc_verif(p As Integer) As Boolean
 Declare Function proc_retval(prcnb As Integer) As String
 Declare Sub proc_watch(procridx As Integer)
@@ -1071,6 +1097,20 @@ Declare Sub RunProgramWithDebug(Param As Any Ptr)
 	Declare Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 	Declare Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
 #endif
+
+#include once "mff/Form.bi"
+#include once "mff/TextBox.bi"
+'The window of Show String of all debuggers (string_sh of Debug.bas, DbgViewShowString of DebugView.bas)
+Dim Shared As Form frmShowString
+Dim Shared As TextBox txtShowString
+frmShowString.SetBounds 2, 2, 400, 260
+txtShowString.Multiline = True
+txtShowString.ScrollBars = ScrollBarsType.Both
+txtShowString.Align = DockStyle.alClient
+frmShowString.Add @txtShowString
+
+'Edit Value and Break on Variable Value: InputBox (sMessage: its lines with Chr(10) between them). Returns False when it is cancelled
+Declare Function DbgInputBox(ByRef sCaption As WString, ByRef sMessage As WString, ByRef sDefault As WString, ByRef sResult As UString) As Boolean
 
 #ifndef __USE_MAKE__
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
