@@ -6404,6 +6404,8 @@ Private Sub dbg_file(strg As String, value As Integer)
 		If Right(strg,4)<>".bas" And Right(strg,3)<>".bi" Then
 			path=strg
 		Else
+			'Attach to Process: a source without path (compiled in its folder) is in the folder of the program
+			If flagattach AndAlso InStr(path + strg, Any "/\") = 0 Then path = mainfolder
 			Dim As String sPath = path + strg
 			#ifdef __FB_WIN32__
 				fullname=LCase(path+strg)
@@ -6435,8 +6437,12 @@ Private Sub dbg_include(strg As String)
 	If InStr(strg, Any "/\") = 0 Then ''just the name no path Then
 		Dim As ProjectElement Ptr Project
 		Dim As TreeNode Ptr ProjectNode
-		Dim As UString MainFile = GetMainFile(False, Project, ProjectNode)
-		strg = Left(MainFile, InStrRev(MainFile, Any "/\")) + strg ''adding path
+		If flagattach Then
+			strg = mainfolder + strg 'Attach to Process: the folder of the program
+		Else
+			Dim As UString MainFile = GetMainFile(False, Project, ProjectNode)
+			strg = Left(MainFile, InStrRev(MainFile, Any "/\")) + strg ''adding path
+		End If
 		'strg=Left(source(0),InStrRev(source(0),Any "/\"))+strg ''adding path
 	End If
 	Dim As String sPath = strg
@@ -16969,7 +16975,8 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		exename = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
-		If AttachPid <> 0 Then exename = AttachExe 'Attach to Process
+		'Attach to Process: the program and its folder (the sources without path are in it, not in the folder of the file of the IDE)
+		If AttachPid <> 0 Then exename = AttachExe: mainfolder = GetFolderName(AttachExe)
 	Else
 		Restarting = False
 	End If
@@ -17224,7 +17231,8 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				InDebug = True
 				tpLocals->SelectTab
 				
-				If ThreadCreate(@start_pgm, , DBG_THREAD_STACK) = 0 Then
+				'Attach to Process (AttachPid): attach_pgm, otherwise the program is started
+				If ThreadCreate(IIf(AttachPid <> 0, Cast(Any Ptr, @attach_pgm), Cast(Any Ptr, @start_pgm)), , DBG_THREAD_STACK) = 0 Then
 					KillTimer(0, GTIMER001)
 					MsgBox(ML("Debuggee not running"), ML("ERROR unable to start the thread managing the debuggee"))
 				EndIf

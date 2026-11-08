@@ -13846,12 +13846,57 @@ tbToolBox.Groups.Item(2)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it
 tbToolBox.Groups.Item(3)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 tbToolBox.Groups.Item(4)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap Or tstChecked))
 
+#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+	'Linux: the compiler of the settings is not on this computer (the settings of another computer, of the AppImage):
+	'fbc of PATH (an installed FreeBASIC: /usr/bin/fbc, /usr/local/bin/fbc) becomes the compiler "fbc" of the IDE
+	Function UseCompilerFromPath(ByRef CompilerPath As WString Ptr, ByRef DefaultCompiler As WString Ptr, ByRef CurrentCompiler As WString Ptr, ByRef DefaultKey As WString) As Boolean
+		If CompilerPath <> 0 AndAlso *CompilerPath <> "" Then
+			Dim As gchar Ptr pOld = g_find_program_in_path(ToUtf8(GetFullPath(*CompilerPath)))
+			If pOld <> NULL Then g_free(pOld): Return False
+		End If
+		Dim As gchar Ptr pFound = g_find_program_in_path("fbc")
+		If pFound = NULL Then Return False
+		Dim As UString sPath = *Cast(ZString Ptr, pFound)
+		g_free(pFound)
+		Dim As UString sName = "fbc"
+		Dim As Integer Idx = pCompilers->IndexOfKey(sName)
+		If Idx = -1 Then
+			Dim As ToolType Ptr Tool = _New(ToolType)
+			Tool->Name = sName
+			Tool->Path = sPath
+			pCompilers->Add sName, sPath, Tool
+		Else
+			pCompilers->Item(Idx)->Text = sPath
+			If pCompilers->Item(Idx)->Object Then Cast(ToolType Ptr, pCompilers->Item(Idx)->Object)->Path = sPath
+		End If
+		WLet(DefaultCompiler, sName)
+		WLet(CurrentCompiler, sName)
+		WLet(CompilerPath, sPath)
+		'The settings: like Options (the list of the compilers again)
+		iniSettings.WriteString "Compilers", DefaultKey, sName
+		For i As Integer = 0 To pCompilers->Count - 1
+			iniSettings.WriteString "Compilers", "Version_" & WStr(i), pCompilers->Item(i)->Key
+			iniSettings.WriteString "Compilers", "Path_" & WStr(i), pCompilers->Item(i)->Text
+			iniSettings.WriteString "Compilers", "Command_" & WStr(i), IIf(pCompilers->Item(i)->Object, Cast(ToolType Ptr, pCompilers->Item(i)->Object)->Parameters, "")
+		Next
+		Return True
+	End Function
+#endif
+
 Function CheckCompilerPaths As Boolean
 	Dim As Boolean bFind
 	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Web and Android: there are no compilers to find or to run (the Web IDE Server compiles), the start of the IDE
 		'(new project, default file) goes on
 		Return True
+	#endif
+	#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+		'Linux: fbc of PATH when the compiler of the settings is not found (no question to the user)
+		#ifdef __FB_64BIT__
+			UseCompilerFromPath Compiler64Path, DefaultCompiler64, CurrentCompiler64, "DefaultCompiler64"
+		#else
+			UseCompilerFromPath Compiler32Path, DefaultCompiler32, CurrentCompiler32, "DefaultCompiler32"
+		#endif
 	#endif
 	For i As Integer = 0 To pCompilers->Count - 1
 		If FileExists(GetFullPath(pCompilers->Item(i)->Text)) Then
