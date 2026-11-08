@@ -10,17 +10,13 @@ curl -L -O https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.0/Binaries-
 
 set FBC32=%~dp0..\..\Compilers\FreeBASIC-1.10.0-winlibs-gcc-9.3.0\fbc32.exe
 
-curl -L -O https://github.com/XusinboyBekchanov/MyFbFramework/archive/master.zip
-
-PowerShell Expand-Archive -LiteralPath "master.zip" -DestinationPath "VisualFBEditor\Controls" -Force
+rem MyFbFramework: git clone (the archive master.zip of github.com sometimes gives an error page instead of the zip), 3 tries
+git clone --depth 1 https://github.com/XusinboyBekchanov/MyFbFramework VisualFBEditor\Controls\MyFbFramework || git clone --depth 1 https://github.com/XusinboyBekchanov/MyFbFramework VisualFBEditor\Controls\MyFbFramework || git clone --depth 1 https://github.com/XusinboyBekchanov/MyFbFramework VisualFBEditor\Controls\MyFbFramework
+if not exist VisualFBEditor\Controls\MyFbFramework\mff\mff.bi exit 1
 
 7z\7za.exe x "FreeBASIC-1.10.0-winlibs-gcc-9.3.0.7z" -oVisualFBEditor\Compilers
 
-cd VisualFBEditor\Controls
-
-Rename MyFbFramework-master MyFbFramework
-
-cd MyFbFramework\mff
+cd VisualFBEditor\Controls\MyFbFramework\mff
 
 "%FBC32%" -b "mff.bi" "mff.rc" -dll -x "../mff32.dll" -v
 
