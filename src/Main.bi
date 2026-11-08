@@ -339,6 +339,7 @@ Declare Sub StopProgress()
 Declare Sub ThreadCounter(Id As Any Ptr)
 Declare Function EqualPaths(ByRef a As WString, ByRef b As WString) As Boolean
 Declare Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
+Declare Sub ShowExecutedLine(pEC As Any Ptr, iLine As Integer)
 Declare Sub DbgViewInvalidate()
 Declare Sub DbgViewDataChanging()
 Declare Sub DbgViewIntegratedStopped(bStopped As Boolean)

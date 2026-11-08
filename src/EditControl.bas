@@ -2625,14 +2625,21 @@ Namespace My.Sys.Forms
 	End Function
 	
 	Function EditControl.VisibleLinesCount(CodePane As Integer = -1) As Integer
+		'Only the whole lines (\): with / the half line at the bottom was counted, the line of the caret
+		'(the current line of the debugger) was shown there, under the horizontal scroll bar
+		If dwCharY <= 0 Then Return 1
+		Dim As Integer iScrollBarHeight = 17
+		#ifdef __USE_GTK__
+			If horizontalScrollBarHeight > 0 Then iScrollBarHeight = horizontalScrollBarHeight
+		#endif
 		If bDividedY Then
 			If IIf(CodePane = -1, ActiveCodePane, CodePane) = 1 Then
-				Return (dwClientY - iDividedY - 7 - 17) / dwCharY
+				Return (dwClientY - iDividedY - 7 - iScrollBarHeight) \ dwCharY
 			Else
-				Return (iDividedY) / dwCharY
+				Return (iDividedY) \ dwCharY
 			End If
 		Else
-			Return (dwClientY - 17) / dwCharY
+			Return (dwClientY - iScrollBarHeight) \ dwCharY
 		End If
 	End Function
 	

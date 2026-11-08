@@ -544,9 +544,7 @@ Sub DbgShowCursor()
 	If tb = 0 OrElse Not EqualPaths(tb->FileName, FileName) Then tb = AddTab(FileName)
 	If tb <> 0 Then
 		CurEC = @tb->txtCode
-		tb->txtCode.CurExecutedLine = LineNo - 1
-		tb->txtCode.SetSelection LineNo - 1, LineNo - 1, 0, 0
-		tb->txtCode.PaintControl
+		ShowExecutedLine @tb->txtCode, LineNo - 1
 	End If
 	#ifdef __USE_WINAPI__
 		SetForegroundWindow pApp->MainForm->Handle

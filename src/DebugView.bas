@@ -243,7 +243,12 @@ Sub DbgViewSourceExpand(p As Integer, h As Any Ptr)
 			End If
 		#else
 			If Not Cast(TreeNode Ptr, h)->IsExpanded Then
-				If p = dpLocals OrElse p = dpGlobals Then var_kids(h) 'the lines of the components
+				If p = dpLocals OrElse p = dpGlobals Then
+					var_kids(h) 'the lines of the components
+					#ifdef __USE_GTK__
+						arr_elements_sh(Cast(Integer, Cast(TreeNode Ptr, h)->Tag), h, True, False)
+					#endif
+				End If
 				Cast(TreeNode Ptr, h)->Expand
 			End If
 		#endif
@@ -640,7 +645,12 @@ Sub DbgViewTree_NodeExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As T
 	#ifndef __USE_WINAPI__
 		'The tree of the variables of the Integrated IDE Debugger: the lines of the components are added
 		'(on Windows: TVN_ITEMEXPANDING of tvVar_Message)
-		If DbgViewIntegrated AndAlso @Item <> 0 AndAlso @Sender = DbgViewSourceTree(dpLocals) Then var_kids(@Item)
+		If DbgViewIntegrated AndAlso @Item <> 0 AndAlso @Sender = DbgViewSourceTree(dpLocals) Then
+			var_kids(@Item)
+			#ifdef __USE_GTK__
+				arr_elements_sh(Cast(Integer, Item.Tag), @Item, True, False) 'the values of the elements of an array
+			#endif
+		End If
 	#endif
 	'(Item is 0 for a node of the Integrated IDE Debugger, it is not in Nodes)
 	If @Item = 0 OrElse CInt(Not DbgViewCopyValid(p)) OrElse CInt(DbgViewList) OrElse Item.Tag = 0 Then Exit Sub

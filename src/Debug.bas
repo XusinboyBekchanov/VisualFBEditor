@@ -186,6 +186,17 @@ Dim Shared udt(TYPEMAX) As tudt,udtidx As Integer
 Dim Shared cudt(CTYPEMAX) As tcudt,cudtnb As Integer,cudtnbsav As Integer
 'in case of module or DLL the udt number is initialized each time
 Dim Shared As Integer udtcpt,udtmax 'current, max cpt
+'The last standard type of the stabs of the module: va_list:t17 (fbc 1.10) or wchar:t18 (fbc 1.20).
+'The types are stored with the numbers of fbc 1.20 (TYPESTD): the types of the program of fbc 1.10 follow t17
+Dim Shared As Integer stabstdlast = TYPESTD
+'The offset of the table of the dimensions (DIMTB) in the descriptor of a dynamic array: 6*TSZ with FLAGS (fbc 1.08+)
+Dim Shared As Integer fbarrdims '0: 5*TSZ (without FLAGS)
+
+'The index in udt() of the type c of the stabs
+Private Function stab_typ(c As Integer) As Integer
+	If c > stabstdlast Then Return c + udtcpt + TYPESTD - stabstdlast
+	Return c
+End Function
 
 ''excluded lines
 Dim Shared As Integer excldnb
@@ -4750,7 +4761,7 @@ Private Sub parse_retval(prcnb As Integer,gv2 As String)
 	If c=15 Then c=16
 	'========================================================
 	
-	If c>TYPESTD Then c+=udtcpt
+	c = stab_typ(c)
 	proc(prcnb).pt=p
 	proc(prcnb).rv=c
 End Sub
@@ -4810,7 +4821,7 @@ Private Sub parse_var2(gv As String,f As Byte)
 		'If c=18 Then c=6
 		'==================================
 
-		If c>TYPESTD Then c+=udtcpt 'udt type so adding the decal
+		c = stab_typ(c) 'udt type so adding the decal
 		pp=0
 		If f=TYUDT Then
 			cudt(cudtnb).typ=c
@@ -4864,7 +4875,7 @@ Private Sub parse_var2(gv As String,f As Byte)
 				arr(arrnb).dm-=1
 			End If
 		End If
-		If c > TYPESTD Then c += udtcpt 'udt type so adding the decal 20/08/2015
+		c = stab_typ(c) 'udt type so adding the decal 20/08/2015
 		If f=TYUDT Then
 			cudt(cudtnb).pt=pp
 			cudt(cudtnb).typ=c
@@ -4896,7 +4907,7 @@ Private Sub parse_udt(readl As String)
 	
 	udtidx=Val(Mid(readl,p,q-p))
 	
-	udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
+	udtidx = stab_typ(udtidx):If udtidx>udtmax Then udtmax=udtidx
 	If udtmax > TYPEMAX-1 Then hard_closing("Storing UDT limit reached "+Str(TYPEMAX))
 	udt(udtidx).nm=tnm
 	If Left(tnm,4)="TMP$" Then Exit Sub 'gcc redim
@@ -4957,6 +4968,11 @@ Private Sub parse_udt(readl As String)
 		cudt(cudtnb).ofs=cudt(cudtnb).ofs\8 'offset bytes
 	Wend
 	udt(udtidx).ub=cudtnb
+	If InStr(udt(udtidx).nm, "FBARRAY") Then
+		For k As Integer = udt(udtidx).lb To udt(udtidx).ub
+			If cudt(k).nm = "DIMTB" Then fbarrdims = cudt(k).ofs
+		Next
+	End If
 End Sub
 
 '----------------
@@ -4971,7 +4987,7 @@ Private Sub parse_enum(readl As String)
 	p+=2 'skip :T
 	q=InStr(readl,"=")
 	udtidx=Val(Mid(readl,p,q-p))
-	udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
+	udtidx = stab_typ(udtidx):If udtidx>udtmax Then udtmax=udtidx
 	If udtmax > TYPEMAX Then hard_closing("Storing ENUM="+tnm+" limit reached "+Str(TYPEMAX))
 	udt(udtidx).nm=tnm 'enum name
 	
@@ -5011,7 +5027,13 @@ Private Sub parse_var(gv As String,ad As UInteger, dlldelta As Integer=0)
 	Static defaulttype As Integer
 	Dim As String vname
 	
-	If InStr(gv, STYPESTD) Then 'last default type
+	'The last default type: va_list:t17 of fbc 1.10, wchar:t18 of fbc 1.20 (after va_list:t17)
+	If InStr(gv, "va_list:t") = 1 Then
+		stabstdlast = Val(Mid(gv, 10))
+	ElseIf InStr(gv, "wchar:t") = 1 Then
+		stabstdlast = Val(Mid(gv, 8))
+	End If
+	If InStr(gv, STYPESTD) OrElse InStr(gv, "va_list:t") = 1 Then 'last default type
 		defaulttype=0
 	ElseIf InStr(gv,"integer:t") Then
 		defaulttype=1
@@ -5695,7 +5717,7 @@ End Function
 			'==================================
 			
 			If c=udt(15).index Then c=15
-			If c>TYPESTD Then c+=udtcpt 'udt type so adding the decal 20/08/2015
+			c = stab_typ(c) 'udt type so adding the decal 20/08/2015
 			pp=0
 			If f=TYUDT Then
 				cudt(cudtnb).typ=c
@@ -5735,7 +5757,7 @@ End Function
 			If c=15 Then c=16
 			'========================================================
 			If c=udt(15).index Then c=15
-			If c>TYPESTD Then c+=udtcpt 'udt type so adding the decal 20/08/2015
+			c = stab_typ(c) 'udt type so adding the decal 20/08/2015
 			If f=TYUDT Then
 				cudt(cudtnb).pt=pp
 				cudt(cudtnb).typ=c
@@ -5801,7 +5823,7 @@ End Function
 		
 		udtidx=Val(Mid(readl,p,q-p))
 		If tnm="OBJECT" OrElse tnm="$fb_Object" Then udt(15).index=udtidx:Exit Sub
-		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
+		udtidx = stab_typ(udtidx):If udtidx>udtmax Then udtmax=udtidx
 		If udtmax > TYPEMAX - 1 Then ThreadsEnter: MsgBox(ML("Storing UDT: Max limit reached") + " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udt(udtidx).nm=tnm
 		If Left(tnm,4)="TMP$" Then Exit Sub 'gcc redim
@@ -5865,6 +5887,11 @@ End Function
 			cudt(cudtnb).ofs=cudt(cudtnb).ofs\8 'offset bytes
 		Wend
 		udt(udtidx).ub=cudtnb
+		If InStr(udt(udtidx).nm, "FBARRAY") Then
+			For k As Integer = udt(udtidx).lb To udt(udtidx).ub
+				If cudt(k).nm = "DIMTB" Then fbarrdims = cudt(k).ofs
+			Next
+		End If
 	End Sub
 	
 	Private Function cutup_scp(gv As Byte, ad As UInteger,dlldelta As Integer=0) As Integer
@@ -5972,7 +5999,7 @@ End Function
 		p+=2 'skip :T
 		q=InStr(readl,"=")
 		udtidx=Val(Mid(readl,p,q-p))
-		udtidx+=udtcpt:If udtidx>udtmax Then udtmax=udtidx
+		udtidx = stab_typ(udtidx):If udtidx>udtmax Then udtmax=udtidx
 		If udtmax > TYPEMAX Then ThreadsEnter: MsgBox(ML("Storing ENUM") & "=" + tnm & ": " & ML("Max limit reached") + " " + Str(TYPEMAX)): ThreadsLeave: Exit Sub
 		udt(udtidx).nm=tnm 'enum name
 		
@@ -6155,7 +6182,7 @@ End Function
 		If c=15 Then c=16
 		'========================================================
 		If c=udt(15).index Then c=15
-		If c>TYPESTD Then c+=udtcpt '20/08/2015
+		c = stab_typ(c) '20/08/2015
 		proc(prcnb).pt=p
 		proc(prcnb).rv=c
 	End Sub
@@ -6950,6 +6977,9 @@ Private Function var_master(i As Integer) As Integer
 End Function
 
 'The lines of the components of the line h of the variables are added (before it is expanded)
+#ifdef __USE_GTK__
+	Declare Sub arr_elements_sh(i As Integer, hItem As Any Ptr, bExpanding As Boolean = False, bLock As Boolean = True)
+#endif
 Sub var_kids(h As Any Ptr)
 	#ifdef __USE_WINAPI__
 		If h = 0 Then Exit Sub
@@ -6991,6 +7021,7 @@ Sub var_kids(h As Any Ptr)
 			cn->Tag = Cast(Any Ptr, c)
 			vrr(c).tv = cn
 			If vrr(c).lst > c Then cn->Nodes.Add 'the [+] of its components
+			arr_elements_sh(c, cn, False, False) 'the lines of the elements of an array
 			If vrr(c).lst < c Then Exit While
 			c = vrr(c).lst + 1
 		Wend
@@ -7255,7 +7286,7 @@ Private Function watch_find() As Integer
 	Next
 End Function
 
-#ifdef __USE_WINAPI__
+#if Not (defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__))
 	Const ARRSHOWMAX = 1000 'the elements of an array shown under its line
 
 	'An array of a standard type (not a structure) of the line i of vrr: the address of its first element, its bounds,
@@ -7293,6 +7324,7 @@ End Function
 			If adr = 0 Then Return 0
 			Dim As Integer temp2 = vrr(i).ini + 4 * TSZ
 			nbdim = rd_sint(temp2)
+			temp2 = vrr(i).ini + IIf(fbarrdims, fbarrdims, 5 * TSZ) - TSZ 'the dimensions (lbound: +2*TSZ)
 			nbdim -= 1
 			If nbdim < 0 OrElse nbdim > 4 Then Return 0
 			For k As Integer = 0 To nbdim
@@ -7333,6 +7365,9 @@ End Function
 		Return s & ")"
 	End Function
 
+#endif
+
+#ifdef __USE_WINAPI__
 	'An element of an array (a line without vrr under the line of the array): the array with this index (vrr().ix)
 	Function arr_element_select(hitem As HTREEITEM) As Integer
 		Dim tvi As TVITEM
@@ -7351,6 +7386,24 @@ End Function
 			h = TreeView_GetNextSibling(tviewvar, h)
 		Wend
 		If h = 0 OrElse e >= ARRSHOWMAX Then Return -1
+		Dim As String sIndex = arr_index_text(e, lb(), ub(), nbdim, idx())
+		For k As Integer = 0 To nbdim
+			vrr(i).ix(k) = idx(k)
+		Next
+		var_sh1(i) 'the address of the element (vrr(i).ad)
+		var_fill(i)
+		varfind.nm &= sIndex
+		Return i
+	End Function
+#elseif defined(__USE_GTK__)
+	'An element of an array (a line with Tag 0 under the line of the array): the array with this index (vrr().ix)
+	Function arr_element_select(hitem As Any Ptr) As Integer
+		Dim As TreeNode Ptr tn = hitem
+		If tn = 0 OrElse tn->Tag <> 0 OrElse tn->ParentNode = 0 Then Return -1
+		Dim As Integer i = Cast(Integer, tn->ParentNode->Tag), adr, lb(4), ub(4), idx(4), nbdim, udtlg, typ, pt, fxlen
+		If arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen) <= 0 Then Return -1
+		Dim As Integer e = tn->ParentNode->Nodes.IndexOf(tn)
+		If e < 0 OrElse e >= ARRSHOWMAX Then Return -1
 		Dim As String sIndex = arr_index_text(e, lb(), ub(), nbdim, idx())
 		For k As Integer = 0 To nbdim
 			vrr(i).ix(k) = idx(k)
@@ -7381,6 +7434,9 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 		#ifdef __USE_WINAPI__
 			'An element of an array
 			idx = arr_element_select(Cast(HTREEITEM, hitem))
+			If idx > 0 Then Return idx
+		#elseif defined(__USE_GTK__)
+			idx = arr_element_select(hitem)
 			If idx > 0 Then Return idx
 		#endif
 		ThreadsEnter: MsgBox(ML("Variable selection error2: Select only a variable")): ThreadsLeave
@@ -11366,6 +11422,7 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 				text+="[ Dyn "
 				temp2=vrr(i).ini+4*TSZ ''adr nb dim
 				temp3 = rd_sint(temp2)
+				temp2 = vrr(i).ini + IIf(fbarrdims, fbarrdims, 5 * TSZ) - TSZ 'the dimensions (lbound: +2*TSZ)
 				
 				temp3-=1
 				For k As Integer =0 To temp3
@@ -11731,6 +11788,46 @@ End Function
 			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
 		Wend
 	End Sub
+#elseif defined(__USE_GTK__)
+	'The elements of an array of a standard type: the lines (Tag 0) under the line of the array, their values
+	'when it is expanded (or bExpanding, before it is expanded). bLock: not called by the main thread (var_sh)
+	Sub arr_elements_sh(i As Integer, hItem As Any Ptr, bExpanding As Boolean = False, bLock As Boolean = True)
+		If hItem = 0 OrElse i < 1 OrElse i > vrrnb OrElse vrr(i).tv <> hItem Then Exit Sub
+		Dim As Integer adr, lb(4), ub(4), idx(4), nbdim, udtlg, typ, pt, fxlen
+		Dim As Integer total = arr_info(i, adr, lb(), ub(), nbdim, udtlg, typ, pt, fxlen)
+		If total < 0 Then Exit Sub
+		Dim As TreeNode Ptr tn = hItem
+		Dim As Integer n = IIf(total > ARRSHOWMAX, ARRSHOWMAX, total), nLines = n + IIf(total > n, 1, 0), nOld
+		Dim As Boolean bShow = bExpanding
+		If bLock Then ThreadsEnter
+		nOld = tn->Nodes.Count
+		If Not bShow Then bShow = tn->IsExpanded
+		If bLock Then ThreadsLeave
+		If nOld = nLines AndAlso CBool(Not bShow) Then Exit Sub
+		'The texts are made before the lock (the memory of the program is read)
+		Dim As String sLines(nLines)
+		For e As Integer = 0 To nLines - 1
+			If e < n Then
+				sLines(e) = arr_index_text(e, lb(), ub(), nbdim, idx())
+				If bShow Then sLines(e) &= " <" & var_sh2(typ, adr + e * udtlg, pt, "", fxlen)
+			Else
+				sLines(e) = "... (" & total & " " & ML("elements") & ")"
+			End If
+		Next
+		If bLock Then ThreadsEnter
+		If tn->Nodes.Count <> nLines Then
+			'New or resized (dynamic array): the lines again
+			tn->Nodes.Clear
+			For e As Integer = 0 To nLines - 1
+				tn->Nodes.Add sLines(e)
+			Next
+		ElseIf bShow Then
+			For e As Integer = 0 To n - 1
+				If tn->Nodes.Item(e)->Text <> sLines(e) Then tn->Nodes.Item(e)->Text = sLines(e)
+			Next
+		End If
+		If bLock Then ThreadsLeave
+	End Sub
 #endif
 
 Private Sub var_sh() 'show master var
@@ -11745,6 +11842,9 @@ Private Sub var_sh() 'show master var
 				i = vrr(i).lst + 1 'its components are not there either
 			Else
 				Tree_upditem(vrr(i).tv, var_sh1(i), tviewvar)
+				#ifdef __USE_GTK__
+					arr_elements_sh(i, vrr(i).tv) 'the elements of an array
+				#endif
 				i += 1
 			End If
 		Wend
@@ -14315,7 +14415,7 @@ End Sub
 		dumpadr=0:copybeg=-99:copyend=-99:copycol=-99 '23/11/2014
 		'flaglog=0:dbg_prt(" $$$$___CLOSE ALL___$$$$ "):flagtrace=0
 		flagmain=True:flagattach=False:flagkill=False
-		udtcpt=0:udtmax=0
+		udtcpt=0:udtmax=0:stabstdlast=TYPESTD:fbarrdims=0
 		'For i As Integer = 0 To 4 :SendMessage(dbgstatus,SB_SETTEXT,i,Cast(LPARAM,@"")) : Next '08/04/2014 3-->4
 		vrbgbl=0:vrbloc=VGBLMAX:vrbgblprev=0
 		udtbeg=TYPESTD+1:cudtbeg=1:locbeg=VGBLMAX+1:vrbbeg=1:prcbeg=1 'dwarf 20/08/2015 boolean
@@ -14393,7 +14493,7 @@ Private Sub reinit()
 	procfn=0
 	procnew=-1
 	proc(1).vr=VGBLMAX+1 'for the first stored proc
-	udtcpt=0:udtmax=0
+	udtcpt=0:udtmax=0:stabstdlast=TYPESTD:fbarrdims=0
 	procsort=KPROCNM
 	flagtrace=0
 	flagattach=False

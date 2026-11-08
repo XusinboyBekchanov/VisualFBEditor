@@ -4826,6 +4826,24 @@ Sub ChangeEnabledDebug(bStart As Boolean, bBreak As Boolean, bEnd As Boolean)
 	DbgViewInvalidate
 End Sub
 
+'The current line of the debugger: when it was not on the screen, it is shown in the middle of the editor
+'(SetSelection shows it at the bottom, without the lines after it)
+Sub ShowExecutedLine(pEC As Any Ptr, iLine As Integer)
+	Dim As EditControl Ptr ec = pEC
+	If ec = 0 Then Exit Sub
+	Dim As Integer OldTop = ec->TopLine
+	ec->CurExecutedLine = iLine
+	ec->SetSelection iLine, iLine, 0, 0
+	If ec->TopLine <> OldTop Then
+		Dim As Integer n = ec->VisibleLinesCount \ 2, t = iLine
+		While t > 0 AndAlso ec->GetCaretPosY(iLine) - ec->GetCaretPosY(t - 1) <= n
+			t -= 1
+		Wend
+		ec->TopLine = t
+	End If
+	ec->PaintControl
+End Sub
+
 #ifdef __FB_WIN32__
 	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #else
@@ -4843,9 +4861,7 @@ End Sub
 	End If
 	If tb = 0 Then Exit Sub
 	CurEC = @tb->txtCode
-	tb->txtCode.CurExecutedLine = fcurlig - 1
-	tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
-	tb->txtCode.PaintControl
+	ShowExecutedLine @tb->txtCode, fcurlig - 1
 	#ifndef __USE_GTK__
 		SetForegroundWindow frmMain.Handle
 		ChangeEnabledDebug True, False, True
@@ -4865,9 +4881,7 @@ End Sub
 			End If
 			If tb Then
 				CurEC = @tb->txtCode
-				tb->txtCode.CurExecutedLine = fcurlig - 1
-				tb->txtCode.SetSelection fcurlig - 1, fcurlig - 1, 0, 0
-				tb->txtCode.PaintControl
+				ShowExecutedLine @tb->txtCode, fcurlig - 1
 			End If
 		Else
 			tpOutput->SelectTab
@@ -8378,8 +8392,15 @@ Sub LoadSettings
 	WLet(MakeToolPath1, MakeTools.Get(*CurrentMakeTool1, "make"))
 	WLet(CurrentMakeTool2, *DefaultMakeTool)
 	WLet(MakeToolPath2, MakeTools.Get(*CurrentMakeTool2, "make"))
+	'The default debuggers: Integrated IDE Debugger, for the 32-bit programs in the 64-bit IDE and for the 64-bit programs
+	'in the 32-bit IDE Integrated GDB Debugger
+	'(macOS: Integrated LLDB Debugger)
 	#ifdef __FB_64BIT__
-		WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated GDB Debugger"))
+		#if defined(__FB_DARWIN__) OrElse defined(__USE_COCOA__)
+			WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated LLDB Debugger"))
+		#else
+			WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated GDB Debugger"))
+		#endif
 	#else
 		WLet(DefaultDebugger32, iniSettings.ReadString("Debuggers", "DefaultDebugger32", "Integrated IDE Debugger"))
 	#endif
