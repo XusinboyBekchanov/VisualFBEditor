@@ -35,6 +35,7 @@ Dim Shared As Integer DbgViewMenuPanel, DbgViewShowExpandPanel
 Dim Shared As Integer DbgViewExpandsCount
 
 Dim Shared As Any Ptr DbgViewWatchItems(Any)
+Dim Shared As UString DbgViewWatchNames(Any)
 Dim Shared As Integer DbgViewWatchCount
 
 'The name typed for the watch of the line hItem of the Integrated IDE Debugger (it shows its own name)
@@ -1492,6 +1493,10 @@ End Sub
 
 Dim Shared As DbgListWindow DbgProcessesWindow
 
+#ifdef __FB_LINUX__
+	Declare Function readlink_ Alias "readlink"(ByVal As Const ZString Ptr, ByVal As ZString Ptr, ByVal As UInteger) As Integer
+#endif
+
 'The processes: PID, name, the path of the exe
 Sub DbgProcessesFill()
 	With DbgProcessesWindow
@@ -1534,19 +1539,33 @@ Sub DbgProcessesFill()
 			End If
 			CloseHandle hSnap
 		#elseif defined(__FB_LINUX__)
-			Dim As String d = Dir("/proc/*", fbDirectory)
+			'The directories of /proc are read-only (dr-xr-xr-x): Dir finds them only with fbReadOnly too
+			Dim As String d = Dir("/proc/*", fbDirectory Or fbReadOnly Or fbHidden Or fbSystem Or fbArchive)
+			Dim As Integer SelfPid = getpid()
 			While d <> ""
-				If ValInt(d) > 0 Then
-					Dim As String sName
+				If ValInt(d) > 0 AndAlso ValInt(d) <> SelfPid Then
+					Dim As String sName, sBits
 					Dim As Integer Fn = FreeFile
 					If Open("/proc/" & d & "/comm" For Input As #Fn) = 0 Then
 						Line Input #Fn, sName
 						Close #Fn
 					End If
+					'The path of the exe (empty for the processes of other users and for the kernel threads)
+					Dim As ZString * 4097 zPath
+					Dim As Integer nLen = readlink_("/proc/" & d & "/exe", @zPath, 4096)
+					If nLen > 0 Then zPath[nLen] = 0 Else zPath = ""
+					'ELF: the byte 4 is 1 for 32-bit, 2 for 64-bit
+					Fn = FreeFile
+					If zPath <> "" AndAlso Open("/proc/" & d & "/exe" For Binary Access Read As #Fn) = 0 Then
+						Dim As UByte ElfClass
+						Get #Fn, 5, ElfClass
+						Close #Fn
+						sBits = IIf(ElfClass = 1, "32", IIf(ElfClass = 2, "64", ""))
+					End If
 					Var Item = .lv.ListItems.Add(d)
 					Item->Text(1) = sName
-					Item->Text(2) = ""
-					Item->Text(3) = "/proc/" & d & "/exe"
+					Item->Text(2) = sBits
+					Item->Text(3) = zPath
 				End If
 				d = Dir()
 			Wend

@@ -19,7 +19,7 @@
 		Declare Function dbg_close Alias "close" (ByVal fd As Long) As Long
 		Declare Function dbg_read Alias "read" (ByVal fd As Long, ByVal buf As Any Ptr, ByVal n As UInteger) As Integer
 		Declare Function dbg_write Alias "write" (ByVal fd As Long, ByVal buf As Const Any Ptr, ByVal n As UInteger) As Integer
-		Declare Function dbg_waitpid Alias "waitpid" (ByVal pid As Long, ByVal status As Long Ptr, ByVal options As Long) As Long
+		Declare Function dbg_waitpid Alias "waitpid" (ByVal pid As Long, ByVal status As Any Ptr, ByVal options As Long) As Long 'the same C type as waitpid of Debug.bas (gcc)
 		Declare Function dbg_signal Alias "signal" (ByVal sig As Long, ByVal handler As Any Ptr) As Any Ptr
 		Declare Function dbg_kill Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long
 		Declare Function dbg_setenv Alias "setenv" (ByVal name_ As Const ZString Ptr, ByVal value As Const ZString Ptr, ByVal overwrite As Long) As Long

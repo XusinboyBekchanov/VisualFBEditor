@@ -282,7 +282,7 @@ End Function
 	Declare Function elf_extract(As String)As Integer
 	Declare Function pthread_kill Alias "pthread_kill" (As Long, As Long) As Long
 	'Declare Function linux_kill Alias "kill"(As Long,As Long) As Long
-	Declare Function kill_ Alias "kill" ( pid As pid_t, sig As Integer) As Integer
+	Declare Function kill_ Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long 'int kill(pid_t, int): the same C type in all modules (gcc)
 	#define linux_kill kill_
 	Declare Sub sigusr_send()
 	Declare Function signal_pending() As Integer

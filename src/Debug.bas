@@ -306,6 +306,8 @@ Dim Shared As tbrkol brkol(BRKMAX)
 Dim Shared As String brkcond(BRKMAX) ''Breakpoint Condition of each breakpoint (FreeBASIC syntax)
 ''Attach to Process: the process of the next start of the debugger (0 - the program is started) and its exe
 Dim Shared As Integer AttachPid
+'The stack of the threads of the debuggee (Linux: ThreadCreate with 0 gives only 16 KB, the stack overflowed)
+Const DBG_THREAD_STACK = 1024 * 1024
 Dim Shared As String AttachExe
 Dim Shared As Integer brknb
 Dim Shared As String brkexe(9,BRKMAX) 'to save breakpoints by session
@@ -401,15 +403,23 @@ Sub udt_target_init()
 	udt(13).lg = 3 * TSZ 'String: data, length, size
 End Sub
 
-#ifdef __FB_WIN32__
-	'An Integer of the debugged program at the address (4 bytes of a 32-bit program, signed)
-	Function rd_sint(ad As Integer) As Integer
-		Dim As LongInt v
-		ReadProcessMemory(dbghand, Cast(LPCVOID, ad), @v, TSZ, 0)
-		If T64 Then Return v
-		Return *Cast(Long Ptr, @v)
-	End Function
-#endif
+'All the srch of strg replaced by repl (all platforms: exception_handle uses it)
+Private Sub str_replace(strg As String,srch As String, repl As String)
+	Dim As Integer p,lgr=Len(repl),lgs=Len(srch)
+	p=InStr(strg,srch)
+	While p
+		strg=Left(strg,p-1)+repl+Mid(strg,p+lgs)
+		p=InStr(p+lgr,strg,srch)
+	Wend
+End Sub
+
+'An Integer of the debugged program at the address (4 bytes of a 32-bit program, signed)
+Function rd_sint(ad As Integer) As Integer
+	Dim As LongInt v
+	ReadProcessMemory(dbghand, Cast(LPCVOID, ad), @v, TSZ, 0)
+	If T64 Then Return v
+	Return *Cast(Long Ptr, @v)
+End Function
 
 #ifdef __FB_64BIT__
 	udt(1).nm="Long":udt(1).lg=Len(Long)
@@ -1672,7 +1682,7 @@ Private Sub attach_ok()
 	If dbgprocid<>0 Then
 		reinit()
 		SetTimer(hmain,GTIMER001,100,Cast(Any Ptr,@debug_event))
-		ThreadCreate(@attach_debuggee)
+		ThreadCreate(@attach_debuggee, , DBG_THREAD_STACK)
 	End If
 	'freegadget(GATTCHEDIT)
 	'freegadget(GATTCHTXT)
@@ -1704,7 +1714,7 @@ Private Sub external_launch()
 	'exe_sav(exename,cmdline)
 	SetTimer(hmain,GTIMER001,100,Cast(Any Ptr,@debug_event))
 	
-	If ThreadCreate(@start_pgm)=0 Then
+	If ThreadCreate(@start_pgm, , DBG_THREAD_STACK)=0 Then
 		KillTimer(hmain, GTIMER001)
 		ThreadsEnter
 		MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
@@ -1739,7 +1749,7 @@ Private Sub restart_exe(ByVal idx As Integer)
 	
 	SetTimer(hmain,GTIMER001,100,Cast(Any Ptr,@debug_event))
 	
-	If ThreadCreate(@start_pgm)=0 Then
+	If ThreadCreate(@start_pgm, , DBG_THREAD_STACK)=0 Then
 		KillTimer(hmain, GTIMER001)
 		ThreadsEnter
 		MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee")
@@ -2306,6 +2316,7 @@ End Sub
 	
 	'declare function perror alias "perror"(as integer)as zstring Ptr
 	Declare Sub putbreaks
+	Declare Sub attach_threads()
 	'declare function sigpending alias "sigpending" (as any ptr) as Integer
 	Declare Function sigprocmask Alias "sigprocmask"(As Integer,As Any Ptr,As Any Ptr) As Integer
 	Declare Function sigaction Alias "sigaction"(As Long, As tsigaction Ptr, As tsigaction Ptr) As Integer
@@ -3029,6 +3040,7 @@ End Sub
 	Private Sub first_sigtrap()
 		threadcur=0
 		thread(threadcur).id=debugpid
+		If flagattach Then attach_threads() 'Attach to Process: the other threads stopped before the CC are written
 		dbg_prt2 "thread(threadcur).id=";thread(threadcur).id
 		dbg_prt2 "get regs in first=";
 		ptrace(PTRACE_GETREGS, thread(threadcur).id, NULL, @regs)
@@ -3049,6 +3061,10 @@ End Sub
 		runtype=RTSTEP
 		ptrace(PTRACE_SETOPTIONS, thread(threadcur).id, 0, Cast(Any Ptr,(PTRACE_O_TRACECLONE)))
 		ptrace(PTRACE_CONT,thread(threadcur).id,0,0)
+		'Attach to Process: the other threads (attached and stopped by attach_threads) run too
+		For ith As Integer = 1 To threadnb
+			ptrace(PTRACE_CONT, thread(ith).id, 0, 0)
+		Next
 	End Sub
 	'===============================
 	'' wait and handle all signals
@@ -3392,6 +3408,61 @@ End Sub
 		runtype=RTSTEP
 		flagattach=True
 		wait_signal()
+	End Sub
+	'====================================================
+	'' Attach to Process (Linux): the running process AttachPid is debugged; with CC on every line it stops at its next line
+	'====================================================
+	Private Sub attach_pgm(p As Any Ptr)
+		Dim As Long pid = AttachPid
+		AttachPid = 0
+		If ptrace(PTRACE_ATTACH, pid, 0, 0) Then
+			Dim As Long errn = errno
+			Dim As String sScope
+			Dim As Integer Fn = FreeFile
+			If Open("/proc/sys/kernel/yama/ptrace_scope" For Input As #Fn) = 0 Then
+				Line Input #Fn, sScope
+				Close #Fn
+			End If
+			ThreadsEnter
+			MsgBox ML("Attach to Process") & ": " & ML("The process is not attached") & " (PID " & pid & ", " & ML("error") & " " & errn & ")" & _
+				IIf(errn = 1 AndAlso ValInt(sScope) > 0, Chr(10) & "/proc/sys/kernel/yama/ptrace_scope = " & sScope & Chr(10) & "sudo sysctl kernel.yama.ptrace_scope=0", "")
+			ChangeEnabledDebug True, False, False
+			InDebug = False
+			ThreadsLeave
+			Exit Sub
+		End If
+		dbgprocid = pid
+		dbghand = pid
+		prun = True
+		runtype = RTSTEP
+		flagattach = True
+		ThreadsEnter
+		ShowMessages Time & ": " & ML("Attach to Process") & ": " & exename & " (PID " & pid & ")"
+		ThreadsLeave
+		wait_signal()
+	End Sub
+	'====================================================
+	'' Attach to Process (Linux): the other threads of the process are attached too (otherwise a CC kills them)
+	'====================================================
+	Private Sub attach_threads()
+		Dim As String d = Dir("/proc/" & debugpid & "/task/*", fbDirectory Or fbReadOnly Or fbHidden Or fbSystem Or fbArchive) 'read-only directories
+		Dim As Long tids(Any), status
+		While d <> ""
+			If ValInt(d) > 0 AndAlso ValInt(d) <> debugpid Then
+				ReDim Preserve tids(UBound(tids) + 1)
+				tids(UBound(tids)) = ValInt(d)
+			End If
+			d = Dir()
+		Wend
+		For i As Integer = 0 To UBound(tids)
+			If ptrace(PTRACE_ATTACH, tids(i), 0, 0) = 0 Then
+				waitpid(tids(i), @status, __WALL) 'its SIGSTOP
+				thread_new(tids(i))
+				ptrace(PTRACE_SETOPTIONS, tids(i), 0, Cast(Any Ptr, (PTRACE_O_TRACECLONE)))
+			Else
+				dbg_prt2 "error attach thread=";tids(i),errno
+			End If
+		Next
 	End Sub
 	'==================================
 	'' lists all the processes
@@ -4251,15 +4322,6 @@ runtype = RTOFF
 			Return "Unknown Exception code (D/H)= "+Str(e)+" / "+Hex(e) '07/10/2014
 		End Select
 	End Function
-	
-	Private Sub str_replace(strg As String,srch As String, repl As String)
-		Dim As Integer p,lgr=Len(repl),lgs=Len(srch)
-		p=InStr(strg,srch)
-		While p
-			strg=Left(strg,p-1)+repl+Mid(strg,p+lgs)
-			p=InStr(p+lgr,strg,srch)
-		Wend
-	End Sub
 	
 	Private Function name_extract(a As String) As String 'extract file name for full name
 		Dim i As Integer
@@ -17100,7 +17162,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				tpLocals->SelectTab
 				ThreadsLeave()
 				
-				If ThreadCreate(IIf(AttachPid <> 0, Cast(Any Ptr, @attach_pgm), Cast(Any Ptr, @start_pgm))) = 0 Then
+				If ThreadCreate(IIf(AttachPid <> 0, Cast(Any Ptr, @attach_pgm), Cast(Any Ptr, @start_pgm)), , DBG_THREAD_STACK) = 0 Then
 					KillTimer(0, GTIMER001)
 					ThreadsEnter: MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee"): ThreadsLeave
 				EndIf
@@ -17162,7 +17224,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				InDebug = True
 				tpLocals->SelectTab
 				
-				If ThreadCreate(@start_pgm) = 0 Then
+				If ThreadCreate(@start_pgm, , DBG_THREAD_STACK) = 0 Then
 					KillTimer(0, GTIMER001)
 					MsgBox(ML("Debuggee not running"), ML("ERROR unable to start the thread managing the debuggee"))
 				EndIf
@@ -17206,8 +17268,12 @@ End Sub
 Sub RunProgramWithDebug(Param As Any Ptr)
 	Dim As ProjectElement Ptr Project
 	Dim As TreeNode Ptr ProjectNode
-	Dim As UString CompileLine, MainFile = GetMainFile(, Project, ProjectNode)
-	Dim As UString FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	Dim As UString CompileLine, MainFile, FirstLine
+	'The thread of the debugger: GetMainFile and GetFirstCompileLine read the controls (GTK: only with the lock)
+	ThreadsEnter
+	MainFile = GetMainFile(, Project, ProjectNode)
+	FirstLine = GetFirstCompileLine(MainFile, Project, CompileLine)
+	ThreadsLeave
 	If Project <> 0 Then
 		RunWithDebug , *Project->FileName, *Project->CommandLineArguments, MainFile, CompileLine, FirstLine
 	Else
