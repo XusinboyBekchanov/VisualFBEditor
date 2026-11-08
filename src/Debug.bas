@@ -17565,7 +17565,7 @@ End Sub
 		If InDebug Then
 			#ifdef __USE_WINAPI__
 				Dim As UByte b(15)
-				ReadProcessMemory(dbghand, Cast(LPCVOID, ad), @b(0), 16, 0)
+				ReadProcessMemory(dbghand, Cast(LPCVOID, CInt(ad)), @b(0), 16, 0)
 				For i As Integer = 0 To 15
 					sBytes &= IIf(i, " ", "") & Hex(b(i), 2)
 				Next
@@ -17597,7 +17597,7 @@ End Sub
 		If n = 0 Then Exit Sub
 		If InDebug Then
 			#ifdef __USE_WINAPI__
-				If WriteProcessMemory(dbghand, Cast(LPVOID, adNew), @Bytes(0), n, 0) = 0 Then ShowMessages ML("Edit Memory") & ": " & ML("The memory is not written"): Exit Sub
+				If WriteProcessMemory(dbghand, Cast(LPVOID, CInt(adNew)), @Bytes(0), n, 0) = 0 Then ShowMessages ML("Edit Memory") & ": " & ML("The memory is not written"): Exit Sub
 				dump_sh()
 				var_sh()
 				DbgViewInvalidate
