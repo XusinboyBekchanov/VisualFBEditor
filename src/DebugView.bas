@@ -201,7 +201,13 @@ End Function
 Function DbgViewSourceHasChildren(p As Integer, h As Any Ptr) As Boolean
 	If DbgViewIntegrated Then
 		#ifdef __USE_WINAPI__
-			Return TreeView_GetChild(DbgViewSourceTree(p)->Handle, Cast(HTREEITEM, h)) <> 0
+			If TreeView_GetChild(DbgViewSourceTree(p)->Handle, Cast(HTREEITEM, h)) <> 0 Then Return True
+			'The components of a variable: their lines are added when it is expanded (var_kids)
+			Dim tvi As TVITEM
+			tvi.mask = TVIF_CHILDREN
+			tvi.hItem = Cast(HTREEITEM, h)
+			TreeView_GetItem(DbgViewSourceTree(p)->Handle, @tvi)
+			Return tvi.cChildren = 1
 		#else
 			Return Cast(TreeNode Ptr, h)->Nodes.Count > 0
 		#endif
@@ -229,12 +235,17 @@ Sub DbgViewSourceExpand(p As Integer, h As Any Ptr)
 		#ifdef __USE_WINAPI__
 			Dim As HWND hTV = DbgViewSourceTree(p)->Handle
 			If (TreeView_GetItemState(hTV, Cast(HTREEITEM, h), TVIS_EXPANDED) And TVIS_EXPANDED) = 0 Then
+				'The lines of the components are added when it is expanded
+				If p = dpLocals OrElse p = dpGlobals Then var_kids(h)
 				TreeView_Expand(hTV, Cast(HTREEITEM, h), TVE_EXPAND)
 				'TVM_EXPAND does not send TVN_ITEMEXPANDING
 				If p = dpLocals OrElse p = dpGlobals Then UpdateItems(TreeView_GetChild(hTV, Cast(HTREEITEM, h)))
 			End If
 		#else
-			If Not Cast(TreeNode Ptr, h)->IsExpanded Then Cast(TreeNode Ptr, h)->Expand
+			If Not Cast(TreeNode Ptr, h)->IsExpanded Then
+				If p = dpLocals OrElse p = dpGlobals Then var_kids(h) 'the lines of the components
+				Cast(TreeNode Ptr, h)->Expand
+			End If
 		#endif
 	Else
 		Dim As TreeListViewItem Ptr Item = h
@@ -626,6 +637,11 @@ End Sub
 
 Sub DbgViewTree_NodeExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef Cancel As Boolean)
 	Dim As Integer p = DbgViewPanelOfTree(@Sender)
+	#ifndef __USE_WINAPI__
+		'The tree of the variables of the Integrated IDE Debugger: the lines of the components are added
+		'(on Windows: TVN_ITEMEXPANDING of tvVar_Message)
+		If DbgViewIntegrated AndAlso @Item <> 0 AndAlso @Sender = DbgViewSourceTree(dpLocals) Then var_kids(@Item)
+	#endif
 	'(Item is 0 for a node of the Integrated IDE Debugger, it is not in Nodes)
 	If @Item = 0 OrElse CInt(Not DbgViewCopyValid(p)) OrElse CInt(DbgViewList) OrElse Item.Tag = 0 Then Exit Sub
 	If Item.Nodes.Count = 1 AndAlso Item.Nodes.Item(0)->Tag = 0 Then

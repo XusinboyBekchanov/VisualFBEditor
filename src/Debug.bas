@@ -6819,14 +6819,17 @@ Dim Shared brkvhnd As Any Ptr   'handle
 'End Type
 'Dim Shared As tvarfind varfind
 
-Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As TreeNode Ptr, voffset As UInteger, mem As UByte) 'store udt components '05/05/2014 '09/07/2015 scope added
+Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As Any Ptr, voffset As UInteger, mem As UByte) 'store udt components '05/05/2014 '09/07/2015 scope added
 	Dim ad As UInteger,text As String,vadr As UInteger
+	Dim As Integer iv
 	For i As Integer =udt(Vrbe).lb To udt(Vrbe).ub
 		vadr=adr
 		With cudt(i)
 			'dbg_prt2("var ini="+.nm+" "+Str(.ofs)+" "+Str(voffset)+" "+Str(adr))
 			vrrnb+=1
 			If vrrnb > VRRMAX Then ThreadsEnter: MsgBox ML("Max number of vars reached"): vrrnb = VRRMAX: ThreadsLeave: Exit Sub
+			iv = vrrnb
+			vrr(vrrnb).lst=vrrnb
 			vrr(vrrnb).vr=-i
 			ad=.ofs+voffset 'offset of current element + offset all levels above
 			vrr(vrrnb).gofs=ad 'however keep (global) offset
@@ -6859,10 +6862,13 @@ Private Sub var_iniudt(Vrbe As UInteger, adr As UInteger, tv As TreeNode Ptr, vo
 				End If
 			End If
 			'dbg_prt2("variniudt final ="+.nm+" "+Str(vrr(vrrnb).ad)+" "+Str(vrr(vrrnb).gofs)+" "+Str(.ofs)+" "+Str(vrr(vrrnb).ini)+" "+Str(1))
-			vrr(vrrnb).tv = Tree_AddItem(tv, "L", 0, tviewvar, vrrnb) 'Tree_AddItem(tv, "L", TVI_LAST, tviewvar, vrrnb)
+			'The line is added when its parent is expanded (var_kids): a big program has hundreds of thousands
+			'of components (the fields of the controls of its forms), all the lines made the IDE hang
+			vrr(iv).tv = 0
 			If .pt=0 AndAlso .typ>TYPESTD AndAlso .typ<>TYPEMAX  AndAlso udt(.typ).en=0 Then 'show components for bitfield 20/08/2015
-				var_iniudt(.typ,vadr,vrr(vrrnb).tv,ad,mem)'09/07/2015 scope added
+				var_iniudt(.typ,vadr,vrr(iv).tv,ad,mem)'09/07/2015 scope added
 			End If
+			vrr(iv).lst = vrrnb
 		End With
 	Next
 End Sub
@@ -6897,13 +6903,109 @@ Private Sub var_ini(j As UInteger ,bg As Integer ,ed As Integer) 'store informat
 				ReadProcessMemory(dbghand,Cast(LPCVOID,adr),@adr,TSZ,0)'05/05/2014 25/07/2015 64bit
 				If Cast(Integer,.arr)=-1 Then vrr(vrrnb).ini=adr Else vrr(vrrnb).ad=adr
 			End If
-			vrr(vrrnb).tv = Tree_AddItem(procr(j).tv, "Not filled", 0, tviewvar, vrrnb) 'Tree_AddItem(procr(j).tv,"Not filled", TVI_LAST, tviewvar, vrrnb)
+			Dim As Integer iv = vrrnb
+			vrr(iv).lst = iv
+			vrr(iv).tv = Tree_AddItem(procr(j).tv, "Not filled", 0, tviewvar, iv) 'Tree_AddItem(procr(j).tv,"Not filled", TVI_LAST, tviewvar, vrrnb)
 			If .pt=0 And .typ>TYPESTD AndAlso .typ<>TYPEMAX AndAlso udt(.typ).en=0 Then 'show components for bitfield 20/08/2015
-				var_iniudt(.typ,adr,vrr(vrrnb).tv,0,.mem) '09/07/2015 scope added
+				var_iniudt(.typ,adr,vrr(iv).tv,0,.mem) '09/07/2015 scope added
 			End If
+			vrr(iv).lst = vrrnb
+			#ifdef __USE_WINAPI__
+				'The components are added when it is expanded (var_kids): the [+] is shown without them
+				If vrr(iv).lst > iv Then
+					Dim tvi As TVITEM
+					tvi.mask = TVIF_CHILDREN
+					tvi.hItem = vrr(iv).tv
+					tvi.cChildren = 1
+					TreeView_SetItem(tviewvar, @tvi)
+				End If
+			#else
+				'An empty line (Tag 0) shows the [+], var_kids replaces it with the components
+				If vrr(iv).lst > iv AndAlso vrr(iv).tv <> 0 Then
+					ThreadsEnter
+					Cast(TreeNode Ptr, vrr(iv).tv)->Nodes.Add
+					ThreadsLeave
+				End If
+			#endif
 		End With
 	Next
 End Sub
+
+'The vrr of the parent of the component i (0: i is a master var)
+Private Function var_up(i As Integer) As Integer
+	If i < 1 OrElse i > vrrnb OrElse vrr(i).vr > 0 Then Return 0
+	For j As Integer = i - 1 To 1 Step -1
+		If vrr(j).lst >= i Then Return j
+		If vrr(j).vr > 0 Then Return 0
+	Next
+	Return 0
+End Function
+
+'The vrr of the master var of i (the components follow their master var)
+Private Function var_master(i As Integer) As Integer
+	For j As Integer = i To 1 Step -1
+		If vrr(j).vr > 0 Then Return j
+	Next
+	Return 0
+End Function
+
+'The lines of the components of the line h of the variables are added (before it is expanded)
+Sub var_kids(h As Any Ptr)
+	#ifdef __USE_WINAPI__
+		If h = 0 Then Exit Sub
+		Dim tvi As TVITEM
+		tvi.mask = TVIF_PARAM
+		tvi.hItem = h
+		If TreeView_GetItem(tviewvar, @tvi) = 0 Then Exit Sub
+		Dim As Integer k = tvi.lParam
+		If k < 1 OrElse k >= vrrnb OrElse vrr(k).tv <> h OrElse vrr(k).lst <= k Then Exit Sub
+		If vrr(k + 1).tv <> 0 Then Exit Sub 'already added
+		Dim tvIns As TVINSERTSTRUCT
+		Dim As WString * 1024 wText
+		tvIns.hParent = h
+		tvIns.hInsertAfter = TVI_LAST
+		tvIns.item.mask = TVIF_TEXT Or TVIF_IMAGE Or TVIF_SELECTEDIMAGE Or TVIF_PARAM Or TVIF_CHILDREN
+		tvIns.item.pszText = @wText
+		Dim As Integer c = k + 1, l = vrr(k).lst
+		If l > vrrnb Then l = vrrnb
+		While c <= l
+			wText = Left(var_sh1(c), 1000)
+			tvIns.item.lParam = c
+			tvIns.item.cChildren = IIf(vrr(c).lst > c, 1, 0)
+			vrr(c).tv = TreeView_InsertItem(tviewvar, @tvIns)
+			If vrr(c).lst < c Then Exit While
+			c = vrr(c).lst + 1
+		Wend
+	#else
+		'Called by the expanding of the line (the main thread): no ThreadsEnter
+		If h = 0 Then Exit Sub
+		Dim As TreeNode Ptr tn = h, cn
+		Dim As Integer k = CInt(tn->Tag)
+		If k < 1 OrElse k >= vrrnb OrElse vrr(k).tv <> h OrElse vrr(k).lst <= k Then Exit Sub
+		If vrr(k + 1).tv <> 0 Then Exit Sub 'already added
+		tn->Nodes.Clear 'the empty line of the [+]
+		Dim As Integer c = k + 1, l = vrr(k).lst
+		If l > vrrnb Then l = vrrnb
+		While c <= l
+			cn = tn->Nodes.Add(var_sh1(c))
+			cn->Tag = Cast(Any Ptr, c)
+			vrr(c).tv = cn
+			If vrr(c).lst > c Then cn->Nodes.Add 'the [+] of its components
+			If vrr(c).lst < c Then Exit While
+			c = vrr(c).lst + 1
+		Wend
+	#endif
+End Sub
+
+'The line of the vrr i: it is added with the lines of its parents when they are not there yet
+Private Function var_tv(i As Integer) As Any Ptr
+	If i < 1 OrElse i > vrrnb Then Return 0
+	If vrr(i).tv = 0 Then
+		Dim As Integer p = var_up(i)
+		If p > 0 Then var_kids(var_tv(p))
+	End If
+	Return vrr(i).tv
+End Function
 
 Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As Integer
 	For i As Integer = udt(typ).lb To udt(typ).ub
@@ -6911,7 +7013,9 @@ Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As I
 			Dim As Integer iUBound = i - udt(typ).lb
 			#ifdef __USE_WINAPI__
 				Dim As HTREEITEM hFirstChildOfProcThis, hChildOfThis
+				var_kids(tv) 'the lines of the components are added when they are expanded
 				hFirstChildOfProcThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, tv)))
+				var_kids(hFirstChildOfProcThis)
 				hChildOfThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, hFirstChildOfProcThis)))
 				For j As Integer = 1 To iUBound
 					hChildOfThis = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_NEXT, Cast(LPARAM, hChildOfThis)))
@@ -6928,6 +7032,7 @@ Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As I
 	If cudt(udt(typ).lb).nm = "BASE$" Then
 		#ifdef __USE_WINAPI__
 			Dim As HTREEITEM hFirstChildOfProcThisOrBase
+			var_kids(tv)
 			hFirstChildOfProcThisOrBase = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, tv)))
 			Return var_search2(text, cudt(udt(typ).lb).typ, hFirstChildOfProcThisOrBase)
 		#endif
@@ -7087,11 +7192,12 @@ Private Function var_parent(child As Any Ptr) As Integer 'find var master parent
 End Function
 
 Private Sub var_fill(i As Integer)
+	var_tv(i) 'the line of a component found by its name is added when it is not there yet
 	If vrr(i).vr<0 Then
 		varfind.ty=cudt(-vrr(i).vr).typ
 		varfind.pt=cudt(-vrr(i).vr).pt
 		varfind.nm=cudt(-vrr(i).vr).nm
-		varfind.pr = vrr(var_parent(vrr(i).tv)).vr 'index of the vrb
+		varfind.pr = vrr(var_master(i)).vr 'index of the vrb
 		varfind.fxlen = cudt(-vrr(i).vr).fxlen
 	Else
 		varfind.ty=vrb(vrr(i).vr).typ
@@ -7928,15 +8034,9 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 				wtch(t).vty(c)=udt(cudt(Abs(vrr(iparent).vr)).typ).nm
 				If cudt(Abs(vrr(iparent).vr)).arr Then wtch(t).Var=1:Exit Do Else wtch(t).Var=0
 			End If
-			#ifdef __USE_WINAPI__
-				temp=Cast(HTREEITEM,SendMessage(tviewvar,TVM_GETNEXTITEM,TVGN_PARENT,Cast(LPARAM,vrr(iparent).tv)))
-			#else
-				temp = Cast(TreeNode Ptr, vrr(iparent).tv)->ParentNode
-			#endif
-			
-			For i As Integer =1 To vrrnb
-				If vrr(i).tv=temp Then iparent=i
-			Next
+			'The parent component or the master var (the lines of the components may not be there)
+			iparent = var_up(iparent)
+			If iparent = 0 Then Exit Do
 		Loop While 1
 		wtch(t).vnb=c
 		
@@ -10735,7 +10835,7 @@ End Sub
 		brkv.psk = 0
 		If varfind.iv > 0 AndAlso varfind.iv <= vrrnb Then
 			Dim As Integer master = varfind.iv
-			If vrr(master).vr < 0 Then master = var_parent(vrr(master).tv)
+			If vrr(master).vr < 0 Then master = var_master(master)
 			If master > 0 AndAlso vrr(master).vr > 0 Then
 				Select Case vrb(vrr(master).vr).mem
 				Case 1, 4, 5
@@ -11200,42 +11300,24 @@ Private Sub watch_array()
 End Sub
 
 Private Sub update_address(midx As Long) ''to propagate address dynamaic array or after changing index  or erase 22/07/2014
-	Dim As Any Ptr child
 	Dim As Integer arradr=vrr(midx).ad
-	
-	#ifdef __USE_WINAPI__
-		child = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, vrr(midx).tv))) 'first child (at least one as it's an udt)
-	#else
-		If Cast(TreeNode Ptr, vrr(midx).tv)->Nodes.Count Then
-			child = Cast(TreeNode Ptr, vrr(midx).tv)->Nodes.Item(0)
-		End If
-		Dim As Integer ChildNumber
-	#endif
-	
-	For i As Long = midx+1 To vrrnb
-		If vrr(i).tv=child Then ''only done with direct child not with the childs of a child
-			If arradr=0 Then ''case array erased
-				vrr(i).ini=0
-				vrr(i).ad=0
-			Else
-				vrr(i).ad=vrr(i).gofs+arradr
-				If Cast(Integer,cudt(Abs(vrr(i).vr)).arr) Then
-					vrr(i).ini=vrr(i).ad
-					''vrr(i).ad=0
-				End If
+	'The direct children (not the childs of a child), by the vrr: their lines may not be in the tree yet (var_kids)
+	Dim As Long i = midx + 1, l = vrr(midx).lst
+	If l > vrrnb Then l = vrrnb
+	While i <= l
+		If arradr=0 Then ''case array erased
+			vrr(i).ini=0
+			vrr(i).ad=0
+		Else
+			vrr(i).ad=vrr(i).gofs+arradr
+			If Cast(Integer,cudt(Abs(vrr(i).vr)).arr) Then
+				vrr(i).ini=vrr(i).ad
+				''vrr(i).ad=0
 			End If
-			#ifdef __USE_WINAPI__
-				child = Cast(HTREEITEM, SendMessage(tviewvar, TVM_GETNEXTITEM, TVGN_NEXT, Cast(LPARAM, child)))
-			#else
-				child = 0
-				If ChildNumber < Cast(TreeNode Ptr, vrr(midx).tv)->Nodes.Count Then
-					child = Cast(TreeNode Ptr, vrr(midx).tv)->Nodes.Item(ChildNumber)
-				End If
-				ChildNumber += 1
-			#endif
-			If child=0 Then Exit For ''no more child
 		End If
-	Next
+		If vrr(i).lst < i Then Exit While
+		i = vrr(i).lst + 1
+	Wend
 End Sub
 
 Private Function var_sh1(i As Integer) As String '23/04/2014
@@ -11561,7 +11643,7 @@ End Function
 			If wtch(k).tvl = 0 AndAlso wtch(k).psk = 0 Then wtch(k).psk = -1
 		Next
 		'Like the command Watch of the menu of the variables: the selected variable
-		SendMessage(tviewvar, TVM_SELECTITEM, TVGN_CARET, Cast(LPARAM, vrr(idx).tv))
+		SendMessage(tviewvar, TVM_SELECTITEM, TVGN_CARET, Cast(LPARAM, var_tv(idx)))
 		If var_find2(tviewvar) = -1 Then Return 0
 		wtchnew = -1: wtchidx = -1
 		watch_set()
@@ -11655,9 +11737,17 @@ Private Sub var_sh() 'show master var
 	#ifdef __USE_WINAPI__
 		UpdateItems(TreeView_GetNextItem(tviewvar, NULL, TVGN_ROOT))
 	#else
-		For i As Integer = 1 To vrrnb
-			Tree_upditem(vrr(i).tv, var_sh1(i), tviewvar)
-		Next
+		'Only the lines in the tree: the components are added when their parent is expanded (var_kids)
+		Dim As Integer i = 1
+		While i <= vrrnb
+			If vrr(i).tv = 0 Then
+				If vrr(i).lst < i Then Exit While
+				i = vrr(i).lst + 1 'its components are not there either
+			Else
+				Tree_upditem(vrr(i).tv, var_sh1(i), tviewvar)
+				i += 1
+			End If
+		Wend
 	#endif
 	watch_array()
 	watch_sh
@@ -16973,6 +17063,12 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	If Not Restarting Then
 		'#IfNDef __USE_GTK__
 		exename = GetExeFileName(MainFile, CompileLine & " " & FirstLine)
+		#ifdef __FB_WIN32__
+			'"src\..\Program.exe" (-x ../Program.exe): CreateProcess keeps the path as it is, so ExePath of the program
+			'is "src\.." and ExePath & "./Resources" ("src\.../Resources") does not find its files (the icons)
+			Dim As WString * 300 FullExeName
+			If GetFullPathNameW(@exename, 300, @FullExeName, NULL) > 0 Then exename = FullExeName
+		#endif
 		mainfolder = GetFolderName(MainFile)
 		'#EndIf
 		'Attach to Process: the program and its folder (the sources without path are in it, not in the folder of the file of the IDE)

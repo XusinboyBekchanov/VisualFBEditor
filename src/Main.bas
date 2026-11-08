@@ -12378,7 +12378,9 @@ Sub tvVar_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRe
 			Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lParam)
 			If tvp <> 0 Then
 				Select Case tvp->hdr.code
-				Case TVN_ITEMEXPANDING: UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
+				Case TVN_ITEMEXPANDING
+					var_kids(tvp->itemNew.hItem) 'the lines of the components are added when it is expanded
+					UpdateItems(TreeView_GetNextItem(tviewvar, tvp->itemNew.hItem, TVGN_CHILD))
 				End Select
 			End If
 		End Select

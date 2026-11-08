@@ -405,6 +405,7 @@ Declare Sub shwexp_new(tview As Any Ptr)
 	Common Shared tviewprc As TreeView Ptr 'all proc
 	Common Shared tviewthd As TreeView Ptr 'all threads
 	Common Shared tviewwch As TreeView Ptr 'watched variables
+	Declare Function var_sh1(i As Integer) As String
 #else
 	Declare Sub fastrun()
 	Declare Sub thread_rsm()
@@ -653,6 +654,7 @@ Type tvrr
 	gofs  As UInteger 'global offset to optimise access
 	ix(4) As Integer  '5 index max in case of array
 	arrid As Integer  'index in array tracking for automatic tracking ''2016/06/02
+	lst   As Integer  'the last vrr of its components (itself when it has none)
 End Type
 
 ''========================= Tracking an array, displaying value using variables as indexes ================
