@@ -64,6 +64,37 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/Controls/MyFbFramework/mff
   fbc -b "mff.bi" "mff.rc" -dll -x "../mff64_gtk3.dll" -d __USE_GTK__ -d __USE_GTK3__ -p "Path_to_msys2\msys32\mingw64\lib"
 ```
+#### Building on Linux
+
+**1. Install the development files of GTK** (the only package VisualFBEditor needs itself):
+
+| Distribution | GTK2 | GTK3 | GTK4 |
+|---|---|---|---|
+| Debian / Ubuntu / Linux Mint | `sudo apt install libgtk2.0-dev` | `sudo apt install libgtk-3-dev` | `sudo apt install libgtk-4-dev` |
+| Fedora | `sudo dnf install gtk2-devel` | `sudo dnf install gtk3-devel` | `sudo dnf install gtk4-devel` |
+| Arch Linux / Manjaro | `sudo pacman -S gtk2` | `sudo pacman -S gtk3` | `sudo pacman -S gtk4` |
+
+**2. Install FreeBASIC and the packages it needs** (gcc, binutils, ncurses, ...: see the list for your distribution in the [README of FreeBASIC](https://github.com/freebasic/fbc#readme)). The official binaries are recommended: https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.1/Binaries-Linux/
+```shell
+  wget https://sourceforge.net/projects/fbc/files/FreeBASIC-1.10.1/Binaries-Linux/FreeBASIC-1.10.1-linux-x86_64.tar.gz
+  tar xf FreeBASIC-1.10.1-linux-x86_64.tar.gz
+  cd FreeBASIC-1.10.1-linux-x86_64
+  sudo ./install.sh -i
+```
+fbc looks for its libraries in `lib/freebasic/linux-x86_64` next to its `bin` folder. Some packages (for example the `.deb` packages of FreeBASIC 1.10.3-1 from deb.fbxl.net) put them into `/usr/lib/freebasic` itself, and then linking fails with `cannot open linker script file /usr/bin/../lib/freebasic/linux-x86_64/fbextra.x` or `cannot find .../fbrt0.o`. A link to the folder fixes it:
+```shell
+  sudo ln -s . /usr/lib/freebasic/linux-x86_64
+```
+
+**3. Get the sources.** MyFbFramework must be in the folder `Controls/MyFbFramework`. Always use the git versions of both repositories together (`git pull` in both): a release archive of MyFbFramework can be older than the sources of VisualFBEditor.
+```shell
+  git clone https://github.com/XusinboyBekchanov/VisualFBEditor
+  cd VisualFBEditor/Controls
+  git clone https://github.com/XusinboyBekchanov/MyFbFramework
+```
+
+**4. Compile the IDE and the library of the controls** (the commands below, for example for Linux 64-bit with GTK3). The library (`libmff64_gtk3.so`) is not in git: the IDE needs it in `Controls/MyFbFramework` to show the controls in the Toolbox and in the designer of forms. `DownloadAndCompile.sh` installs GTK3, downloads FreeBASIC into the folder `Compilers` and compiles both itself (`Compile.sh` compiles again with that FreeBASIC), the packages of FreeBASIC from step 2 are still needed.
+
 #### For Linux 32-bit (for gtk2):
 ```shell
   cd Path_to_VisualFBEditor/src
@@ -92,36 +123,23 @@ To compile use the following command lines:
   cd Path_to_VisualFBEditor/Controls/MyFbFramework/mff
   fbc -b "mff.bi" -dll -x "../libmff64_gtk3.so" -d __USE_GTK3__
 ```
-#### Sample bat file:
+#### For Linux 64-bit (for gtk4):
 ```shell
-REM Sample Windows 64 bit Build
-
-REM CHANGE YOUR SETUP / PATHS
-
-REM Change path to the VisualFBEditor source
-
-c:
-
-cd "C:\FreeBasic\Projects\VisualFBEditor-master\src"
-
-REM A Copy of the MyFbFramework was also placed to
-
-REM "C:\FreeBasic\Projects\VisualFBEditor-master\Controls\MyFbFramework"
-
-REM the 64 bit FreeBasic compiler is located in
-
-REM "C:\FreeBasic\X64\fbc.exe"
-
-REM "Version 1.08.0 64 bit Windows build"
-
-REM BUILD COMMAND
-
-"C:\FreeBasic\X64\fbc.exe" "VisualFBEditor.bas" "VisualFBEditor.rc" -s gui -x "../VisualFBEditor64.exe" -i "C:\FreeBasic\Projects\VisualFBEditor-master\Controls\MyFbFramework"
-
-REM Change path to the MyFbFramework source
-
-cd "C:\FreeBasic\Projects\VisualFBEditor-master\Controls\MyFbFramework\mff"
-
-"C:\FreeBasic\X64\fbc.exe" -b "mff.bi" "mff.rc" -dll -x "..\mff64.dll"
+  cd Path_to_VisualFBEditor/src
+  fbc "VisualFBEditor.bas" -x "../VisualFBEditor64_gtk4" -i "Path_to_VisualFBEditor/Controls/MyFbFramework" -d __USE_GTK__ -d __USE_GTK4__
+  cd Path_to_VisualFBEditor/Controls/MyFbFramework/mff
+  fbc -b "mff.bi" -dll -x "../libmff64_gtk4.so" -d __USE_GTK__ -d __USE_GTK4__
 ```
-__
+#### Sample bat file (Windows 64-bit):
+```bat
+@echo off
+REM Change these paths to yours
+set FBC=C:\FreeBASIC\fbc64.exe
+set VFBE=C:\FreeBASIC\Projects\VisualFBEditor
+
+cd /d "%VFBE%\src"
+"%FBC%" "VisualFBEditor.bas" "VisualFBEditor.rc" -s gui -x "../VisualFBEditor64.exe" -i "%VFBE%\Controls\MyFbFramework" || exit /b 1
+
+cd /d "%VFBE%\Controls\MyFbFramework\mff"
+"%FBC%" -b "mff.bi" "mff.rc" -dll -x "../mff64.dll" || exit /b 1
+```
