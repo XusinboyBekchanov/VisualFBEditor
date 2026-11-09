@@ -1104,7 +1104,7 @@ Function TabWindow.SaveTab As Boolean
 		If Not pLoadPaths->Contains(FileName) Then
 			pLoadPaths->Add FileName
 		End If
-		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName))))
+		ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwrite, @pLoadPaths->Item(pLoadPaths->IndexOf(FileName)), LoadThreadStack))
 	End If
 	Return True
 End Function
@@ -8039,7 +8039,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 								End If
 								If Not pLoadPaths->Contains(*FPath) Then
 									Var AddedIndex = pLoadPaths->Add(*FPath)
-									ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+									ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex), LoadThreadStack))
 								End If
 							Else
 								WLet(FPath, "")
@@ -9423,7 +9423,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 							End If
 							If Not pLoadPaths->Contains(*FPath) Then
 								Var AddedIndex = pLoadPaths->Add(*FPath)
-								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex)))
+								ThreadCounter(ThreadCreate_(@LoadFunctionsSub, @pLoadPaths->Item(AddedIndex), LoadThreadStack))
 							End If
 						Else
 							WLet(FPath, "")

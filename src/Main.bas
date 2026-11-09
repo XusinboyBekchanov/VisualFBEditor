@@ -3211,7 +3211,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					If EndsWith(LCase(*ee->FileName), ".bas") OrElse (EndsWith(LCase(*ee->FileName), ".frm") OrElse EndsWith(LCase(*ee->FileName), ".rpt")) OrElse EndsWith(LCase(*ee->FileName), ".bi") OrElse EndsWith(LCase(*ee->FileName), ".inc") Then
 						pFiles->Add *ee->FileName, ppe
 						If Not LoadPaths.Contains(*ee->FileName) Then LoadPaths.Add *ee->FileName
-						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName))))
+						ThreadCounter(ThreadCreate_(@LoadOnlyFilePath, @LoadPaths.Item(LoadPaths.IndexOf(*ee->FileName)), LoadThreadStack))
 					End If
 					ppe->Files_.Add *ee->FileName
 					If inFolder Then
@@ -3346,7 +3346,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 		CloseFile_(Fn)
 		If pFilesList = 0 Then
 			For i As Integer = 0 To pFiles->Count - 1
-				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i)))))
+				ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(pFiles->Item(i))), LoadThreadStack))
 			Next
 			If ProjectAutoSuggestions Then
 				For i As Integer = 0 To pFiles->Count - 1
@@ -3356,7 +3356,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 					ecc->Tag = pFiles->Object(i)
 					Cast(ProjectElement Ptr, pFiles->Object(i))->Contents.Add ecc
 					If Not LoadPaths.Contains(pFiles->Item(i)) Then LoadPaths.Add pFiles->Item(i)
-					ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+					ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc, LoadThreadStack))
 				Next
 			End If
 		End If
@@ -3465,7 +3465,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 		WDeAllocate(filn)
 		If MainNode = 0 AndAlso tn > 0 Then SetMainNode tn ' For No MainFIle
 		For i As Integer = 0 To Files.Count - 1
-			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i)))))
+			ThreadCounter(ThreadCreate_(@LoadOnlyIncludeFiles, @LoadPaths.Item(LoadPaths.IndexOf(Files.Item(i))), LoadThreadStack))
 		Next
 		If ProjectAutoSuggestions Then
 			For i As Integer = 0 To Files.Count - 1
@@ -3475,7 +3475,7 @@ Function AddSession(ByRef FileName As WString) As Boolean
 				ecc->Tag = Files.Object(i)
 				Cast(ProjectElement Ptr, Files.Object(i))->Contents.Add ecc
 				If Not LoadPaths.Contains(Files.Item(i)) Then LoadPaths.Add Files.Item(i)
-				ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc))
+				ThreadCounter(ThreadCreate_(@LoadOnlyFilePathOverwriteWithContent, ecc, LoadThreadStack))
 			Next
 		End If
 		CloseFile_(Fn)

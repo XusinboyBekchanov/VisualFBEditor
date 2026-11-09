@@ -413,6 +413,14 @@ Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, CurFile As Any Ptr = 0, OldFile As Any Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
+'The stack of the threads which parse files with LoadFunctions: a call of it takes about 150 KB of the stack and
+'calls itself for each #include, the headers of GTK (gtk/gtk.bi) overflowed 1 MB and the IDE crashed (issue #886).
+'Linux, macOS: only the address space is reserved, the memory is taken when it is used
+#ifdef __FB_WIN32__
+	Const LoadThreadStack = 0
+#else
+	Const LoadThreadStack = 16 * 1024 * 1024
+#endif
 Declare Sub LoadOnlyFilePath(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwrite(Param As Any Ptr)
 Declare Sub LoadOnlyFilePathOverwriteWithContent(Param As Any Ptr)
