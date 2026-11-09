@@ -7045,6 +7045,40 @@ Function GetTypeLink(ByRef TypeName As String, ByVal bMarkDown As Boolean = Fals
 	End If
 End Function
 
+#ifdef __USE_GTK__
+	'GTK: the pictures of the toolbox are the icons of the theme with the names of the files in the resources of the
+	'libraries; Chr(10) & "Name=FileName" & Chr(10) & ... of the pictures of the .rc files with other file names
+	Dim Shared As String ToolBoxIconNames
+
+	Sub LoadToolBoxIconNames(ByRef RcFile As String)
+		Dim As Integer Fn = FreeFile
+		If Open(RcFile For Input As #Fn) <> 0 Then Exit Sub
+		If ToolBoxIconNames = "" Then ToolBoxIconNames = Chr(10)
+		Dim As String sLine
+		Do Until EOF(Fn)
+			Line Input #Fn, sLine
+			sLine = Trim(sLine, Any !" \t\r")
+			Dim As Integer Pos1 = InStr(sLine, " "), Pos2 = InStr(sLine, """")
+			If Pos1 = 0 OrElse Pos2 = 0 OrElse Pos2 < Pos1 Then Continue Do
+			If UCase(Trim(Mid(sLine, Pos1, Pos2 - Pos1))) <> "PNG" Then Continue Do
+			Dim As String sName = Left(sLine, Pos1 - 1)
+			Dim As String sFile = Replace(Mid(sLine, Pos2 + 1, InStr(Pos2 + 1, sLine, """") - Pos2 - 1), "\", "/")
+			sFile = Mid(sFile, InStrRev(sFile, "/") + 1)
+			If LCase(Right(sFile, 4)) = ".png" Then sFile = Left(sFile, Len(sFile) - 4)
+			If sFile = sName OrElse sFile = "" Then Continue Do
+			If InStr(LCase(ToolBoxIconNames), Chr(10) & LCase(sName) & "=") = 0 Then ToolBoxIconNames &= sName & "=" & sFile & Chr(10)
+		Loop
+		Close #Fn
+	End Sub
+
+	Function ToolBoxIconName(ByRef ControlName As String) As String
+		Dim As Integer Pos1 = InStr(LCase(ToolBoxIconNames), Chr(10) & LCase(ControlName) & "=")
+		If Pos1 = 0 Then Return ControlName
+		Pos1 += Len(ControlName) + 2
+		Return Mid(ToolBoxIconNames, Pos1, InStr(Pos1, ToolBoxIconNames, Chr(10)) - Pos1)
+	End Function
+#endif
+
 Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 	Dim As String f
 	Dim As Integer i, j
@@ -7166,6 +7200,11 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		#ifdef __USE_GTK__
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/resources")))
 			gtk_icon_theme_append_search_path(gtk_icon_theme_get_default(), ToUtf8(GetOSPath(GetFolderName(GetFullPath(CtlLibrary->Path)) & "/Resources")))
+			'The pictures whose files have other names are in the .rc file of the sources (PagePanel: Panel.png)
+			Dim As String RcFolder = GetOSPath(GetFullPath(GetFullPath(CtlLibrary->SourcesFolder, CtlLibrary->Path)))
+			If Not EndsWith(RcFolder, Slash) Then RcFolder &= Slash
+			Dim As String RcFile = Dir(RcFolder & "*.rc")
+			If RcFile <> "" Then LoadToolBoxIconNames RcFolder & RcFile
 		#endif
 		IncludePath = GetFullPath(GetFullPath(CtlLibrary->HeadersFolder, CtlLibrary->Path))
 		If Not EndsWith(IncludePath, Slash) Then IncludePath &= Slash
@@ -7193,6 +7232,8 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 		tbi = Cast(TypeElement Ptr, Comps.Object(i))
 		If tbi=0 Then Continue For
 		If LCase(Comps.Item(i)) = "control" OrElse LCase(Comps.Item(i)) = "containercontrol" OrElse LCase(Comps.Item(i)) = "menu" OrElse LCase(Comps.Item(i)) = "component" OrElse LCase(Comps.Item(i)) = "dialog" OrElse LCase(Comps.Item(i)) = "reportcontrol" Then Continue For
+		'The element of a report item in the designer of the Web IDE, not a control of the user
+		If LCase(Comps.Item(i)) = "reporthost" Then Continue For
 		If tbi->ElementType = E_TypeCopy Then Continue For
 		If ForLibrary <> 0 AndAlso tbi->Tag <> ForLibrary Then Continue For
 		iNew = GetTypeControl(Comps.Item(i))
@@ -7203,8 +7244,10 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 			Dim As Any Ptr LibHandle
 			If tbi->Tag Then LibHandle = Cast(Library Ptr, tbi->Tag)->Handle
 			imgListTools.Add it, it, LibHandle
+			Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap))
+		#else
+			Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup, ToolBoxIconName(it), , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap))
 		#endif
-		Var toolb = tbToolBox.Groups.Item(iNew - 1)->Buttons.Add(tbsCheckGroup, it, , @ToolBoxClick, it, it, it, True, Cast(ToolButtonState, tstEnabled Or tstWrap))
 		toolb->Tag = Comps.Object(i)
 		iOld = iNew
 	Next i
