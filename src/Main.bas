@@ -77,11 +77,23 @@ Dim Shared As Boolean bQuitting
 #include once "frmSplash.bi"
 pfSplash->MainForm = False
 pfSplash->Show
-#ifdef __FB_64BIT__
-	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("64-bit") & ")"
-#else
-	pfSplash->lblSplash1.Text = "(" & ML("Version") & " " & pApp->Version & "  " & ML("32-bit") & ")"
-#endif
+Scope
+	Dim As UString sSplashVersion = "(" & ML("Version") & " " & pApp->Version & "  "
+	#ifdef __FB_64BIT__
+		sSplashVersion &= ML("64-bit")
+	#else
+		sSplashVersion &= ML("32-bit")
+	#endif
+	#ifdef __USE_GTK__
+		'The version of the GTK library loaded at runtime (as in frmSplash, whose text is replaced here)
+		#ifdef __USE_GTK2__
+			sSplashVersion &= ", GTK " & gtk_major_version_ & "." & gtk_minor_version_ & "." & gtk_micro_version_
+		#else
+			sSplashVersion &= ", GTK " & gtk_get_major_version() & "." & gtk_get_minor_version() & "." & gtk_get_micro_version()
+		#endif
+	#endif
+	pfSplash->lblSplash1.Text = sSplashVersion & ")"
+End Scope
 pApp->DoEvents
 
 Dim Shared As VisualFBEditor.Application VisualFBEditorApp
