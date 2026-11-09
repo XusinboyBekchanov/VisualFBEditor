@@ -11812,6 +11812,21 @@ End Sub
 'txtPropertyValue.BorderStyle = 0
 txtPropertyValue.Visible = False
 txtPropertyValue.WantReturn = True
+#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
+	Scope
+		'Only this editor: the theme gives an entry a minimum height and paddings higher than a row of the
+		'list, in the row the entry was cut and its text stood below the text of the row
+		Dim As GtkCssProvider Ptr pCss = gtk_css_provider_new()
+		Dim As String sCss = "entry { min-height: 0; padding-top: 0; padding-bottom: 0; margin: 0; }"
+		#ifdef __USE_GTK4__
+			gtk_css_provider_load_from_data(pCss, StrPtr(sCss), -1)
+		#else
+			gtk_css_provider_load_from_data(pCss, StrPtr(sCss), -1, NULL)
+		#endif
+		gtk_style_context_add_provider(gtk_widget_get_style_context(txtPropertyValue.Handle), GTK_STYLE_PROVIDER(pCss), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+		g_object_unref(pCss)
+	End Scope
+#endif
 txtPropertyValue.OnActivate = @txtPropertyValue_Activate
 txtPropertyValue.OnLostFocus = @txtPropertyValue_LostFocus
 
@@ -11840,6 +11855,32 @@ pnlPropertyValue.Add @cboPropertyValue
 
 'Dim Shared CtrlEdit As Control Ptr
 Dim Shared Cpnt As Component Ptr
+#ifdef __USE_GTK__
+	'The cell of the value of the row in the coordinates of the page that holds pnlPropertyValue. Before this the
+	'header was taken as high as a row and a few pixels were added: the editor stood lower than the row
+	Sub GetPropertyValueCellRect(Item As TreeListViewItem Ptr, ByRef lpRect As Rect, ByRef RowHeight As Integer)
+		Dim As GdkRectangle gdkRect
+		Dim As GtkTreePath Ptr TreePath = gtk_tree_model_get_path(GTK_TREE_MODEL(lvProperties.TreeStore), @Item->TreeIter)
+		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
+		gtk_tree_path_free(TreePath)
+		Dim As gint wx, wy, px, py
+		gtk_tree_view_convert_bin_window_to_widget_coords(GTK_TREE_VIEW(lvProperties.Handle), gdkRect.x, gdkRect.y, @wx, @wy)
+		'pnlPropertyValue is placed in the container that holds also the list
+		Dim As GtkWidget Ptr Target = gtk_widget_get_parent(pnlPropertyValue.Handle)
+		Do While Target <> 0 AndAlso CInt(Not gtk_widget_is_ancestor(lvProperties.Handle, Target))
+			Target = gtk_widget_get_parent(Target)
+		Loop
+		#ifdef __USE_GTK4__
+			Dim As gboolean bTranslated: If Target Then bTranslated = gtk4compat_translate_coordinates(lvProperties.Handle, Target, wx, wy, @px, @py)
+		#else
+			Dim As gboolean bTranslated: If Target Then bTranslated = gtk_widget_translate_coordinates(lvProperties.Handle, Target, wx, wy, @px, @py)
+		#endif
+		If Target = 0 OrElse bTranslated = 0 Then px = wx: py = wy + lvProperties.Top
+		lpRect = Type(px, py, px + gdkRect.width, py + gdkRect.height)
+		RowHeight = gdkRect.height
+	End Sub
+#endif
+
 Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As TreeListView, ByRef Item As TreeListViewItem Ptr)
 	Var tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 	If tb = 0 OrElse tb->Des = 0 OrElse tb->Des->SelectedControl = 0 Then Exit Sub
@@ -11855,11 +11896,8 @@ Sub lvProperties_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Send
 	cboPropertyValue.Visible = False
 	pnlColor.Visible = False
 	#ifdef __USE_GTK__
-		Dim As GdkRectangle gdkRect
-		Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @Item->TreeIter))
-		gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
-		gtk_tree_path_free(TreePath)
-		lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+		Dim As Integer RowHeight
+		GetPropertyValueCellRect Item, lpRect, RowHeight
 	#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 		'Web: the cell of the selected row (the row of the table, the item is the selected one)
 		TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
@@ -12037,11 +12075,8 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 	Else
 		Dim As Rect lpRect
 		#ifdef __USE_GTK__
-			Dim As GdkRectangle gdkRect
-			Dim As GtkTreePath Ptr TreePath = gtk_tree_path_new_from_string(gtk_tree_model_get_string_from_iter(GTK_TREE_MODEL(lvProperties.TreeStore), @lvProperties.SelectedItem->TreeIter))
-			gtk_tree_view_get_cell_area(GTK_TREE_VIEW(lvProperties.Handle), TreePath, lvProperties.Columns.Column(1)->Column, @gdkRect)
-			gtk_tree_path_free(TreePath)
-			lpRect = Type(gdkRect.x - 2, gdkRect.y + lvProperties.Top + gdkRect.height + 2, gdkRect.x + gdkRect.width + 4, gdkRect.y + lvProperties.Top + 2 * gdkRect.height + 5)
+			Dim As Integer RowHeight
+			GetPropertyValueCellRect lvProperties.SelectedItem, lpRect, RowHeight
 		#elseif defined(__USE_WASM__) OrElse defined(__USE_APPLE__)
 			TableCellRect(lvProperties.Handle, TableGetIndex(lvProperties.Handle), 1, @lpRect)
 		#elseif defined(__USE_WIN32_COMPAT__)
@@ -12055,7 +12090,7 @@ Sub lvProperties_EndScroll(ByRef Designer As My.Sys.Object, ByRef Sender As Tree
 		pnlPropertyValue.SetBounds pnlPropertyValue.UnScaleX(lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Top), pnlPropertyValue.UnScaleX(lpRect.Right - lpRect.Left), pnlPropertyValue.UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		'CtrlEdit->SetBounds UnScaleX(lpRect.Left), UnScaleY(lpRect.Top), UnScaleX(lpRect.Right - lpRect.Left), UnScaleY(lpRect.Bottom - lpRect.Top - 1)
 		#ifdef __USE_GTK__
-			If pnlPropertyValue.Top < lvProperties.Top + gdkRect.height OrElse pnlPropertyValue.Top + pnlPropertyValue.Height > lvProperties.Top + lvProperties.Height Then
+			If pnlPropertyValue.Top < lvProperties.Top + RowHeight OrElse pnlPropertyValue.Top + pnlPropertyValue.Height > lvProperties.Top + lvProperties.Height Then
 				pnlPropertyValue.Visible = False
 			Else
 				pnlPropertyValue.Visible = True

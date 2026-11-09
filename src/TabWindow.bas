@@ -1962,6 +1962,8 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	'tb->Des->SelectedControl = Ctrl
 	SelectedCtrl = Ctrl
 	SelectedCount = Sender.SelectedControls.Count
+	'cboClass_Change below calls this procedure again: the inner call must not end the guard of the outer one
+	Dim As Boolean bOldNotFunctionChange = bNotFunctionChange
 	bNotFunctionChange = True
 	If tb->Des->Symbols(Ctrl) AndAlso tb->Des->Symbols(Ctrl)->ReadPropertyFunc <> 0 Then
 		Dim As String SelControlName = WGet(tb->Des->Symbols(Ctrl)->ReadPropertyFunc(Ctrl, "Name"))
@@ -1990,7 +1992,7 @@ Sub DesignerChangeSelection(ByRef Sender As Designer, Ctrl As Any Ptr, iLeft As 
 	If Sender.SelectedControls.Contains(Sender.SelectedControl) Then
 		tb->pnlDesign.SetFocus
 	End If
-	bNotFunctionChange = False
+	bNotFunctionChange = bOldNotFunctionChange
 	RefreshReportRulers(tb)
 End Sub
 
@@ -3054,6 +3056,10 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 	'Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Parent->Parent->Parent)
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
+	'Set by DesignerChangeSelection: the control was selected in the designer, not in this list. GTK raises
+	'this event also when ItemIndex is set by code (Windows does not): the keyboard focus must then stay
+	'in the designer, else Delete, Enter and the arrows go to the code editor
+	Dim As Boolean bFromDesigner = bNotFunctionChange
 	Var ii = Sender.ItemIndex
 	If ii = -1 Then Exit Sub
 	If ii = 0 Then
@@ -3097,7 +3103,7 @@ Sub cboClass_Change(ByRef Designer As My.Sys.Object, ByRef Sender As ComboBoxEdi
 				If StartsWith(Trim(LCase(.Lines(i)), Any !"\t ") & " ", "with " & LCase(Sender.Text) & " ") OrElse InStr(Trim(LCase(.Lines(i))), LCase(Sender.Text) & ".") > 0 Then
 					Var n = Len(.Lines(i)) - Len(LTrim(.Lines(i)))
 					.SetSelection i, i, n + 4, n + 4
-					.SetFocus
+					If Not bFromDesigner Then .SetFocus
 					Exit For
 				End If
 			Next
@@ -3346,6 +3352,8 @@ End Sub
 Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByVal CurrentLine As Integer, ByVal OldLine As Integer)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
+	'Called also while the designer selects a control (cboClass_Change moves the cursor): it must not end that guard
+	Dim As Boolean bOldNotFunctionChange = bNotFunctionChange
 	bNotFunctionChange = True
 	If tb->txtCode.SyntaxEdit AndAlso Not tb->txtCode.Content.CStyle Then
 		If CurrentLine > -1 AndAlso CurrentLine < tb->txtCode.Content.Lines.Count Then
@@ -3518,7 +3526,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 		If te2->StartLine <= CurrentLine And te2->EndLine >= CurrentLine Then
 			If tb->cboFunction.ItemIndex <> i + 1 Then tb->cboFunction.ItemIndex = i + 1
 			t = True
-			bNotFunctionChange = False
+			bNotFunctionChange = bOldNotFunctionChange
 			Exit Sub
 			'For j As Integer = 1 To tb->cboFunction.Items.Count - 1
 			'                If te2 = tb->cboFunction.Items.Item(j)->Object Then
@@ -3531,7 +3539,7 @@ Sub OnLineChangeEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 		End If
 	Next
 	tb->cboFunction.ItemIndex = 0
-	bNotFunctionChange = False
+	bNotFunctionChange = bOldNotFunctionChange
 End Sub
 
 Function GetOnlyArguments(ArgumentsLine As String) As String

@@ -186,6 +186,9 @@ Namespace My.Sys.Forms
 		As SymbolsType Ptr OldSymbols, OldCtrlSymbols
 		#ifdef __USE_GTK__
 			Declare Static Function HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
+			'MoveDots of HookChildDraw waits until the drawing ends (see HookChildDraw)
+			Declare Static Function MoveDotsIdle CDecl(ByVal user_data As gpointer) As gboolean
+			FMoveDotsIdle As guint
 			#ifdef __USE_GTK4__
 				Declare Static Function HookChildTick CDecl(ByVal widget As GtkWidget Ptr, ByVal frame_clock As GdkFrameClock Ptr, ByVal user_data As gpointer) As gboolean
 			#endif

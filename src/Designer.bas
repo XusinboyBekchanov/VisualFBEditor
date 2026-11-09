@@ -876,7 +876,12 @@ Namespace My.Sys.Forms
 			Dim As Boolean bShift = GetKeyState(VK_SHIFT) And 8000
 		#endif
 		pfrmMain->ActiveControl = GetControl(FDialogParent)
-		#ifndef __USE_GTK__
+		#ifdef __USE_GTK__
+			'The designer takes the mouse events itself (the hooks return True), so GTK does not move the
+			'keyboard focus: it stayed in the code editor and Delete deleted a character of the code there
+			'instead of the control (the control disappeared only at the next click, when the code was parsed)
+			If layoutwidget AndAlso CInt(Not gtk_widget_has_focus(layoutwidget)) Then gtk_widget_grab_focus(layoutwidget)
+		#else
 			Dim As ..Point P
 			Dim As ..Rect R
 		#endif
@@ -1742,6 +1747,29 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
+		Type DesignerHookData
+			Des As Designer Ptr
+			Ctrl As Any Ptr
+			Proc As Any Ptr
+		End Type
+
+		'GTK3/GTK2 deliver a click to the deepest widget with a window: the inner widgets of a control
+		'(e.g. the toggle button of a ComboBox) handle it themselves and the designer never sees it -
+		'the control could not be selected, dragged or double clicked. So they all get the hook.
+		Private Sub DesignerHookInnerWidget(widget As GtkWidget Ptr, user_data As gpointer)
+			Dim As DesignerHookData Ptr pData = user_data
+			Dim As Any Ptr Owner = g_object_get_data(G_OBJECT(widget), "@@@Control2")
+			'A control placed into a container control is hooked by itself
+			If Owner <> 0 AndAlso Owner <> pData->Ctrl Then Exit Sub
+			If g_object_get_data(G_OBJECT(widget), "@@@DesignerHook") = 0 Then
+				g_object_set_data(G_OBJECT(widget), "@@@DesignerHook", pData->Des)
+				g_signal_connect(widget, "event", G_CALLBACK(pData->Proc), pData->Des)
+			End If
+			If GTK_IS_CONTAINER(widget) Then gtk_container_forall(GTK_CONTAINER(widget), Cast(GtkCallback, @DesignerHookInnerWidget), pData)
+		End Sub
+	#endif
+
 	#ifdef __USE_GTK__
 		Sub Designer.HookControl(Control As GtkWidget Ptr)
 	#else
@@ -1752,16 +1780,25 @@ Namespace My.Sys.Forms
 				#ifdef __USE_GTK4__
 					' Before the handlers of the control (e.g. the click gesture of a button), like the "event" signal of GTK3
 					gtk4compat_signal_connect_capture(Control, "event", G_CALLBACK(@HookChildProc), @This)
-				#else
-					g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
-				#endif
-				If GTK_IS_BIN(Control) AndAlso gtk_bin_get_child(GTK_BIN(Control)) <> 0 Then
-					#ifdef __USE_GTK4__
+					If GTK_IS_BIN(Control) AndAlso gtk_bin_get_child(GTK_BIN(Control)) <> 0 Then
 						gtk4compat_signal_connect_capture(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
-					#else
-						g_signal_connect(gtk_bin_get_child(GTK_BIN(Control)), "event", G_CALLBACK(@HookChildProc), @This)
-					#endif
-				End If
+					End If
+				#else
+					If g_object_get_data(G_OBJECT(Control), "@@@DesignerHook") = 0 Then
+						g_object_set_data(G_OBJECT(Control), "@@@DesignerHook", @This)
+						g_signal_connect(Control, "event", G_CALLBACK(@HookChildProc), @This)
+					End If
+					Dim As DesignerHookData HookData = Type(@This, g_object_get_data(G_OBJECT(Control), "@@@Control2"), @HookChildProc)
+					If GTK_IS_BIN(Control) AndAlso gtk_bin_get_child(GTK_BIN(Control)) <> 0 Then
+						Dim As GtkWidget Ptr BinChild = gtk_bin_get_child(GTK_BIN(Control))
+						If HookData.Ctrl = 0 Then HookData.Ctrl = g_object_get_data(G_OBJECT(BinChild), "@@@Control2")
+						If g_object_get_data(G_OBJECT(BinChild), "@@@DesignerHook") = 0 Then
+							g_object_set_data(G_OBJECT(BinChild), "@@@DesignerHook", @This)
+							g_signal_connect(BinChild, "event", G_CALLBACK(@HookChildProc), @This)
+						End If
+					End If
+					If GTK_IS_CONTAINER(Control) Then gtk_container_forall(GTK_CONTAINER(Control), Cast(GtkCallback, @DesignerHookInnerWidget), @HookData)
+				#endif
 				#ifndef __USE_GTK2__
 					#ifdef __USE_GTK4__
 						gtk_widget_add_tick_callback(Control, Cast(GtkTickCallback, @HookChildTick), @This, NULL)
@@ -3114,6 +3151,13 @@ Namespace My.Sys.Forms
 			End Function
 		#endif
 
+		Function Designer.MoveDotsIdle CDecl(ByVal user_data As gpointer) As gboolean
+			Dim As My.Sys.Forms.Designer Ptr Des = user_data
+			Des->FMoveDotsIdle = 0
+			If Des->SelectedControl <> Des->DesignControl Then Des->MoveDots Des->SelectedControl, False
+			Return False
+		End Function
+		
 		Function Designer.HookChildDraw(widget As GtkWidget Ptr, cr As cairo_t Ptr, data1 As Any Ptr) As Boolean
 			#ifdef __USE_GTK__
 				Static As My.Sys.Forms.Designer Ptr Des
@@ -3123,7 +3167,10 @@ Namespace My.Sys.Forms
 						If .SelectedControl = .DesignControl Then Exit Function
 						If g_object_get_data(G_OBJECT(widget), "drawed") <> Des Then
 							If .FSelControl = widget Then
-								.MoveDots .SelectedControl, False
+								'Not here: MoveDots destroys and creates the dots in the overlay that is drawing this control
+								'now - GTK then draws a freed dot (gtk_container_propagate_draw: GTK_IS_WIDGET (child) failed)
+								'and the IDE crashed
+								If .FMoveDotsIdle = 0 Then .FMoveDotsIdle = g_idle_add(Cast(GSourceFunc, @MoveDotsIdle), Des)
 							End If
 							g_object_set_data(G_OBJECT(widget), "drawed", Des)
 						End If
@@ -5242,6 +5289,9 @@ Namespace My.Sys.Forms
 	End Constructor
 	
 	Destructor Designer
+		#ifdef __USE_GTK__
+			If FMoveDotsIdle Then g_source_remove_(FMoveDotsIdle): FMoveDotsIdle = 0
+		#endif
 		UnHook
 		#ifndef __USE_GTK__
 			DeleteObject(FDotBrush)
