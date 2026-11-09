@@ -12431,6 +12431,27 @@ Sub Versioning(ByRef FileName As WString, ByRef sFirstLine As WString, ByRef Pro
 	'End If
 End Sub
 
+'The defines of "Use" with which the program is compiled. When "Use" is Default (or GTK: Default) on Linux the
+'GTK version is not given, then gtk/gtk.bi of FreeBASIC takes GTK2 (gtk-x11-2.0), which works only under X11
+'and is often not installed (issue #886): the program gets the GTK version of the IDE itself.
+Function GetUseDefine(ForWindows As Boolean = False, ByRef CompileArguments As WString = "") As String
+	#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__) AndAlso (defined(__USE_GTK3__) OrElse defined(__USE_GTK4__))
+		If Not ForWindows Then
+			Select Case LCase(Trim(UseDefine))
+			Case "", "__use_gtk__"
+				If InStr(LCase(CompileArguments), "__use_gtk") = 0 Then
+					#ifdef __USE_GTK4__
+						Return Trim(UseDefine & IIf(UseDefine = "", "", " -d ") & "__USE_GTK4__")
+					#else
+						Return Trim(UseDefine & IIf(UseDefine = "", "", " -d ") & "__USE_GTK3__")
+					#endif
+				End If
+			End Select
+		End If
+	#endif
+	Return UseDefine
+End Function
+
 Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolean
 	If StartsWith(sLine, "not ") Then
 		Return Not CheckCondition(Mid(sLine, 5), ForWindows)
@@ -12457,25 +12478,25 @@ Function CheckCondition(ByRef sLine As WString, ForWindows As Boolean) As Boolea
 		Case "__fb_64bit__", "defined(__fb_64bit__)"
 			Return tbt64Bit->Checked
 		Case "__use_winapi__", "defined(__use_winapi__)"
-			Return InStr(LCase(UseDefine), "__use_winapi__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_winapi__") > 0
 		Case "__use_gtk2__", "defined(__use_gtk2__)"
-			Return InStr(LCase(UseDefine), "__use_gtk2__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_gtk2__") > 0
 		Case "__use_gtk3__", "defined(__use_gtk3__)"
-			Return InStr(LCase(UseDefine), "__use_gtk3__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_gtk3__") > 0
 		Case "__use_gtk4__", "defined(__use_gtk4__)"
-			Return InStr(LCase(UseDefine), "__use_gtk4__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_gtk4__") > 0
 		Case "__use_gtk__", "defined(__use_gtk__)"
-			Return InStr(LCase(UseDefine), "__use_gtk__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_gtk__") > 0
 		Case "__use_wasm__", "defined(__use_wasm__)"
-			Return InStr(LCase(UseDefine), "__use_wasm__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_wasm__") > 0
 		Case "__use_jni__", "defined(__use_jni__)"
-			Return InStr(LCase(UseDefine), "__use_jni__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_jni__") > 0
 		Case "__use_cocoa__", "defined(__use_cocoa__)"
-			Return InStr(LCase(UseDefine), "__use_cocoa__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_cocoa__") > 0
 		Case "__use_uikit__", "defined(__use_uikit__)"
-			Return InStr(LCase(UseDefine), "__use_uikit__") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"__use_uikit__") > 0
 		Case "__fb_js__", "defined(__fb_js__)"
-			Return InStr(LCase(UseDefine), "-target js-asmjs") > 0
+			Return InStr(LCase(GetUseDefine(ForWindows)),"-target js-asmjs") > 0
 		Case Else
 			Return False
 		End Select
@@ -12574,7 +12595,8 @@ Function GetFirstCompileLine(ByRef FileName As WString, ByRef Project As Project
 	ElseIf UseGen <> "" Then
 		Result += " -gen " & UseGen
 	End If
-	If UseDefine <> "" Then Result += " -d " & UseDefine
+	Dim As String sUseDefine = GetUseDefine(ForWindows, Result)
+	If sUseDefine <> "" Then Result += " -d " & sUseDefine
 	If cboBuildConfiguration.ItemIndex > 0 Then
 		Result += " " & BuildConfigurations.Get(cboBuildConfiguration.Text)
 	End If
