@@ -844,6 +844,16 @@ Namespace My.Sys.Forms
 	Sub Designer.DblClick(X As Integer, Y As Integer, Shift As Integer, Ctrl As Any Ptr = 0)
 		'#IfDef __USE_GTK__
 		SelectedControl = ControlAt(DesignControl, X, Y, Ctrl)
+		If FDown Then
+			'GTK sends the second GDK_BUTTON_PRESS before GDK_2BUTTON_PRESS, so the drag is started again,
+			'and the release goes to the code editor opened here: the control moved with the mouse after
+			'returning to the designer until the next click (#887)
+			FDown = False
+			FCanMove = False
+			FCanSize = False
+			FCanInsert = False
+			MoveDots(SelectedControl)
+		End If
 		If OnDblClickControl Then OnDblClickControl(This, SelectedControl)
 		'#Else
 		'    FSelControl = ControlAt(FDialog, X, Y)
