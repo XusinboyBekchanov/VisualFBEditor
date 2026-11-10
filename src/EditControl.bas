@@ -4826,10 +4826,10 @@ Namespace My.Sys.Forms
 												bTypeAs = StartsWith(*TrimmedLCasePtr, "type ") AndAlso OldMatnLCase = "as"
 												sc = @Identifiers
 												OriginalCaseWord = "":   TypeName = "" : te = 0
-												If MatnBoshi > 1 Then    ' "->"=45-62
+												If MatnBoshi > 2 Then    ' "->"=45-62
 													r = (*s)[MatnBoshi - 2]
 													q = (*s)[MatnBoshi - 3]
-												ElseIf MatnBoshi > 0 Then
+												ElseIf MatnBoshi > 1 Then
 													r = (*s)[MatnBoshi - 2]
 													q = 0
 												Else
