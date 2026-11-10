@@ -3940,19 +3940,7 @@ Sub DesignerDblClickControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 			Case Else
 				If iItem <> 0 Then FindEvent tb, iItem->Object, "OnClick"
 			End Select
-			If tb->tbrTop.Buttons.Item("CodeAndForm")->Checked Then
-				tb->tbrTop.Buttons.Item("Code")->Checked = True
-				tbrTop_ButtonClick *tb->tbrTop.Designer, tb->tbrTop, *tb->tbrTop.Buttons.Item("Code")
-				If GlobalSettings.ShowClassesExplorerOnOpenWindow Then
-					If tb->cboFunction.ItemIndex > -1 Then
-						Dim te As TypeElement Ptr = tb->cboFunction.ItemData(tb->cboFunction.ItemIndex)
-						If te <> 0 AndAlso te->Tag2 <> 0 Then
-							Cast(TreeNode Ptr, te->Tag2)->SelectItem
-						End If
-					End If
-				End If
-				tpProject->SelectTab
-			End If
+			'In the Code and Form view the view is kept: the code of the event is shown next to the form (#887)
 			'			tb->pnlCode.Visible = True
 			'			tb->pnlForm.Visible = False
 			'			tb->splForm.Visible = False
