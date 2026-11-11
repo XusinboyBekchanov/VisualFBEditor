@@ -1327,6 +1327,9 @@ Namespace My.Sys.Forms
 						'LockWindowUpdate(0)
 					#endif
 				Else
+					' A click without dragging: the default size of CreateControl, also for the code and the dots
+					If FNewX = FBeginX Then FNewX = FBeginX + 50
+					If FNewY = FBeginY Then FNewY = FBeginY + 50
 					If SelectedType = 5 Then
 						Dim As Any Ptr RealParent = ctr
 						Dim As SymbolsType Ptr st = Symbols(SelectedClass)
