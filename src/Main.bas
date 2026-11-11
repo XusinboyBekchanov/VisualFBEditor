@@ -950,7 +950,19 @@ Function GetUserTempPath(ByRef RelativePath As WString = "") As UString
 		Return ""
 	End If
 	If Not EndsWith(BasePath, "/") AndAlso Not EndsWith(BasePath, "\") Then BasePath &= Slash
-	BasePath = GetOSPath(BasePath & APP_TITLE & "/")
+	#ifdef __FB_WIN32__
+		BasePath = GetOSPath(BasePath & APP_TITLE & "/")
+	#else
+		'/tmp is shared by all the users: a folder created there by another user cannot be written, so the name has the user in it
+		Dim As UString UserName
+		#ifdef __USE_GTK__
+			UserName = WStr(*g_get_user_name())
+		#else
+			UserName = Environ("USER")
+			If UserName = "" Then UserName = Environ("LOGNAME")
+		#endif
+		BasePath = GetOSPath(BasePath & APP_TITLE & IIf(UserName = "", "", "-" & UserName) & "/")
+	#endif
 	If Not EnsureFolderExists(BasePath) Then
 		MsgBox "Unable to create temporary folder: " & BasePath
 		Return ""
@@ -3607,9 +3619,10 @@ Function FolderExists(ByRef FolderName As WString) As Boolean
 		closedir_ DirPtr
 		Return True
 	#else
+		'Linux: Dir marks the folders of other users as read-only and the ones starting with a dot as hidden, they are skipped without these bits in the mask
 		Dim AttrTester As Integer, DirString As String
-		DirString = Dir(FolderName, fbDirectory, AttrTester)
-		Return AttrTester = fbDirectory
+		DirString = Dir(FolderName, fbDirectory Or fbReadOnly Or fbHidden Or fbSystem, AttrTester)
+		Return (AttrTester And fbDirectory) <> 0
 	#endif
 End Function
 
