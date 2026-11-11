@@ -20,13 +20,17 @@
 	#endif
 #else
 	#ifdef __FB_64BIT__
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-dll -x SQLite3Component_x64_gtk4.so"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-dll -x SQLite3Component_x64_gtk3.so"
 		#else
 			#cmdline "-dll -x SQLite3Component_x64_gtk2.so"
 		#endif
 	#else
-		#ifdef __USE_GTK3__
+		#ifdef __USE_GTK4__
+			#cmdline "-dll -x SQLite3Component_x32_gtk4.so"
+		#elseif defined(__USE_GTK3__)
 			#cmdline "-dll -x SQLite3Component_x32_gtk3.so"
 		#else
 			#cmdline "-dll -x SQLite3Component_x32_gtk2.so"

@@ -1,7 +1,28 @@
-﻿#ifdef __FB_64BIT__
-	#cmdline "MariaDBBox.rc -dll -x MariaDBBox_x64.dll"
+﻿#if defined(__USE_WINAPI__) OrElse defined(__FB_WIN32__) AndAlso Not defined(__USE_GTK__)
+	#ifdef __FB_64BIT__
+		#cmdline "MariaDBBox.rc -dll -x MariaDBBox_x64.dll"
+	#else
+		#cmdline "MariaDBBox.rc -dll -x MariaDBBox_x32.dll"
+	#endif
 #else
-	#cmdline "MariaDBBox.rc -dll -x MariaDBBox_x32.dll"
+	'GTK (Linux): the library of the designer, without libmariadb (__EXPORT_PROCS__)
+	#ifdef __FB_64BIT__
+		#ifdef __USE_GTK4__
+			#cmdline "-dll -x MariaDBBox_x64_gtk4.so"
+		#elseif defined(__USE_GTK3__)
+			#cmdline "-dll -x MariaDBBox_x64_gtk3.so"
+		#else
+			#cmdline "-dll -x MariaDBBox_x64_gtk2.so"
+		#endif
+	#else
+		#ifdef __USE_GTK4__
+			#cmdline "-dll -x MariaDBBox_x32_gtk4.so"
+		#elseif defined(__USE_GTK3__)
+			#cmdline "-dll -x MariaDBBox_x32_gtk3.so"
+		#else
+			#cmdline "-dll -x MariaDBBox_x32_gtk2.so"
+		#endif
+	#endif
 #endif
 #define __EXPORT_PROCS__
 
