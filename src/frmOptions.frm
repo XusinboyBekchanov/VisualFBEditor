@@ -6027,15 +6027,21 @@ End Sub
 Dim Shared As Boolean bStop
 Dim Shared As Integer FindedCompilersCount
 Dim Shared As UString FolderName = GetFolderName(pApp->FileName)
-Sub FindCompilers(ByRef Path As WString)
+'Searches one folder; its subfolders are put at the start of Folders (FindCompilersFrom takes the next folder from
+'there, in the order of the former recursion). Recursion overflowed the stack of the thread on Linux: the locals
+'are 16 KB there (4-byte wchar_t) and links to directories (for example /lib/llvm-18/build/Debug+Asserts) are loops
+Sub FindCompilers(ByRef Path As WString, ByRef Folders As WStringList)
 	Dim As WString * 1024 f, f1, f2, f3
-	Dim As Integer Attr = 0, NameCount = 0
-	Dim As WStringList Folders
+	Dim As Integer Attr = 0, NameCount = 0, FolderIndex = 0
 	#ifdef __FB_WIN32__
 	If Path = "" Then Exit Sub
 	#endif
 	If FormClosing OrElse bStop Then Exit Sub
 	If EndsWith(Path, "\Windows") Then Exit Sub
+	#ifndef __FB_WIN32__
+		'Linux: the file systems of the kernel have no compilers (and /proc has links to all of the folders)
+		If Path = "/proc" OrElse Path = "/sys" OrElse Path = "/dev" OrElse Path = "/run" Then Exit Sub
+	#endif
 	ThreadsEnter
 	'fOptions.lblFindCompilersFromComputer.Text = Path
 	pstBar->Panels[0]->Caption = Path
@@ -6044,11 +6050,18 @@ Sub FindCompilers(ByRef Path As WString)
 	While f <> ""
 		If FormClosing OrElse bStop Then Exit Sub
 		Dim isDir As Boolean = ((Attr And fbDirectory) <> 0)
-		If isDir AndAlso f <> "." AndAlso f <> ".." Then 
+		If isDir AndAlso f <> "." AndAlso f <> ".." Then
 			If EndsWith(Path, Slash) Then
-				Folders.Add Path & f
+				f1 = Path & f
 			Else
-				Folders.Add Path & Slash & f
+				f1 = Path & Slash & f
+			End If
+			#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+				If g_file_test(ToUtf8(f1), G_FILE_TEST_IS_SYMLINK) Then isDir = False
+			#endif
+			If isDir Then
+				Folders.Insert FolderIndex, f1
+				FolderIndex += 1
 			End If
 		End If
 		f = Dir(Attr)
@@ -6089,9 +6102,18 @@ Sub FindCompilers(ByRef Path As WString)
 		End If
 		f = Dir(Attr)
 	Wend
-	For i As Integer = 0 To Folders.Count - 1
-		FindCompilers Folders.Item(i)
-	Next
+End Sub
+
+Sub FindCompilersFrom(ByRef Path As WString)
+	Dim As WStringList Folders
+	Dim As WString * 1024 Folder
+	Folders.Add Path
+	While Folders.Count > 0
+		If FormClosing OrElse bStop Then Exit While
+		Folder = Folders.Item(0)
+		Folders.Remove 0
+		FindCompilers Folder, Folders
+	Wend
 	Folders.Clear
 End Sub
 
@@ -6119,11 +6141,11 @@ Sub FindCompilersSub(Param As Any Ptr)
 		Dim As String disk0 = CurDir
 		For i As Integer = 65 To 90
 			If FormClosing OrElse bStop Then Exit For
-			If ChDir(Chr(i) & ":") = 0 Then FindCompilers Chr(i) & ":"
+			If ChDir(Chr(i) & ":") = 0 Then FindCompilersFrom Chr(i) & ":"
 		Next
 		ChDir(disk0)
 	#else
-		FindCompilers ""
+		FindCompilersFrom ""
 	#endif
 	ThreadsEnter
 	bStop = True: FindProcessStartStop
