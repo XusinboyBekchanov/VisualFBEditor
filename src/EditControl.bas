@@ -7103,6 +7103,71 @@ Namespace My.Sys.Forms
 		End Sub
 	#endif
 	
+	#ifdef __USE_GTK__
+		'The hints are written for the SysLink of Windows (<a href>, <br>, comments of the code): Pango markup has no <br>
+		'and needs the <, > and & of the text as entities, otherwise GTK shows nothing ("Failed to set text ... from markup").
+		'The tags of Pango stay, <br> is a new line, <code> is <tt>; a markup that is still not valid is shown as text.
+		Private Function HintToMarkup(ByRef Hint As WString) As String
+			Dim As UString Result, sCheck, sTag, sTagLCase
+			Dim As Integer i = 1, n = Len(Hint), p
+			Dim As WString * 2 ch
+			While i <= n
+				ch = Mid(Hint, i, 1)
+				Select Case ch
+				Case "<"
+					p = InStr(i, Hint, ">")
+					If p > 0 Then sTag = Mid(Hint, i, p - i + 1) Else sTag = ""
+					sTagLCase = LCase(sTag)
+					If sTagLCase = "<br>" OrElse sTagLCase = "<br/>" OrElse sTagLCase = "<br />" Then
+						Result &= WChr(10): sCheck &= WChr(10)
+					ElseIf sTagLCase = "<code>" Then
+						Result &= "<tt>": sCheck &= "<tt>"
+					ElseIf sTagLCase = "</code>" Then
+						Result &= "</tt>": sCheck &= "</tt>"
+					ElseIf StartsWith(sTagLCase, "<a ") OrElse sTagLCase = "</a>" Then
+						'the links are of GtkLabel, pango_parse_markup does not know them (not in sCheck)
+						Result &= sTag
+					ElseIf StartsWith(sTagLCase, "<span ") OrElse sTagLCase = "</span>" OrElse _
+						sTagLCase = "<b>" OrElse sTagLCase = "</b>" OrElse sTagLCase = "<i>" OrElse sTagLCase = "</i>" OrElse _
+						sTagLCase = "<u>" OrElse sTagLCase = "</u>" OrElse sTagLCase = "<s>" OrElse sTagLCase = "</s>" OrElse _
+						sTagLCase = "<tt>" OrElse sTagLCase = "</tt>" OrElse sTagLCase = "<sub>" OrElse sTagLCase = "</sub>" OrElse _
+						sTagLCase = "<sup>" OrElse sTagLCase = "</sup>" OrElse sTagLCase = "<big>" OrElse sTagLCase = "</big>" OrElse _
+						sTagLCase = "<small>" OrElse sTagLCase = "</small>" Then
+						Result &= sTag: sCheck &= sTag
+					Else
+						Result &= "&lt;": sCheck &= "&lt;"
+						i += 1
+						Continue While
+					End If
+					i = p + 1
+					Continue While
+				Case ">"
+					Result &= "&gt;": sCheck &= "&gt;"
+				Case "&"
+					Dim As UString sNext = LCase(Mid(Hint, i + 1, 5))
+					If StartsWith(sNext, "lt;") OrElse StartsWith(sNext, "gt;") OrElse StartsWith(sNext, "amp;") OrElse StartsWith(sNext, "quot;") OrElse StartsWith(sNext, "apos;") OrElse StartsWith(sNext, "#") Then
+						Result &= "&": sCheck &= "&"
+					Else
+						Result &= "&amp;": sCheck &= "&amp;"
+					End If
+				Case WChr(13)
+					If Mid(Hint, i + 1, 1) <> WChr(10) Then Result &= WChr(10): sCheck &= WChr(10)
+				Case Else
+					Result &= ch: sCheck &= ch
+				End Select
+				i += 1
+			Wend
+			'an empty string is a null pointer for GTK: a space
+			Dim As String sMarkup = ToUtf8(Result), sMarkupCheck = ToUtf8(sCheck)
+			If sMarkup = "" Then Return " "
+			If sMarkupCheck <> "" AndAlso pango_parse_markup(Cast(Any Ptr, StrPtr(sMarkupCheck)), -1, 0, NULL, NULL, NULL, NULL) = 0 Then
+				Dim As gchar Ptr sEscaped = g_markup_escape_text(Cast(Any Ptr, StrPtr(sMarkup)), -1)
+				If sEscaped Then sMarkup = *Cast(ZString Ptr, sEscaped): g_free(sEscaped)
+			End If
+			Return sMarkup
+		End Function
+	#endif
+
 	Sub EditControl.ShowDropDownToolTipAt(X As Integer, Y As Integer)
 		#ifdef __USE_GTK__
 			DropDownToolTipItemIndex = lvIntellisense.SelectedItemIndex
@@ -7111,7 +7176,7 @@ Namespace My.Sys.Forms
 		#endif
 		If *FHintDropDown = "" Then WLet(FHintDropDown, " ")
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), HintToMarkup(*FHintDropDown))
 			gtk_window_move(GTK_WINDOW(winDropDownTooltip), ScaleX(X), ScaleY(Y))
 			gtk_window_resize(GTK_WINDOW(winDropDownTooltip), ScaleX(100), ScaleY(25))
 			gtk_widget_show_all(winDropDownTooltip)
@@ -7162,7 +7227,7 @@ Namespace My.Sys.Forms
 		If *FHintMouseHover = "" Then WLet(FHintMouseHover, " ")
 		#ifdef __USE_GTK__
 			Dim As gint xorigin, yorigin
-			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), HintToMarkup(*FHintMouseHover))
 			gdk_window_get_origin(gtk_layout_get_bin_window(GTK_LAYOUT(widget)), @xorigin, @yorigin)
 			gtk_window_move(GTK_WINDOW(winMouseHoverTooltip), X + xorigin, Y + yorigin)
 			gtk_window_resize(GTK_WINDOW(winMouseHoverTooltip), 100, 25)
@@ -7217,7 +7282,7 @@ Namespace My.Sys.Forms
 		ToolTipChar = iSelEndChar
 		#ifdef __USE_GTK__
 			Dim As gint x, y
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), HintToMarkup(*FHint))
 			gdk_window_get_origin(gtk_widget_get_window(widget), @x, @y)
 			gtk_window_move(GTK_WINDOW(winTooltip), ScaleX(HCaretPos) + x, ScaleY(VCaretPos) + y)
 			gtk_window_resize(GTK_WINDOW(winTooltip), ScaleX(100), ScaleY(25))
@@ -7269,7 +7334,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateDropDownToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), ToUtf8(Replace(*FHintDropDown, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblDropDownTooltip), HintToMarkup(*FHintDropDown))
 		#elseif defined(__USE_WIN32_COMPAT__)
 			If lblDropDownToolTip.Visible Then ShowWebToolTip lblDropDownToolTip, *FHintDropDown, lblDropDownToolTip.Left, lblDropDownToolTip.Top
 		#else
@@ -7293,7 +7358,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateMouseHoverToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), ToUtf8(Replace(*FHintMouseHover, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblMouseHoverTooltip), HintToMarkup(*FHintMouseHover))
 		#elseif defined(__USE_WIN32_COMPAT__)
 			If lblMouseHoverToolTip.Visible Then ShowWebToolTip lblMouseHoverToolTip, *FHintMouseHover, MouseHoverToolTipX, MouseHoverToolTipY
 		#else
@@ -7317,7 +7382,7 @@ Namespace My.Sys.Forms
 	
 	Sub EditControl.UpdateToolTip()
 		#ifdef __USE_GTK__
-			gtk_label_set_markup(GTK_LABEL(lblTooltip), ToUtf8(Replace(*FHint, "<=", "\u003c=")))
+			gtk_label_set_markup(GTK_LABEL(lblTooltip), HintToMarkup(*FHint))
 		#elseif defined(__USE_WIN32_COMPAT__)
 			If lblToolTip.Visible Then ShowWebToolTip lblToolTip, *FHint, ToolTipX, ToolTipY, ToolTipAtTheTop
 		#else
