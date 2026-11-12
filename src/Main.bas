@@ -6591,13 +6591,19 @@ Sub StartOfLoadFunctions
 	LoadFunctionsCount += 1
 	MutexLock tlock
 	If LoadFunctionsCount = 1 Then
+		'The threads of LoadFunctions: the status bar only with the lock of GTK (the main thread draws it, the caption
+		'is reallocated here: it was freed while GTK read it, heap corruption and crashes after a new GTK project)
+		ThreadsEnter
 		stBar.Panels[2]->Caption = ""
+		ThreadsLeave
 	End If
 End Sub
 
 Sub EndOfLoadFunctions
 	LoadFunctionsCount -= 1
 	If LoadFunctionsCount = 0 Then
+		'The status bar and the tabs only with the lock of GTK (StartOfLoadFunctions)
+		ThreadsEnter
 		stBar.Panels[2]->Caption = ML("IntelliSense fully loaded")
 		Dim As TabWindow Ptr tb
 		For j As Integer = TabPanels.Count - 1 To 0 Step -1
@@ -6614,6 +6620,7 @@ Sub EndOfLoadFunctions
 				End If
 			Next i
 		Next j
+		ThreadsLeave
 	End If
 	MutexUnlock tlock
 End Sub
