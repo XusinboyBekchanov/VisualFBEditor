@@ -6492,6 +6492,15 @@ Private Sub dbg_include(strg As String)
 		'dbg_prt2 "keep current source=";sourceix,strg
 	End If
 End Sub
+'' ------------------------------------------------------------------------------
+'' gas64 emits the definition of a type (NAME:Tt.. / NAME:T..=e) when it is used
+'' first, also between procedures, so skipline must not skip it (#889)
+'' ------------------------------------------------------------------------------
+Private Function stab_is_typedef(ByRef strg As String) As Boolean
+	Dim As Long p = InStr(strg, ":")
+	If p = 0 OrElse p = Len(strg) Then Return False
+	Return strg[p] = Asc("T") OrElse strg[p] = Asc("t")
+End Function
 '' -----------------------
 '' Handling line code=68
 '' -----------------------
@@ -9543,7 +9552,7 @@ Private Sub load_dat(ByVal ofset As Integer,ByVal size As Integer,ByVal ofstr As
 		Case 32, 38, 40 'init common/ var / uninit var / local / parameter
 			parse_var(strg, value) ',exebase-baseimg) ''todo
 		Case 128,160 'init common/ var / uninit var / local / parameter
-			If skipline=False Then
+			If skipline = False OrElse stab_is_typedef(strg) Then
 				parse_var(strg, value) '+baseimg)',exebase-baseimg) ''todo
 			End If
 		Case 132 '' file name
@@ -9837,7 +9846,7 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 					Case 32,38,40 'init common/ var / uninit var / local / parameter
 						parse_var(recup, recupstab.ad + baseimg) ',exebase-baseimg) ''todo
 					Case 128,160 'init common/ var / uninit var / local / parameter
-						If skipline=False Then
+						If skipline = False OrElse stab_is_typedef(recup) Then
 							parse_var(recup, recupstab.ad) '+baseimg)',exebase-baseimg) ''todo
 						End If
 					Case 132 '' file name
