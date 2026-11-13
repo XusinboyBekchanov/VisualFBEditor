@@ -3304,11 +3304,15 @@ Namespace My.Sys.Forms
 	
 	Function EditControl.TextWidth(ByRef sText As WString) As Integer
 		#ifdef __USE_GTK__
-			pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			If sText = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(sText), Len(ToUtf8(sText)))
+			End If
 			If cr Then
 				pango_cairo_update_layout(cr, layout)
 			End If
-			#ifdef PANGO_VERSION
+			#ifdef pango_version
 				Dim As PangoLayoutLine Ptr pll = pango_layout_get_line_readonly(layout, 0)
 			#else
 				Dim As PangoLayoutLine Ptr pll = pango_layout_get_line(layout, 0)
@@ -3378,7 +3382,11 @@ Namespace My.Sys.Forms
 			Dim As PangoRectangle extend, extend2
 			Dim As Double iRED, iGREEN, iBLUE
 			extend.width = TextWidth(*FLineLeft)
-			pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+			If *FLineRight = "" Then
+				pango_layout_set_text(layout, !"\0", 0)
+			Else
+				pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+			End If
 			Dim As PangoAttrList Ptr attribs = pango_attr_list_new()
 			If Underline Then
 				Dim As PangoAttribute Ptr pUnderline = pango_attr_underline_new(PANGO_UNDERLINE_SINGLE)
@@ -5467,7 +5475,11 @@ Namespace My.Sys.Forms
 								#ifdef __USE_GTK__
 									Dim As PangoRectangle extend, extend2
 									extend.width = TextWidth(*FLineLeft)
-									pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+									If *FLineRight = "" Then
+										pango_layout_set_text(layout, !"\0", 0)
+									Else
+										pango_layout_set_text(layout, ToUtf8(*FLineRight), Len(ToUtf8(*FLineRight)))
+									End If
 									pango_cairo_update_layout(cr, layout)
 									#ifdef pango_version
 										Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
@@ -5624,7 +5636,11 @@ Namespace My.Sys.Forms
 					'cairo_text_extents (cr, *FLineLeft, @extend)
 					cairo_move_to(cr, ScaleX(LeftMargin - 30 - TextWidth(ToUtf8(*FLineLeft)) + CodePaneX), ScaleY((i - VScrollPos) * dwCharY + dwCharY - 5 + CodePaneY))
 					cairo_set_source_rgb(cr, LineNumbers.ForegroundRed, LineNumbers.ForegroundGreen, LineNumbers.ForegroundBlue)
-					pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
+					If *FLineLeft = "" Then
+						pango_layout_set_text(layout, !"\0", 0)
+					Else
+						pango_layout_set_text(layout, ToUtf8(*FLineLeft), Len(ToUtf8(*FLineLeft)))
+					End If
 					pango_cairo_update_layout(cr, layout)
 					#ifdef pango_version
 						Dim As PangoLayoutLine Ptr pl = pango_layout_get_line_readonly(layout, 0)
