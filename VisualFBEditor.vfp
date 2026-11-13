@@ -53,6 +53,7 @@ File=src/frmTrek.frm
 File=src/Debug.bas
 File=src/DebugCommon.bas
 File=src/DebugDAP.bas
+File=src/DebugDwarf.bas
 File=src/DebugExternal.bas
 File=src/DebugLLDB.bas
 File=src/DebugMI.bas

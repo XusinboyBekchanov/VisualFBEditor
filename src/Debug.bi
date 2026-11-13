@@ -602,6 +602,7 @@ Type tproc
 	rv As Integer  'return value type
 	pt As Long     'counter pointer for return value (** -> 2)
 	rvadr As Integer 'offset for return value adr (for now only dwarf)
+	frofs As Integer 'gcc (DWARF): the previous rbp/ebp is at rbp+frofs, the return address after it (lea rbp frames), 0 otherwise
     tv As Any Ptr 'in tview2
     st As Byte     'state followed = not checked
     enab As Boolean 'state enable/disable

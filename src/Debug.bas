@@ -2745,6 +2745,7 @@ End Sub
 			If crashstack <> "" Then crashstack &= Chr(13)
 			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
 			If proc(proc_index(regip)).nm = "main" Then Exit For
+			regbp += proc(proc_index(regip)).frofs
 			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp + TSZ), @ret, TSZ)
 			prevbp = regbp
 			ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp), @regbp, TSZ)
@@ -6561,6 +6562,7 @@ Private Sub dbg_proc(strg As String, linenum As Integer, adr As Integer)
 			lastline=0
 			proc(procnb+1).vr=proc(procnb).vr 'in case there is not param nor local var
 			proc(procnb).rvadr=0 'for now only used in gcc case
+			proc(procnb).frofs=0
 			
 			'dbg_prt2 "proc =";proc(procnb).nm;" in source=";source(proc(procnb).sr)
 		Else
@@ -9488,6 +9490,8 @@ End Sub
 		Return 1
 	End Function
 #endif
+'' The programs compiled with -gen gcc -g (DWARF)
+#include once "DebugDwarf.bas"
 '' -------------------------------
 '' Extracting debug data for elf
 '' -------------------------------
@@ -9663,13 +9667,17 @@ Private Function elf_extract(filename As String) As Integer
 		walk_section+=sect_size
 	Next
 	If dbg_dat_of=0 Then
-		ThreadsEnter: MsgBox(ML("Loading error: Debug data not found, compile with -gen gas/gas64 and -g")): ThreadsLeave
 		Close #1
+		''-gen gcc -g: DWARF
+		If dwarf_extract(filename) > 0 Then Return 0
+		ThreadsEnter: MsgBox(ML("Loading error: Debug data not found, compile with -gen gas/gas64/gcc and -g")): ThreadsLeave
 		Return -1
 	Else
 		load_dat(dbg_dat_of,dbg_dat_size,dbg_str_of)
 	End If
 	Close #1
+	''the modules compiled with -gen gcc -g (DWARF)
+	dwarf_extract(filename)
 	Return 0
 End Function
 '============================================================================
@@ -9738,10 +9746,15 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 		pe+=40
 	Next
 	If basestab=0 OrElse basestabs=0 Then
+		''-gen gcc -g: DWARF
+		If dwarf_extract(nfile, exebase) > 0 Then
+			RestoreStatusText
+			Return 0
+		End If
 		If flagdwarf = 0 OrElse flagdwarf = -1 Then
 			If flagdll=NODLL Then
 				If flagattach = False Then
-					ThreadsEnter: MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64 and -g. Killing the debuggee"), "VisualFBEditor: " & ML("Integrated IDE Debugger")): ThreadsLeave ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
+					ThreadsEnter: MsgBox (ML("No information for Debugging. Compile with -gen gas/gas64/gcc and -g. Killing the debuggee"), "VisualFBEditor: " & ML("Integrated IDE Debugger")): ThreadsLeave ', MB_TOPMOST) ' + Chr(13) + Chr(10) + ML("and -gen gas/gas64 or '-Wc -gstabs+' or '-Wc -gdwarf-2'"
 				Else
 					hard_closing("Attaching running program" + Chr(10) + "No information for Debugging")
 				End If
@@ -10125,6 +10138,8 @@ Private Function debug_extract(exebase As UInteger, nfile As String, dllflag As 
 			'End If
 			'basestab += SizeOf(udtstab)
 		Wend
+		''the modules compiled with -gen gcc -g (DWARF)
+		dwarf_extract(nfile, exebase)
 	End If
 	'
 	'#ifdef __FB_WIN32__
@@ -12475,7 +12490,7 @@ Private Sub proc_new()
 	procr(procrnb).thid=thread(threadcur).id
 	procr(procrnb).idx=procsv
 	
-	ReadProcessMemory(dbghand,Cast(LPCVOID,procsk+TSZ),@procr(procrnb).ret,TSZ,0) 'return address
+	ReadProcessMemory(dbghand,Cast(LPCVOID,procsk+proc(procsv).frofs+TSZ),@procr(procrnb).ret,TSZ,0) 'return address
 	'test if first proc of thread
 	If thread(threadcur).plt=0 Then
 		procr(procrnb).cl=-1  ' no real calling line
@@ -12731,6 +12746,7 @@ End Function
 			If crashstack <> "" Then crashstack &= Chr(13)
 			crashstack &= crash_frame_text(nfrm, IIf(nfrm = 0, regip, regip - 1)): nfrm += 1
 			If proc(proc_index(regip)).nm = "main" Then Exit For
+			regbp += proc(proc_index(regip)).frofs
 			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp + TSZ), @ret, TSZ, 0) 'return EIP/RIP
 			prevbp = regbp
 			ReadProcessMemory(dbghand, Cast(LPCVOID, regbp), @regbp, TSZ, 0) 'previous RBP/EBP
@@ -12810,7 +12826,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 			If regip>=proc(j).db And regip<=proc(j).fn Then
 				regbpnb+=1
 				regbpp(regbpnb)=regbp
-				If regbp=0 OrElse ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+TSZ),@regip,TSZ,0)=0 Then regip=0 'return EIP/RIP
+				If regbp=0 OrElse ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+proc(j).frofs+TSZ),@regip,TSZ,0)=0 Then regip=0 'return EIP/RIP
 				ret(regbpnb)=regip
 				pridx(regbpnb)=j
 				Exit For
@@ -12819,7 +12835,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 		If j>procnb Then Exit While
 		If regip=0 Then Exit While 'frame not readable
 		prevregbp=regbp
-		If ReadProcessMemory(dbghand,Cast(LPCVOID,regbp),@regbp,TSZ,0)=0 Then Exit While 'previous RBP/EBP
+		If ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+proc(j).frofs),@regbp,TSZ,0)=0 Then Exit While 'previous RBP/EBP
 		If Cast(UInteger,regbp)<=Cast(UInteger,prevregbp) Then Exit While 'the stack must go up, otherwise the chain is broken (endless loop)
 		#ifdef __FB_WIN32__
 			''return in code without debug data (eg event called by user32 or callback) : unwind until a proc with debug data
@@ -13289,8 +13305,8 @@ End Function
 					End If
 				Next
 				If j>procnb Then Exit While
-				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+TSZ),@regip,TSZ,0) 'return EIP/RIP    12/07/2015 4 replaced by sizeof(integer)
-				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp)                ,@regbp,TSZ,0) 'previous RBP/EBP
+				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+proc(j).frofs+TSZ),@regip,TSZ,0) 'return EIP/RIP    12/07/2015 4 replaced by sizeof(integer)
+				ReadProcessMemory(dbghand,Cast(LPCVOID,regbp+proc(j).frofs)  ,@regbp,TSZ,0) 'previous RBP/EBP
 				
 				calin(regbpnb)=line_call(regip)
 			Wend
