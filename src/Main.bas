@@ -78,7 +78,7 @@ Dim Shared As Boolean bQuitting
 pfSplash->MainForm = False
 pfSplash->Show
 Scope
-	Dim As UString sSplashVersion = "(" & ML("Version") & " " & pApp->Version & "  "
+	Dim As UString sSplashVersion = "(" & ML("Version") & " " & pApp->Version & ", "
 	#ifdef __FB_64BIT__
 		sSplashVersion &= ML("64-bit")
 	#else
