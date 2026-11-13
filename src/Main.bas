@@ -1101,6 +1101,55 @@ Function GetBakFileName(ByRef FileName As WString) As UString
 	End If
 End Function
 
+'The bitness of an executable from its header (PE: Machine, ELF: EI_CLASS): 32, 64 or 0 if it is not known
+Function GetExecutableBitness(ByRef FileName As WString) As Integer
+	If FileName = "" OrElse Not FileExists(FileName) Then Return 0
+	Dim As Integer Fn = FreeFile_, Result
+	If Open(FileName For Binary Access Read As #Fn) <> 0 Then Return 0
+	Dim As ULong Magic, PeOffset, PeSignature
+	Dim As UShort Machine
+	Dim As UByte ElfClass
+	If LOF(Fn) >= 64 Then
+		Get #Fn, 1, Magic
+		If Magic = &h464C457F Then '\x7FELF
+			Get #Fn, 5, ElfClass
+			Select Case ElfClass
+			Case 1: Result = 32
+			Case 2: Result = 64
+			End Select
+		ElseIf (Magic And &hFFFF) = &h5A4D Then 'MZ
+			Get #Fn, 61, PeOffset
+			If PeOffset > 0 AndAlso PeOffset + 6 <= LOF(Fn) Then
+				Get #Fn, PeOffset + 1, PeSignature
+				Get #Fn, PeOffset + 5, Machine
+				If PeSignature = &h00004550 Then 'PE\0\0
+					Select Case Machine
+					Case &h014C: Result = 32 'I386
+					Case &h8664, &hAA64: Result = 64 'AMD64, ARM64
+					End Select
+				End If
+			End If
+		End If
+	End If
+	CloseFile_(Fn)
+	Return Result
+End Function
+
+'The compiler of Settings > Compilers may be of the other bitness than the one selected in the IDE (32/64 of the toolbar):
+'then fbc gets -arch 32 or -arch 64, if the arguments have no -arch or -target
+Function GetFbcArchOption(ByRef FbcExe As WString, ByRef Arguments As WString, Bit32 As Boolean) As String
+	#ifdef __USE_APPLE__
+		Return ""
+	#else
+		If InStr(Arguments, "-arch ") > 0 OrElse InStr(Arguments, "-target ") > 0 Then Return ""
+		Select Case GetExecutableBitness(FbcExe)
+		Case 64: If Bit32 Then Return " -arch 32"
+		Case 32: If Not Bit32 Then Return " -arch 64"
+		End Select
+		Return ""
+	#endif
+End Function
+
 Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As UString
 	Dim As UString CompileWith = " " & Replace(LTrim(sLine), BackSlash, Slash)
 	Dim As UString pFileName = Replace(FileName, BackSlash, Slash)
@@ -1138,31 +1187,58 @@ Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As US
 	Pos1 = InStrRev(pFileName, ".")
 	If Pos1 = 0 Then Pos1 = Len(pFileName) + 1
 	If Pos1 > 0 Then
-		#ifdef __USE_GTK__
+		#ifdef __USE_APPLE__
+			Return Left(pFileName, Pos1 - 1)
+		#endif
+		'The target of -target decides the name of the output, not the system of the IDE:
+		'win32, win64, *-mingw*, *-windows*, cygwin and dos make .exe/.dll, js-asmjs makes .html, the others (linux, android...) make Unix names
+		Dim As String TargetName = GetCompileTarget(CompileWith)
+		If StartsWith(TargetName, "js-") Then
+			Return Left(pFileName, Pos1 - 1) & ".html"
+		End If
+		Dim As Boolean ExeTarget
+		If TargetName = "" Then
+			#ifdef __USE_GTK__
+				ExeTarget = False
+			#else
+				ExeTarget = True
+			#endif
+		Else
+			ExeTarget = IsExeTarget(TargetName)
+		End If
+		If ExeTarget Then
+			Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".dll", ".exe")
+		Else
 			Pos2 = InStrRev(pFileName, Slash)
 			If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") > 0 Then
 				Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
 			Else
 				Return IIf(InStr(CompileWith, "-dll") + InStr(CompileWith, "-lib") > 0, "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", IIf(InStr(CompileWith, "-lib"), ".o", ""))
 			End If
-		#else
-			#ifdef __USE_APPLE__
-				Return Left(pFileName, Pos1 - 1)
-			#endif
-			If InStr(CompileWith, "-target js-asmjs") Then
-				Return Left(pFileName, Pos1 - 1) & ".html"
-			ElseIf InStr(CompileWith, "-target ") Then
-				Pos2 = InStrRev(pFileName, Slash)
-				If Pos2 > 0 AndAlso InStr(CompileWith, "-dll") + InStr(CompileWith, "-lib") > 0 Then
-					Return Left(pFileName, Pos2) & "lib" & Mid(pFileName, Pos2 + 1, Pos1 - Pos2 - 1) & ".so"
-				Else
-					Return IIf(InStr(CompileWith, "-dll") + InStr(CompileWith, "-lib") > 0, "lib", "") & Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".so", IIf(InStr(CompileWith, "-lib"), ".o", ""))
-				End If
-			Else
-				Return Left(pFileName, Pos1 - 1) & IIf(InStr(CompileWith, "-dll"), ".dll", ".exe")
-			End If
-		#endif
+		End If
 	End If
+End Function
+
+'The value of -target of the arguments of fbc in lower case, "" without -target
+Function GetCompileTarget(ByRef CompileWith As WString) As String
+	Dim As String Args = LCase(" " & CompileWith & " ")
+	Dim As Long Pos1 = InStrRev(Args, " -target ")
+	If Pos1 = 0 Then Return ""
+	Dim As String TargetName = LTrim(Mid(Args, Pos1 + 9))
+	If StartsWith(TargetName, """") Then
+		TargetName = Mid(TargetName, 2)
+		Pos1 = InStr(TargetName, """")
+	Else
+		Pos1 = InStr(TargetName, " ")
+	End If
+	If Pos1 > 0 Then TargetName = Left(TargetName, Pos1 - 1)
+	Return Trim(TargetName)
+End Function
+
+'Targets of fbc whose programs are .exe (and .dll): Windows (win32, win64, x86_64-w64-mingw32, windows-*...), Cygwin and DOS
+Function IsExeTarget(ByRef TargetName As String) As Boolean
+	Return CBool(StartsWith(TargetName, "win")) OrElse CBool(InStr(TargetName, "mingw") > 0) OrElse CBool(InStr(TargetName, "windows") > 0) OrElse _
+		CBool(InStr(TargetName, "cygwin") > 0) OrElse CBool(StartsWith(TargetName, "dos")) OrElse CBool(InStr(TargetName, "djgpp") > 0)
 End Function
 
 #if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
@@ -1653,6 +1729,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 		End If
 		If Parameter = "Check" Then WAdd(CompileWith, " -c")
 		WAdd(CompileWith, " " & *FirstLine)
+		If CBool(Parameter <> "Make") AndAlso CBool(Parameter <> "MakeClean") AndAlso CBool(Not UseJNI) Then WAdd(CompileWith, GetFbcArchOption(*FbcExe, *CompileWith & " " & CompileLine, Bit32))
 		WLet(MainFileNameOnly, GetFileName(*MainFile))
 		'#ifdef __USE_WINAPI__
 		'	If InStr(LCase(*CompileWith), ".rc") < 1 AndAlso FileExists(Left(*MainFile, Len(*MainFile) - 4) & ".rc") Then WAdd(CompileWith, " """  & GetFileName(Left(*MainFile, Len(*MainFile) - 4) & ".rc"""))
@@ -13029,9 +13106,9 @@ Sub txtImmediate_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contro
 			If tbt32Bit->Checked Then
 				WLet(FbcExe, GetFullPath(*Compiler32Path))
 			Else
-				WLet(FbcExe, GetFullPath(*Compiler32Path))
+				WLet(FbcExe, GetFullPath(*Compiler64Path))
 			End If
-			PipeCmd "", """" & *FbcExe & """ -b """ & TempFolder & "/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & TempFolder & "/Compile1.log"" 2> """ & TempFolder & "/Compile2.log"""
+			PipeCmd "", """" & *FbcExe & """" & GetFbcArchOption(*FbcExe, "", tbt32Bit->Checked) & " -b """ & TempFolder & "/FBTemp.bas"" -i """ & ExePath & "/" & *MFFPath & """ > """ & TempFolder & "/Compile1.log"" 2> """ & TempFolder & "/Compile2.log"""
 			Dim As WString Ptr LogText
 			Dim Buff As WString * 2048 ' for V1.07 Line Input not working fine
 			Dim As WString Ptr ErrFileName, ErrTitle

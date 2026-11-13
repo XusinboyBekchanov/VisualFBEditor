@@ -380,6 +380,10 @@ Declare Function IfNegative(Value As Integer, NonNegative As Integer) As Integer
 Declare Function GetChangedCommas(ByRef Value As WString, FromSecond As Boolean = False) As String
 Declare Function GetFileName(ByRef FileName As WString, WithExtension As Boolean = True) As UString
 Declare Function GetExeFileName(ByRef FileName As WString, ByRef sLine As WString) As UString
+Declare Function GetCompileTarget(ByRef CompileWith As WString) As String
+Declare Function IsExeTarget(ByRef TargetName As String) As Boolean
+Declare Function GetExecutableBitness(ByRef FileName As WString) As Integer
+Declare Function GetFbcArchOption(ByRef FbcExe As WString, ByRef Arguments As WString, Bit32 As Boolean) As String
 Declare Function GetBakFileName(ByRef FileName As WString) As UString
 Declare Function GetShortFileName(ByRef FileName As WString, ByRef FilePath As WString) As UString
 Declare Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean = True) As UString
