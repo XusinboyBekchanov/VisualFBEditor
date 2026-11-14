@@ -79,6 +79,10 @@
 			#cmdline "-x ../VisualFBEditor32_gtk2"
 		#endif
 	#endif
+	'The procedures with Export (of MyFbFramework) make fbc link with --export-dynamic: then the library of the
+	'designer (libmff64_gtk3.so) called the functions of MyFbFramework of the IDE instead of its own ones, and
+	'with a library of another version (as 1.3.7) it used its objects with the layout of the IDE
+	#cmdline "-Wl --no-export-dynamic"
 #endif
 
 #if defined(__USE_JNI__) OrElse defined(__FB_ANDROID__)
