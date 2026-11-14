@@ -12,6 +12,10 @@
 	'#define __USE_GTK3__
 	#define _NOT_AUTORUN_FORMS_
 #endif
+'The window classes of the IDE have their own names: the designer loads mff32.dll/mff64.dll, which
+'registers its classes ("Form", ...) with the same instance, and its windows would take the window
+'procedures of the IDE (with an older library, built from other sources, the IDE crashed)
+#define __MFF_WINDOW_CLASS_PREFIX__ "VFBE."
 
 #if defined(__USE_COCOA__) OrElse defined(__USE_UIKIT__)
 	'macOS, iOS: the shared code of both (SysUtils.bi of MyFbFramework defines it too, later than the lines below)
