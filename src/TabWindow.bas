@@ -2057,6 +2057,23 @@ Sub DesignerSendToBack(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Sender.SendToBack
 End Sub
 
+'Bounds of a control array from the text between the parentheses: "1" or "0 To 1"
+Function CtrlArrayLowerBound(ByRef Bounds As String) As Integer
+	Var p = InStr(LCase(Bounds), " to ")
+	If p Then Return Val(Trim(..Left(Bounds, p - 1), Any !"\t ")) Else Return 0
+End Function
+
+Function CtrlArrayUpperBound(ByRef Bounds As String) As Integer
+	Var p = InStr(LCase(Bounds), " to ")
+	If p Then Return Val(Trim(Mid(Bounds, p + 4), Any !"\t ")) Else Return Val(Trim(Bounds, Any !"\t "))
+End Function
+
+'The bounds text with a new upper bound, keeping the lower bound if it is written
+Function CtrlArraySetUpperBound(ByRef Bounds As String, UpperBound As Integer) As String
+	Var p = InStr(LCase(Bounds), " to ")
+	If p Then Return ..Left(Bounds, p + 3) & Str(UpperBound) Else Return Str(UpperBound)
+End Function
+
 Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 	Dim tb As TabWindow Ptr = Sender.Tag
 	If tb = 0 Then Exit Sub
@@ -2104,6 +2121,21 @@ Sub DesignerDeleteControl(ByRef Sender As Designer, Ctrl As Any Ptr)
 					Var p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", " " & LCase(CtrlName) & ",")
 					' ,  No Space after ","
 					If p = 0 Then p = InStr(LCase(RTrim(ptxtCode->Lines(k), Any !"\t ")) & ",", "," & LCase(CtrlName) & ",")
+					If p = 0 AndAlso InStr(CtrlName, "(") > 0 AndAlso InStr(CtrlName, "(0)") < 1 Then
+						' Control array declared with the bounds: Name(0 To 1)
+						Dim As String CtrlBase = StringExtract(CtrlName, "("), sLine = ptxtCode->Lines(k)
+						Var pb = InStr(LCase(sLine), " " & LCase(CtrlBase) & "(")
+						If pb = 0 Then pb = InStr(LCase(sLine), "," & LCase(CtrlBase) & "(")
+						If pb > 0 Then
+							Var pe = InStr(pb, sLine, ")")
+							Dim As String sBounds = Mid(sLine, pb + Len(CtrlBase) + 2, pe - pb - Len(CtrlBase) - 2)
+							Var Idx = Val(StringExtract(CtrlName, "(", ")"))
+							If pe > 0 AndAlso InStr(LCase(sBounds), " to ") > 0 AndAlso CtrlArrayUpperBound(sBounds) = Idx Then
+								CheckBi(ptxtCode, txtCodeBi, ptxtCodeBi, tb)
+								ptxtCode->ReplaceLine k, ..Left(sLine, pb + Len(CtrlBase) + 1) & CtrlArraySetUpperBound(sBounds, Idx - 1) & Mid(sLine, pe)
+							End If
+						End If
+					End If
 					If p > 0 Then '
 						If InStr(CtrlName,"(")>0 AndAlso InStr(CtrlName,"(0)")<1 Then ' it is Control Array
 							Dim As WString Ptr Temp
@@ -2276,8 +2308,8 @@ Function ChangeControl(ByRef Sender As Designer, Cpnt As Any Ptr, ByRef Property
 						Or InStr(*FLine2, "," & LCase(CtrlNameBase) & "(")) Then 'Ctrl Array
 						Dim As String CtrlArrayOld = StringExtract(ptxtCode->Lines(k), CtrlNameBase & "(" ,")")
 						Dim As String CtrlArrayNew = StringExtract(CtrlName, CtrlNameBase & "(" ,")")
-						If Val(CtrlArrayNew) > Val(CtrlArrayOld) Then
-							ptxtCode->ReplaceLine k, Replace(ptxtCode->Lines(k), CtrlNameBase & "("  & CtrlArrayOld & ")",CtrlNameBase & "(" & CtrlArrayNew & ")")
+						If Val(CtrlArrayNew) > CtrlArrayUpperBound(CtrlArrayOld) Then
+							ptxtCode->ReplaceLine k, Replace(ptxtCode->Lines(k), CtrlNameBase & "("  & CtrlArrayOld & ")",CtrlNameBase & "(" & CtrlArraySetUpperBound(CtrlArrayOld, Val(CtrlArrayNew)) & ")")
 						End If
 						t = True
 						Exit For, For
@@ -10275,9 +10307,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 								Do While p > 0
 									ArgName = Trim(..Left(sText, p - 1), Any !"\t ")
 									If InStr(ArgName,"(") > 0 Then  ' It is Ctrl Array Then
-										CtrlArrayNum = Val(StringExtract(ArgName,"(",")"))
+										Dim As String sBounds = StringExtract(ArgName,"(",")")
+										CtrlArrayNum = CtrlArrayUpperBound(sBounds)
 										Dim As String tCtrlName = StringExtract(ArgName,"(")
-										For i As Integer =0 To CtrlArrayNum
+										For i As Integer = CtrlArrayLowerBound(sBounds) To CtrlArrayNum
 											ArgName=tCtrlName & "(" & Str(i) & ")"
 											Ctrl = Des->CreateControl(TypeName, ArgName, ArgName, 0, 0, 0, 0, 0)
 											If Ctrl = 0 Then
@@ -10308,9 +10341,10 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 									p = InStr(sText, ",")
 								Loop
 								If InStr(sText,"(") > 0 Then  ' It is Ctrl Array
-									CtrlArrayNum = Val(StringExtract(sText,"(",")"))
+									Dim As String sBounds = StringExtract(sText,"(",")")
+									CtrlArrayNum = CtrlArrayUpperBound(sBounds)
 									Dim As String tCtrlName = StringExtract(sText,"(")
-									For i As Integer =0 To CtrlArrayNum
+									For i As Integer = CtrlArrayLowerBound(sBounds) To CtrlArrayNum
 										Ctrl = Des->CreateControl(TypeName, tCtrlName & "(" & Str(i) & ")", tCtrlName & "(" & Str(i) & ")", 0, 0, 0, 0, 0)
 										If Ctrl = 0 Then
 											Ctrl = Des->CreateReportControl(TypeName, tCtrlName & "(" & Str(i) & ")", tCtrlName & "(" & Str(i) & ")", 0, 0, 0, 0, 0)
