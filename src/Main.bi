@@ -231,6 +231,9 @@ Common Shared As WString Ptr LLDBDebugger32, LLDBDebugger64, LLDBDebugger32Path,
 Common Shared As Integer GDBInterface, LLDBInterface
 Common Shared As WString Ptr Compiler32Arguments, Compiler64Arguments, Make1Arguments, Make2Arguments, RunArguments, Debug32Arguments, Debug64Arguments
 Common Shared As Any Ptr tlock, tlockSave, tlockToDo, tlockGDB, tlockSuggestions
+'IncludeFiles and the lists Includes and IncludeLines of its files: the threads of LoadFunctions add to them while the
+'main thread and AnalyzeTab read them (a list reallocated during a read, heap corruption, #749). Held only for the lists
+Common Shared As Any Ptr tlockIncludeFiles
 
 Type Library
 	Name As UString
@@ -419,6 +422,11 @@ Declare Function FolderExists(ByRef FolderName As WString) As Boolean
 Declare Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 Declare Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef Args As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, CurFile As Any Ptr = 0, OldFile As Any Ptr = 0)
 Declare Sub LoadFunctionsSub(Param As Any Ptr)
+'IncludeFiles with tlockIncludeFiles: the file of Path (0 - none) and whether Path is in it
+Declare Function IncludeFilesObject(ByRef Path As WString) As Any Ptr
+Declare Function IncludeFilesContains(ByRef Path As WString) As Boolean
+'A copy of Includes and IncludeLines of the file (EditControlContent Ptr) with tlockIncludeFiles
+Declare Sub CopyIncludes(File As Any Ptr, ByRef Incs As WStringList, ByRef IncLines As IntegerList)
 'The stack of the threads which parse files with LoadFunctions: a call of it takes about 150 KB of the stack and
 'calls itself for each #include, the headers of GTK (gtk/gtk.bi) overflowed 1 MB and the IDE crashed (issue #886).
 'Linux, macOS: only the address space is reserved, the memory is taken when it is used

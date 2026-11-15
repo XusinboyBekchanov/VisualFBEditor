@@ -5384,7 +5384,9 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	MutexLock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If LoadParameter <> LoadParam.OnlyIncludeFiles AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwrite AndAlso LoadParameter <> LoadParam.OnlyFilePathOverwriteWithContent Then
 		If ec = 0 Then
+			MutexLock tlockIncludeFiles
 			If IncludeFiles.Contains(Path) Then
+				MutexUnlock tlockIncludeFiles
 				MutexUnlock tlockSave
 				Exit Sub
 			Else
@@ -5394,6 +5396,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				End If
 				IncludeFiles.Add Path, File
 			End If
+			MutexUnlock tlockIncludeFiles
 		End If
 		If @Types = @Comps Then
 			pfSplash->lblProcess.Text = Path
@@ -5403,6 +5406,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		End If
 	End If
 	Var Idx = -1
+	MutexLock tlockIncludeFiles
 	If File = 0 Then
 		If IncludeFiles.Contains(Path, , , , Idx) Then
 			File = IncludeFiles.Object(Idx)
@@ -5422,6 +5426,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	If OldFile <> 0 AndAlso OldFile->Includes.Contains(Path, , , , Idx) Then
 		OldFile->Includes.Object(Idx) = File
 	End If
+	MutexUnlock tlockIncludeFiles
 	'	#ifdef __US_GTK__
 	'		Exit Sub
 	'	#endif
@@ -5558,6 +5563,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				If Pos1 > 0 Then
 					Pos2 = InStr(Pos1 + 1, b, """")
 					LoadFunctionPath = GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), PathFunction)
+					MutexLock tlockIncludeFiles
 					Var Idx = IncludeFiles.IndexOf(LoadFunctionPath)
 					If Idx <> -1 Then
 						File->Includes.Add LoadFunctionPath, IncludeFiles.Object(Idx)
@@ -5565,6 +5571,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						File->Includes.Add LoadFunctionPath
 					End If
 					File->IncludeLines.Add i
+					MutexUnlock tlockIncludeFiles
 				End If
 			ElseIf LoadParameter <> LoadParam.OnlyIncludeFiles Then
 				Pos3 = InStr(bTrimLCase, " as ")
@@ -6651,8 +6658,12 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 	Lines.Clear
 	MutexUnlock tlockSave 'If LoadParameter <> LoadParam.OnlyFilePathOverwrite Then
 	If CInt(LoadParameter <> LoadParam.OnlyFilePath) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwrite) AndAlso CInt(LoadParameter <> LoadParam.OnlyFilePathOverwriteWithContent) Then
-		For i As Integer = 0 To File->Includes.Count - 1
-			LoadFunctions File->Includes.Item(i), , Types, Enums, Functions, TypeProcedures, Args
+		'A copy: tlockSave is not held here, the main thread clears the lists of a changed file (#749)
+		Dim As WStringList Incs
+		Dim As IntegerList IncLines
+		CopyIncludes File, Incs, IncLines
+		For i As Integer = 0 To Incs.Count - 1
+			LoadFunctions Incs.Item(i), , Types, Enums, Functions, TypeProcedures, Args
 			If FormClosing Then Exit Sub
 		Next
 	End If
@@ -6664,48 +6675,105 @@ tlockToDo = MutexCreate()
 tlockGDB = MutexCreate()
 tlockSuggestions = MutexCreate()
 
-Sub StartOfLoadFunctions
-	LoadFunctionsCount += 1
-	MutexLock tlock
-	If LoadFunctionsCount = 1 Then
-		'The threads of LoadFunctions: the status bar only with the lock of GTK (the main thread draws it, the caption
-		'is reallocated here: it was freed while GTK read it, heap corruption and crashes after a new GTK project)
-		ThreadsEnter
+tlockIncludeFiles = MutexCreate()
+
+'LoadFunctionsCount: the threads of LoadFunctions start and end at the same time, += and -= without a lock lost a change
+Dim Shared As Any Ptr tlockCount
+tlockCount = MutexCreate()
+
+Function IncludeFilesObject(ByRef Path As WString) As Any Ptr
+	Dim As Any Ptr File
+	Dim As Integer Idx = -1
+	MutexLock tlockIncludeFiles
+	If IncludeFiles.Contains(Path, , , , Idx) Then File = IncludeFiles.Object(Idx)
+	MutexUnlock tlockIncludeFiles
+	Return File
+End Function
+
+Function IncludeFilesContains(ByRef Path As WString) As Boolean
+	MutexLock tlockIncludeFiles
+	Function = IncludeFiles.Contains(Path)
+	MutexUnlock tlockIncludeFiles
+End Function
+
+Sub CopyIncludes(File As Any Ptr, ByRef Incs As WStringList, ByRef IncLines As IntegerList)
+	If File = 0 Then Exit Sub
+	MutexLock tlockIncludeFiles
+	With *Cast(EditControlContent Ptr, File)
+		For i As Integer = 0 To .Includes.Count - 1
+			Incs.Add .Includes.Item(i), .Includes.Object(i)
+			IncLines.Add IIf(i < .IncludeLines.Count, .IncludeLines.Item(i), 0)
+		Next
+	End With
+	MutexUnlock tlockIncludeFiles
+End Sub
+
+'The status bar and the tabs at the start (Finished = False) and at the end of the threads of LoadFunctions
+Sub UpdateLoadFunctionsStatus(Finished As Boolean)
+	If Not Finished Then
 		stBar.Panels[2]->Caption = ""
-		ThreadsLeave
+		Exit Sub
 	End If
+	'Other threads started after it: the last of them shows the end
+	If LoadFunctionsCount <> 0 Then Exit Sub
+	stBar.Panels[2]->Caption = ML("IntelliSense fully loaded")
+	Dim As TabWindow Ptr tb
+	For j As Integer = TabPanels.Count - 1 To 0 Step -1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
+		For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
+			tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
+			If tb Then
+				tb->txtCode.Content.ExternalIncludesLoaded = False
+				'If AutoSuggestions Then
+				'	#ifndef __USE_GTK__
+				'		PostMessage tb->Handle, EM_SETMODIFY, 0, 0
+				'	#endif
+				'End If
+			End If
+		Next i
+	Next j
+End Sub
+
+#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+	'The threads of LoadFunctions don't change the status bar and the tabs themselves, the main thread does it: the
+	'controls and their strings are only of the main thread. ThreadsEnter (gdk_threads_enter) does not lock anything
+	'in GTK3: the caption was reallocated by a thread while the main thread read it, heap corruption and crashes in
+	'malloc after a new project on machines with many cores (#749)
+	Function LoadFunctionsStatusIdle cdecl(ByVal Finished As gpointer) As gboolean
+		If Not FormClosing Then UpdateLoadFunctionsStatus Finished <> 0
+		Return False
+	End Function
+#endif
+
+Private Sub PostLoadFunctionsStatus(Finished As Boolean)
+	#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__)
+		g_idle_add(Cast(GSourceFunc, @LoadFunctionsStatusIdle), Cast(gpointer, IIf(Finished, 1, 0)))
+	#else
+		UpdateLoadFunctionsStatus Finished
+	#endif
+End Sub
+
+Sub StartOfLoadFunctions
+	MutexLock tlockCount
+	LoadFunctionsCount += 1
+	MutexUnlock tlockCount
+	MutexLock tlock
+	If LoadFunctionsCount = 1 Then PostLoadFunctionsStatus False
 End Sub
 
 Sub EndOfLoadFunctions
+	MutexLock tlockCount
 	LoadFunctionsCount -= 1
-	If LoadFunctionsCount = 0 Then
-		'The status bar and the tabs only with the lock of GTK (StartOfLoadFunctions)
-		ThreadsEnter
-		stBar.Panels[2]->Caption = ML("IntelliSense fully loaded")
-		Dim As TabWindow Ptr tb
-		For j As Integer = TabPanels.Count - 1 To 0 Step -1
-			Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(j))->tabCode
-			For i As Integer = ptabCode->TabCount - 1 To 0 Step -1
-				tb = Cast(TabWindow Ptr, ptabCode->Tab(i))
-				If tb Then
-					tb->txtCode.Content.ExternalIncludesLoaded = False
-					'If AutoSuggestions Then
-					'	#ifndef __USE_GTK__
-					'		PostMessage tb->Handle, EM_SETMODIFY, 0, 0
-					'	#endif
-					'End If
-				End If
-			Next i
-		Next j
-		ThreadsLeave
-	End If
+	Dim As Boolean Finished = LoadFunctionsCount = 0
+	MutexUnlock tlockCount
+	If Finished Then PostLoadFunctionsStatus True
 	MutexUnlock tlock
 End Sub
 
 Sub LoadFunctionsSub(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
+		If Not IncludeFilesContains(QWString(Param)) Then LoadFunctions QWString(Param), FilePathAndIncludeFiles, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -6713,7 +6781,7 @@ End Sub
 Sub LoadOnlyFilePath(Param As Any Ptr)
 	StartOfLoadFunctions
 	If Not FormClosing Then
-		If Not IncludeFiles.Contains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
+		If Not IncludeFilesContains(QWString(Param)) Then LoadFunctions QWString(Param), LoadParam.OnlyFilePath, Globals.Types, Globals.Enums, Globals.Functions, Globals.TypeProcedures, Globals.Args
 	End If
 	EndOfLoadFunctions
 End Sub
@@ -14854,6 +14922,8 @@ Sub OnProgramQuit() Destructor
 	'Next
 	MutexDestroy tlockToDo
 	MutexDestroy tlock
+	MutexDestroy tlockCount
+	MutexDestroy tlockIncludeFiles
 	MutexDestroy tlockSave
 	MutexDestroy tlockGDB
 	MutexDestroy tlockSuggestions

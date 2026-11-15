@@ -975,14 +975,18 @@ Sub DeleteFromTypeElement(te As TypeElement Ptr)
 End Sub
 
 Sub RemoveGlobalTypeElements(ByRef FileName As WString)
+	MutexLock tlockIncludeFiles
 	Var FileIndex = IncludeFiles.IndexOf(FileName)
+	MutexUnlock tlockIncludeFiles
 	If FileIndex <> 0 Then
 		MutexLock tlockSave
+		MutexLock tlockIncludeFiles
 		Dim As EditControlContent Ptr File = IncludeFiles.Object(FileIndex)
 		If File Then
 			File->Includes.Clear
 			File->IncludeLines.Clear
 		End If
+		MutexUnlock tlockIncludeFiles
 		Dim As TypeElement Ptr te, te1
 		For i As Integer = pGlobalNamespaces->Count - 1 To 0 Step -1
 			te = pGlobalNamespaces->Object(i)
@@ -1098,8 +1102,7 @@ Function TabWindow.SaveTab As Boolean
 	#ifndef __USE_GTK__
 		DateFileTime = GetFileLastWriteTime(*FFileName)
 	#endif
-	Var Idx = -1
-	If IncludeFiles.Contains(FileName, , , , Idx) Then
+	If IncludeFilesContains(FileName) Then
 		RemoveGlobalTypeElements FileName
 		If Not pLoadPaths->Contains(FileName) Then
 			pLoadPaths->Add FileName
@@ -4174,17 +4177,15 @@ Sub AddAllIncludedFiles(ByRef Files As WStringList, ByRef FileLines As IntegerLi
 	If Not Files.Contains(Path) Then
 		Var Idx = Files.Add(Path)
 		FileLines.Insert Idx, -1
-		Dim As EditControlContent Ptr File = 0
-		If OldFile = 0 Then
-			If IncludeFiles.Contains(Path, , , , Idx) Then
-				File = IncludeFiles.Object(Idx)
-			End If
-		Else
-			File = OldFile
-		End If
+		Dim As EditControlContent Ptr File = OldFile
+		If File = 0 Then File = IncludeFilesObject(Path)
 		If File <> 0 Then
-			For i As Integer = 0 To File->Includes.Count - 1
-				AddAllIncludedFiles Files, FileLines, File->Includes.Item(i), File->Includes.Object(i)
+			'A copy: the threads of LoadFunctions add to the lists (#749)
+			Dim As WStringList Incs
+			Dim As IntegerList IncLines
+			CopyIncludes File, Incs, IncLines
+			For i As Integer = 0 To Incs.Count - 1
+				AddAllIncludedFiles Files, FileLines, Incs.Item(i), Incs.Object(i)
 			Next
 		End If
 	End If
@@ -4209,30 +4210,27 @@ Sub UpdateIncludedFilesList(ByRef Content As EditControlContent, ByRef Files As 
 End Sub
 
 Function AddExternalIncludes(ByRef Content As EditControlContent, ItemFile As EditControlContent Ptr, ByRef Path As WString, ByRef FileName As WString) As Boolean
-	Dim As EditControlContent Ptr File
-	If ItemFile = 0 Then
-		Var Idx = -1
-		If IncludeFiles.Contains(Path, , , , Idx) Then
-			File = IncludeFiles.Object(Idx)
-		End If
-	Else
-		File = ItemFile
-	End If
+	Dim As EditControlContent Ptr File = ItemFile
+	If File = 0 Then File = IncludeFilesObject(Path)
 	If File Then
 		If File->FileName = FileName Then
 			Return True
 		End If
-		For i As Integer = 0 To File->Includes.Count - 1
-			If GetFolderName(File->Includes.Item(i)) <> GetFolderName(FileName) Then Continue For
-			If Content.CheckedFiles.Contains(File->Includes.Item(i)) Then Continue For
-			Content.CheckedFiles.Add File->Includes.Item(i)
-			If AddExternalIncludes(Content, File->Includes.Object(i), File->Includes.Item(i), FileName) Then
-				Var IncludedLine = File->IncludeLines.Item(i)
+		'A copy: the threads of LoadFunctions add to the lists (#749)
+		Dim As WStringList Incs
+		Dim As IntegerList IncLines
+		CopyIncludes File, Incs, IncLines
+		For i As Integer = 0 To Incs.Count - 1
+			If GetFolderName(Incs.Item(i)) <> GetFolderName(FileName) Then Continue For
+			If Content.CheckedFiles.Contains(Incs.Item(i)) Then Continue For
+			Content.CheckedFiles.Add Incs.Item(i)
+			If AddExternalIncludes(Content, Incs.Object(i), Incs.Item(i), FileName) Then
+				Var IncludedLine = IncLines.Item(i)
 				Content.ExternalFiles.Add File->FileName
 				Content.ExternalFileLines.Add IncludedLine - 1
-				For j As Integer = 0 To File->Includes.Count - 1
-					If File->IncludeLines.Item(j) > IncludedLine Then Exit For
-					Content.ExternalIncludes.Add File->Includes.Item(j)
+				For j As Integer = 0 To Incs.Count - 1
+					If IncLines.Item(j) > IncludedLine Then Exit For
+					Content.ExternalIncludes.Add Incs.Item(j)
 				Next
 				Return True
 			End If
