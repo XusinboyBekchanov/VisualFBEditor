@@ -732,7 +732,7 @@ Sub OnMouseHoverEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, M
 	If ShowValue Then
 		Dim As String sWord = tb->txtCode.GetWordAtPoint(x, y, True)
 		If sWord <> "" Then
-			#ifdef __USE_WINAPI__
+			#ifndef __USE_GTK__
 				Dim As String sValue = get_var_value(sWord, tb->txtCode.LineIndexFromPoint(x, y))
 				If InDebug OrElse sValue <> "" Then Value = Value & IIf(Value = "", "", !"\rValue: ") & sValue
 			#endif
@@ -1116,7 +1116,7 @@ Function TabWindow.SaveAs As Boolean
 	SetSaveDialogParameters(FileName)
 	If pSaveD->Execute Then
 		WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
-		If FileExists(pSaveD->FileName) Then
+		If FileExists(pSaveD->FileName) AndAlso Not SaveDialogAsksOverwrite Then
 			Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->FileName & """?", App.Title, mtWarning, btYesNoCancel)
 			Case mrCancel: Return False
 			Case mrNo: Return SaveAs
@@ -12091,6 +12091,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 									FFileName = GetUserTempPath("Untitled.bas")
 									If FFileName = "" Then Return ""
 									tb->txtCode.SaveToFile(FFileName, tb->FileEncoding, tb->NewLineType)
+									UntitledCompiledTab = tb 'its breakpoints and lines for the debuggers (TabOfSourceFile)
 									Return FFileName
 								End If
 								Exit For, For
@@ -12122,6 +12123,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 								'	FFileName = GetFolderName(tb->FileName) & "Temp.bas"
 								'End If
 								tb->txtCode.SaveToFile(FFileName, tb->FileEncoding, tb->NewLineType)
+								UntitledCompiledTab = tb 'its breakpoints and lines for the debuggers (TabOfSourceFile)
 								Return FFileName
 							End If
 						End If
@@ -12162,6 +12164,7 @@ Function GetMainFile(bSaveTab As Boolean = False, ByRef Project As ProjectElemen
 					FFileName = GetUserTempPath("Untitled.bas")
 					If FFileName = "" Then Return ""
 					tb->txtCode.SaveToFile(FFileName, tb->FileEncoding, tb->NewLineType)
+					UntitledCompiledTab = tb 'its breakpoints and lines for the debuggers (TabOfSourceFile)
 					Return FFileName
 				End If
 			End If

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- macOS: Integrated IDE Debugger (DebugMac.bi) reads and writes the program with task_for_pid -->
+	<key>com.apple.security.cs.debugger</key>
+	<true/>
+</dict>
+</plist>

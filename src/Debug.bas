@@ -254,7 +254,7 @@ Dim Shared As Integer multiaction
 	Dim Shared As tthread thread(THREADMAX) ''zero based
 	Dim Shared As Integer threadnb
 	Dim Shared threadlist(THREADMAX) As Long
-	Dim Shared As GtkWidget Ptr wsci
+	Dim Shared As Any Ptr wsci
 	''DLL = .so
 	Dim Shared As tdll dlldata(DLLMAX) ''base 1
 	Dim Shared As Integer dllnb
@@ -281,6 +281,27 @@ Dim Shared As Integer multiaction
 Dim Shared As Boolean prun=False    ''debuggee running
 Dim Shared As Integer runtype = RTOFF ''running type
 Dim Shared As Integer breakcpu=&hCC ''asm code for breakpoint
+Dim Shared As Boolean dbgorders ''the thread of the debugger waits for the orders (brp_stop): exec_order only then
+Dim Shared As Boolean dbgthreadrunning ''the thread of the debugger (start_pgm/attach_pgm) runs: only one at a time
+#ifdef __FB_DARWIN__
+	Dim Shared As Long dbg_tracefn ''the file of the trace (dbg_prt2, Debug.bi), 0: no trace
+	Extern "C"
+		Declare Function dbg_setvbuf Alias "setvbuf" (ByVal fp As Any Ptr, ByVal buf As Any Ptr, ByVal mode As Long, ByVal size As UInteger) As Long
+	End Extern
+	''The trace when the environment variable VFBE_DEBUG_TRACE is set: $TMPDIR/VisualFBEditor_debug.log (not buffered:
+	''complete when the IDE hangs)
+	Private Sub dbg_trace_open()
+		If dbg_tracefn <> 0 OrElse Environ("VFBE_DEBUG_TRACE") = "" Then Exit Sub
+		Dim As String sDir = Environ("TMPDIR")
+		If sDir = "" Then sDir = "/tmp/"
+		If Right(sDir, 1) <> "/" Then sDir &= "/"
+		Dim As Long fn = FreeFile
+		If Open(sDir & "VisualFBEditor_debug.log" For Append As #fn) <> 0 Then Exit Sub
+		dbg_setvbuf(Cast(Any Ptr, FileAttr(fn, 2)), 0, 2, 0) '_IONBF
+		dbg_tracefn = fn
+		Print #fn, "==== "; Date; " "; Time; " Integrated IDE Debugger"
+	End Sub
+#endif
 Dim Shared As Integer breakadr ''address of last ABP kept in case of exception (RTCRASH)
 Dim Shared As Integer dsptyp=0      ''type of display : 0 normal/ 1 source/ 2 var/ 3 memory
 
@@ -1526,16 +1547,8 @@ Private Sub exception_handle(adr As Integer)
 		libelexception = ""
 		#ifndef __FB_WIN32__
 			If debugdata <> mrYes Then ''the signal is delivered to the debuggee (usually it ends)
-				MutexLock blocker
-				msgcmd = KPT_CONTSIG
 				msgdata = sig
-				bool2 = True
-				CondSignal(condid)
-				While bool1 <> True
-					CondWait(condid, blocker)
-				Wend
-				bool1 = False
-				MutexUnlock blocker
+				exec_order(KPT_CONTSIG)
 			End If
 		#endif
 		Exit Sub
@@ -1605,17 +1618,19 @@ Private Function debug_event() As Integer
 				ThreadsEnter
 				MsgBox("Loading error", "Killing process")
 				ThreadsLeave
-				exec_order(KPT_KILL)
+				'The thread of the debugger waits in first_sigtrap (not in brp_stop): an order (exec_order) would wait for
+				'ever. The program is killed, the thread continues below and its waitpid ends the debugging (KDBGEXITPROCESS)
+				linux_kill(dbghand, 9) 'SIGKILL
 			End If
 			
 			MutexLock blocker
 			bool2=True
-			CondSignal(condid)
+			CondBroadcast(condid)
 			MutexUnlock blocker
 		#endif
 		
 	Case KDBGCREATETHREAD
-		#ifdef __FB_LINUX__
+		#ifndef __FB_WIN32__
 			''Linux creation fo a new thread
 			ThreadsEnter
 			Var ret = MsgBox("New Thread", "Thread created = " + Str(thread(threadnb).id) + " / current = " + Str(thread(threadcur).id) _
@@ -1631,7 +1646,7 @@ Private Function debug_event() As Integer
 			End If
 			MutexLock blocker
 			bool2=True
-			CondSignal(condid)
+			CondBroadcast(condid)
 			MutexUnlock blocker
 		#endif
 		
@@ -1640,11 +1655,11 @@ Private Function debug_event() As Integer
 		
 	Case KDBGEXITTHREAD
 		thread_del(debugdata)
-		#ifdef __FB_LINUX__
+		#ifndef __FB_WIN32__
 			msgcmd=0 ''no action
 			MutexLock blocker
 			bool2=True
-			CondSignal(condid)
+			CondBroadcast(condid)
 			MutexUnlock blocker
 		#endif
 		
@@ -1950,16 +1965,8 @@ Private Sub exec_mod() 'execution from cursor
 		DbgSetThreadContext(threadhs, @vcontext)
 	#else
 		'dbg_prt2 "changing exec=";hex(rline(rln).ad),rline(rln).nu
-		MutexLock blocker
 		msgad=rline(rln).ad
-		msgcmd=KPT_XIP
-		bool2=True
-		CondSignal(condid)
-		While bool1<>True
-			CondWait(condid,blocker)
-		Wend
-		bool1=False
-		MutexUnlock blocker
+		exec_order(KPT_XIP)
 	#endif
 	'dsp_change(rln)
 	linecur_change(rln)
@@ -2078,6 +2085,23 @@ End Sub
 
 #ifndef __FB_WIN32__
 	#include once "crt.bi"
+	#ifdef __FB_DARWIN__
+		'macOS: the signals of BSD (sys/signal.h)
+		#define SIGINT 2
+		#define SIGILL 4
+		#define SIGTRAP 5
+		#define SIGABRT 6
+		#define SIGFPE 8
+		#define SIGKILL 9
+		#define SIGBUS 10
+		#define SIGSEGV 11
+		#define SIGUSR1 30
+		#define SIGUSR2 31
+		#define SIGTERM 15
+		#define SIGCHLD 20
+		#define SIGCONT 19
+		#define SIGSTOP 17
+	#else
 	#include once "crt/linux/unistd.bi"
 	#include once "crt/linux/fcntl.bi"
 	
@@ -2093,6 +2117,7 @@ End Sub
 	#define SIGCHLD 17
 	#define SIGCONT 18
 	#define SIGSTOP 19
+	#endif
 	'SIGHUP 1
 	'SIGINT	     2	Term	Interruption depuis le clavier.
 	'SIGQUIT	 3	Core	Demande « Quitter » depuis le clavier.
@@ -2317,11 +2342,22 @@ End Sub
 	#undef Wait
 	'#undef Kill
 	'declare function fork alias "fork"() as Integer
-	Declare Function Wait Alias "wait"(As Any Ptr) As Long
-	Declare Function waitpid Alias "waitpid"(As Long,As Any Ptr,As Long) As Long
+	#ifndef __FB_DARWIN__
+		Declare Function Wait Alias "wait"(As Any Ptr) As Long
+		Declare Function waitpid Alias "waitpid"(As Long,As Any Ptr,As Long) As Long
+	#else
+		'macOS: waitpid of DebugMac.bi gives the thread of a stop
+		Declare Function dbgmac_wait(ByVal pid As Long, ByVal status As Long Ptr, ByVal options As Long) As Long
+		#define waitpid(p, st, o) dbgmac_wait(p, Cast(Long Ptr, st), o)
+	#endif
 	'declare function pause alias "pause"() as Integer
 	
-	Declare Function tkill Alias "tkill"(As Integer,As Integer) As Integer
+	#ifndef __FB_DARWIN__
+		Declare Function tkill Alias "tkill"(As Integer,As Integer) As Integer
+	#else
+		'macOS: no syscall of Linux (gettid, tgkill)
+		#define syscall(n, args...) 0
+	#endif
 	'declare function syscall cdecl  alias "syscall"(as integer,...) as Integer
 	Declare Function signal Alias "signal"(As Integer,As Integer Ptr) As Integer
 	
@@ -2518,7 +2554,9 @@ End Sub
 	Private Sub sigusr_send()
 		dbg_prt2 "sigusr1 to be sent=";SYS_TGKILL,dbgpid,thread2,SIGUSR1
 		dbg_prt2 "sigusr1 sent with return code=";
-		syscall(SYS_TGKILL,dbgpid,thread2,SIGUSR1)
+		#ifndef __FB_DARWIN__
+			syscall(SYS_TGKILL,dbgpid,thread2,SIGUSR1)
+		#endif
 	End Sub
 	
 	'===============================
@@ -2617,19 +2655,33 @@ End Sub
 	'=================================================================
 	'' Executes order from first thread in second thread using ptrace
 	'=================================================================
-	Private Sub exec_order(order As Integer)
+	''Returns False if the order is not sent (macOS: the thread of the debugger does not wait for the orders, it would
+	''never answer: the IDE would hang)
+	Private Function exec_order(order As Integer) As Boolean
 		MutexLock blocker
+		#ifdef __FB_DARWIN__
+			If Not dbgorders Then
+				dbg_prt2 "exec_order: the thread of the debugger is not in brp_stop, order not sent=";order;" debugevent=";debugevent;" prun=";prun
+				MutexUnlock blocker
+				Return False
+			End If
+		#endif
+		dbg_prt2 "exec_order=";order
 		msgcmd=order
 		bool2=True
-		CondSignal(condid)
+		CondBroadcast(condid)
 		While bool1<>True
 			CondWait(condid,blocker)
 		Wend
 		bool1=False
 		MutexUnlock blocker
-	End Sub
+		Return True
+	End Function
 	'=========================================
 	Private Function ReadProcessMemory(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
+		#ifdef __FB_DARWIN__
+			Return ReadProcessMemory_th2(child, addrdbge, addrdbgr, lg) 'Mach calls: no order to the debugger thread
+		#endif
 		msgad=Cast(Integer,addrdbge)
 		msgad2=Cast(Integer,addrdbgr)
 		msgdata=lg
@@ -2638,6 +2690,9 @@ End Sub
 	End Function
 	'=========================================
 	Private Function WriteProcessMemory(child As Long, addrdbge As Any Ptr, addrdbgr As Any Ptr, lg As Long, rd As Any Ptr = 0) As Integer
+		#ifdef __FB_DARWIN__
+			Return writeprocessmemory_th2(child, addrdbge, addrdbgr, lg)
+		#endif
 		msgad=Cast(Integer,addrdbge)
 		msgad2=Cast(Integer,addrdbgr)
 		msgdata=lg
@@ -2724,6 +2779,28 @@ End Sub
 			''crash in code without debug data (libc, fb runtime) : the first return address into a proc with debug data found on the stack
 			crashstack = "#0  0x" & Hex(regip) & "  (no debug data)": nfrm = 1
 			Dim As Integer sp = regs.xsp, found
+			#if defined(__FB_DARWIN__) AndAlso defined(__FB_ARM__)
+			'arm64: a function without a frame (leaf) has the return address in lr, x29 is the frame of the caller
+			If proc_index(regs.lr) Then
+				regip = regs.lr
+				lineadr = regip - 1
+				crashline = line_from_adr(lineadr)
+				craship = regip: crashbp = regbp
+				For i As Integer = 1 To 256
+					If proc_index(regip) = 0 Then Exit For
+					If crashstack <> "" Then crashstack &= Chr(13)
+					crashstack &= crash_frame_text(nfrm, regip - 1): nfrm += 1
+					If proc(proc_index(regip)).nm = "main" Then Exit For
+					regbp += proc(proc_index(regip)).frofs
+					ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp + TSZ), @ret, TSZ)
+					prevbp = regbp
+					ReadProcessMemory_th2(tid, Cast(Any Ptr, regbp), @regbp, TSZ)
+					regip = ret
+					If regbp <= prevbp Then Exit For
+				Next
+				Exit Sub
+			End If
+			#endif
 			For i As Integer = 0 To 4095
 				ReadProcessMemory_th2(tid, Cast(Any Ptr, sp + i * TSZ), @w, TSZ)
 				If proc_index(w) Then found = sp + i * TSZ: Exit For
@@ -2863,6 +2940,9 @@ End Sub
 			hard_closing("Number of threads ("+Str(THREADMAX+1)+") exceeded , change the THREADMAX value."+Chr(10)+Chr(10)+"CLOSING FBDEBUGGER, SORRY" )
 		End If
 	End Sub
+	#ifdef __FB_DARWIN__
+		#include once "DebugMac.bi"
+	#endif
 	'=====================================================
 	Private Sub thread_rsm_one()
 		dbg_prt2 "in thread_rsm restore=";threadcur,thread(threadcur).sv,rline(thread(threadcur).sv).nu,Hex(rline(thread(threadcur).sv).sv)
@@ -2905,6 +2985,9 @@ End Sub
 		Dim As Integer dta
 		threadcur=tidx''only useful case when exiting thread replaced by first thread
 		dbg_prt2 "brp_stop=";tidx,thread(tidx).id,bptype,Hex(ddata)
+		MutexLock blocker
+		dbgorders=True ''before debugevent: the main thread can send the orders of this event
+		MutexUnlock blocker
 		stopcode=bptype
 		debugdata=ddata
 		debugevent=dbgevent
@@ -2916,6 +2999,8 @@ End Sub
 			Wend
 			'dbg_prt2 "in brp_stop after condwait";msgcmd,hex(msgad),hex(msgad2),hex(msgdata)
 			bool2=False
+			dbgorders=False ''an order which ends the loop (Exit While) leaves it False
+			dbg_prt2 "brp_stop order=";msgcmd
 			Select case As Const msgcmd
 				
 			Case KPT_CONT
@@ -2942,7 +3027,7 @@ End Sub
 					End If
 				Next
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				Exit While
 				
@@ -2967,7 +3052,7 @@ End Sub
 				ssadr=msgad
 				dbg_prt2 "single step defined by KPT_SSTEP threadcur=";threadcur,Hex(ssadr)
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				thread(threadcur).sts=KTHD_RUN
 				ptrace(PTRACE_SINGLESTEP, thread(threadcur).id, NULL, NULL)
@@ -2998,7 +3083,7 @@ End Sub
 				ptrace( PTRACE_CONT, thread(threadcur).id, NULL, NULL )
 				
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				
 				Exit While
@@ -3008,7 +3093,7 @@ End Sub
 				thread(threadcur).sts=KTHD_RUN
 				ptrace(PTRACE_CONT,thread(threadcur).id,0,Cast(Any Ptr,msgdata))
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				Exit While
 
@@ -3016,7 +3101,7 @@ End Sub
 				dbg_prt2 "sending sigkill"
 				linux_kill(debugpid,9) ''send SIGKILL
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				prun=False
 				Exit While
@@ -3027,18 +3112,19 @@ End Sub
 				dbg_prt2 "KPT_SIGNAL thread=";threadsaved,"status=";Hex(statussaved)
 				
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				
 			Case Else ''can be used for exiting the loop
 				dbg_prt2 "msgcmd not handled exiting loop=";msgcmd
 				bool1=True
-				CondSignal(condid)
+				CondBroadcast(condid)
 				MutexUnlock blocker
 				Exit While
 			End Select
+			dbgorders=True ''the loop waits for the next order
 			bool1=True
-			CondSignal(condid)
+			CondBroadcast(condid)
 			MutexUnlock blocker
 		Wend
 		'===========
@@ -3088,13 +3174,31 @@ End Sub
 		Dim As Integer dta,bptyp
 		
 		sig_init()
+		MutexLock blocker
+		dbgorders=False
+		MutexUnlock blocker
+		#ifdef __FB_DARWIN__
+			dbg_trace_open()
+		#endif
 		debugpid = dbghand
 		threadnb=0
 		thread(threadcur).id = dbghand
 		thread(threadcur).sv=-1
-		dbg_prt2 "debugpid in scope debugger =";pid
+		dbg_prt2 "debugpid in scope debugger =";dbghand
 		dbg_prt2 "Debugger pid (+thread) = ";getpid,syscall(SYS_GETTID)
-		Wait(0)
+		#ifdef __FB_DARWIN__
+			Dim As Long status0
+			dbgmac_close
+			dbgmac_wait(dbghand, @status0, 0) 'the stop after exec: the task of the program
+			If Not WIFSTOPPED(status0) OrElse dbgmac_task = 0 Then
+				prun = False
+				debugdata = 0
+				debugevent = KDBGEXITPROCESS
+				Exit Sub
+			End If
+		#else
+			Wait(0)
+		#endif
 		
 		first_sigtrap()
 		
@@ -3113,6 +3217,13 @@ End Sub
 			dbg_prt2 "======================================== pid=";threadSig;" ======== status=";Hex(status)
 			If threadSig=-1 Then
 				dbg_prt2 "thread =-1 so errno=";errno
+				#ifdef __FB_DARWIN__
+					If errno=10 Then ''ECHILD: the program does not exist anymore (it would be an endless loop)
+						dbg_prt2 "no more program, end of the thread of the debugger"
+						prun=False
+						Exit While
+					End If
+				#endif
 				ptrace(PTRACE_CONT,thread(threadcur).id,0,0)
 				Continue While
 			End If
@@ -3389,6 +3500,10 @@ End Sub
 			End If
 			dbg_prt2 "name=";exename
 			Dim As String exename_ = exename
+			#ifdef __FB_DARWIN__
+				dbgmac_exec(exename_, "", "") 'PT_TRACE_ME and exec without ASLR, returns only on an error
+				Exit Sub
+			#endif
 			If execv_(StrPtr(exename_), NULL) Then
 				dbg_prt2 "error on starting debuggee=";errno ' argv, envp)=-1
 				Exit Sub
@@ -3427,6 +3542,15 @@ End Sub
 	Private Sub attach_pgm(p As Any Ptr)
 		Dim As Long pid = AttachPid
 		AttachPid = 0
+		#ifdef __FB_DARWIN__
+			'macOS: a running program has the addresses of ASLR, not the ones of its .dbgdat
+			ThreadsEnter
+			MsgBox ML("Attach to Process") & ": " & ML("not available on macOS with Integrated IDE Debugger, use Integrated LLDB Debugger")
+			ChangeEnabledDebug True, False, False
+			InDebug = False
+			ThreadsLeave
+			Exit Sub
+		#endif
 		If ptrace(PTRACE_ATTACH, pid, 0, 0) Then
 			Dim As Long errn = errno
 			Dim As String sScope
@@ -3453,6 +3577,37 @@ End Sub
 		ThreadsLeave
 		wait_signal()
 	End Sub
+	'====================================================
+	'' The thread of the debugger: start_pgm (p = 0) or attach_pgm (p <> 0), dbgthreadrunning while it runs
+	'====================================================
+	Private Sub dbg_thread(p As Any Ptr)
+		dbgthreadrunning=True
+		If p Then attach_pgm(0) Else start_pgm(0)
+		MutexLock blocker
+		dbgorders=False
+		MutexUnlock blocker
+		dbgthreadrunning=False
+		dbg_prt2 "end of the thread of the debugger"
+	End Sub
+	'====================================================
+	'' Before a new debugging: the thread of the previous one must end. It can still wait for the orders (brp_stop)
+	'' when its program ended or was killed (prun False): two threads of the debugger would share the orders.
+	'' Returns False if it does not end
+	'====================================================
+	Private Function dbg_end_previous() As Boolean
+		If Not dbgthreadrunning Then Return True
+		dbg_prt2 "the thread of the previous debugging still runs, dbgorders=";dbgorders;" prun=";prun
+		afterkilled=KDONOTHING
+		If dbgorders Then exec_order(KPT_KILL) ''kills the program if it runs, the thread leaves brp_stop and ends
+		For i As Integer = 1 To 100
+			If Not dbgthreadrunning Then Exit For
+			Sleep 50, 1
+		Next
+		If dbgthreadrunning Then Return False
+		debugevent=KDBGNOTHING ''the end of the previous program (KDBGEXITPROCESS) is not for the new one
+		afterkilled=KDONOTHING
+		Return True
+	End Function
 	'====================================================
 	'' Attach to Process (Linux): the other threads of the process are attached too (otherwise a CC kills them)
 	'====================================================
@@ -3637,7 +3792,14 @@ End Sub
 		dbg_prt2 "test proccurad=proc(procsv).db",Hex(proccurad),Hex(proc(procsv).db)
 		If proccurad=proc(procsv).db Then 'is first proc instruction
 			thread(threadcur).cl=thread(threadcur).od ''done here to avoid a wrong assignment
+			#if defined(__FB_DARWIN__) AndAlso defined(__FB_ARM__)
+			'macOS arm64: the prologue puts the frame record {x29, x30} at the top of the frame (sp - 16) and x29 on it
+			If True Then
+				procsk=regs.xsp-2*TSZ
+			ElseIf rline(rln).sv=85 Then
+			#else
 			If rline(rln).sv=85 Then'check if the first instruction is push ebp opcode=85 / push rbp opcode=&h55=85dec
+			#endif
 				'in this case there is a prologue
 				'at the beginning of proc EBP not updated so use ESP
 				procsk=regs.xsp-TSZ
@@ -6988,7 +7150,7 @@ Private Function var_master(i As Integer) As Integer
 End Function
 
 'The lines of the components of the line h of the variables are added (before it is expanded)
-#ifdef __USE_GTK__
+#ifdef __DBG_MFF_UI__
 	Declare Sub arr_elements_sh(i As Integer, hItem As Any Ptr, bExpanding As Boolean = False, bLock As Boolean = True)
 #endif
 Sub var_kids(h As Any Ptr)
@@ -7067,6 +7229,17 @@ Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As I
 				tvi.hItem = hChildOfThis
 				SendMessage(tvVar.Handle, TVM_GETITEM, 0, Cast(LPARAM, @tvi))
 				Return tvi.lParam
+			#else
+				'The same lines in the TreeNode of the tree (Tag: the index of vrr)
+				Dim As TreeNode Ptr tnThis = tv, tnFirst, tnChild
+				If tnThis = 0 Then Return -1
+				var_kids(tnThis)
+				If tnThis->Nodes.Count = 0 Then Return -1
+				tnFirst = tnThis->Nodes.Item(0)
+				var_kids(tnFirst)
+				If iUBound >= tnFirst->Nodes.Count Then Return -1
+				tnChild = tnFirst->Nodes.Item(iUBound)
+				Return CInt(tnChild->Tag)
 			#endif
 			Return -1
 		End If
@@ -7077,6 +7250,12 @@ Private Function var_search2(text As String, typ As Integer, tv As Any Ptr) As I
 			var_kids(tv)
 			hFirstChildOfProcThisOrBase = Cast(HTREEITEM, SendMessage(tvVar.Handle, TVM_GETNEXTITEM, TVGN_CHILD, Cast(LPARAM, tv)))
 			Return var_search2(text, cudt(udt(typ).lb).typ, hFirstChildOfProcThisOrBase)
+		#else
+			Dim As TreeNode Ptr tnThisOrBase = tv
+			If tnThisOrBase = 0 Then Return -1
+			var_kids(tnThisOrBase)
+			If tnThisOrBase->Nodes.Count = 0 Then Return -1
+			Return var_search2(text, cudt(udt(typ).lb).typ, tnThisOrBase->Nodes.Item(0))
 		#endif
 		Return -1
 	End If
@@ -7297,7 +7476,7 @@ Private Function watch_find() As Integer
 	Next
 End Function
 
-#if Not (defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__))
+#if Not defined(__NO_PROCESS_DEBUGGER__)
 	Const ARRSHOWMAX = 1000 'the elements of an array shown under its line
 
 	'An array of a standard type (not a structure) of the line i of vrr: the address of its first element, its bounds,
@@ -7406,7 +7585,7 @@ End Function
 		varfind.nm &= sIndex
 		Return i
 	End Function
-#elseif defined(__USE_GTK__)
+#elseif defined(__DBG_MFF_UI__)
 	'An element of an array (a line with Tag 0 under the line of the array): the array with this index (vrr().ix)
 	Function arr_element_select(hitem As Any Ptr) As Integer
 		Dim As TreeNode Ptr tn = hitem
@@ -7446,7 +7625,7 @@ Private Function var_find2(tv As Any Ptr) As Integer 'return -1 if error
 			'An element of an array
 			idx = arr_element_select(Cast(HTREEITEM, hitem))
 			If idx > 0 Then Return idx
-		#elseif defined(__USE_GTK__)
+		#elseif defined(__DBG_MFF_UI__)
 			idx = arr_element_select(hitem)
 			If idx > 0 Then Return idx
 		#endif
@@ -7669,6 +7848,55 @@ End Function
 			'no free slot
 			ThreadsEnter: MsgBox(ML("Show/Expand variable or memory: Max number of windows reached") & " (" + Str(SHWEXPMAX) + Chr(13) + ML("Close one window and try again")): ThreadsLeave
 		End If
+	End Sub
+#else
+	'Show String of the Integrated IDE Debugger (GTK, macOS): the text of the selected string variable of the tree tv
+	'(Locals, Watches) in frmShowString, as string_sh of Windows: ZString, String, fixed String, WString (wchar_t of
+	'the system: WSTRSIZE bytes)
+	Sub string_sh(tv As Any Ptr)
+		If var_find2(tv) = -1 Then Exit Sub
+		If varfind.ty <> 4 AndAlso varfind.ty <> 13 AndAlso varfind.ty <> 14 AndAlso varfind.ty <> 18 Then
+			MsgBox ML("Show string error: Select only a string variable")
+			Exit Sub
+		End If
+		Dim As Integer adr = varfind.ad
+		If varfind.pt Then
+			ReadProcessMemory(dbghand, Cast(LPCVOID, adr), @adr, TSZ, 0)
+			If varfind.pt = 2 Then ReadProcessMemory(dbghand, Cast(LPCVOID, adr), @adr, TSZ, 0)
+		End If
+		If varfind.ty = 13 Then ReadProcessMemory(dbghand, Cast(LPCVOID, adr), @adr, TSZ, 0) 'the text of the descriptor
+		Const SHOWSTRMAX = 32000
+		Dim As WString Ptr pText
+		If varfind.ty <> 18 Then
+			'The bytes up to the 0 (blocks of 256 bytes)
+			Dim As String sText
+			Dim As UByte buf(255)
+			Dim As Boolean bEnd = (adr = 0)
+			While Not bEnd AndAlso Len(sText) < SHOWSTRMAX
+				ReadProcessMemory(dbghand, Cast(LPCVOID, adr), @buf(0), 256, 0)
+				For k As Integer = 0 To 255
+					If buf(k) = 0 Then bEnd = True: Exit For
+					sText &= Chr(buf(k))
+				Next
+				adr += 256
+			Wend
+			pText = FromUtf8(StrPtr(sText)) 'the sources of the IDE are in UTF-8
+			If pText = 0 Then WLet(pText, "")
+		Else
+			Dim As Integer n, c
+			WLet(pText, "")
+			Do While adr <> 0 AndAlso n < SHOWSTRMAX
+				c = 0
+				ReadProcessMemory(dbghand, Cast(LPCVOID, adr + n * WSTRSIZE), @c, WSTRSIZE, 0)
+				If c = 0 Then Exit Do
+				WAdd(pText, WChr(c))
+				n += 1
+			Loop
+		End If
+		frmShowString.Text = ML("Show String") & ": " & varfind.nm
+		txtShowString.Text = *pText
+		WDeAllocate(pText)
+		frmShowString.Show *pfrmMain
 	End Sub
 #endif
 
@@ -8113,32 +8341,32 @@ Private Sub watch_add(f As Integer, r As Integer = -1) 'if r<>-1 session watched
 	wtchnew=t
 End Sub
 
-#ifdef __USE_WINAPI__
-	Private Sub watch_set()
-		If wtchcpt>WTCHMAX Then ' free slot not found
+'The watch of the variable of varfind (all the user interfaces)
+Private Sub watch_set()
+	If wtchcpt>WTCHMAX Then ' free slot not found
+		#ifdef __USE_WINAPI__
 			' change focus
 			ShowWindow(tviewcur,SW_HIDE)
 			tviewcur=tviewwch
 			ShowWindow(tviewcur,SW_SHOW)
 			SetFocus(tviewcur)
 			SendMessage(htab2,TCM_SETCURSEL,3,0)
-			ThreadsEnter: MsgBox(ML("Add watched variable: No free slot, delete one")): ThreadsLeave
+		#endif
+		ThreadsEnter: MsgBox(ML("Add watched variable: No free slot, delete one")): ThreadsLeave
+		Exit Sub
+	End If
+	'Already set ?
+	For i As Integer =0 To WTCHMAX
+		If wtch(i).psk<>-1 AndAlso wtch(i).adr=varfind.ad AndAlso wtch(i).typ=varfind.ty AndAlso _
+			wtch(i).pnt=varfind.pt Then'found
+			wtchidx=i'for delete
 			Exit Sub
 		End If
-		'Already set ?
-		For i As Integer =0 To WTCHMAX
-			If wtch(i).psk<>-1 AndAlso wtch(i).adr=varfind.ad AndAlso wtch(i).typ=varfind.ty AndAlso _
-				wtch(i).pnt=varfind.pt Then'found
-				'If fb_message("Set watched variable/memory","Already existing"+Chr(13)+"Continue ?", _
-				'MB_YESNO or MB_ICONQUESTION or MB_DEFBUTTON1) = IDNO Then exit sub
-				wtchidx=i'for delete
-				'fb_MDialog(@watch_box,"Adding watched : "+Left(wtch(i).lbl,Len(wtch(i).lbl)-1)+" already existing",windmain,50,25,180,90)
-				Exit Sub
-			End If
-		Next
-		watch_add(0)'first create no additional type
-	End Sub
-	
+	Next
+	watch_add(0)'first create no additional type
+End Sub
+
+#ifdef __USE_WINAPI__
 	'Sub var_tip(ope As Integer)
 	'	Dim As Integer nline,lclproc,lclprocr,p,n,i,j,d,l,idx=-1
 	'	Dim text As ZString *200
@@ -8487,7 +8715,8 @@ Sub brk_apply
 		For i As Integer = 0 To ptabCode->TabCount - 1
 			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
 			For j As Integer = 0 To sourcenb
-				If EqualPaths(source(j), tb->FileName) Then
+				'The file of the tab (a tab not saved: the Untitled.bas of the temporary folder which was compiled)
+				If TabOfSourceFile(source(j)) = tb Then
 					For s As Integer = 0 To tb->txtCode.Content.Lines.Count - 1
 						If Not (CInt(RunningToCursor AndAlso curtb = tb AndAlso s = FSelEndLine) OrElse CInt(Cast(EditControlLine Ptr, tb->txtCode.Content.Lines.Items[s])->Breakpoint)) Then Continue For
 						For k As Integer = 1 To linenb
@@ -9597,6 +9826,52 @@ Private Function elf_extract(filename As String) As Integer
 	Dim As String sect_name= Space(40)
 	
 	Open filename For Binary As #1
+	#ifdef __FB_DARWIN__
+		'macOS: the sections __DATA,.dbgdat and __DATA,.dbgstr of the Mach-O file (LC_SEGMENT_64)
+		Dim As ULong magic, ncmds, cmd, cmdsize, nsects, sectoff
+		Dim As ULongInt sectsize
+		Dim As ZString * 17 sectnm
+		Get #1, 1, magic
+		If magic <> &hFEEDFACF Then
+			Close #1
+			ThreadsEnter: MsgBox(ML("Loading error: Debug data not found, compile with -gen gas64/gcc and -g")): ThreadsLeave
+			Return -1
+		End If
+		Get #1, 17, ncmds
+		ofset = 32 'after mach_header_64
+		For icmd As Integer = 1 To ncmds
+			Get #1, ofset + 1, cmd
+			Get #1, ofset + 5, cmdsize
+			If cmd = &h19 Then 'LC_SEGMENT_64: its sections (section_64) after the 72 bytes of the segment
+				Get #1, ofset + 65, nsects
+				For isec As Integer = 0 To nsects - 1
+					Dim As ULongInt sec = ofset + 72 + isec * 80
+					sectnm = String(16, 0)
+					Get #1, sec + 1, *Cast(UByte Ptr, @sectnm), 16
+					Get #1, sec + 41, sectsize
+					Get #1, sec + 49, sectoff
+					If sectnm = ".dbgdat" Then
+						dbg_dat_of = sectoff: dbg_dat_size = sectsize
+					ElseIf sectnm = ".dbgstr" Then
+						dbg_str_of = sectoff
+					End If
+				Next
+			End If
+			ofset += cmdsize
+		Next
+		If dbg_dat_of = 0 OrElse dbg_str_of = 0 Then
+			Close #1
+			''-gen gcc -g: DWARF in <program>.dSYM
+			If dwarf_extract(filename) > 0 Then Return 0
+			ThreadsEnter: MsgBox(ML("Loading error: Debug data not found, compile with -gen gas64/gcc and -g")): ThreadsLeave
+			Return -1
+		End If
+		load_dat(dbg_dat_of, dbg_dat_size, dbg_str_of)
+		Close #1
+		''the modules compiled with -gen gcc -g (DWARF)
+		dwarf_extract(filename)
+		Return 0
+	#endif
 	lgf=LOF(1)
 	'dbg_prt2 "lenght=";lgf
 	
@@ -10375,7 +10650,7 @@ Private Sub close_all()
 	'dbg_prt2 "destroy mutex and condvar"
 	MutexDestroy blocker
 	#ifndef __FB_WIN32__
-		CondSignal(condid)
+		CondBroadcast(condid)
 		CondDestroy(condid)
 	#endif
 	'dbg_prt2 "release doc"
@@ -10407,7 +10682,7 @@ Private Sub process_terminated()
 	ShowMessages(Time & ": " & ML("Application finished. Returned code") & ": " & Result & " - " & Err2Description(Result))
 	CheckProfiler GetFolderName(exename), exename
 	ChangeEnabledDebug True, False, False
-	#ifndef __USE_GTK__
+	#ifndef __DBG_MFF_UI__
 		If CurrentTimer <> 0 Then KillTimer 0, CurrentTimer
 		CurrentTimer = 0
 	#endif
@@ -10456,15 +10731,7 @@ Private Function kill_process(text As String) As Integer
 			#else
 				'dbg_prt2 "Killing process=";pid
 				If runtype=RTSTEP Then ''waiting
-					MutexLock blocker
-					msgcmd=KPT_KILL
-					bool2=True
-					CondSignal(condid)
-					While bool1<>True
-						CondWait(condid,blocker)
-					Wend
-					bool1=False
-					MutexUnlock blocker
+					If exec_order(KPT_KILL) = False Then linux_kill(thread(0).id,9) ''macOS: not waiting in brp_stop
 				Else ''running
 					linux_kill(thread(0).id,9)
 				End If
@@ -11594,7 +11861,8 @@ Private Function var_sh1(i As Integer) As String '23/04/2014
 	End If
 End Function
 
-#ifdef __USE_WINAPI__
+'The value of the hint of the editor (OnMouseHoverEdit of TabWindow.bas), on every platform of the Integrated IDE Debugger
+#if 1
 	'The value of the hint of the editor: "NAME <Type> = value", the text of a string between quotes
 	'(var_sh1: "TXT <ByRef param / WString>(1) =Font" -> "TXT <ByRef param / WString (1)> = "Font"")
 	Function var_hint_text(ByRef s As String) As String
@@ -11691,55 +11959,74 @@ End Function
 		Return var_hint_text(var_sh1(idx))
 		
 	End Function
-	
-	'A watch typed in the Watches window (List view): the variable of the current procedure or a global one
-	'Returns the line of the watch in the Watches tree (0: not found)
-	Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
-		Dim As String text = UCase(Trim(VarName))
-		If text = "" OrElse Left(text, 1) = "." OrElse procrnb = 0 Then Return 0
-		Dim vname(10) As String, varray As Integer, vnb As Integer, p As Integer, d As Integer = 1, l As Integer, idx As Integer = -1
-		text += ".": l = Len(text)
-		While d < l AndAlso vnb < 10
-			vnb += 1
-			p = InStr(d, text, ".")
-			vname(vnb) = Mid(text, d, p - d)
-			If Right(vname(vnb), 1) = "(" Then
-				varray = 1: vname(vnb) = Mid(text, d, p - d - 1): d = p + 2
-			Else
-				varray = 0: d = p + 1
-			End If
-		Wend
-		'The procedure of the stop, then the others from the last one, then the globals (procr(0), globals_load)
-		Dim As Integer lclproc = rline(thread(threadcur).sv).px
-		For i As Integer = procrnb To 1 Step -1
-			If procr(i).idx = lclproc Then idx = var_search(i, vname(), vnb, varray): Exit For
-		Next
-		For i As Integer = procrnb To 0 Step -1
-			If idx <> -1 Then Exit For
-			idx = var_search(i, vname(), vnb, varray)
-		Next
-		If idx = -1 Then Return 0
-		'The slots never used are free (watch_add looks for psk = -1, the slots are 0 at the start)
-		For k As Integer = 0 To WTCHMAX
-			If wtch(k).tvl = 0 AndAlso wtch(k).psk = 0 Then wtch(k).psk = -1
-		Next
-		'Like the command Watch of the menu of the variables: the selected variable
-		SendMessage(tviewvar, TVM_SELECTITEM, TVGN_CARET, Cast(LPARAM, var_tv(idx)))
-		If var_find2(tviewvar) = -1 Then Return 0
-		wtchnew = -1: wtchidx = -1
-		watch_set()
-		If wtchnew >= 0 Then Return wtch(wtchnew).tvl 'new
-		If wtchidx >= 0 Then Return wtch(wtchidx).tvl 'already watched
-		Return 0
-	End Function
-	
-	'Removes the watch of the line hItem of the Watches window
-	Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
-		If hItem = 0 Then Exit Sub
-		For k As Integer = 0 To WTCHMAX
-			If wtch(k).psk <> -1 AndAlso wtch(k).tvl = hItem Then watch_del(k): Exit For
-		Next
-	End Sub
+#endif
+
+'The watches typed in the Watches window, all the user interfaces
+'A watch typed in the Watches window (List view): the variable of the current procedure or a global one
+'Returns the line of the watch in the Watches tree (0: not found)
+Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
+	Dim As String text = UCase(Trim(VarName))
+	If text = "" OrElse Left(text, 1) = "." OrElse procrnb = 0 Then Return 0
+	Dim vname(10) As String, varray As Integer, vnb As Integer, p As Integer, d As Integer = 1, l As Integer, idx As Integer = -1
+	text += ".": l = Len(text)
+	While d < l AndAlso vnb < 10
+		vnb += 1
+		p = InStr(d, text, ".")
+		vname(vnb) = Mid(text, d, p - d)
+		If Right(vname(vnb), 1) = "(" Then
+			varray = 1: vname(vnb) = Mid(text, d, p - d - 1): d = p + 2
+		Else
+			varray = 0: d = p + 1
+		End If
+	Wend
+	'The procedure of the stop, then the others from the last one, then the globals (procr(0), globals_load)
+	Dim As Integer lclproc = rline(thread(threadcur).sv).px
+	For i As Integer = procrnb To 1 Step -1
+		If procr(i).idx = lclproc Then idx = var_search(i, vname(), vnb, varray): Exit For
+	Next
+	For i As Integer = procrnb To 0 Step -1
+		If idx <> -1 Then Exit For
+		idx = var_search(i, vname(), vnb, varray)
+	Next
+	If idx = -1 Then Return 0
+	'The slots never used are free (watch_add looks for psk = -1, the slots are 0 at the start)
+	For k As Integer = 0 To WTCHMAX
+		If wtch(k).tvl = 0 AndAlso wtch(k).psk = 0 Then wtch(k).psk = -1
+	Next
+	'Like the command Watch of the menu of the variables: the selected variable
+	Dim As Any Ptr hVar = var_tv(idx)
+	If hVar = 0 Then Return 0
+	#ifdef __USE_WINAPI__
+		SendMessage(tviewvar, TVM_SELECTITEM, TVGN_CARET, Cast(LPARAM, hVar))
+	#else
+		tviewvar->SelectedNode = hVar
+	#endif
+	If var_find2(tviewvar) = -1 Then Return 0
+	wtchnew = -1: wtchidx = -1
+	watch_set()
+	If wtchnew >= 0 Then Return wtch(wtchnew).tvl 'new
+	If wtchidx >= 0 Then Return wtch(wtchidx).tvl 'already watched
+	Return 0
+End Function
+
+'Removes the watch of the line hItem of the Watches window
+Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
+	If hItem = 0 Then Exit Sub
+	For k As Integer = 0 To WTCHMAX
+		If wtch(k).psk <> -1 AndAlso wtch(k).tvl = hItem Then watch_del(k): Exit For
+	Next
+End Sub
+
+'The line hItem of the Watches tree is a watch (not the empty line for a new one)
+Function DbgIntegratedIsWatch(hItem As Any Ptr) As Boolean
+	If hItem = 0 Then Return False
+	For k As Integer = 0 To WTCHMAX
+		If wtch(k).psk <> -1 AndAlso wtch(k).tvl = hItem Then Return True
+	Next
+	Return False
+End Function
+
+#ifdef __USE_WINAPI__
 	
 	'The elements of an array of a standard type: the lines under the line of the array (without vrr, lParam=0),
 	'their values when it is expanded (or bExpanding, before it is expanded)
@@ -11812,7 +12099,7 @@ End Function
 			node = TreeView_GetNextItem(tviewvar, node, TVGN_NEXT)
 		Wend
 	End Sub
-#elseif defined(__USE_GTK__)
+#elseif defined(__DBG_MFF_UI__)
 	'The elements of an array of a standard type: the lines (Tag 0) under the line of the array, their values
 	'when it is expanded (or bExpanding, before it is expanded). bLock: not called by the main thread (var_sh)
 	Sub arr_elements_sh(i As Integer, hItem As Any Ptr, bExpanding As Boolean = False, bLock As Boolean = True)
@@ -11866,7 +12153,7 @@ Private Sub var_sh() 'show master var
 				i = vrr(i).lst + 1 'its components are not there either
 			Else
 				Tree_upditem(vrr(i).tv, var_sh1(i), tviewvar)
-				#ifdef __USE_GTK__
+				#ifdef __DBG_MFF_UI__
 					arr_elements_sh(i, vrr(i).tv) 'the elements of an array
 				#endif
 				i += 1
@@ -12806,15 +13093,7 @@ Private Sub proc_runnew(startip As Integer = 0, startbp As Integer = 0)
 		Var threadprev=threadcur
 		threadcur=ithd
 		regs.xip=0
-		MutexLock blocker
-		msgcmd=KPT_GETREGS
-		bool2=True
-		CondSignal(condid)
-		While bool1<>True
-			CondWait(condid,blocker)
-		Wend
-		bool1=False
-		MutexUnlock blocker
+		exec_order(KPT_GETREGS) ''regs.xip stays 0 if not sent
 		threadcur=threadprev
 		If regs.xip=0 Then
 			'dbg_prt2 "not stopped=";thread(ithd).id
@@ -14593,6 +14872,29 @@ Private Function check_bitness(ByRef fullname As WString) As Integer
 				Return 0
 			End If
 		#endif
+	#elseif defined(__FB_DARWIN__)
+		'macOS: a Mach-O of the architecture of the IDE: x86_64 (gas64, gcc) or arm64 (gcc) (Open For Binary would make
+		'an empty file)
+		Dim As ULong magic, cputype
+		If Not FileExists(fullname) Then
+			ThreadsEnter: MsgBox(ML("File not found") & ": " & fullname, App.Title & ": " & ML("Integrated IDE Debugger")): ThreadsLeave
+			Return 0
+		End If
+		Open fullname For Binary As #1
+		Get #1, 1, magic
+		Get #1, 5, cputype
+		Close #1
+		#ifdef __FB_ARM__
+		If magic <> &hFEEDFACF OrElse cputype <> &h0100000C Then 'CPU_TYPE_ARM64
+			ThreadsEnter: MsgBox(ML("Integrated IDE Debugger") & ": " & ML("only the programs of arm64 compiled with -gen gcc -g"), App.Title & ": " & ML("Integrated IDE Debugger")): ThreadsLeave
+			Return 0
+		End If
+		#else
+		If magic <> &hFEEDFACF OrElse cputype <> &h01000007 Then 'CPU_TYPE_X86_64
+			ThreadsEnter: MsgBox(ML("Integrated IDE Debugger") & ": " & ML("only the programs of x86_64 compiled with -gen gas64/gcc -g"), App.Title & ": " & ML("Integrated IDE Debugger")): ThreadsLeave
+			Return 0
+		End If
+		#endif
 	#else
 		Dim As UByte ubyt
 		Open fullname For Binary As #1
@@ -15779,7 +16081,7 @@ End Sub
 		
 		Dim As UString res()
 		
-		#ifdef __USE_GTK__
+		#ifdef __DBG_MFF_UI__
 			Split(sBuf, Chr(10), res())
 		#else
 			Split(sBuf, Chr(13, 10), res())
@@ -16666,14 +16968,14 @@ End Sub
 		Var Pos1 = InStr(Result, "=")
 		If Pos1 > 0 Then Result = Trim(Mid(Result, Pos1 + 1))
 		If StartsWith(Result, "(gdb)") Then Result = Trim(Mid(Result, 6))
-		#ifdef __USE_GTK__
+		#ifdef __DBG_MFF_UI__
 			If StartsWith(Result, Chr(10)) Then Result = Trim(Mid(Result, 2))
 		#else
 			If StartsWith(Result, Chr(13, 10)) Then Result = Trim(Mid(Result, 3))
 		#endif
 		If EndsWith(Result, "(gdb)") Then Result = Trim(Left(Result, Len(Result) - 5))
 		If EndsWith(Result, "(gdb) ") Then Result = Trim(Left(Result, Len(Result) - 6))
-		#ifdef __USE_GTK__
+		#ifdef __DBG_MFF_UI__
 			If EndsWith(Result, Chr(10)) Then Result = Trim(Left(Result, Len(Result) - 1))
 		#else
 			If EndsWith(Result, Chr(13, 10)) Then Result = Trim(Left(Result, Len(Result) - 2))
@@ -17201,7 +17503,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	Dim Result As Integer
 	Dim As Integer pClass
 	Dim As WString Ptr Workdir, CmdL
-	#ifndef __USE_GTK__
+	#ifndef __DBG_MFF_UI__
 		Dim SInfo As STARTUPINFO
 		Dim pinfo As PROCESS_INFORMATION
 	#endif
@@ -17329,7 +17631,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		End If
 		If ProjectCommandLineArguments <> "" Then WAdd(CmdL, " " & ProjectCommandLineArguments)
 	End If
-	#ifndef __USE_GTK__
+	#ifndef __DBG_MFF_UI__
 		exename = Replace(exename, BackSlash, Slash)
 		re_ini
 	#endif
@@ -17342,8 +17644,8 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 	Wend
 	If Pos1 = 0 Then Pos1 = Len(exename)
 	WLet(Workdir, Left(exename, Pos1))
-	#ifdef __USE_GTK__
-		Dim As GPid pid = 0
+	#ifdef __DBG_MFF_UI__
+		Dim As Long pid = 0
 		'		Dim As GtkWidget Ptr win, vte
 		'		win = gtk_window_new(gtk_window_toplevel)
 		'		vte = vf->vte_terminal_new()
@@ -17363,9 +17665,13 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 		Dim As WString Ptr Arguments
 		WLet(Arguments, *RunArguments)
 		If ProjectCommandLineArguments <> "" Then WAdd(Arguments, " " & ProjectCommandLineArguments)
+		#ifdef __USE_GTK__
 		If 0 Then
 			Shell """" & WGet(TerminalPath) & """ --wait -- """ & build_create_shellscript(GetFolderName(exename), exename, False, True) & """"
 		Else
+		#else
+		If 1 Then
+		#endif
 			ChDir(GetFolderName(exename))
 			Dim As UString CommandLine
 			Dim As ToolType Ptr Tool
@@ -17409,6 +17715,11 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 			ElseIf CurrentDebuggerType = IntegratedIDEDebugger Then
 				If check_bitness(exename) = 0 Then Exit Sub ''bitness of debuggee and Integrated IDE Debugger not corresponding
 				ThreadsEnter: If kill_process(ML("Trying to launch but debuggee still running")) = False Then ThreadsLeave: Exit Sub Else ThreadsLeave
+				'Only one thread of the debugger (the previous one can still wait in brp_stop after the end of its program)
+				If dbg_end_previous() = False Then
+					ThreadsEnter: MsgBox ML("Integrated IDE Debugger") & ": " & ML("the previous debugging does not end, restart the IDE"), App.Title: ChangeEnabledDebug True, False, False: ThreadsLeave
+					Exit Sub
+				End If
 				flagrestart = -1
 				ThreadsEnter()
 				DbgViewSetDebugger True
@@ -17416,7 +17727,7 @@ Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRe
 				tpLocals->SelectTab
 				ThreadsLeave()
 				
-				If ThreadCreate(IIf(AttachPid <> 0, Cast(Any Ptr, @attach_pgm), Cast(Any Ptr, @start_pgm)), , DBG_THREAD_STACK) = 0 Then
+				If ThreadCreate(@dbg_thread, Cast(Any Ptr, IIf(AttachPid <> 0, 1, 0)), DBG_THREAD_STACK) = 0 Then
 					KillTimer(0, GTIMER001)
 					ThreadsEnter: MsgBox("Debuggee not running", "ERROR unable to start the thread managing the debuggee"): ThreadsLeave
 				EndIf

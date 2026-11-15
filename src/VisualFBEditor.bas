@@ -601,8 +601,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 	Case "GDBCommand":                          GDBCommand
 	Case "LocateProcedure":                     proc_loc
 	Case "EnableDisable":                       proc_enable: DbgViewDirty(dpProcedures) = True: DbgViewInvalidate 'Followed of the list (DebugView.bas)
-	#ifdef __USE_WIN32_COMPAT__
-		'Web and Android: the compiler and the debugger cannot be started
+	#if defined(__USE_WIN32_COMPAT__) AndAlso Not defined(__USE_COCOA__)
+		'Web, Android and iOS: the compiler and the debugger cannot be started. macOS: the commands of Linux below
+		'(Debug.bas: Integrated IDE Debugger, Integrated LLDB Debugger)
 	#ifdef __USE_WASM__
 		'Web: Start With Compile compiles on the server (CompileOnWebServer), which gives the page of the program
 	Case "StartWithCompile":                    If SaveAllBeforeCompile Then CompileAndRun 0
@@ -613,10 +614,6 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		If RunWebPage(ToUtf8(GetMainFile(False, WebProject, WebProjectNode))) = 0 AndAlso SaveAllBeforeCompile Then CompileAndRun 0
 	Case "Break", "End", "StepInto", "StepOver"
 		MsgBox ML("Compiling and running are not available on this platform yet.")
-	#elseif defined(__USE_COCOA__)
-		'macOS: the IDE compiles and starts the program itself, with Use Debugger lldb debugs it (DebugLLDB.bas)
-	Case "StartWithCompile", "Start", "Restart", "Break", "End", "StepInto", "StepOver"
-		LLDBCommand Sender.ToString
 	#elseif defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
 		'Android, iOS: the server compiles the program, installs it on this device and starts it (CompileOnAndroidServer)
 	Case "StartWithCompile", "Start", "Restart":  If SaveAllBeforeCompile Then ThreadCounter(ThreadCreate_(@CompileAndRun))
@@ -749,7 +746,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			End If
 		End If
 	Case "Break":
-		#ifdef __USE_GTK__
+		#ifdef __DBG_MFF_UI__
 			ChangeEnabledDebug True, False, True
 		#else
 			If runtype=RTFREE Or runtype=RTFRUN Then
@@ -881,14 +878,14 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		Else
 			If InDebug Then
 				ChangeEnabledDebug False, True, True
-				#ifndef __USE_GTK__
+				#ifndef __DBG_MFF_UI__
 					procin = procsk
 					runtype = RTRUN
 					SetFocus(windmain)
 					thread_rsm()
 				#endif
 			Else
-				#ifndef __USE_GTK__
+				#ifndef __DBG_MFF_UI__
 					procin = procsk
 					runtype = RTFRUN
 					SkipFirstLineStop = False
@@ -1036,10 +1033,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ptxtAIRequest->Text = ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English") & !"\r\n" & "```MARKDOWN" & !"\r\n" & tb->txtCode.SelText & !"\r\n" & "```"
 			ptxtAIRequest->SetFocus
 			
-		#ifdef __USE_COCOA__
-		Case "SetNextStatement", "ShowVar", "StepOut", "RunToCursor", "AddWatch"
-			LLDBCommand Sender.ToString
-		#elseif defined(__USE_WIN32_COMPAT__)
+		#if defined(__USE_WIN32_COMPAT__) AndAlso Not defined(__USE_COCOA__)
 		Case "SetNextStatement", "ShowVar", "StepOut", "RunToCursor", "AddWatch"
 			MsgBox ML("Debugging is not available on this platform.")
 		#else
@@ -1053,7 +1047,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					command_debug("jump " & Replace(tb->FileName, "\", "/") & ":" & Str(iEndLine))
 				#endif
 			Else
-				#ifndef __USE_GTK__
+				#ifndef __DBG_MFF_UI__
 					exe_mod()
 				#endif
 			End If
@@ -1073,7 +1067,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					End If
 				#endif
 			Else
-				#ifndef __USE_GTK__
+				#ifndef __DBG_MFF_UI__
 					If InDebug Then
 						ChangeEnabledDebug False, True, True
 						If (threadcur<>0 AndAlso proc_find(thread(threadcur).id,KLAST)<>proc_find(thread(threadcur).id,KFIRST)) _
@@ -1105,7 +1099,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			Else
 				If InDebug Then
 					ChangeEnabledDebug False, True, True
-					#ifndef __USE_GTK__
+					#ifndef __DBG_MFF_UI__
 						brk_set(9)
 					#endif
 				Else
@@ -1413,7 +1407,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 							End If
 						#endif
 					Else
-						#ifndef __USE_GTK__
+						#ifndef __DBG_MFF_UI__
 							If InDebug Then: brk_set(1): End If
 						#endif
 					End If

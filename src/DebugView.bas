@@ -11,7 +11,7 @@
 'the screen and its data has changed (after a stop), and only of the expanded nodes: the children are copied
 'when a node is expanded. When the view of the debugger is chosen, nothing is copied.
 
-#if Not (defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__))
+#if Not defined(__NO_PROCESS_DEBUGGER__)
 	#define __DBGVIEW_INTEGRATED__
 #endif
 
@@ -245,7 +245,7 @@ Sub DbgViewSourceExpand(p As Integer, h As Any Ptr)
 			If Not Cast(TreeNode Ptr, h)->IsExpanded Then
 				If p = dpLocals OrElse p = dpGlobals Then
 					var_kids(h) 'the lines of the components
-					#ifdef __USE_GTK__
+					#ifdef __DBG_MFF_UI__
 						arr_elements_sh(Cast(Integer, Cast(TreeNode Ptr, h)->Tag), h, True, False)
 					#endif
 				End If
@@ -647,7 +647,7 @@ Sub DbgViewTree_NodeExpanding(ByRef Designer As My.Sys.Object, ByRef Sender As T
 		'(on Windows: TVN_ITEMEXPANDING of tvVar_Message)
 		If DbgViewIntegrated AndAlso @Item <> 0 AndAlso @Sender = DbgViewSourceTree(dpLocals) Then
 			var_kids(@Item)
-			#ifdef __USE_GTK__
+			#ifdef __DBG_MFF_UI__
 				arr_elements_sh(Cast(Integer, Item.Tag), @Item, True, False) 'the values of the elements of an array
 			#endif
 		End If
@@ -794,7 +794,7 @@ Sub DbgViewAddWatch(ByRef sName As WString)
 		'"  main/GCOUNT" of the line of the Integrated IDE Debugger: the procedure is not a part of the name
 		Dim As String sVar = Trim(sName)
 		If InStr(sVar, "/") Then sVar = Trim(Mid(sVar, InStrRev(sVar, "/") + 1))
-		#ifdef __USE_WINAPI__
+		#ifdef __DBGVIEW_INTEGRATED__
 			Dim As Any Ptr hItem = DbgIntegratedAddWatch(sVar)
 			If hItem = 0 Then
 				ShowMessages ML("Variable not found") & ": " & sVar
@@ -823,7 +823,7 @@ Dim Shared As UString DbgViewQueuedAdd 'the name of the watch to add
 Sub DbgViewRunWatchEdit()
 	If DbgViewQueuedDelete <> 0 Then
 		If DbgViewIntegrated Then
-			#ifdef __USE_WINAPI__
+			#ifdef __DBGVIEW_INTEGRATED__
 				DbgIntegratedDeleteWatch DbgViewQueuedDelete
 			#endif
 			DbgViewSetWatchName DbgViewQueuedDelete, ""
@@ -836,15 +836,13 @@ Sub DbgViewRunWatchEdit()
 	If Trim(DbgViewQueuedAdd) <> "" Then DbgViewAddWatch DbgViewQueuedAdd
 	DbgViewQueuedDelete = 0
 	DbgViewQueuedAdd = ""
-	#ifdef __USE_WINAPI__
-		'The empty line for a new watch of the Integrated IDE Debugger goes after its watches
-		If DbgViewIntegrated Then
-			For i As Integer = tvWch.Nodes.Count - 1 To 0 Step -1
-				If tvWch.Nodes.Item(i)->Text = "" Then tvWch.Nodes.Remove i
-			Next
-			tvWch.Nodes.Add
-		End If
-	#endif
+	'The empty line for a new watch of the Integrated IDE Debugger goes after its watches
+	If DbgViewIntegrated Then
+		For i As Integer = tvWch.Nodes.Count - 1 To 0 Step -1
+			If tvWch.Nodes.Item(i)->Text = "" Then tvWch.Nodes.Remove i
+		Next
+		tvWch.Nodes.Add
+	End If
 	DbgViewDirty(dpWatches) = True
 	DbgViewInvalidate
 End Sub
@@ -894,7 +892,11 @@ End Sub
 Sub DbgViewTree_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As TreeView, ByRef Item As TreeNode, ByRef NodeLabel As WString, ByRef Cancel As Boolean)
 	If @Sender <> @tvWch Then Exit Sub
 	Cancel = True 'the debugger writes the lines
-	If @Item <> 0 AndAlso Item.Tag = 0 Then
+	Dim As Boolean bWatchLine 'a line of a watch of the Integrated IDE Debugger (without the Windows API it is in Nodes too)
+	#if defined(__DBGVIEW_INTEGRATED__) AndAlso Not defined(__USE_WINAPI__)
+		If DbgViewIntegrated AndAlso @Item <> 0 Then bWatchLine = DbgIntegratedIsWatch(@Item)
+	#endif
+	If @Item <> 0 AndAlso Item.Tag = 0 AndAlso Item.ParentNode = 0 AndAlso CInt(Not bWatchLine) Then
 		'The empty line (a node of Nodes)
 		If Trim(NodeLabel) <> "" Then DbgViewQueueWatchEdit 0, NodeLabel
 	ElseIf DbgViewIntegrated Then
@@ -902,6 +904,14 @@ Sub DbgViewTree_AfterLabelEdit(ByRef Designer As My.Sys.Object, ByRef Sender As 
 		#ifdef __USE_WINAPI__
 			Dim As HTREEITEM hItem = TreeView_GetSelection(tvWch.Handle)
 			If hItem = 0 OrElse TreeView_GetParent(tvWch.Handle, hItem) <> 0 Then Exit Sub
+			Dim As UString sOld = DbgViewSourceText(dpWatches, hItem), sName, sValue, sType
+			DbgViewSplitLabel sOld, sName, sValue, sType
+			If Trim(NodeLabel) = Trim(sName) OrElse Trim(NodeLabel) = Trim(sOld) OrElse Trim(NodeLabel) = DbgViewWatchName(hItem) Then Exit Sub
+			DbgViewQueueWatchEdit hItem, NodeLabel
+		#elseif defined(__DBGVIEW_INTEGRATED__)
+			'The edited line: only a watch (not a line of its components)
+			If Not bWatchLine OrElse Item.ParentNode <> 0 Then Exit Sub
+			Dim As Any Ptr hItem = @Item
 			Dim As UString sOld = DbgViewSourceText(dpWatches, hItem), sName, sValue, sType
 			DbgViewSplitLabel sOld, sName, sValue, sType
 			If Trim(NodeLabel) = Trim(sName) OrElse Trim(NodeLabel) = Trim(sOld) OrElse Trim(NodeLabel) = DbgViewWatchName(hItem) Then Exit Sub
@@ -926,6 +936,15 @@ Sub DbgViewRemoveWatch()
 				If hItem <> 0 AndAlso TreeView_GetParent(tvWch.Handle, Cast(HTREEITEM, hItem)) <> 0 Then hItem = 0
 			End If
 			If hItem = 0 Then Exit Sub
+			DbgViewQueuedDelete = hItem
+		#elseif defined(__DBGVIEW_INTEGRATED__)
+			Dim As Any Ptr hItem
+			If DbgViewList Then
+				If lvWatches.SelectedItem <> 0 AndAlso lvWatches.SelectedItem->ParentItem = 0 Then hItem = lvWatches.SelectedItem->Tag
+			ElseIf tvWch.SelectedNode <> 0 AndAlso tvWch.SelectedNode->ParentNode = 0 Then
+				hItem = tvWch.SelectedNode
+			End If
+			If Not DbgIntegratedIsWatch(hItem) Then Exit Sub
 			DbgViewQueuedDelete = hItem
 		#endif
 	Else
@@ -1210,10 +1229,8 @@ Sub DbgViewVariableCommandRun(ByRef sCommand As String)
 			Case "PointedDataDump":             var_dump(tviewvar, 1)
 			Case "MemoryDumpWatch":             var_dump(tviewwch)
 			Case "ShowExpandVariable", "ShowExpandVariableWatch": DbgViewShowExpand sCommand
-			#ifndef __USE_GTK__
 			Case "ShowStringWatch":             string_sh(tviewwch)
 			Case "ShowString":                  string_sh(tviewvar)
-			#endif
 			End Select
 		#endif
 	End Select

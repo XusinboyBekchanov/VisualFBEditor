@@ -16,6 +16,12 @@
 #include once "mff/ComboBoxEdit.bi"
 #include once "mff/CommandButton.bi"
 #include once "mff/Dialogs.bi"
+'macOS: NSSavePanel of SaveFileDialog asks itself whether to replace an existing file (the IDE asked a second time)
+#ifdef __USE_COCOA__
+	Const SaveDialogAsksOverwrite = True
+#else
+	Const SaveDialogAsksOverwrite = False
+#endif
 #include once "mff/TreeView.bi"
 #include once "mff/TreeListView.bi"
 #include once "mff/ProgressBar.bi"
@@ -33,6 +39,9 @@
 #ifdef __USE_JNI__
 	'Android: the settings of a small screen (the asset mffapp.zip of the APK has no settings of Windows / Linux)
 	#define SettingsPath ExePath & "/Settings/VisualFBEditorAndroid.ini"
+#elseif defined(__USE_UIKIT__)
+	'iOS: the settings of a small screen (the panels are closed at the start, like on Android)
+	#define SettingsPath ExePath & "/Settings/VisualFBEditoriOS.ini"
 #elseif Not defined(__USE_GTK__)
 	#ifdef __FB_64BIT__
 		#define SettingsPath ExePath & "/Settings/VisualFBEditor64.ini"
@@ -186,6 +195,10 @@ Common Shared As Boolean mTabSelChangeByError
 'The compilation in progress: End stops it (CompileStopped), on Windows the job of its processes is terminated, on
 'Linux and macOS its process group (CompilePid)
 Common Shared As Boolean CompileRunning, CompileStopped
+'The tab whose code was compiled as Untitled.bas of the temporary folder (GetMainFile of TabWindow.bas: a file not saved
+'or a modified main file of a project): the debuggers find its breakpoints and its lines with TabOfSourceFile
+Common Shared As Any Ptr UntitledCompiledTab
+Declare Function TabOfSourceFile(ByRef FileName As WString) As Any Ptr
 Common Shared As Any Ptr CompileJob
 Common Shared As Long CompilePid
 #ifdef __USE_COCOA__

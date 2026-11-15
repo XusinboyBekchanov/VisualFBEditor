@@ -541,7 +541,16 @@ Sub DbgShowCursor()
 	Dim As Integer LineNo = DbgFrames(DbgFrameIndex).LineNo
 	If LineNo < 1 OrElse FileName = "" Then Exit Sub
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
-	If tb = 0 OrElse Not EqualPaths(tb->FileName, FileName) Then tb = AddTab(FileName)
+	If tb = 0 OrElse Not EqualPaths(tb->FileName, FileName) Then
+		'The tab of the file (Untitled.bas of the temporary folder: the tab which was compiled), otherwise the file is opened
+		Dim As TabWindow Ptr tbSource = TabOfSourceFile(FileName)
+		If tbSource <> 0 Then
+			tb = tbSource
+			tb->SelectTab
+		Else
+			tb = AddTab(FileName)
+		End If
+	End If
 	If tb <> 0 Then
 		CurEC = @tb->txtCode
 		ShowExecutedLine @tb->txtCode, LineNo - 1

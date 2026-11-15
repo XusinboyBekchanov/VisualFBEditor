@@ -106,7 +106,7 @@ Private Sub LLDBShowProgramOutput()
 	CloseFile_(Fn)
 End Sub
 
-#ifdef __USE_COCOA__
+#if defined(__USE_COCOA__) AndAlso Not defined(__USE_EXTERNAL_DEBUGGERS__) 'macOS without Debug.bas
 	Sub DeleteDebugCursor
 		If CurEC <> 0 Then
 			Var curEC2 = CurEC
@@ -369,7 +369,7 @@ Private Function LLDBScript() As UString
 	Return ScriptFile
 End Function
 
-#ifdef __USE_COCOA__
+#if defined(__USE_COCOA__) AndAlso Not defined(__USE_EXTERNAL_DEBUGGERS__) 'macOS without Debug.bas
 	'A custom debugger: its command in a window of Terminal
 	Private Sub LLDBRunInTerminal(Tool As ToolType Ptr, ByRef ExeFile As WString, ByRef Arguments As WString)
 		Dim As UString sCommand = Tool->GetCommand(ExeFile)
@@ -601,7 +601,7 @@ Sub LLDBSetNextStatement()
 	End If
 End Sub
 
-#ifdef __USE_COCOA__
+#if defined(__USE_COCOA__) AndAlso Not defined(__USE_EXTERNAL_DEBUGGERS__) 'macOS without Debug.bas
 	'macOS: lldb is the only debugger, the procedures of the debugger which the IDE calls are of lldb
 	Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 		Dim As UString ExeFile = Replace(GetExeFileName(MainFile, CompileLine & " " & FirstLine), "\", "/")

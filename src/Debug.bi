@@ -15,8 +15,18 @@
 
 Declare Sub DeleteDebugCursor
 
-'Windows and Linux: Integrated LLDB Debugger and the interfaces MI and DAP of gdb and lldb (DebugExternal.bas)
-#if Not (defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)) AndAlso Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
+'Web, Android and iOS: no debugger of other processes (DebugWeb.bas). macOS (Cocoa): Debug.bas as on Linux, the
+'Integrated IDE Debugger reads and writes the program with the Mach calls of DebugMac.bi
+#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse (defined(__USE_APPLE__) AndAlso Not defined(__USE_COCOA__))
+	#define __NO_PROCESS_DEBUGGER__
+#endif
+'The user interface of the debugger without the Windows API: GTK (Linux) or Cocoa (macOS) with the controls of MyFbFramework
+#if defined(__USE_GTK__) OrElse defined(__USE_COCOA__)
+	#define __DBG_MFF_UI__
+#endif
+
+'Windows, Linux and macOS: Integrated LLDB Debugger and the interfaces MI and DAP of gdb and lldb (DebugExternal.bas)
+#if Not defined(__NO_PROCESS_DEBUGGER__) AndAlso Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 	#define __USE_EXTERNAL_DEBUGGERS__
 	Declare Function DbgActive() As Boolean
 	Declare Function DbgCommand(ByRef sCommand As String) As Boolean
@@ -109,7 +119,12 @@ End Function
 #define TSZ IIf(T64, 8, 4)
 
 '#define fulldbg_prt 'uncomment to get more information
-#define dbg_prt2 Rem ' dbg_prt 'used temporary for debugging, change rem by print 
+#ifdef __FB_DARWIN__
+	'macOS: the trace of the Integrated IDE Debugger when VFBE_DEBUG_TRACE is set (dbg_trace_open in Debug.bas)
+	#define dbg_prt2 If dbg_tracefn Then Print #dbg_tracefn, Time; " ";
+#else
+	#define dbg_prt2 Rem ' dbg_prt 'used temporary for debugging, change rem by print 
+#endif
 
 #define fmt(t, l) Left(t, l) + Space(l - Len(t)) + "  "
 #define fmt2(t, l) Left(t, l) + Space(l - Len(t))
@@ -126,7 +141,7 @@ End Function
 	#define KNEWARRAYFIELD ''to skip flag field
 #endif
 
-#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+#if defined(__NO_PROCESS_DEBUGGER__)
 	'Web and Android: no debugger (DebugWeb.bas), only the declarations which the IDE uses
 	#define WSTRSIZE 4 ''wchar_t of emscripten and of the Android NDK
 #elseif defined(__FB_WIN32__)
@@ -268,7 +283,28 @@ End Function
 
 	'' Output information
 	#define dbg_prt(txt) output_lnx(txt)
-	#include once "crt/unistd.bi"
+	#ifdef __FB_DARWIN__
+		'macOS: crt/unistd.bi has no declarations for darwin: the ones which the debugger uses
+		Type pid_t As Long
+		Extern "C"
+			Declare Function fork() As pid_t
+			Declare Function getpid() As pid_t
+			Declare Function close_ Alias "close" (ByVal fd As Long) As Long
+			Declare Function read_ Alias "read" (ByVal fd As Long, ByVal buf As Any Ptr, ByVal n As UInteger) As Integer
+			Declare Function write_ Alias "write" (ByVal fd As Long, ByVal buf As Any Ptr, ByVal n As UInteger) As Integer
+			Declare Function pipe_ Alias "pipe" (ByVal fds As Long Ptr) As Long
+			Declare Function dup2(ByVal fd As Long, ByVal fd2 As Long) As Long
+			Declare Function execl(ByVal path As ZString Ptr, ByVal arg As ZString Ptr, ...) As Long
+			Declare Function fcntl(ByVal fd As Long, ByVal cmd As Long, ...) As Long
+		End Extern
+		#define __crt_unistd_bi__
+		#define STDIN_FILENO 0
+		#define STDOUT_FILENO 1
+		#define F_SETFL 4
+		#define O_NONBLOCK 4
+	#else
+		#include once "crt/unistd.bi"
+	#endif
 
 	#define HCOMBO 30
 	#define LPCVOID Integer Ptr
@@ -276,24 +312,33 @@ End Function
 	Declare Sub output_lnx(As String)
 	Declare Function ReadProcessMemory(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr =0) As Integer
 	Declare Function ReadProcessMemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
+	Declare Function writeprocessmemory_th2(child As Long,addrdbge As Any Ptr,addrdbgr As Any Ptr,lg As Long,rd As Any Ptr=0) As Integer
 	Declare Function ReadMemLongInt(child As Long, addrdbge As Integer) As LongInt
 	Declare Function WriteProcessMemory(child As Long, addrdbge As Any Ptr, addrdbgr As Any Ptr, lg As Long, rd As Any Ptr = 0) As Integer
 	Declare Sub thread_rsm()
 	Declare Function elf_extract(As String)As Integer
 	Declare Function pthread_kill Alias "pthread_kill" (As Long, As Long) As Long
 	'Declare Function linux_kill Alias "kill"(As Long,As Long) As Long
-	Declare Function kill_ Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long 'int kill(pid_t, int): the same C type in all modules (gcc)
+	#ifndef __USE_COCOA__ 'macOS: Main.bi
+		Declare Function kill_ Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long 'int kill(pid_t, int): the same C type in all modules (gcc)
+	#endif
 	#define linux_kill kill_
 	Declare Sub sigusr_send()
 	Declare Function signal_pending() As Integer
-	Declare Sub exec_order(order As Integer)
+	Declare Function exec_order(order As Integer) As Boolean
 	Declare Sub linmsg()
 	Extern "C"
 		Declare Function wait_ Alias "wait" (wiStatus As Long Ptr) As pid_t
 		'Declare Function gettid Alias "gettid" () As pid_t
-		Declare Function ptrace(request As PTRACE_REQUEST, pid As  pid_t, addr As Any Ptr, uData As Any Ptr) As Integer
+		#ifndef __FB_DARWIN__
+			Declare Function ptrace(request As PTRACE_REQUEST, pid As  pid_t, addr As Any Ptr, uData As Any Ptr) As Integer
+		#endif
 		'declare function pthread_mutex_trylock(mutex as ANY	ptr) as long
 	End Extern
+	#ifdef __FB_DARWIN__
+		'macOS: the requests of ptrace of Linux are made with the Mach calls (DebugMac.bi): pid is the process or a thread
+		Declare Function ptrace(request As PTRACE_REQUEST, pid As Long, addr As Any Ptr, uData As Any Ptr) As Integer
+	#endif
 
 	''DLL
 	Const DLLMAX=300
@@ -355,6 +400,9 @@ End Function
 	   As UInteger es
 	   As UInteger fs
 	   As UInteger gs
+	   #if defined(__FB_DARWIN__) AndAlso defined(__FB_ARM__)
+	   As UInteger lr 'macOS arm64: the link register (DebugMac.bi)
+	   #endif
 	#endif
 	End Type
 	'#define	EPERM		 1
@@ -398,7 +446,7 @@ End Function
 
 Declare Sub string_sh(tv As Any Ptr)
 Declare Sub shwexp_new(tview As Any Ptr)
-#ifdef __USE_GTK__
+#ifdef __DBG_MFF_UI__
 	Common Shared windmain As Any Ptr
 	Common Shared tviewcur As TreeView Ptr  'TV1 ou TV2 ou TV3
 	Common Shared tviewvar As TreeView Ptr 'running proc/var
@@ -1067,10 +1115,9 @@ Declare Function proc_find(thid As Integer,t As Byte) As Integer
 Declare Function proc_name(ad As UInteger) As String
 Declare Sub proc_sh()
 Declare Function mem_selected_item(ByRef sCommand As String) As TreeListViewItem Ptr
-#ifdef __USE_WINAPI__
-	Declare Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
-	Declare Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
-#endif
+Declare Function DbgIntegratedAddWatch(ByRef VarName As String) As Any Ptr
+Declare Sub DbgIntegratedDeleteWatch(hItem As Any Ptr)
+Declare Function DbgIntegratedIsWatch(hItem As Any Ptr) As Boolean
 Declare Function proc_verif(p As Integer) As Boolean
 Declare Function proc_retval(prcnb As Integer) As String
 Declare Sub proc_watch(procridx As Integer)
@@ -1096,7 +1143,7 @@ Declare Function thread_select(id As Integer = 0) As Integer
 Declare Function var_search(pproc As Integer, text() As String, vnb As Integer, varr As Integer, vpnt As Integer = 0) As Integer
 Declare Sub RunWithDebug(Debugger As String = "", ByRef ProjectFileName As WString, ByRef ProjectCommandLineArguments As WString, ByRef MainFile As WString, ByRef CompileLine As WString, ByRef FirstLine As WString)
 Declare Sub RunProgramWithDebug(Param As Any Ptr)
-#if Not defined(__FB_WIN32__) AndAlso Not defined(__USE_WASM__) AndAlso Not defined(__USE_JNI__) AndAlso Not defined(__USE_APPLE__)
+#if defined(__USE_GTK__) AndAlso Not defined(__FB_WIN32__) 'macOS: SetTimer of Win32Compat.bi
 	Declare Function SetTimer(hwnd As Any Ptr = 0, ByRef idTimer As Long, iElapse As Long, pTimerProc As Any Ptr) As Long
 	Declare Sub KillTimer(hwnd As Any Ptr = 0, idTimer As Long)
 #endif
@@ -1116,7 +1163,7 @@ frmShowString.Add @txtShowString
 Declare Function DbgInputBox(ByRef sCaption As WString, ByRef sMessage As WString, ByRef sDefault As WString, ByRef sResult As UString) As Boolean
 
 #ifndef __USE_MAKE__
-	#if defined(__USE_WASM__) OrElse defined(__USE_JNI__) OrElse defined(__USE_APPLE__)
+	#if defined(__NO_PROCESS_DEBUGGER__)
 		#include once "DebugWeb.bas"
 	#else
 		#include once "Debug.bas"

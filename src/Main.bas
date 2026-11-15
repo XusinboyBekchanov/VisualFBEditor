@@ -161,6 +161,14 @@ Dim Shared As TextBox txtChangeLog ' Add Change Log
 Dim Shared As TabPage Ptr tpProject, tpToolbox, tpProperties, tpEvents, tpOutput, tpProblems, tpSuggestions, tpFind, tpToDo, tpChangeLog, tpImmediate, tpLocals, tpGlobals, tpProcedures, tpThreads, tpWatches, tpMemory, tpProfiler, tpAIAgent
 Dim Shared As Form frmMain
 Dim Shared As Integer tabItemHeight
+'The top of pnlLeftPin and pnlRightPin with the tabs at the top: the row of the toolbars under the tabs
+Dim Shared As Integer tabPinTop
+#ifdef __USE_COCOA__
+	'macOS: the pin panel is 4 from the right edge (pnlLeftPin.Left), the toolbars next to it end before it
+	Const PinToolBarGap = 6
+#else
+	Const PinToolBarGap = 0
+#endif
 Dim Shared As Integer miRecentMax =20 'David Changed
 Dim Shared As Boolean mLoadLog, mLoadToDo, mChangeLogEdited, mStartLoadSession = True, ManifestIcoCopy
 Dim Shared As WString * MAX_PATH mChangelogName  'David Changed
@@ -626,6 +634,10 @@ End Function
 #endif
 
 'Based on Berkeley code: https://www.freebasic.net/forum/viewtopic.php?p=305321#p305321
+#ifdef __USE_COCOA__
+	Declare Function realpath_ Alias "realpath" (ByVal path As Const ZString Ptr, ByVal resolved As ZString Ptr) As ZString Ptr
+#endif
+
 Function GetSpecialPath(ByRef key As WString) As UString
 	Dim As WString * MAX_PATH path
 	#ifdef __FB_WIN32__
@@ -650,6 +662,16 @@ Function GetSpecialPath(ByRef key As WString) As UString
 		#else
 			path = Environ("TMPDIR")
 			If path = "" Then path = "/tmp"
+			#ifdef __USE_COCOA__
+				'macOS: /var/folders/... is /private/var/folders/... (a link). fbc writes the folder of a source compiled in it
+				'as getcwd gives it (.dbgstr): the real path, so that the debuggers find the files of the IDE (Untitled.bas)
+				Dim As ZString * 1025 sReal
+				Dim As String sTmp = ToUtf8(path)
+				If realpath_(StrPtr(sTmp), @sReal) <> 0 Then
+					Dim As WString Ptr pReal = FromUtf8(@sReal)
+					If pReal Then path = *pReal: WDeAllocate(pReal)
+				End If
+			#endif
 		#endif
 		If path <> "" Then path = GetOSPath(path) & "/"
 
@@ -1962,8 +1984,16 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
 			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
 			Dim As Boolean UseGas64 = InStr(PipeNoLog, " -gen gas64") > 0
-			'gas64 of macOS writes no information for the debugger (-g): the program for lldb is compiled with -gen gcc
-			If UseGas64 AndAlso InStr(PipeNoLog & " ", " -g ") > 0 Then
+			'Integrated IDE Debugger (Debug.bas, DebugMac.bi) reads .dbgdat and .dbgstr of gas64 (-g) or the DWARF of
+			'-gen gcc in Program.dSYM (DebugDwarf.bas, made by mff/Cocoa/build.sh): the backend of the options is kept
+			'(arm64: gas64 writes no code of arm64, the Integrated IDE Debugger reads the DWARF of -gen gcc)
+			Dim As Boolean ForIDEDebugger
+			#ifndef __FB_ARM__
+				ForIDEDebugger = (Not ForIOS) AndAlso InStr(PipeNoLog & " ", " -g ") > 0 AndAlso _
+					IIf(tbt32Bit->Checked, CurrentDebuggerType32, CurrentDebuggerType64) = IntegratedIDEDebugger
+			#endif
+			'gas64 of macOS writes no information for lldb (-g): the program for lldb is compiled with -gen gcc
+			If UseGas64 AndAlso InStr(PipeNoLog & " ", " -g ") > 0 AndAlso Not ForIDEDebugger Then
 				PipeNoLog = Replace(PipeNoLog, " -gen gas64", " -gen gcc")
 				UseGas64 = False
 				ShowMessages(Str(Time) & ": " & ML("Use Debugger") & ": -gen gas64 -> -gen gcc")
@@ -3761,7 +3791,7 @@ Function SaveSession(WithoutQuestion As Boolean = False) As Boolean
 		If Not SaveD.Execute Then Return False
 		WLet(LastOpenPath, GetFolderName(SaveD.FileName))
 		WLet(RecentSession, *LastOpenPath)
-		If FileExists(SaveD.FileName) Then
+		If FileExists(SaveD.FileName) AndAlso Not SaveDialogAsksOverwrite Then
 			Select Case MsgBox(ML("Are you sure you want to overwrite the session") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
 			Case mrYes:
 			Case mrNo: Return SaveSession()
@@ -3879,7 +3909,7 @@ Function SaveProjectFile(ppe As ProjectElement Ptr, ee As ExplorerElement Ptr, t
 		Do
 			If pSaveD->Execute Then
 				WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
-				If FileExists(pSaveD->FileName) Then
+				If FileExists(pSaveD->FileName) AndAlso Not SaveDialogAsksOverwrite Then
 					Select Case MsgBox(ML("Want to replace the file") & " """ & pSaveD->FileName & """?", App.Title, mtWarning, btYesNoCancel)
 					Case mrYes: Exit Do
 					Case mrCancel: Return False
@@ -3926,7 +3956,7 @@ Function SaveProject(ByRef tnP As TreeNode Ptr, bWithQuestion As Boolean = False
 		SaveD.Filter = ML("VisualFBEditor Project") & " (*.vfp)|*.vfp|"
 		If Not SaveD.Execute Then Return False
 		WLet(LastOpenPath, GetFolderName(SaveD.FileName))
-		If FileExists(SaveD.FileName) Then
+		If FileExists(SaveD.FileName) AndAlso Not SaveDialogAsksOverwrite Then
 			Select Case MsgBox(ML("Are you sure you want to overwrite the project") & "?" & WChr(13,10) & SaveD.FileName, "Visual FB Editor", mtWarning, btYesNo)
 			Case mrYes:
 			Case mrNo: Return SaveProject(tnPr, bWithQuestion)
@@ -4947,11 +4977,31 @@ Sub ShowExecutedLine(pEC As Any Ptr, iLine As Integer)
 	ec->PaintControl
 End Sub
 
+'The open tab of a file of the program being debugged: the tab with this file, or for Untitled.bas of the temporary
+'folder the tab which was compiled as it (UntitledCompiledTab, if it is still open)
+Function TabOfSourceFile(ByRef FileName As WString) As Any Ptr
+	Dim As TabWindow Ptr tb, tbUntitled
+	Dim As Boolean bUntitled = UntitledCompiledTab <> 0 AndAlso EqualPaths(FileName, GetUserTempPath("Untitled.bas"))
+	For jj As Integer = 0 To TabPanels.Count - 1
+		Var ptabCode = @Cast(TabPanel Ptr, TabPanels.Item(jj))->tabCode
+		For i As Integer = 0 To ptabCode->TabCount - 1
+			tb = Cast(TabWindow Ptr, ptabCode->Tabs[i])
+			If tb = 0 Then Continue For
+			If EqualPaths(tb->FileName, FileName) Then Return tb
+			If bUntitled AndAlso tb = UntitledCompiledTab Then tbUntitled = tb
+		Next
+	Next
+	Return tbUntitled
+End Function
+
 #ifdef __FB_WIN32__
 	Sub TimerProc(hwnd As HWND, uMsg As UINT, idEvent As UINT_PTR, dwTime As DWORD)
 #else
 	Sub TimerProc()
 #endif
+	'A tab opened or selected now has its size after the loop of the events (macOS): the line is shown again at the
+	'next calls of the timer, then the stop is finished
+	Static As Integer iShowAgain
 	If fntab < 0 Or fcurlig < 1 Then Exit Sub
 	If source(fntab) = "" Then Exit Sub
 	shwtab = fntab
@@ -4960,11 +5010,20 @@ End Sub
 	Dim As String sFile = source(fntab)
 	If srcpath(fntab) <> "" AndAlso LCase(srcpath(fntab)) = LCase(sFile) Then sFile = srcpath(fntab)
 	If tb = 0 OrElse Not EqualPaths(tb->FileName, sFile) Then
-		tb = AddTab(sFile)
+		'The tab of the file (Untitled.bas of the temporary folder: the tab which was compiled), otherwise the file is opened
+		Dim As TabWindow Ptr tbSource = TabOfSourceFile(sFile)
+		If tbSource <> 0 Then
+			tb = tbSource
+			If Cast(TabWindow Ptr, ptabCode->SelectedTab) <> tb Then tb->SelectTab
+		Else
+			tb = AddTab(sFile)
+		End If
+		iShowAgain = 5
 	End If
 	If tb = 0 Then Exit Sub
 	CurEC = @tb->txtCode
 	ShowExecutedLine @tb->txtCode, fcurlig - 1
+	If iShowAgain > 0 Then iShowAgain -= 1: Exit Sub
 	#ifndef __USE_GTK__
 		SetForegroundWindow frmMain.Handle
 		ChangeEnabledDebug True, False, True
@@ -5400,7 +5459,8 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 		End If
 		If @Types = @Comps Then
 			pfSplash->lblProcess.Text = Path
-			#ifdef __USE_GTK__
+			#if defined(__USE_GTK__) OrElse defined(__USE_APPLE__)
+				'GTK, macOS: the label is drawn by the loop of the events (Windows: at once)
 				pApp->DoEvents
 			#endif
 		End If
@@ -6670,6 +6730,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 End Sub
 
 tlock = MutexCreate()
+'LoadFunctionsCount and the status bar of LoadFunctions (not tlock: the threads wait for the main thread there)
 tlockSave = MutexCreate()
 tlockToDo = MutexCreate()
 tlockGDB = MutexCreate()
@@ -6756,9 +6817,12 @@ End Sub
 Sub StartOfLoadFunctions
 	MutexLock tlockCount
 	LoadFunctionsCount += 1
+	Dim As Boolean bFirst = LoadFunctionsCount = 1
 	MutexUnlock tlockCount
+	'Before tlock: the caption waits for the main thread (macOS: dispatch_sync), a busy main thread must not hold
+	'the other threads of LoadFunctions
+	If bFirst Then PostLoadFunctionsStatus False
 	MutexLock tlock
-	If LoadFunctionsCount = 1 Then PostLoadFunctionsStatus False
 End Sub
 
 Sub EndOfLoadFunctions
@@ -6766,8 +6830,9 @@ Sub EndOfLoadFunctions
 	LoadFunctionsCount -= 1
 	Dim As Boolean Finished = LoadFunctionsCount = 0
 	MutexUnlock tlockCount
-	If Finished Then PostLoadFunctionsStatus True
 	MutexUnlock tlock
+	'After tlock (StartOfLoadFunctions): the status bar and the tabs wait for the main thread
+	If Finished Then PostLoadFunctionsStatus True
 End Sub
 
 Sub LoadFunctionsSub(Param As Any Ptr)
@@ -10029,7 +10094,7 @@ tbExplorer.HotImagesList = @imgList
 tbExplorer.Flat = True
 tbExplorer.Align = DockStyle.alTop
 tbExplorer.AutoSize = True
-tbExplorer.ExtraMargins.Right = tbLeft.Width
+tbExplorer.ExtraMargins.Right = tbLeft.Width + PinToolBarGap
 tbExplorer.Buttons.Add , "Add",, @mClick, "AddFilesToProject", , ML("Add"), True
 tbtRemoveFileFromProject = tbExplorer.Buttons.Add(, "Remove", , @mClick, "RemoveFileFromProject", , ML("&Remove"), True, ToolButtonState.tstNone)
 tbExplorer.Buttons.Add tbsSeparator
@@ -10065,7 +10130,7 @@ tbForm.HotImagesList = @imgList
 'tbForm.DisabledImagesList = @imgListD
 tbForm.Align = DockStyle.alTop
 tbForm.Flat = True
-tbForm.ExtraMargins.Right = tbLeft.Width
+tbForm.ExtraMargins.Right = tbLeft.Width + PinToolBarGap
 tbForm.Buttons.Add tbsCheck, "Label", , @tbFormClick, "Text", "", ML("Text"), , Cast(ToolButtonState, tstChecked Or tstEnabled)
 tbForm.Buttons.Add tbsSeparator
 tbForm.Buttons.Add , "Component", , @tbFormClick, "Components", "", ML("Add Components")
@@ -10191,7 +10256,7 @@ Sub SetLeftClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			pnlLeftPin.Visible = True
 			.ImageKey = "Pinned"
 			.Checked = True
-			pnlLeftPin.Top = tabItemHeight
+			pnlLeftPin.Top = tabPinTop
 		End If
 	End With
 	'#IfNDef __USE_GTK__
@@ -10712,7 +10777,7 @@ pnlAIAgent.Width = tabLeftWidth
 #endif
 
 pnlLeftPin.Anchor.Right = AnchorStyle.asAnchor
-pnlLeftPin.Top = tabItemHeight
+pnlLeftPin.Top = tabPinTop
 pnlLeftPin.Width = tbLeft.Width
 pnlLeftPin.Left = tabLeftWidth - pnlLeftPin.Width - 4
 pnlLeftPin.Height = tbLeft.Height
@@ -10835,7 +10900,7 @@ tbAIAgent.HotImagesList = @imgList
 tbAIAgent.Flat = True
 tbAIAgent.Align = DockStyle.alTop
 tbAIAgent.AutoSize = True
-tbAIAgent.ExtraMargins.Right = tbLeft.Width
+tbAIAgent.ExtraMargins.Right = tbLeft.Width + PinToolBarGap
 tbAIAgent.Buttons.Add , "NewChat", , @mClick, "AINewChat", , ML("New Chat"), True
 tbAIAgent.Buttons.Add , "AddComment", , @mClick, "AIAddComment", , ML("Comment selected code"), True
 tbAIAgent.Buttons.Add , "OptimizeCode", , @mClick, "AIOptimizeCode", , ML("Optimize selected code"), True
@@ -11874,7 +11939,7 @@ tbRight.Parent = @pnlRightPin
 tbProperties.ImagesList = @imgList
 tbProperties.Align = DockStyle.alTop
 tbProperties.List = True
-tbProperties.ExtraMargins.Right = tbRight.Width
+tbProperties.ExtraMargins.Right = tbRight.Width + PinToolBarGap
 tbProperties.Buttons.Add Cast(ToolButtonStyle, tbsCheck Or tbsAutosize), "Categorized", , @tbProperties_ButtonClick, "PropertyCategory", "", ML("Categorized"), , Cast(ToolButtonState, tstEnabled Or tstChecked)
 tbProperties.Buttons.Add tbsSeparator
 tbProperties.Buttons.Add tbsAutosize, "Property", , @tbProperties_ButtonClick, "Properties", "", ML("Properties"), , tstEnabled
@@ -11890,7 +11955,7 @@ tbProperties.Flat = True
 tbEvents.ImagesList = @imgList
 tbEvents.Align = DockStyle.alTop
 tbEvents.List = True
-tbEvents.ExtraMargins.Right = tbRight.Width
+tbEvents.ExtraMargins.Right = tbRight.Width + PinToolBarGap
 tbEvents.Buttons.Add Cast(ToolButtonStyle, tbsAutosize Or tbsCheck), "Categorized", , @tbProperties_ButtonClick, "EventCategory", "", ML("Categorized"), , tstEnabled
 tbEvents.Buttons.Add tbsSeparator
 tbEvents.Buttons.Add tbsShowText, "", , , "SelControlName", "", "", , ToolButtonState.tstNone
@@ -12546,7 +12611,7 @@ Sub SetRightClosedStyle(Value As Boolean, WithClose As Boolean = True)
 			pnlRightPin.Visible = True
 			.ImageKey = "Pinned"
 			.Checked = True
-			pnlRightPin.Top = tabItemHeight
+			pnlRightPin.Top = tabPinTop
 			pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 		End If
 	End With
@@ -12650,7 +12715,7 @@ lvThreads.OnSelectedItemChanged = @DbgViewList_SelectedItemChanged
 lvThreads.OnItemExpanding = @DbgViewList_ItemExpanding
 
 Sub tvVar_Message(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef message As Message)
-	#ifndef __USE_GTK__
+	#ifndef __DBG_MFF_UI__
 		Select Case message.Msg
 		Case CM_NOTIFY
 			Dim tvp As NMTREEVIEW Ptr = Cast(NMTREEVIEW Ptr, message.lParam)
@@ -12987,7 +13052,7 @@ pnlRight.Add @tabRight
 	#endif
 #endif
 pnlRightPin.Anchor.Right = AnchorStyle.asAnchor
-pnlRightPin.Top = tabItemHeight
+pnlRightPin.Top = tabPinTop
 pnlRightPin.Width = tbRight.Width
 pnlRightPin.Left = tabRightWidth - pnlRightPin.Width - 4
 pnlRightPin.Height = tbRight.Height
@@ -13657,7 +13722,13 @@ pnlBottomTab.Parent = @pnlBottom
 'pnlBottom.Align = 4
 'pnlBottom.AddRange 1, @tabBottom
 pnlBottomPin.Align = DockStyle.alRight
-pnlBottomPin.Width = tbLeft.Height
+#ifdef __USE_COCOA__
+	'macOS: a toolbar has no height before it is shown (0): the width of a button column, as tbLeft
+	pnlBottomPin.Width = tbLeft.Width
+	tbBottom.Width = pnlBottomPin.Width
+#else
+	pnlBottomPin.Width = tbLeft.Height
+#endif
 pnlBottomPin.Parent = @pnlBottom
 
 'pnlBottom.Add ptabBottom
@@ -14223,6 +14294,14 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		'gtk_window_set_icon_name(GTK_WINDOW(frmMain.widget), ToUTF8("VisualFBEditor4"))
 	#else
 		tabItemHeight = tabLeft.ItemHeight(0) + 4
+		#ifdef __USE_COCOA__
+			'macOS: the strip of the tabs is the height of the item (28), the row of the toolbars begins right under it
+			tabPinTop = tabLeft.ItemHeight(0)
+		#else
+			tabPinTop = tabItemHeight
+		#endif
+		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabPinTop
+		If Not GetRightClosedStyle Then pnlRightPin.Top = tabPinTop
 		pnlPropertyValue.SendToBack
 		pnlToolBox_Resize *pnlToolBox.Designer, pnlToolBox, pnlToolBox.Width, pnlToolBox.Height + 1
 	#endif
@@ -14247,8 +14326,8 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	End If
 	frmMain.Width = iniSettings.ReadInteger("MainWindow", "Width", 800)
 	frmMain.Height = iniSettings.ReadInteger("MainWindow", "Height", 600)
-	'Android: the panels which can be closed are closed at the start (the small screen is for the editor)
-	#ifdef __USE_JNI__
+	'Android, iOS: the panels which can be closed are closed at the start (the small screen is for the editor)
+	#if defined(__USE_JNI__) OrElse defined(__USE_UIKIT__)
 		#define PANELS_CLOSED True
 	#else
 		#define PANELS_CLOSED False
@@ -14312,7 +14391,7 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	'Case 1: tbtConsole->Checked = True
 	'Case 2: tbtGUI->Checked = True
 	'End Select
-	#ifndef __USE_GTK__
+	#ifndef __DBG_MFF_UI__
 		windmain = frmMain.Handle
 		htab2    = ptabCode->Handle
 		tviewvar = tvVar.Handle
@@ -14321,6 +14400,9 @@ Sub frmMain_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 		tviewwch = tvWch.Handle
 		DragAcceptFiles(frmMain.Handle, True)
 	#else
+		#ifdef __USE_COCOA__
+			DragAcceptFiles(frmMain.Handle, True)
+		#endif
 		windmain = frmMain.Handle
 		'htab2    = ptabCode->Handle
 		tviewvar = @tvVar
@@ -14443,8 +14525,9 @@ Sub frmMain_Show(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	If MainMaximized Then frmMain.WindowState = WindowStates.wsMaximized
 	#ifdef __USE_GTK__
 		tabItemHeight = tabLeft.ItemHeight(0) + 4 + 5
-		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabItemHeight
-		If Not GetRightClosedStyle Then pnlRightPin.Top = tabItemHeight
+		tabPinTop = tabItemHeight
+		If Not GetLeftClosedStyle Then pnlLeftPin.Top = tabPinTop
+		If Not GetRightClosedStyle Then pnlRightPin.Top = tabPinTop
 		pnlBottomPin.Width = tabItemHeight
 		#ifndef __USE_GTK2__
 			' The buttons of GTK3 and GTK4 (with the padding of the toolbar) are wider than the tab height:
@@ -14767,6 +14850,9 @@ frmMain.Name = "frmMain"
 frmMain.KeyPreview = True
 #ifdef __USE_GTK__
 	frmMain.Icon.LoadFromFile(ExePath & "/Resources/VisualFBEditor.ico")
+#elseif defined(__USE_COCOA__)
+	'macOS: the icon of the Dock (Resources/VisualFBEditor.ico)
+	frmMain.Icon.LoadFromResourceName("VisualFBEditor")
 #else
 	frmMain.Icon.LoadFromResourceID(1)
 #endif

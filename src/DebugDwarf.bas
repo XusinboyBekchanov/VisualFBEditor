@@ -70,6 +70,13 @@ Dim Shared As ULongInt dwcuofs
 Dim Shared As String dwcompdir 'DW_AT_comp_dir of the CU
 Dim Shared As LongInt dwstmt 'DW_AT_stmt_list of the CU (-1: none)
 Dim Shared As LongInt dwdelta 'address where the module is loaded - address where it is linked
+Dim Shared As UByte Ptr dwcbuf 'macOS: the program (its code for dw_code) when the DWARF is in its .dSYM (dwbuf)
+Dim Shared As Integer dwcbufsz
+Dim Shared As Boolean dwmapon 'the sections of the code are kept in dwmap (not the ones of a .dSYM: no code)
+Dim Shared As Boolean dwmacho 'the file is a Mach-O
+Dim Shared As Boolean dwarm64 'the code is of arm64 (Mach-O): the frame register is x29, not rbp/ebp
+Dim Shared As LongInt dwspofs = -1 'arm64: x29 - sp after the prologue of the procedure (DW_OP_breg31), -1: unknown
+Dim Shared As String dwuuid 'LC_UUID of the Mach-O (the .dSYM must be the one of the program)
 
 '' ---------------------------------------------------------------------------------------------------------------
 '' Reading
@@ -721,10 +728,12 @@ End Function
 '' ---------------------------------------------------------------------------------------------------------------
 '' The code at the address adr (in the file)
 Private Function dw_code(ByVal adr As ULongInt, ByVal n As Integer) As UByte Ptr
+	Dim As UByte Ptr cb = IIf(dwcbuf <> 0, dwcbuf, dwbuf)
+	Dim As Integer cbsz = IIf(dwcbuf <> 0, dwcbufsz, dwbufsz)
 	For i As Integer = 1 To dwmapnb
 		If adr >= dwmap(i).va AndAlso adr + n <= dwmap(i).va + dwmap(i).sz Then
 			Dim As Integer fo = dwmap(i).fo + (adr - dwmap(i).va)
-			If fo >= 0 AndAlso fo + n <= dwbufsz Then Return dwbuf + fo
+			If fo >= 0 AndAlso fo + n <= cbsz Then Return cb + fo
 			Return 0
 		End If
 	Next
@@ -735,6 +744,7 @@ End Function
 '' the debugger are relative to rbp/ebp
 Private Function dw_cfa(ByVal adr As ULongInt) As LongInt
 	Dim As LongInt dflt = 2 * dwasz, n
+	If dwarm64 Then Return dflt 'arm64 (macOS): x29 is on the frame record {x29, x30} at the top of the frame
 	Dim As UByte Ptr c = dw_code(adr, 48)
 	If c = 0 Then Return dflt
 	Dim As Integer i, k
@@ -763,6 +773,28 @@ Private Function dw_cfa(ByVal adr As ULongInt) As LongInt
 	Return dflt
 End Function
 
+'' arm64: x29 - sp after the prologue (add x29, sp, #imm / mov x29, sp), -1 if not found. clang of macOS puts the
+'' frame record {x29, x30} at the top of the frame and addresses some variables with sp (DW_OP_breg31)
+Private Function dw_arm64_fpofs(ByVal adr As ULongInt) As LongInt
+	For i As Integer = 0 To 15
+		Dim As UByte Ptr c = dw_code(adr + i * 4, 4) 'one by one: a procedure at the end of the section
+		If c = 0 Then Return -1
+		Dim As ULong ins = *Cast(ULong Ptr, c)
+		If (ins And &hFF8003FFul) = &h910003FDul Then 'ADD (immediate) 64-bit, Rn = sp, Rd = x29
+			Dim As LongInt imm = (ins Shr 10) And &hFFF
+			If ins And &h400000 Then imm Shl= 12
+			Return imm
+		End If
+	Next
+	Return -1
+End Function
+
+'' The DWARF number of the frame register: rbp 6, ebp 5, x29 29
+Private Function dw_fpreg() As Long
+	If dwarm64 Then Return 29
+	Return IIf(dwasz = 8, 6, 5)
+End Function
+
 '' The place of a variable: 1 in the frame (v: offset from rbp/ebp), 2 static (v: address), 0 unknown
 Private Function dw_loc(ByVal p As UByte Ptr, ByVal l As Long, ByVal fbofs As LongInt, ByRef v As LongInt) As Long
 	If p = 0 OrElse l < 1 Then Return 0
@@ -771,8 +803,10 @@ Private Function dw_loc(ByVal p As UByte Ptr, ByVal l As Long, ByVal fbofs As Lo
 	Dim As Long r
 	If op = &h91 Then 'DW_OP_fbreg
 		v = fbofs + dw_sleb(q): r = 1
-	ElseIf op = &h70 + IIf(dwasz = 8, 6, 5) Then 'DW_OP_breg6 (rbp) / DW_OP_breg5 (ebp)
+	ElseIf op = &h70 + dw_fpreg() Then 'DW_OP_breg6 (rbp) / DW_OP_breg5 (ebp) / DW_OP_breg29 (x29)
 		v = dw_sleb(q): r = 1
+	ElseIf dwarm64 AndAlso op = &h8F AndAlso dwspofs >= 0 Then 'DW_OP_breg31 (sp): relative to x29
+		v = dw_sleb(q) - dwspofs: r = 1
 	ElseIf op = &h03 Then 'DW_OP_addr
 		v = dw_rd(q, dwasz): r = 2
 	End If
@@ -826,13 +860,14 @@ Private Sub dw_procs()
 		If skipline Then Continue For
 		'The parameters and the variables
 		Dim As LongInt cfa = dw_cfa(lo), fbofs = cfa, v
+		dwspofs = IIf(dwarm64, dw_arm64_fpofs(lo), -1)
 		proc(procnb).frofs = cfa - 2 * dwasz 'lea rbp, [rsp+n]: the previous rbp is not at [rbp]
 		If dwdie(ip).fbp <> 0 AndAlso dwdie(ip).fbl > 0 Then
 			Dim As UByte Ptr q = dwdie(ip).fbp + 1
 			Dim As UByte op = dwdie(ip).fbp[0]
-			If op = &h70 + IIf(dwasz = 8, 6, 5) Then
+			If op = &h70 + dw_fpreg() Then
 				fbofs = dw_sleb(q) 'DW_OP_bregN
-			ElseIf op = &h50 + IIf(dwasz = 8, 6, 5) Then
+			ElseIf op = &h50 + dw_fpreg() Then
 				fbofs = 0 'DW_OP_regN
 			End If
 		End If
@@ -945,7 +980,7 @@ Private Sub dw_setsect(ByRef nm As String, ByVal fo As ULongInt, ByVal sz As ULo
 	If ps Then
 		ps->p = dwbuf + fo
 		ps->sz = sz
-	ElseIf va <> 0 AndAlso sz <> 0 Then
+	ElseIf dwmapon AndAlso va <> 0 AndAlso sz <> 0 Then
 		dwmapnb += 1
 		ReDim Preserve dwmap(dwmapnb)
 		dwmap(dwmapnb).va = va
@@ -954,9 +989,64 @@ Private Sub dw_setsect(ByRef nm As String, ByVal fo As ULongInt, ByVal sz As ULo
 	End If
 End Sub
 
-'' Returns the address where the file is linked (PE: ImageBase, ELF: 0), -1 if it is not a PE or an ELF file
+'' Mach-O (64-bit): the sections of the segments (LC_SEGMENT_64), the DWARF is in __DWARF,__debug_* (in the program
+'' or in its .dSYM, made by dsymutil: the .o files of clang with the DWARF are deleted after the link)
+Private Function dw_macho() As LongInt
+	Dim As UByte Ptr p = dwbuf + 4
+	dwarm64 = dw_rd(p, 4) = &h0100000C 'CPU_TYPE_ARM64
+	p = dwbuf + 16
+	Dim As ULong ncmds = dw_rd(p, 4), sizeofcmds = dw_rd(p, 4)
+	Dim As Integer ofs = 32 'after mach_header_64
+	dwuuid = ""
+	If 32 + CLngInt(sizeofcmds) > dwbufsz Then Return -1
+	For icmd As Integer = 1 To ncmds
+		If ofs + 8 > dwbufsz Then Exit For
+		p = dwbuf + ofs
+		Dim As ULong cmd = dw_rd(p, 4), cmdsize = dw_rd(p, 4)
+		If cmdsize < 8 OrElse ofs + cmdsize > dwbufsz Then Exit For
+		If cmd = &h1B AndAlso cmdsize >= 24 Then 'LC_UUID
+			dwuuid = Space(16)
+			For i As Integer = 0 To 15
+				dwuuid[i] = dwbuf[ofs + 8 + i]
+			Next
+		ElseIf cmd = &h19 AndAlso cmdsize >= 72 Then 'LC_SEGMENT_64: the sections (section_64, 80 bytes) after it
+			p = dwbuf + ofs + 64
+			Dim As ULong nsects = dw_rd(p, 4)
+			For isec As Integer = 0 To nsects - 1
+				Dim As UByte Ptr sh = dwbuf + ofs + 72 + isec * 80
+				If sh + 80 > dwbuf + ofs + cmdsize Then Exit For
+				Dim As String nm = Space(16)
+				For i As Integer = 0 To 15
+					nm[i] = sh[i]
+				Next
+				If InStr(nm, Chr(0)) Then nm = Left(nm, InStr(nm, Chr(0)) - 1)
+				p = sh + 32
+				Dim As ULongInt va = dw_rd(p, 8), sz = dw_rd(p, 8)
+				Dim As ULong fo = dw_rd(p, 4)
+				p = sh + 64
+				Dim As ULong flags = dw_rd(p, 4)
+				Select Case flags And &hFF
+				Case 1, &hC, &h12: Continue For 'S_ZEROFILL, S_GB_ZEROFILL, S_THREAD_LOCAL_ZEROFILL
+				End Select
+				If fo = 0 OrElse sz = 0 Then Continue For 'the sections of the code in a .dSYM have no data
+				If Left(nm, 8) = "__debug_" Then nm = "." + Mid(nm, 3) '__debug_info -> .debug_info
+				dw_setsect(nm, fo, sz, va)
+			Next
+		End If
+		ofs += cmdsize
+	Next
+	Return 0 'the addresses of the DWARF are the ones of the program (without ASLR: DebugMac.bi)
+End Function
+
+'' Returns the address where the file is linked (PE: ImageBase, ELF and Mach-O: 0), -1 if it is not a PE, an ELF or
+'' a Mach-O (64-bit) file
 Private Function dw_sections() As LongInt
 	Dim As UByte Ptr p
+	dwmacho = False: dwarm64 = False
+	If dwbuf[0] = &hCF AndAlso dwbuf[1] = &hFA AndAlso dwbuf[2] = &hED AndAlso dwbuf[3] = &hFE Then 'MH_MAGIC_64
+		dwmacho = True
+		Return dw_macho()
+	End If
 	If dwbuf[0] = &h7F AndAlso dwbuf[1] = Asc("E") AndAlso dwbuf[2] = Asc("L") AndAlso dwbuf[3] = Asc("F") Then
 		Dim As Boolean e64 = dwbuf[4] = 2
 		Dim As ULongInt shoff
@@ -1018,20 +1108,43 @@ End Function
 '' Loads the DWARF of the FreeBASIC modules of nfile (the program or a DLL loaded at loadbase, 0: not moved)
 '' Returns the number of FreeBASIC modules
 '' ---------------------------------------------------------------------------------------------------------------
-Private Function dwarf_extract(ByRef nfile As String, ByVal loadbase As ULongInt = 0) As Long
-	Dim As Long nb
+'' The file in a buffer (0: not read)
+Private Function dw_loadfile(ByRef nfile As String, ByRef sz As Integer) As UByte Ptr
+	sz = 0
 	Dim As Long ff = FreeFile_
 	If Open(nfile For Binary Access Read As #ff) <> 0 Then Return 0
-	dwbufsz = LOF(ff)
-	If dwbufsz < 256 Then CloseFile_(ff): Return 0
-	dwbuf = Allocate(dwbufsz + 16)
-	If dwbuf = 0 Then CloseFile_(ff): Return 0
-	Get #ff, 1, *dwbuf, dwbufsz
+	Dim As Integer n = LOF(ff)
+	If n < 256 Then CloseFile_(ff): Return 0
+	Dim As UByte Ptr b = Allocate(n + 16)
+	If b = 0 Then CloseFile_(ff): Return 0
+	Get #ff, 1, *b, n
 	CloseFile_(ff)
-	dwbuf[dwbufsz] = 0
+	b[n] = 0
+	sz = n
+	Return b
+End Function
+
+Private Function dwarf_extract(ByRef nfile As String, ByVal loadbase As ULongInt = 0) As Long
+	Dim As Long nb
+	dwbuf = dw_loadfile(nfile, dwbufsz)
+	If dwbuf = 0 Then Return 0
 	dwsinfo.p = 0: dwsabbrev.p = 0: dwsline.p = 0: dwsstr.p = 0: dwslinestr.p = 0
-	dwmapnb = 0: dwabofs = -1: dwerr = 0
+	dwmapnb = 0: dwabofs = -1: dwerr = 0: dwmapon = True
 	Dim As LongInt imgbase = dw_sections()
+	If imgbase <> -1 AndAlso dwmacho AndAlso dwsinfo.p = 0 Then
+		'macOS: the DWARF is in <program>.dSYM/Contents/Resources/DWARF/<program> (dsymutil, mff/Cocoa/build.sh), the
+		'code of the prologues (dw_cfa) in the program
+		Dim As String exeuuid = dwuuid, dsym = nfile + ".dSYM/Contents/Resources/DWARF/" + Mid(nfile, InStrRev(nfile, "/") + 1)
+		dwcbuf = dwbuf: dwcbufsz = dwbufsz
+		dwbuf = dw_loadfile(dsym, dwbufsz)
+		imgbase = -1
+		If dwbuf <> 0 Then
+			dwmapon = False
+			imgbase = dw_sections()
+			'an old .dSYM (of another build of the program) has other addresses
+			If (Not dwmacho) OrElse (exeuuid <> "" AndAlso dwuuid <> exeuuid) Then imgbase = -1
+		End If
+	End If
 	If imgbase <> -1 AndAlso dwsinfo.p <> 0 AndAlso dwsabbrev.p <> 0 AndAlso dwsline.p <> 0 Then
 		dwdelta = IIf(loadbase <> 0 AndAlso imgbase > 0, loadbase - imgbase, 0)
 		Dim As UByte Ptr p = dwsinfo.p, pe = dwsinfo.p + dwsinfo.sz
@@ -1068,7 +1181,10 @@ Private Function dwarf_extract(ByRef nfile As String, ByVal loadbase As ULongInt
 			p = pnext
 		Loop
 	End If
-	Deallocate dwbuf: dwbuf = 0: dwbufsz = 0
+	If dwbuf Then Deallocate dwbuf
+	dwbuf = 0: dwbufsz = 0
+	If dwcbuf Then Deallocate dwcbuf
+	dwcbuf = 0: dwcbufsz = 0
 	Erase dwdie, dwrow, dwfile, dwfilefb, dwab, dwabat, dwmap
 	dwdienb = 0: dwrownb = 0: dwabnb = 0: dwabatnb = 0: dwmapnb = 0: dwabofs = -1
 	Return nb
