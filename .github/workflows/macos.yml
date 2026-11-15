@@ -26,7 +26,7 @@ jobs:
       - name: MyFbFramework, fbc
         run: |
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
-          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
+          git clone --depth 1 https://github.com/XusinboyBekchanov/fbc.git "$RUNNER_TEMP/fbc"
           make -C "$RUNNER_TEMP/fbc" compiler -j4 > make.log 2>&1 || { tail -n 40 make.log; tail -n 15 make.log | sed 's/^/::error::/'; exit 1; }
           # The headers where the fbc of the sources looks for them
           mkdir -p "$RUNNER_TEMP/fbc/include"
@@ -84,8 +84,7 @@ jobs:
       - name: MyFbFramework and the runtime of FreeBASIC
         run: |
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
-          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          sh Controls/MyFbFramework/mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
+          git clone --depth 1 https://github.com/XusinboyBekchanov/fbc.git "$RUNNER_TEMP/fbc"
           if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=aarch64 > make.log 2>&1; then
             cat make.log
             grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
@@ -119,7 +118,7 @@ jobs:
           MFF_SNAPSHOT=../snapshots/NativeHello MFF_CLICK="Click me!" perl -e 'alarm 60; exec @ARGV' ./Hello || { echo "::error::The program of the native fbc failed"; exit 1; }
 
       - name: The runtime of FreeBASIC for the iOS Simulator
-        run: sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc-ios"
+        run: sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc" "$RUNNER_TEMP/fbc-ios"
 
       - name: Build the IDE
         run: |
@@ -271,8 +270,7 @@ jobs:
       - name: MyFbFramework and the runtime of FreeBASIC
         run: |
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
-          git clone --depth 1 https://github.com/freebasic/fbc.git "$RUNNER_TEMP/fbc"
-          sh Controls/MyFbFramework/mff/Apple/patch-fbc-rtlib.sh "$RUNNER_TEMP/fbc"
+          git clone --depth 1 https://github.com/XusinboyBekchanov/fbc.git "$RUNNER_TEMP/fbc"
           if ! make -C "$RUNNER_TEMP/fbc" rtlib -j4 TARGET_OS=darwin TARGET_ARCH=x86_64 CFLAGS="-O2 -DDISABLE_FFI" > make.log 2>&1; then
             cat make.log
             grep -E "error:|Error [0-9]" make.log | head -n 20 | sed 's/^/::error::/'
@@ -377,7 +375,8 @@ jobs:
       - name: MyFbFramework and the runtime of FreeBASIC for the Simulator
         run: |
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
-          sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc-ios"
+          git clone --depth 1 https://github.com/XusinboyBekchanov/fbc.git "$RUNNER_TEMP/fbc"
+          sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc" "$RUNNER_TEMP/fbc-ios"
 
       - name: Build the IDE
         run: |
