@@ -638,6 +638,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					If iFlagStartDebug = 0 Then
 						If UseDebugger Then
 							runtype = RTFRUN
+							SkipFirstLineStop = Not StopAtFirstLine
 							CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
 							ThreadCounter(ThreadCreate_(@StartDebuggingWithCompile))
 						Else
@@ -685,6 +686,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					'thread_set()
 				ElseIf UseDebugger Then
 					runtype = RTFRUN
+					SkipFirstLineStop = Not StopAtFirstLine
 					'runtype = RTRUN
 					'runtype = RTAUTO
 					'#ifdef __FB_WIN32__
@@ -712,6 +714,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				If iFlagStartDebug = 0 Then
 					If UseDebugger Then
 						runtype= RTFRUN
+						SkipFirstLineStop = Not StopAtFirstLine
 						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
 						ThreadCounter(ThreadCreate_(@StartDebugging))
 					Else
@@ -735,6 +738,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			ElseIf UseDebugger Then
 				'#ifndef __USE_GTK__
 				runtype = RTFRUN
+				SkipFirstLineStop = Not StopAtFirstLine
 				'runtype = RTRUN
 				SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
@@ -809,6 +813,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				Exit Sub
 			End If
 			runtype = RTFRUN
+			SkipFirstLineStop = Not StopAtFirstLine
 			'runtype = RTRUN
 			SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 			CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
@@ -824,6 +829,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 				If iFlagStartDebug = 0 Then
 					runtype = RTSTEP
+					SkipFirstLineStop = False
 					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				Else
@@ -853,6 +859,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				'thread_resume()
 			Else
 				runtype = RTSTEP
+				SkipFirstLineStop = False
 				SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 				CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				ThreadCounter(ThreadCreate_(@StartDebugging))
@@ -864,6 +871,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		If CurrentDebugger = IntegratedGDBDebugger Then
 			#if Not (defined(__FB_WIN32__) AndAlso defined(__USE_GTK__))
 				If iFlagStartDebug = 0 Then
+					SkipFirstLineStop = False
 					CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
 					ThreadCounter(ThreadCreate_(@StartDebugging))
 				Else
@@ -883,6 +891,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				#ifndef __USE_GTK__
 					procin = procsk
 					runtype = RTFRUN
+					SkipFirstLineStop = False
 					SetTimer(0, GTIMER001, 1, Cast(Any Ptr, @DEBUG_EVENT))
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)
 				#endif
@@ -1088,6 +1097,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 						continue_debug
 					Else
 						RunningToCursor = True
+						SkipFirstLineStop = True 'the program stops at the line of the cursor
 						CurrentTimer = SetTimer(0, 0, 1, Cast(Any Ptr, @TimerProcGDB))
 						ThreadCounter(ThreadCreate_(@StartDebugging))
 					End If
@@ -1100,6 +1110,7 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 					#endif
 				Else
 					RunningToCursor = True
+					SkipFirstLineStop = True 'the program stops at the line of the cursor
 					runtype = RTFRUN
 					'#ifndef __USE_GTK__
 					CurrentTimer = SetTimer(0, 0, 1, @TIMERPROC)

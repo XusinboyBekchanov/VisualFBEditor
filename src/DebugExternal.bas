@@ -137,6 +137,10 @@ Function DbgCommand(ByRef sCommand As String) As Boolean
 		End If
 		'Without Use Debugger the program runs without the debugger (the code of VisualFBEditor.bas)
 		If Not UseDebugger Then Return False
+		'The option Stop at the first line: the program stops at its first line
+		LLDBStopAtStart = StopAtFirstLine AndAlso AttachPid = 0
+		GdbMiStopAtStart = LLDBStopAtStart
+		DapStopAtStart = LLDBStopAtStart
 		DbgViewDataChanging
 		lvThreads.Nodes.Clear
 		If sCommand = "StartWithCompile" Then

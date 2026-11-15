@@ -13639,6 +13639,28 @@ End Sub
 				Exit Sub
 		End If
 
+		'Start without the option "Stop at the first line": the program does not stop at its first line, it runs to its
+		'first breakpoint (as fastrun)
+		If SkipFirstLineStop Then
+			SkipFirstLineStop = False
+			If CBool(runtype = RTFRUN) AndAlso CBool(flagattach = False) Then
+				Dim As Boolean bInBreakPoint
+				For j As Integer = 0 To brknb 'breakpoint
+					If brkol(j).typ < 3 AndAlso brkol(j).ad = ad Then bInBreakPoint = True: Exit For
+				Next
+				If Not bInBreakPoint Then
+					For j As Integer = 1 To linenb 'restore all instructions
+						WriteProcessMemory(dbghand, Cast(LPVOID, rline(j).ad), @rline(j).sv, 1, 0)
+					Next
+					For j As Integer = 0 To brknb 'breakpoint
+						If brkol(j).typ < 3 Then WriteProcessMemory(dbghand, Cast(LPVOID, brkol(j).ad), @breakcpu, 1, 0) 'only enabled
+					Next
+					thread_rsm()
+					Exit Sub
+				End If
+			End If
+		End If
+
 	If thread(threadcur).sts = KTHD_INIT Then ''case create thread when RTRUNning
 		dbg_prt2 "rtype=";threadcur,thread(threadcur).rtype
 		thread(threadcur).rtype=RTRUN
@@ -16676,10 +16698,14 @@ End Sub
 			
 			'If runtype = RTSTEP Then
 			
-			writepipe(!"b 1\n")
-			
-			readpipe()
-			
+			'Start without the option "Stop at the first line": the program runs to its first breakpoint
+			If Not SkipFirstLineStop Then
+				writepipe(!"b 1\n")
+
+				readpipe()
+			End If
+			SkipFirstLineStop = False
+
 			'End If
 			
 			If RunningToCursor Then

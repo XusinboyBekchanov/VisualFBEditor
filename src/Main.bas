@@ -8597,6 +8597,7 @@ Sub LoadSettings
 	WLet(CommandPromptFolder, iniSettings.ReadString("Options", "CommandPromptFolder", "%USERDOCUMENTS%/Visual FB Editor Projects"))
 	LimitDebug = iniSettings.ReadBool("Options", "LimitDebug", False)
 	DisplayWarningsInDebug = iniSettings.ReadBool("Options", "DisplayWarningsInDebug", False)
+	StopAtFirstLine = iniSettings.ReadBool("Options", "StopAtFirstLine", False)
 	TurnOnEnvironmentVariables = iniSettings.ReadBool("Options", "TurnOnEnvironmentVariables", True)
 	WLet(EnvironmentVariables, iniSettings.ReadString("Options", "EnvironmentVariables"))
 	Dim As UString LoadedProjectsPath = iniSettings.ReadString("Options", "ProjectsPath", "%USERDOCUMENTS%/Visual FB Editor Projects")

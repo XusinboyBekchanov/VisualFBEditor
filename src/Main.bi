@@ -179,6 +179,8 @@ Common Shared As Boolean UseDebugger, ParameterInfoShow, LockControls
 Common Shared As Boolean CompileGUI, bAIAgentFirstRun
 Common Shared As Boolean mFormFindInFile
 Common Shared As Boolean InDebug, FormClosing, Restarting, FastRunning, RunningToCursor
+'Stop at the first line (Options): Start stops the program at its first line; SkipFirstLineStop: this start runs to the first breakpoint
+Common Shared As Boolean StopAtFirstLine, SkipFirstLineStop
 Common Shared As Boolean HighlightCurrentLine, HighlightCurrentWord, HighlightBrackets
 Common Shared As Boolean mTabSelChangeByError
 'The compilation in progress: End stops it (CompileStopped), on Windows the job of its processes is terminated, on

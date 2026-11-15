@@ -2002,7 +2002,7 @@ pfOptions = @fOptions
 			.Name = "chkLimitDebug"
 			.Text = ML("Limit debug to the directory of the main file")
 			.Align = DockStyle.alTop
-			.ExtraMargins.Top = 10
+			.ExtraMargins.Top = 5
 			.TabIndex = 160
 			.Constraints.Height = 21
 			.AutoSize = True
@@ -2013,12 +2013,24 @@ pfOptions = @fOptions
 		With chkDisplayWarningsInDebug
 			.Name = "chkDisplayWarningsInDebug"
 			.Text = ML("Display warnings in debug")
-			.ExtraMargins.Top = 5
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.TabIndex = 161
 			.Constraints.Height = 21
 			.AutoSize = True
 			.SetBounds 10, 159, 179, 21
+			.Parent = @pnlDebugger
+		End With
+		' chkStopAtFirstLine
+		With chkStopAtFirstLine
+			.Name = "chkStopAtFirstLine"
+			.Text = ML("Stop at the first line when starting debugging")
+			.ExtraMargins.Top = 0
+			.Align = DockStyle.alTop
+			.TabIndex = 307
+			.Constraints.Height = 21
+			.AutoSize = True
+			.SetBounds 10, 185, 261, 21
 			.Parent = @pnlDebugger
 		End With
 		' chkCreateNonStaticEventHandlers
@@ -2435,7 +2447,7 @@ pfOptions = @fOptions
 			.Text = ML("Turn on Environment variables") & ":"
 			.TabIndex = 191
 			'.Caption = ML("Turn on Environment variables") & ":"
-			.ExtraMargins.Top = 5
+			.ExtraMargins.Top = 0
 			.Align = DockStyle.alTop
 			.ExtraMargins.Right = 170
 			.Constraints.Height = 21
@@ -3525,6 +3537,8 @@ Sub frmOptions.LoadSettings()
 		.chkAddSpacesToOperators.Checked = AddSpacesToOperators
 		.chkUseMakeOnStartWithCompile.Checked = UseMakeOnStartWithCompile
 		.chkLimitDebug.Checked = LimitDebug
+		.chkDisplayWarningsInDebug.Checked = DisplayWarningsInDebug
+		.chkStopAtFirstLine.Checked = StopAtFirstLine
 		.chkTurnOnEnvironmentVariables.Checked = TurnOnEnvironmentVariables
 		.txtEnvironmentVariables.Text = *EnvironmentVariables
 		.txtTabSize.Text = Str(TabWidth)
@@ -4315,6 +4329,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		UseMakeOnStartWithCompile = .chkUseMakeOnStartWithCompile.Checked
 		LimitDebug = .chkLimitDebug.Checked
 		DisplayWarningsInDebug = .chkDisplayWarningsInDebug.Checked
+		StopAtFirstLine = .chkStopAtFirstLine.Checked
 		TurnOnEnvironmentVariables = .chkTurnOnEnvironmentVariables.Checked
 		WLet(EnvironmentVariables, .txtEnvironmentVariables.Text)
 		AutoIncrement = .CheckBox1.Checked
@@ -4586,6 +4601,7 @@ Private Sub frmOptions.cmdApply_Click(ByRef Designer As My.Sys.Object, ByRef Sen
 		piniSettings->WriteBool "Options", "UseMakeOnStartWithCompile", UseMakeOnStartWithCompile
 		piniSettings->WriteBool "Options", "LimitDebug", LimitDebug
 		piniSettings->WriteBool "Options", "DisplayWarningsInDebug", DisplayWarningsInDebug
+		piniSettings->WriteBool "Options", "StopAtFirstLine", StopAtFirstLine
 		piniSettings->WriteBool "Options", "TurnOnEnvironmentVariables", TurnOnEnvironmentVariables
 		piniSettings->WriteString "Options", "EnvironmentVariables", *EnvironmentVariables
 		piniSettings->WriteBool "Options", "AutoIncrement", AutoIncrement
