@@ -1142,7 +1142,7 @@ Private Function dwarf_extract(ByRef nfile As String, ByVal loadbase As ULongInt
 			dwmapon = False
 			imgbase = dw_sections()
 			'an old .dSYM (of another build of the program) has other addresses
-			If (Not dwmacho) OrElse (exeuuid <> "" AndAlso dwuuid <> exeuuid) Then imgbase = -1
+			If (Not dwmacho) OrElse (CBool(exeuuid <> "") AndAlso CBool(dwuuid <> exeuuid)) Then imgbase = -1
 		End If
 	End If
 	If imgbase <> -1 AndAlso dwsinfo.p <> 0 AndAlso dwsabbrev.p <> 0 AndAlso dwsline.p <> 0 Then
