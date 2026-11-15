@@ -1521,6 +1521,7 @@ Dim Shared As DbgListWindow DbgProcessesWindow
 
 #ifdef __FB_LINUX__
 	Declare Function readlink_ Alias "readlink"(ByVal As Const ZString Ptr, ByVal As ZString Ptr, ByVal As UInteger) As Integer
+	Declare Function getpid_ Alias "getpid"() As Long
 #endif
 
 'The processes: PID, name, the path of the exe
@@ -1567,7 +1568,7 @@ Sub DbgProcessesFill()
 		#elseif defined(__FB_LINUX__)
 			'The directories of /proc are read-only (dr-xr-xr-x): Dir finds them only with fbReadOnly too
 			Dim As String d = Dir("/proc/*", fbDirectory Or fbReadOnly Or fbHidden Or fbSystem Or fbArchive)
-			Dim As Integer SelfPid = getpid()
+			Dim As Integer SelfPid = getpid_()
 			While d <> ""
 				If ValInt(d) > 0 AndAlso ValInt(d) <> SelfPid Then
 					Dim As String sName, sBits
