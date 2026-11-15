@@ -139,6 +139,64 @@ End Sub
 Sub var_dump(tv As Any Ptr, ptd As Long = 0)
 End Sub
 
+'The components of a variable are added when it is expanded (Debug.bas)
+Sub var_kids(h As Any Ptr)
+End Sub
+
+'Variable Dump of the Integrated GDB Debugger
+Sub gdb_memory_dump(ByRef sCommand As String)
+End Sub
+
+'Attach to Process and Break on Memory Address (DebugView.bas)
+Dim Shared As Integer AttachPid
+Dim Shared As String AttachExe
+Dim Shared dumpadr As Integer
+
+'Memory and Break on Variable commands of the Debug view (DebugView.bas)
+Sub gdb_break_on_variable(ByRef sCommand As String, mode As Integer)
+End Sub
+
+Function gdb_set_value(ByRef sCommand As String, ByRef sValue As WString) As Boolean
+	Return False
+End Function
+
+Function gdb_condition(ByRef sCondition As String) As String
+	Return sCondition
+End Function
+
+Sub mem_edit()
+End Sub
+
+Sub mem_goto()
+End Sub
+
+Sub mem_refresh_any()
+End Sub
+
+Function mem_parse_address(ByRef sText As String) As LongInt
+	Return 0
+End Function
+
+Sub gdb_break_on_memory(Address As LongInt, Size As Integer)
+End Sub
+
+Function DbgInputBox(ByRef sCaption As WString, ByRef sMessage As WString, ByRef sDefault As WString, ByRef sResult As UString) As Boolean
+	sResult = InputBox(sCaption, sMessage, sDefault)
+	Return sResult <> ""
+End Function
+
+#ifndef __USE_COCOA__
+'The texts of the debuggers are UTF-8 (DebugCommon.bas)
+Function DbgText(ByRef s As String) As UString
+	If s = "" Then Return ""
+	Dim As WString Ptr p = FromUtf8(StrPtr(s))
+	If p = 0 Then Return s
+	Dim As UString Result = *p
+	WDeAllocate(p)
+	Return Result
+End Function
+#endif
+
 #ifdef __USE_COCOA__
 	#include once "DebugLLDB.bas"
 #endif
