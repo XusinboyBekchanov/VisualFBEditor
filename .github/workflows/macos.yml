@@ -118,7 +118,7 @@ jobs:
           MFF_SNAPSHOT=../snapshots/NativeHello MFF_CLICK="Click me!" perl -e 'alarm 60; exec @ARGV' ./Hello || { echo "::error::The program of the native fbc failed"; exit 1; }
 
       - name: The runtime of FreeBASIC for the iOS Simulator
-        run: sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc" "$RUNNER_TEMP/fbc-ios"
+        run: sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc"
 
       - name: Build the IDE
         run: |
@@ -156,7 +156,6 @@ jobs:
         run: |
           mkdir -p Compilers
           ln -sfn "$RUNNER_TEMP/fbc" Compilers/fbc
-          ln -sfn "$RUNNER_TEMP/fbc-ios" Compilers/fbc-ios
           DEVICE=$(xcrun simctl list devices available | grep -m1 'iPhone' | grep -oE '[0-9A-F-]{36}')
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b > /dev/null
@@ -200,7 +199,7 @@ jobs:
       # The IDE of the iPhone: it sends the file to the server of the IDE of the Mac, which builds it and starts it
       - name: Start in the IDE of the Simulator through the server
         run: |
-          sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c IDEiOS "$RUNNER_TEMP/fbc-ios" > buildios.log 2>&1 || { cat buildios.log; grep -E 'error|ld:|^ *"_' buildios.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
+          sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c IDEiOS "$RUNNER_TEMP/fbc" > buildios.log 2>&1 || { cat buildios.log; grep -E 'error|ld:|^ *"_' buildios.log | head -n 20 | sed 's/^/::error::/'; exit 1; }
           cp -R Settings Templates IDEiOS.app/
           cp -R Resources IDEiOS.app/AppResources
           mkdir -p IDEiOS.app/Controls/MyFbFramework iostest
@@ -234,9 +233,7 @@ jobs:
           cp -R Controls/MyFbFramework/mff Controls/MyFbFramework/Settings.ini Controls/MyFbFramework/resources package/Controls/MyFbFramework/
           cp "$F/bin/fbc" package/Compilers/fbc/bin/
           cp -R "$F/inc" package/Compilers/fbc/include/freebasic
-          cp -R "$F/lib/freebasic/darwin-aarch64" package/Compilers/fbc/lib/freebasic/
-          mkdir -p package/Compilers/fbc-ios/lib/freebasic
-          cp -R "$RUNNER_TEMP/fbc-ios/lib/freebasic/darwin-aarch64" package/Compilers/fbc-ios/lib/freebasic/
+          cp -R "$F/lib/freebasic/darwin-aarch64" "$F/lib/freebasic/iossim-aarch64" package/Compilers/fbc/lib/freebasic/
           tar czf VisualFBEditor-macos.tar.gz -C package .
 
       - uses: actions/upload-artifact@v4
@@ -376,11 +373,11 @@ jobs:
         run: |
           git clone --depth 1 -b apple https://github.com/XusinboyBekchanov/MyFbFramework.git Controls/MyFbFramework
           git clone --depth 1 https://github.com/XusinboyBekchanov/fbc.git "$RUNNER_TEMP/fbc"
-          sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc" "$RUNNER_TEMP/fbc-ios"
+          sh Controls/MyFbFramework/mff/UIKit/build-rtlib.sh "$RUNNER_TEMP/fbc"
 
       - name: Build the IDE
         run: |
-          if ! sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c VisualFBEditor "$RUNNER_TEMP/fbc-ios" > build.log 2>&1; then
+          if ! sh Controls/MyFbFramework/mff/UIKit/build.sh build/VisualFBEditor_UIKIT.c VisualFBEditor "$RUNNER_TEMP/fbc" > build.log 2>&1; then
             cat build.log
             grep -E 'error|Undefined|undefined|ld:|^ *"_' build.log | head -n 40 | sed 's/^/::error::/'
             exit 1

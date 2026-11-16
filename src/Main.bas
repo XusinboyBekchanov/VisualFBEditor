@@ -1981,7 +1981,7 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim As Long PosLog = InStrRev(*PipeCommand, " 2> ")
 			Dim As UString LogPart = IIf(PosLog > 0, Mid(*PipeCommand, PosLog), "")
 			If PosLog > 0 Then PipeNoLog = Left(*PipeCommand, PosLog - 1)
-			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in fbc-ios next to the compiler
+			'A program of the server for the iOS Simulator (WebCompile): UIKit and its runtime in lib/freebasic/iossim-<cpu> of the compiler
 			Dim As Boolean ForIOS = InStr(PipeNoLog, "__USE_UIKIT__") > 0
 			Dim As Boolean UseGas64 = InStr(PipeNoLog, " -gen gas64") > 0
 			'Integrated IDE Debugger (Debug.bas, DebugMac.bi) reads .dbgdat and .dbgstr of gas64 (-g) or the DWARF of
@@ -2046,14 +2046,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			Dim As UString BuildScript = Replace(*MFFPathC, "\", "/") & IIf(ForIOS, "/mff/UIKit/build.sh", "/mff/Cocoa/build.sh")
 			'With -g (Use Debugger) the program keeps the information for lldb in Program.dSYM (DebugLLDB.bas)
 			Dim As String BuildDebug = IIf((Not ForIOS) AndAlso InStr(PipeNoLog & " ", " -g ") > 0, "MFF_DEBUG=1 ", "")
-			'The runtime of FreeBASIC for the Simulator (mff/UIKit/build-rtlib.sh): next to the compiler (<fbc>-ios), else the
-			'one of the package of the IDE
-			Dim As UString RuntimeRoot = FbcRoot
-			If ForIOS Then
-				RuntimeRoot = FbcRoot & "-ios"
-				If (Not FolderExists(RuntimeRoot)) AndAlso FolderExists(ExePath & "/Compilers/fbc-ios") Then RuntimeRoot = ExePath & "/Compilers/fbc-ios"
-			End If
-			If Parameter <> "Check" AndAlso (ForIOS OrElse Not UseGas64) Then CompileCommands.Add "linking :      ", BuildDebug & "sh """ & BuildScript & """ """ & ExeBase & IIf(UseGas64, ".asm", ".c") & """ """ & ExeBase & """ """ & RuntimeRoot & """"
+			'The runtime of FreeBASIC for the Simulator (mff/UIKit/build-rtlib.sh) is in lib/freebasic/iossim-<cpu> of the
+			'compiler, next to darwin-<cpu> of macOS
+			If Parameter <> "Check" AndAlso (ForIOS OrElse Not UseGas64) Then CompileCommands.Add "linking :      ", BuildDebug & "sh """ & BuildScript & """ """ & ExeBase & IIf(UseGas64, ".asm", ".c") & """ """ & ExeBase & """ """ & FbcRoot & """"
 		#else
 		If UseWasm Then
 			Dim FbcFolder As UString = GetFolderName(*FbcExe)
