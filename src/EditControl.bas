@@ -3448,8 +3448,8 @@ Namespace My.Sys.Forms
 				End If
 				Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso CodePane = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso CodePane = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
 				Var y = ScaleY((iLine - IIf(CodePane = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso CodePane = 1, iDividedY + 7, 0)) + 1
-				SetRect(@rc, IIf(bDividedX And CodePane = 1, ScaleX(iDividedX + 7), 0), y, _
-				ScaleX(IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX)), y + ScaleY(dwCharY))
+				SetRect(@rc, IIf(bDividedX And CodePane = 1, ScaleX(iDividedX + 7), 0), y - 1, _
+				ScaleX(IIf(bDividedX AndAlso CodePane = 0, iDividedX, dwClientX)), y - 1 + ScaleY(dwCharY))
 				pDWriteFactory->lpVtbl->CreateTextLayout(pDWriteFactory, FLineRight, Len(*FLineRight), pFormat, FLT_MAX, FLT_MAX, @pLayout)
 				If pLayout <> 0 Then
 					pRenderTarget->lpVtbl->PushAxisAlignedClip(pRenderTarget, @Type<D2D1_RECT_F>(rc.Left, rc.Top, rc.Right, rc.Bottom), D2D1_ANTIALIAS_MODE_PER_PRIMITIVE)
