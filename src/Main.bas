@@ -7197,54 +7197,54 @@ Sub LoadSnippets
 					Parameters = Replace(Parameters, "\t", !"\t")
 					te->Comment = te->Name
 					Snippets.Add te->Name, te
-					Dim As Integer s = 1, idx, j, k
-					Dim As String ch, Number
+					'Placeholders: ${N:default}, ${N} and $N; a repeated N gets the text of the first one.
+					'The position is taken from the already built text, so it is right on every line.
+					Dim As Integer s = 1, idx
+					Dim As String Number
 					Pos1 = InStr(Parameters, "$")
 					NewParameters = ""
 					Do While Pos1 > 0
 						NewParameters &= Mid(Parameters, s, Pos1 - s)
 						Number = ""
-						teParam = _New(TypeElement)
-						teParam->ElementType = E_Snippet
-						For i As Integer = Pos1 + 1 To Len(Parameters) + 1
-							ch = Chr(Parameters[i - 1])
-							If ch = "{" Then
-								Pos2 = InStr(i + 1, Parameters, ":")
-								Pos3 = InStr(i + 1, Parameters, "}")
-								Number = Mid(Parameters, i + 1, Pos2 - (i + 1))
-								teParam->DisplayName = Mid(Parameters, Pos2 + 1, Pos3 - Pos2 - 1)
-								NewParameters &= teParam->DisplayName
-								j = j + Len(Number) + 4
-								s = Pos3 + 1
-								Exit For
-							ElseIf ch >= "0" AndAlso ch <= "9" Then
-								Number &= ch
-								j = j + 1
+						Dim As UString DisplayName
+						If Mid(Parameters, Pos1 + 1, 1) = "{" Then
+							Pos3 = InStr(Pos1 + 2, Parameters, "}")
+							If Pos3 = 0 Then Pos3 = Len(Parameters) + 1
+							Pos2 = InStr(Pos1 + 2, Parameters, ":")
+							If Pos2 > 0 AndAlso Pos2 < Pos3 Then
+								Number = Mid(Parameters, Pos1 + 2, Pos2 - Pos1 - 2)
+								DisplayName = Mid(Parameters, Pos2 + 1, Pos3 - Pos2 - 1)
 							Else
-								If Number <> "" AndAlso te->Elements.Contains(Number, , , , idx) Then
-									teParam->DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
-									NewParameters &= teParam->DisplayName
-									j = j - Len(Number) + 1
-								Else
-									j = j + 1
-								End If
-								If ch = !"\r" Then
-									j = 0
-									k = 0
-								End If
-								s = i
-								Exit For
+								Number = Mid(Parameters, Pos1 + 2, Pos3 - Pos1 - 2)
+								If Number <> "" AndAlso te->Elements.Contains(Number, , , , idx) Then DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
 							End If
-						Next
-						Pos2 = InStrRev(Parameters, !"\r", Pos1)
-						teParam->Name = Number
-						teParam->StartLine = InStrCount(Left(Parameters, Pos1), !"\r")
-						teParam->EndLine = teParam->StartLine
-						teParam->StartChar = Pos1 - Pos2 - 1 - k
-						teParam->EndChar = teParam->StartChar + Len(teParam->DisplayName)
-						te->Elements.Add teParam->Name, teParam
+							s = Pos3 + 1
+						Else
+							i = Pos1 + 1
+							Do While i <= Len(Parameters) AndAlso Mid(Parameters, i, 1) >= "0" AndAlso Mid(Parameters, i, 1) <= "9"
+								Number &= Mid(Parameters, i, 1)
+								i += 1
+							Loop
+							If Number <> "" AndAlso te->Elements.Contains(Number, , , , idx) Then DisplayName = Cast(TypeElement Ptr, te->Elements.Object(idx))->DisplayName
+							s = i
+						End If
+						If Number = "" Then
+							'Not a placeholder: the $ stays in the text
+							NewParameters &= "$"
+							If s <= Pos1 Then s = Pos1 + 1
+						Else
+							teParam = _New(TypeElement)
+							teParam->ElementType = E_Snippet
+							teParam->Name = Number
+							teParam->DisplayName = DisplayName
+							teParam->StartLine = InStrCount(NewParameters, !"\r")
+							teParam->EndLine = teParam->StartLine
+							teParam->StartChar = Len(NewParameters) - InStrRev(NewParameters, !"\r")
+							teParam->EndChar = teParam->StartChar + Len(DisplayName)
+							te->Elements.Add teParam->Name, teParam
+							NewParameters &= DisplayName
+						End If
 						Pos1 = InStr(s, Parameters, "$")
-						k = j
 					Loop
 					NewParameters &= Mid(Parameters, s)
 					te->Parameters = NewParameters

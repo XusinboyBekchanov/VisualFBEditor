@@ -5491,10 +5491,11 @@ Namespace My.Sys.Forms
 									.cairo_rectangle (cr, LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + extend.width + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0), (i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0), extend2.width, dwCharY)
 									cairo_stroke(cr)
 								#else
-									GetTextExtentPoint32(bufDC, FLineLeft, Len(*FLineLeft), @sz)
-									Var x = ScaleX(LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0)) + IIf(iStart = 0, 0, sz.cx)
+									'The frame is at the place of the text: TextWidth like the text (also with Direct2D), the coordinates are scaled
+									Var xLeft = LeftMargin - IIf(bDividedX AndAlso zz = 0, HScrollPosLeft, HScrollPosRight) * dwCharX + IIf(bDividedX AndAlso zz = 1, iDividedX + 7, 0) + IIf(iStart = 0, 0, TextWidth(*FLineLeft))
+									Var x = ScaleX(xLeft)
 									Var y = ScaleY((i - IIf(zz = 0, VScrollPosTop, VScrollPosBottom)) * dwCharY + IIf(bDividedY AndAlso zz = 1, iDividedY + 7, 0))
-									Dim As ..Rect rec = Type(x, y, x + dwCharX * Len(*FLineRight), y + dwCharY)
+									Dim As ..Rect rec = Type(x, y, ScaleX(xLeft + Max(TextWidth(*FLineRight), 1)), y + ScaleY(dwCharY))
 									If pRenderTarget = 0 Then
 										This.Canvas.Brush.Color = FoldLines.Foreground
 										FrameRect bufDC, @rec, This.Canvas.Brush.Handle

@@ -4043,33 +4043,35 @@ End Sub
 				Dim As UString Parameters = te->Parameters
 				Var n = Len(*sLine) - Len(LTrim(*sLine, Any !"\t "))
 				Parameters = Replace(Parameters, !"\r", !"\r" & Left(*sLine, n))
+				'The first line of the snippet begins where it was typed (SelCharPos), the other lines after the indent (n)
 				If te->Elements.Count > 0 AndAlso te->Elements.Object(0) > 0 Then
 					teParam = te->Elements.Object(0)
-					xStartPlus = teParam->StartChar
-					xEndPlus = teParam->EndChar
 					yStartPlus = teParam->StartLine
 					yEndPlus = teParam->EndLine
+					xStartPlus = teParam->StartChar + IIf(yStartPlus = 0, SelCharPos, n)
+					xEndPlus = teParam->EndChar + IIf(yEndPlus = 0, SelCharPos, n)
 				Else
+					'Without placeholders the caret is at the end of the snippet (the indent is already in Parameters)
 					Pos2 = InStrRev(Parameters, !"\r")
-					xStartPlus = Len(Parameters) - Pos2
-					xEndPlus = xStartPlus
 					yStartPlus = InStrCount(Parameters, !"\r")
 					yEndPlus = yStartPlus
+					xStartPlus = Len(Parameters) - Pos2 + IIf(yStartPlus = 0, SelCharPos, 0)
+					xEndPlus = xStartPlus
 				End If
 				For j As Integer = 0 To te->Elements.Count - 1
 					teParam = te->Elements.Object(j)
 					teParamNew = _New(TypeElement)
 					teParamNew->Name = teParam->Name
 					teParamNew->DisplayName = teParam->DisplayName
-					teParamNew->StartChar = teParam->StartChar + n
+					teParamNew->StartChar = teParam->StartChar + IIf(teParam->StartLine = 0, SelCharPos, n)
 					teParamNew->StartLine = teParam->StartLine + SelLinePos
-					teParamNew->EndChar = teParam->EndChar + n
+					teParamNew->EndChar = teParam->EndChar + IIf(teParam->EndLine = 0, SelCharPos, n)
 					teParamNew->EndLine = teParam->EndLine + SelLinePos
 					tb->txtCode.Carets.Add Val(teParam->Name), teParamNew
 				Next
 				tb->txtCode.CurrentCaret = 1
 				tb->txtCode.ReplaceLine SelLinePos, ..Left(*sLine, SelCharPos) & Parameters & Symbol & Mid(*sLine, i + 1)
-				tb->txtCode.SetSelection SelLinePos + yStartPlus, SelLinePos + yEndPlus, n + xStartPlus, n + xEndPlus
+				tb->txtCode.SetSelection SelLinePos + yStartPlus, SelLinePos + yEndPlus, xStartPlus, xEndPlus
 			Else
 				#ifdef __USE_GTK__
 					tb->txtCode.SetSelection SelLinePos, SelLinePos, SelCharPos, i, True
