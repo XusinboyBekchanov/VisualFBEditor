@@ -145,6 +145,7 @@ Declare Sub AIComboRemove(ByRef Cbo As ComboBoxEdit, Index As Integer)
 Declare Sub AIComboSet(ByRef Cbo As ComboBoxEdit, Index As Integer, ByRef Key As WString)
 Declare Sub AIComboClear(ByRef Cbo As ComboBoxEdit)
 Declare Sub AIChatsFill()
+Declare Sub AIChatsSelectOpened()
 Declare Sub AIChatOpenName(ByRef ChatName As WString)
 Declare Sub AIStateRepaint()
 Declare Sub AILoadClaudeSettings()
@@ -438,6 +439,8 @@ Declare Function CopyFileToPath(ByRef SourcePath As WString, ByRef DestinationPa
 Declare Function GetUserDataPath(ByRef RelativePath As WString = "") As UString
 Declare Function GetUserDocumentsPath(ByRef RelativePath As WString = "") As UString
 Declare Function GetUserTempPath(ByRef RelativePath As WString = "") As UString
+'The items of the views of the chat of the AI Agent in its menu (AIChatView.bas)
+Declare Sub AIChatAddViewMenu()
 Declare Function GetAIChatDirectory() As UString
 Declare Function GetUserChangeLogPath(ByRef FileName As WString) As UString
 Declare Function GetUserThemePath(ByRef ThemeName As WString, IsInterfaceTheme As Boolean = False) As UString

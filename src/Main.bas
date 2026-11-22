@@ -9443,6 +9443,7 @@ Sub CreateMenusAndToolBars
 	Next
 	miRecentAIChat->Add("-")
 	miRecentAIChat->Add(ML("Clear Recently Opened"), "", "ClearAIChat", @mClickAIChat)
+	AIChatAddViewMenu
 	
 	miFile->Add("-")
 	miFile->Add(ML("&Command Prompt") & HK("CommandPrompt", "Alt+C"), "Console", "CommandPrompt", @mClick)
@@ -10836,7 +10837,9 @@ pnlAIAgent.Width = tabLeftWidth
 	#ifndef __USE_GTK2__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
 			Dim As gint x, y
-			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, @tbForm)
+			'The toolbar of the selected tab: the toolbar of another tab may be not made yet (the tab was not shown), then
+			'its place is not known and the pin was outside the panel (AI Agent shown first: the pin was not seen)
+			Dim As Control Ptr tb = IIf(tabLeft.SelectedTab = tpProject, @tbExplorer, IIf(tabLeft.SelectedTab = tpAIAgent, @tbAIAgent, @tbForm))
 			#ifdef __USE_GTK4__
 				gtk4compat_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
 			#else
@@ -10845,6 +10848,7 @@ pnlAIAgent.Width = tabLeftWidth
 			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
 			tbExplorer.ExtraMargins.Right = tbLeft.Width - 10
 			tbForm.ExtraMargins.Right = tbLeft.Width - 10
+			tbAIAgent.ExtraMargins.Right = tbLeft.Width - 10
 			allocation->x = x - tbLeft.ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0)
 			allocation->y = y
 			allocation->width = tbLeft.ScaleX(tbLeft.Width)
@@ -11362,6 +11366,8 @@ txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 txtAIAgent.ContextMenu = @mnuAIChat
 txtAIAgent.Parent = @pnlAIChat
+'The views of the chat (RTF, WebBrowser, IE, the own control)
+#include once "AIChatView.bas"
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As Integer Posi = 0, iLen = Len(iText)
@@ -11787,6 +11793,7 @@ AIPostDataFirstTime = True
 'End Sub
 
 Sub UpdateRTB(ByRef tempChunk As WString = "")
+	If AIChatViewMode <> acvRTF Then Exit Sub
 	If tempChunk = "" Then
 		If AIMDtoRTFConverterPtr->RTFBodyPtr = 0 Then  Exit Sub
 		txtAIAgent.TextRTF = AIMDtoRTFConverterPtr->RTFHeader & * (AIMDtoRTFConverterPtr->RTFBodyPtr) & "\row\par\li0\b0" & Chr(13, 10) & "\pard\plain\fs" & AIMDtoRTFConverterPtr->RTFFontSizefs & AIMDtoRTFConverterPtr->RTFFooter
@@ -11900,7 +11907,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 					If iPosStart Then
 						If Not bInNOTThingk Then
 							bInNOTThingk = True
-							If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n<think>\n")
+							AIChatFeed(!"\n<think>\n")
 						End If
 						'Print "REASON:" & (iPosStart - iPosEnd - Len(ReasoningStart(k)))
 						iPos3 = iPosEnd - iPosStart - Len(ReasoningStart(k))
@@ -11908,7 +11915,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 							binReason = True
 							_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 							AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ReasoningStart(k)), iPos3))
-							If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+							AIChatFeed(*AIBodyWStringPtr)
 						End If
 						Exit For
 					End If
@@ -11923,7 +11930,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 						If iPosStart > 0 Then
 							If Not bInThingk Then
 								bInThingk = True
-								If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n</think>\n")
+								AIChatFeed(!"\n</think>\n")
 							End If
 							iPos3 = iPosEnd - iPosStart - Len(ContentStart(k))
 							If iPos3 > 0 Then
@@ -11931,7 +11938,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 								AIBodyWStringPtr = EscapeFromJson(Mid(*Buff(i), iPosStart + Len(ContentStart(k)), iPos3))
 								If AIBodyWStringPtr <> 0 Then
 									WAdd(AIAssistantsAnswersPtr, *AIBodyWStringPtr, , Capacity)
-									If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+									AIChatFeed(*AIBodyWStringPtr)
 								End If
 							End If
 							Exit For
@@ -11965,7 +11972,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 			If  AIAssistantsAnswersPtr Then
 				If AIMessages.Count > 0 Then AIMessages.Item(AIMessages.Count - 1)->Text = Chr(10) & Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10) & *AIAssistantsAnswersPtr
 			End If
-			WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+			WLet(AIBodyWStringSavePtr, AIChatText())
 			'If AIBodyWStringSavePtr <> 0 AndAlso AIMDtoRTFConverterPtr <> 0 Then
 			'AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringSavePtr)
 			'AIBodyWStringPtr = MDtoRTF(*AIBodyWStringSavePtr)
@@ -11991,6 +11998,7 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 	ThreadsLeave
 End Sub
 
+Declare Sub AIInputUpdateHeight()
 Sub AIRequest(Param As Any Ptr)
 	bInAIThread = True
 	bInThingk = False
@@ -12020,10 +12028,16 @@ Sub AIRequest(Param As Any Ptr)
 	If bAIAgentFirstRun Then bAIAgentFirstRun = False
 	ThreadsEnter
 	txtAIRequest.Text = ""
-	If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
+	'A multiline text box of Windows sends no EN_CHANGE for WM_SETTEXT: the box of the question gets its height of one line here
+	AIInputUpdateHeight
+	If AIChatViewMode = acvRTF Then
+		If AIBodyWStringSavePtr Then txtAIAgent.Text = *AIBodyWStringSavePtr Else txtAIAgent.Text = ""
+	End If
 	WLet(AIAssistantsAnswersPtr, "")
-	txtAIAgent.SelAlignment = AlignmentConstants.taLeft
-	txtAIAgent.ScrollToEnd
+	If AIChatViewMode = acvRTF Then
+		txtAIAgent.SelAlignment = AlignmentConstants.taLeft
+		txtAIAgent.ScrollToEnd
+	End If
 	ThreadsLeave
 	If AIAgentStream Then
 		HTTPAIAgent.OnReceive = @HTTPAIAgent_Receive
@@ -12044,13 +12058,13 @@ Sub AIRequest(Param As Any Ptr)
 		'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		'txtAIAgent.SelEnd = txtAIAgent.SelStart
 		'txtAIAgent.SelText = !"\r\n[**AI Response:**] " & (*CurrentAIAgent) & !"\r\n"
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**AI Response:**] " & (*CurrentAIAgent) & !"\n")
+		AIChatFeed(!"\n[**AI Response:**] " & (*CurrentAIAgent) & !"\n")
 		'txtAIAgent.ScrollToCaret
 		'txtAIAgent.SelBackColor = darkBkColor
 		'txtAIAgent.SelText = !"<Think>\r\n" & *BuffPtr & !"</Think>\r\n"
 		'txtAIAgent.SelStart = Len(txtAIAgent.Text) - 1
 		'txtAIAgent.SelEnd = txtAIAgent.SelStart
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"<Think>\n" & *BuffPtr & !"</Think>\n")
+		AIChatFeed(!"<Think>\n" & *BuffPtr & !"</Think>\n")
 		ThreadsLeave
 		iPos1 = InStrRev(*Temp, ",""content"":""")
 		iPos2 = InStrRev(*Temp, """,""refusal""")
@@ -12059,7 +12073,7 @@ Sub AIRequest(Param As Any Ptr)
 		If BuffPtr <> 0 Then
 			ThreadsEnter
 			'AIPrintAnswer(*BuffPtr)
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*BuffPtr)
+			AIChatFeed(*BuffPtr)
 			'txtAIRequest.Enabled = True
 			txtAIRequest.SetFocus
 			ThreadsLeave
@@ -12172,7 +12186,7 @@ End Function
 Sub AIClaudeFeed(ByRef Text As WString, IsAnswer As Boolean)
 	If Text = "" Then Exit Sub
 	If IsAnswer Then WAdd(AIAssistantsAnswersPtr, Text)
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(Text)
+	AIChatFeed(Text)
 End Sub
 
 'One line of the output of claude (in the thread of the request, the caller has ThreadsEnter)
@@ -12665,6 +12679,14 @@ Sub AIClaudeRequest(Param As Any Ptr)
 		Else
 			Dim As UString Command_ = "exec 2>&1; "
 			If AIClaudeWorkDirPtr <> 0 AndAlso *AIClaudeWorkDirPtr <> "" Then Command_ &= "cd '" & Replace(*AIClaudeWorkDirPtr, "'", "'\''") & "' 2>/dev/null; "
+			'The folder of the chosen account is given to claude here: SetEnviron of AIAccountApply did not reach the
+			'process of popen (claude used ~/.claude and said "Not logged in" for the account signed in another folder)
+			Dim As UString ConfigDir = AIAccountConfigDir()
+			If ConfigDir <> "" Then
+				Command_ &= "export CLAUDE_CONFIG_DIR='" & Replace(ConfigDir, "'", "'\''") & "'; "
+			Else
+				Command_ &= "unset CLAUDE_CONFIG_DIR; "
+			End If
 			Command_ &= "echo __VFBE_PID__$$; exec " & *AIClaudeCommandPtr & " < '" & Replace(Fifo, "'", "'\''") & "'"
 			Dim As FILE Ptr PipeFile = popen(ToUtf8(Command_), "r")
 			If PipeFile = 0 Then
@@ -12715,7 +12737,7 @@ Sub AIClaudeRequest(Param As Any Ptr)
 			AIMessages.Remove AIMessages.Count - 1
 		End If
 	End If
-	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+	WLet(AIBodyWStringSavePtr, AIChatText())
 	'The chat is in the list of the chats at once (Chats) and can be continued later
 	If GotText Then AIChatSaveCurrent False
 	bInAIThread = False
@@ -12793,7 +12815,6 @@ End Function
 #endif
 
 'The strip of the small images is shown when there are pictures: the box of the question grows by its height
-Declare Sub AIInputUpdateHeight()
 Sub AIImagesUpdate()
 	Dim As Boolean Show = AIImageCount > 0
 	If pnlAIImages.Visible <> Show Then
@@ -12848,6 +12869,23 @@ Sub AIImageColors(ByRef Sender As Control, ByRef ClrBack As Integer, ByRef ClrTe
 	#ifdef __USE_WINAPI__
 		ClrBack = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
 		ClrText = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+	#elseif defined(__USE_GTK__)
+		'The panels of GTK have no color of the theme in BackColor (it is white): the colors are taken from the theme
+		'(a light text of the theme is a dark theme), the box of the question and the rows are like the text boxes
+		Dim As Boolean IsDark = g_darkModeEnabled
+		#ifndef __USE_GTK2__
+			If frmMain.Handle <> 0 Then
+				Dim As GdkRGBA FgColor
+				#ifdef __USE_GTK4__
+					gtk4compat_widget_get_color(frmMain.Handle, @FgColor)
+				#else
+					gtk_style_context_get_color(gtk_widget_get_style_context(frmMain.Handle), GTK_STATE_FLAG_NORMAL, @FgColor)
+				#endif
+				IsDark = FgColor.red * 0.299 + FgColor.green * 0.587 + FgColor.blue * 0.114 > 0.5
+			End If
+		#endif
+		ClrBack = IIf(IsDark, darkBkColor, BGR(255, 255, 255))
+		ClrText = IIf(IsDark, darkTextColor, BGR(0, 0, 0))
 	#else
 		ClrBack = Sender.BackColor
 		ClrText = Sender.Font.Color
@@ -13005,6 +13043,40 @@ Function AIInputBorderColor() As Integer
 	#endif
 End Function
 
+'The text box has the colors of the box (on GTK the text view has the color of the theme, BackColor does not change
+'it): GTK 3 gets them by CSS of the text view, once for the colors
+Sub AIRequestSetColors(ClrBack As Integer, ClrText As Integer)
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__) AndAlso Not defined(__USE_GTK4__)
+		Static As GtkCssProvider Ptr Provider
+		Static As GtkWidget Ptr StyledWidget
+		Static As Integer LastBack = -1, LastText = -1
+		If txtAIRequest.Handle = 0 Then Exit Sub
+		If txtAIRequest.Handle = StyledWidget AndAlso ClrBack = LastBack AndAlso ClrText = LastText Then Exit Sub
+		If Provider = 0 Then Provider = gtk_css_provider_new()
+		Dim As String Back = "rgb(" & GetRed(ClrBack) & "," & GetGreen(ClrBack) & "," & GetBlue(ClrBack) & ")"
+		'The scrolled window around the text view has no frame (the box of the question is the frame), its scroll bar
+		'is on the color of the box
+		Dim As String Css = "textview, textview text { background-color: " & Back & "; color: rgb(" & GetRed(ClrText) & "," & GetGreen(ClrText) & "," & GetBlue(ClrText) & "); }" & _
+			" scrolledwindow, scrolledwindow.frame { border: none; border-width: 0; box-shadow: none; outline: none; background-color: " & Back & "; }" & _
+			" scrolledwindow undershoot, scrolledwindow overshoot { background: none; border: none; box-shadow: none; }"
+		gtk_css_provider_load_from_data(Provider, Css, -1, NULL)
+		If txtAIRequest.Handle <> StyledWidget Then
+			gtk_style_context_add_provider(gtk_widget_get_style_context(txtAIRequest.Handle), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_USER)
+			Dim As GtkWidget Ptr Scrolled = gtk_widget_get_parent(txtAIRequest.Handle)
+			If Scrolled <> 0 AndAlso GTK_IS_SCROLLED_WINDOW(Scrolled) Then
+				gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(Scrolled), GTK_SHADOW_NONE)
+				gtk_style_context_add_provider(gtk_widget_get_style_context(Scrolled), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_USER)
+			End If
+			StyledWidget = txtAIRequest.Handle
+		End If
+		LastBack = ClrBack
+		LastText = ClrText
+	#elseif Not defined(__USE_WINAPI__)
+		If txtAIRequest.BackColor <> ClrBack Then txtAIRequest.BackColor = ClrBack
+		If txtAIRequest.Font.Color <> ClrText Then txtAIRequest.Font.Color = ClrText
+	#endif
+End Sub
+
 'The box of the question: one frame with round corners around the small images and the text box
 Sub pnlAIInput_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
 	Dim As Integer ClrBack, ClrText
@@ -13027,6 +13099,7 @@ Sub pnlAIInput_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, B
 		End If
 		GdipDeleteGraphics(G)
 	#else
+		AIRequestSetColors ClrBack, ClrText
 		Canvas.Pen.Color = ClrBack
 		Canvas.Brush.Color = ClrBack
 		Canvas.Rectangle 0, 0, Sender.Width, Sender.Height
@@ -13066,6 +13139,26 @@ Sub AIInputUpdateHeight()
 			SelectObject(DC, OldFont)
 			ReleaseDC(txtAIRequest.Handle, DC)
 			LineHeight = txtAIRequest.UnScaleY(TM.tmHeight)
+		End If
+	#elseif defined(__USE_GTK__)
+		'The lines on the screen (the long lines are wrapped) and the height of a line of the text view
+		If txtAIRequest.Handle <> 0 AndAlso GTK_IS_TEXT_VIEW(txtAIRequest.Handle) Then
+			Dim As GtkTextView Ptr TV = GTK_TEXT_VIEW(txtAIRequest.Handle)
+			Dim As GtkTextIter It
+			Dim As GdkRectangle CharRect
+			gtk_text_buffer_get_start_iter(gtk_text_view_get_buffer(TV), @It)
+			'The height of one line on the screen (the place of the first character; gtk_text_view_get_line_yrange
+			'gives the height of the whole wrapped line)
+			gtk_text_view_get_iter_location(TV, @It, @CharRect)
+			If CharRect.height > 0 Then LineHeight = txtAIRequest.UnScaleY(CharRect.height)
+			Lines = 1
+			Do While gtk_text_view_forward_display_line(TV, @It)
+				Lines += 1
+			Loop
+			'The empty line after the last new line (the iterator stops at the end without moving onto it)
+			If gtk_text_iter_is_end(@It) AndAlso gtk_text_iter_starts_line(@It) AndAlso gtk_text_iter_get_offset(@It) > 0 Then Lines += 1
+		Else
+			Lines = Max(1, txtAIRequest.LinesCount)
 		End If
 	#else
 		Lines = Max(1, txtAIRequest.LinesCount)
@@ -13615,6 +13708,15 @@ End Function
 Sub AIChatsFill()
 	AIChatsFilling = True
 	AIChatHoverRow = -1
+	#ifdef __USE_WINAPI__
+		'The list is not drawn while it is filled again: else the rows and the scroll bar are seen to go away
+		'and come again (Clear and Add); the first visible row stays the same after the filling
+		Dim As Integer OldTopRow = -1
+		If lvAIChats.Handle Then
+			OldTopRow = SendMessage(lvAIChats.Handle, LVM_GETTOPINDEX, 0, 0)
+			SendMessage(lvAIChats.Handle, WM_SETREDRAW, False, 0)
+		End If
+	#endif
 	lvAIChats.ListItems.Clear
 	Erase AIChatNames, AIChatTitles, AIChatSnippets, AIChatTimeTexts, AIChatRows
 	Dim As UString ChatDirectory = GetAIChatDirectory()
@@ -13749,7 +13851,36 @@ Sub AIChatsFill()
 		If RecentAIChat <> 0 AndAlso *RecentAIChat = ChatName Then lvAIChats.SelectedItemIndex = Row
 	Next
 	AIChatsFitColumn
+	#ifdef __USE_WINAPI__
+		If lvAIChats.Handle Then
+			If OldTopRow > 0 AndAlso OldTopRow <= UBound(AIChatRows) Then
+				Dim As Integer NewTopRow = SendMessage(lvAIChats.Handle, LVM_GETTOPINDEX, 0, 0)
+				Dim As RECT rcRow
+				rcRow.left = LVIR_BOUNDS
+				If NewTopRow <> OldTopRow AndAlso SendMessage(lvAIChats.Handle, LVM_GETITEMRECT, 0, Cast(LPARAM, @rcRow)) Then
+					SendMessage(lvAIChats.Handle, LVM_SCROLL, 0, (OldTopRow - NewTopRow) * (rcRow.bottom - rcRow.top))
+				End If
+			End If
+			SendMessage(lvAIChats.Handle, WM_SETREDRAW, True, 0)
+			RedrawWindow(lvAIChats.Handle, NULL, NULL, RDW_INVALIDATE Or RDW_ERASE Or RDW_FRAME)
+		End If
+	#endif
 	AIChatsFilling = False
+End Sub
+
+'The opened chat is selected in the list without filling the list again (the rows and the scroll bar are not
+'drawn again); the list is filled only when the chat is not in it yet
+Sub AIChatsSelectOpened()
+	Dim As Integer Row = -1
+	If RecentAIChat <> 0 Then Row = AIChatRowOf(*RecentAIChat)
+	If RecentAIChat <> 0 AndAlso Row < 0 Then AIChatsFill: Exit Sub
+	AIChatsFilling = True
+	If Row >= 0 Then lvAIChats.SelectedItemIndex = Row Else AIChatsClearSelection
+	AIChatsFilling = False
+	#ifdef __USE_WINAPI__
+		'The title of the opened chat is bold: the rows are drawn again (without erasing the background)
+		If lvAIChats.Handle Then InvalidateRect(lvAIChats.Handle, NULL, False)
+	#endif
 End Sub
 
 'Saves the chat of the AI Agent (New Chat, another chat is opened, after an answer of Claude Code)
@@ -13864,6 +13995,8 @@ Sub AIClaudeStart()
 	WLet(AIAssistantsAnswersPtr, "")
 	txtAIRequest.Text = ""
 	AIImagesClear
+	'A multiline text box of Windows sends no EN_CHANGE for WM_SETTEXT: the box of the question gets its height of one line here
+	AIInputUpdateHeight
 	ClearMessages
 	cboAIAgentModels.Enabled = False
 	If AIThread Then ThreadDetach(AIThread)
@@ -13892,8 +14025,15 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		AIPasteImages
 		Return
 	End If
-	If Key <> 13 Then Return
-	If Shift = 4 OrElse Shift = 1 Then Return 'Ctrl ,Shift
+	#ifdef __USE_GTK__
+		'GTK: the key of Enter is GDK_KEY_Return (GDK_KEY_KP_Enter on the numbers), Shift is the state of the modifiers
+		'(with NumLock GDK_MOD2_MASK too): Shift+Enter, Ctrl+Enter are a new line
+		If Key <> GDK_KEY_Return AndAlso Key <> GDK_KEY_KP_Enter Then Return
+		If (Shift And (GDK_SHIFT_MASK Or GDK_CONTROL_MASK)) <> 0 Then Return
+	#else
+		If Key <> 13 Then Return
+		If Shift = 4 OrElse Shift = 1 Then Return 'Ctrl ,Shift
+	#endif
 	If bInAIThread Then
 		ShowMessages(ML("Please waiting, AI is working hard......"))
 		Return
@@ -13901,11 +14041,11 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 	If txtAIRequest.Text = "" AndAlso AIImageCount = 0 Then Return
 	'The tables of the answer are not wider than the panel (twips, a margin for the scroll bar)
 	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->RTFMaxWidth = Max(3000, (txtAIAgent.Width - 40) * 15)
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**User Question:**] " & Date & " " & Time & !"\n")
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n" & txtAIRequest.Text & AIImagesNote() & !"\n")
+	AIChatFeed(!"\n[**User Question:**] " & Date & " " & Time & !"\n")
+	AIChatFeed(!"\n" & txtAIRequest.Text & AIImagesNote() & !"\n")
 	'txtAIAgent.ScrollToEnd
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**AI Response:**] " & *CurrentAIAgent & !"\n")
-	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+	AIChatFeed(!"\n[**AI Response:**] " & *CurrentAIAgent & !"\n")
+	WLet(AIBodyWStringSavePtr, AIChatText())
 	bInAIThread = True
 	lvAIChats.Repaint 'The badge Working of the opened chat
 	AIStateRepaint
@@ -14094,10 +14234,8 @@ Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
 	End If
 	If AIBodyWStringPtr Then
 		WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-		If AIMDtoRTFConverterPtr <> 0 Then
-			AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-			AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
-		End If
+		AIChatReset
+		AIChatFeed(*AIBodyWStringPtr)
 		txtAIRequest.Enabled = True
 		txtAIRequest.SetFocus
 		If (Not IsFBCode) AndAlso (AIBodyWStringSavePtr <> 0) Then _Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
@@ -14131,9 +14269,8 @@ Public Sub AIResetContext()
 	AIContextUsed = 0
 	AIClaudeAddDirs = ""
 	AIStateRepaint
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
 	txtAIAgent.Text = " "
-	txtAIAgent.TextRTF = ""
+	AIChatReset
 	ThreadsEnter
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
@@ -14154,7 +14291,7 @@ Public Sub AIResetContext()
 	AIClaudeSessionDir = ""
 	_Deallocate((RecentAIChat)): RecentAIChat = 0
 	AIChatsClearSelection
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10))
+	AIChatFeed(Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10))
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime = True
 	txtAIRequest.Enabled = True
@@ -14246,9 +14383,10 @@ Sub AIButtonPaint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas
 				Canvas.Line cx + 4, cy - 1, cx, cy - 5
 			End If
 		Else
+			'The arms of + are equal (the line of cairo has both its ends)
 			Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 75)
-			Canvas.Line cx - 5, cy, cx + 6, cy
-			Canvas.Line cx, cy - 5, cx, cy + 6
+			Canvas.Line cx - 5, cy, cx + 5, cy
+			Canvas.Line cx, cy - 5, cx, cy + 5
 		End If
 	#endif
 End Sub
@@ -14305,6 +14443,27 @@ End Sub
 'The row under the box of the question: AI is working (on the left); the model, the mode of Claude Code (a click shows
 'their menu) and the circle of the context (on the right)
 Dim Shared As PopupMenu mnuAIModels
+#ifndef __USE_WINAPI__
+	'The menu of the row is shown from the press of the mouse: GTK 3 gets the button and the time of the press, then
+	'the release of the button does not close the menu (with the button 0 the release chose or closed it)
+	Sub AIMenuPopup()
+		mnuAIModels.ParentWindow = @frmMain
+		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
+			Dim As GtkWidget Ptr MenuWidget = mnuAIModels.Handle
+			If MenuWidget <> 0 Then
+				'Without a parent Wayland can not place the menu (as PopupMenu.Popup)
+				Dim As GtkWidget Ptr ParentToplevel = gtk_widget_get_toplevel(frmMain.Handle)
+				Dim As GtkWidget Ptr MenuToplevel = gtk_widget_get_toplevel(MenuWidget)
+				If ParentToplevel <> 0 AndAlso GTK_IS_WINDOW(ParentToplevel) AndAlso MenuToplevel <> 0 AndAlso MenuToplevel <> MenuWidget AndAlso GTK_IS_WINDOW(MenuToplevel) Then
+					gtk_window_set_transient_for(GTK_WINDOW(MenuToplevel), GTK_WINDOW(ParentToplevel))
+				End If
+				gtk_menu_popup(GTK_MENU(MenuWidget), NULL, NULL, NULL, NULL, 1, gtk_get_current_event_time())
+				Exit Sub
+			End If
+		#endif
+		AIMenuPopup
+	End Sub
+#endif
 'The places in the row (logical): the model, the mode, the circle
 Dim Shared As Integer AIStatusModelLeft, AIStatusModelRight, AIStatusModeLeft, AIStatusModeRight, AIStatusRingLeft
 'The part under the mouse or with the open menu: 0 none, 1 the model, 2 the mode
@@ -14372,6 +14531,40 @@ Function AIContextHint() As UString
 	Return ML("Context") & ": " & AIThousands(AIContextUsed) & " / " & AIThousands(Size) & " " & ML("tokens") & " (" & Min(100, CInt(AIContextUsed * 100 \ Size)) & "%)"
 End Function
 
+#ifndef __USE_WINAPI__
+	'The family of the font of the system (GTK: gtk-font-name, "Cantarell 11" -> Cantarell). The fonts of Windows
+	'(Segoe UI) and the default font of MyFbFramework may be not installed: a font which is not found is a serif font
+	Function AISystemFontName() As String
+		Static As String FontName
+		If FontName <> "" Then Return FontName
+		FontName = "Sans"
+		#ifdef __USE_GTK__
+			#ifndef __USE_GTK4__
+				Dim As gchar Ptr SettingsFont
+				Dim As GtkSettings Ptr Settings = gtk_settings_get_default()
+				If Settings <> 0 Then g_object_get(Settings, "gtk-font-name", @SettingsFont, NULL)
+				If SettingsFont <> 0 Then
+					Dim As PangoFontDescription Ptr Desc = pango_font_description_from_string(SettingsFont)
+					If Desc <> 0 Then
+						Dim As Const gchar Ptr Family = pango_font_description_get_family(Desc)
+						If Family <> 0 AndAlso *Family <> "" Then FontName = *Family
+						pango_font_description_free(Desc)
+					End If
+					g_free(SettingsFont)
+				End If
+			#endif
+		#endif
+		Return FontName
+	End Function
+
+	'The canvas has its own font (not the font of the control): the font of the system in the size of the control
+	Sub AICanvasSetFont(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Dim As String FontName = AISystemFontName()
+		If Canvas.Font.Name <> FontName Then Canvas.Font.Name = FontName
+		If Canvas.Font.Size <> Sender.Font.Size Then Canvas.Font.Size = Sender.Font.Size
+	End Sub
+#endif
+
 'The texts of the row are measured and drawn with the font of the row (logical units)
 Function AIStatusTextWidth(ByRef Sender As Control, ByRef Text As WString) As Integer
 	#ifdef __USE_WINAPI__
@@ -14383,6 +14576,7 @@ Function AIStatusTextWidth(ByRef Sender As Control, ByRef Text As WString) As In
 		ReleaseDC(Sender.Handle, DC)
 		Return Sender.UnScaleX(sz.cx)
 	#else
+		AICanvasSetFont Sender, Sender.Canvas
 		Return Sender.Canvas.TextWidth(Text)
 	#endif
 End Function
@@ -14396,6 +14590,7 @@ Sub AIStatusText(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas,
 		DrawTextW(Canvas.Handle, @Text, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
 		SelectObject(Canvas.Handle, OldFont)
 	#else
+		AICanvasSetFont Sender, Canvas
 		Canvas.TextOut x, (Sender.Height - Canvas.TextHeight(Text)) \ 2, Text, Clr, -1
 	#endif
 End Sub
@@ -14497,6 +14692,34 @@ Sub pnlAIStatus_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 			End If
 			GdipDeleteGraphics(G)
 		End If
+	#elseif defined(__USE_GTK__)
+		'The background under the mouse, the grey track and the used part from the top clockwise (cairo, device pixels)
+		If AIStatusHoverPart = 3 OrElse AIStatusMenuPart = 3 Then
+			Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 14)
+			Canvas.Brush.Color = AIImageBlend(ClrText, ClrBack, 14)
+			Canvas.RoundRect AIStatusRingLeft - 5, 1, AIStatusRingLeft + AIStatusRingSize + 5, Sender.Height - 1, 12, 12
+		End If
+		Dim As cairo_t Ptr cr = Cast(cairo_t Ptr, Canvas.Handle)
+		If cr <> 0 Then
+			Dim As Double Thick = Sender.ScaleX(2), d = Sender.ScaleX(AIStatusRingSize) - Thick
+			Dim As Double cx = Sender.ScaleX(AIStatusRingLeft) + Thick / 2 + d / 2, cy = Sender.ScaleY(Sender.Height) / 2
+			Dim As Integer Track = AIImageBlend(ClrText, ClrBack, 25)
+			cairo_save(cr)
+			cairo_set_line_width(cr, Thick)
+			cairo_new_path(cr)
+			cairo_set_source_rgb(cr, GetRed(Track) / 255, GetGreen(Track) / 255, GetBlue(Track) / 255)
+			cairo_arc(cr, cx, cy, d / 2, 0, 2 * G_PI)
+			cairo_stroke(cr)
+			If Part > 0 Then
+				Dim As Integer Clr = IIf(Part > 0.8, AIAccentWarnColor, AIAccentColor)
+				cairo_set_source_rgb(cr, GetRed(Clr) / 255, GetGreen(Clr) / 255, GetBlue(Clr) / 255)
+				cairo_set_line_cap(cr, CAIRO_LINE_CAP_ROUND)
+				cairo_new_path(cr)
+				cairo_arc(cr, cx, cy, d / 2, -G_PI / 2, -G_PI / 2 + Max(4.0 / 180 * G_PI, Part * 2 * G_PI))
+				cairo_stroke(cr)
+			End If
+			cairo_restore(cr)
+		End If
 	#else
 		Canvas.Pen.Color = IIf(Part > 0, IIf(Part > 0.8, AIAccentWarnColor, AIAccentColor), AIImageBlend(ClrText, ClrBack, 25))
 		Canvas.Brush.Color = ClrBack
@@ -14548,12 +14771,34 @@ Sub AIClaudeModeSelect(Index As Integer)
 	pnlAIStatus.Repaint
 End Sub
 
+Declare Sub AIAddFiles()
+Declare Sub AIAccountChoose(Chosen As Integer)
+Declare Sub AIAddFolder()
+Declare Function AIClaudeMenuModel(Index As Integer) As String
 Sub mnuAIModels_Click(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As String Key = Sender.ToString
 	If Left(Key, 7) = "AIModel" Then
 		AIModelSelect Val(Mid(Key, 8))
+	ElseIf Left(Key, 8) = "AIClaude" Then
+		'The model of Claude Code (--model)
+		AIClaudeModelOverride = AIClaudeMenuModel(Val(Mid(Key, 9)))
+		iniSettings.WriteString("AIAgents", "ClaudeModel", AIClaudeModelOverride)
+		pnlAIStatus.Repaint
+	ElseIf Left(Key, 8) = "AIEffort" Then
+		'The effort of Claude Code (--effort)
+		AIClaudeEffort = AIClaudeEffortValue(Val(Mid(Key, 9)))
+		iniSettings.WriteString("AIAgents", "ClaudeEffort", AIClaudeEffort)
+		pnlAIStatus.Repaint
 	ElseIf Left(Key, 6) = "AIMode" Then
 		AIClaudeModeSelect Val(Mid(Key, 7))
+	ElseIf Left(Key, 9) = "AIAccount" Then
+		AIAccountChoose Val(Mid(Key, 10))
+	ElseIf Key = "AIAddFiles" Then
+		AIAddFiles
+		If txtAIRequest.Enabled Then txtAIRequest.SetFocus
+	ElseIf Key = "AIAddFolder" Then
+		AIAddFolder
+		If txtAIRequest.Enabled Then txtAIRequest.SetFocus
 	End If
 End Sub
 
@@ -14815,6 +15060,8 @@ End Sub
 	'The panel of the circle (like the usage of Claude): the rows are the titles of the groups (AIPanelValues = -1),
 	'the texts (-2) and the rows with a bar (0..1): a title on the left, a grey text on the right, the bar under them
 	Dim Shared As Boolean AIMenuPanel
+#endif
+	'The rows of the usage are made on all systems (GTK shows them in a menu)
 	Dim Shared As UString AIPanelTitles(Any), AIPanelRights(Any)
 	Dim Shared As Double AIPanelValues(Any)
 
@@ -14885,6 +15132,7 @@ End Sub
 			End If
 		End If
 	End Sub
+#ifdef __USE_WINAPI__
 
 	Sub AIPanelPaint(ByVal hWnd As HWND)
 		Dim As PAINTSTRUCT ps
@@ -15533,7 +15781,46 @@ Sub AIAccountLogin(ByRef Email As WString = "")
 			ShowMessages(ML("Could not start") & ": " & Cmd)
 		End If
 	#else
-		ShowMessages(ML("Run in a terminal") & ": CLAUDE_CONFIG_DIR=""" & AIAccountConfigDir() & """ " & AIClaudeExe() & " auth login" & EmailOption)
+		'A terminal with "claude auth login" (the folder of the account in CLAUDE_CONFIG_DIR). The commands are in a script:
+		'the terminals take their command differently. claude of the native installer is in ~/.local/bin, which may be
+		'not in PATH of the IDE (the IDE was not started from a shell).
+		Dim As UString ConfigDir = AIAccountConfigDir(), Exe = AIClaudeExe()
+		Dim As String Lf = Chr(10)
+		Dim As String Script = "#!/bin/sh" & Lf
+		If ConfigDir <> "" Then Script &= "export CLAUDE_CONFIG_DIR='" & ToUtf8(Replace(ConfigDir, "'", "'\''")) & "'" & Lf
+		Script &= "C=" & ToUtf8(Exe) & Lf
+		If Exe = "claude" Then Script &= "command -v ""$C"" >/dev/null 2>&1 || C=""$HOME/.local/bin/claude""" & Lf
+		'WSL: there is no browser of Linux (xdg-open did not open the page of the sign in), the browser of Windows opens it
+		'(claude opens the page with $BROWSER)
+		Script &= "if [ -z ""$BROWSER"" ] && grep -qi microsoft /proc/version 2>/dev/null; then" & Lf & _
+			"  if command -v wslview >/dev/null 2>&1; then export BROWSER=wslview" & Lf & _
+			"  elif command -v explorer.exe >/dev/null 2>&1; then export BROWSER=explorer.exe" & Lf & _
+			"  elif [ -x /mnt/c/Windows/explorer.exe ]; then export BROWSER=/mnt/c/Windows/explorer.exe; fi" & Lf & _
+			"fi" & Lf
+		Script &= """$C"" auth login" & ToUtf8(EmailOption) & Lf
+		Script &= "echo" & Lf & "printf '%s' '" & ToUtf8(Replace(ML("Press Enter to close"), "'", "")) & "'" & Lf & "read x" & Lf
+		Dim As String Launcher = "#!/bin/sh" & Lf & _
+			"S=""$(dirname ""$0"")/claude-login.sh""" & Lf & _
+			"for t in x-terminal-emulator gnome-terminal konsole xfce4-terminal mate-terminal lxterminal tilix kitty alacritty xterm; do" & Lf & _
+			"  command -v $t >/dev/null 2>&1 || continue" & Lf & _
+			"  case $t in gnome-terminal|tilix) exec $t -- sh ""$S"" ;; *) exec $t -e sh ""$S"" ;; esac" & Lf & _
+			"done" & Lf & "exit 1" & Lf
+		Dim As UString ScriptFile = GetUserTempPath("AIAgent/claude-login.sh"), LauncherFile = GetUserTempPath("AIAgent/claude-login-terminal.sh")
+		'Binary writes over an older (longer) file would keep its end
+		Kill ScriptFile
+		Kill LauncherFile
+		Dim As Integer Fn = FreeFile_
+		If Open(ScriptFile For Binary Access Write As #Fn) = 0 Then
+			Put #Fn, , Script
+			CloseFile_(Fn)
+		End If
+		Fn = FreeFile_
+		If Open(LauncherFile For Binary Access Write As #Fn) = 0 Then
+			Put #Fn, , Launcher
+			CloseFile_(Fn)
+		End If
+		Shell "sh '" & Replace(LauncherFile, "'", "'\''") & "' >/dev/null 2>&1 &"
+		ShowMessages(ML("Sign in in the terminal; if no terminal is opened, run") & ": " & IIf(ConfigDir <> "", "CLAUDE_CONFIG_DIR=""" & ConfigDir & """ ", "") & Exe & " auth login" & EmailOption)
 	#endif
 End Sub
 
@@ -15620,6 +15907,26 @@ Sub pnlAIAccount_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 		Dim As RECT rc = Type(Sender.ScaleX(AvatarLeft), 0, Sender.ScaleX(AvatarLeft + Avatar), Sender.ScaleY(Sender.Height))
 		DrawTextW(Canvas.Handle, @Letter, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER Or DT_NOPREFIX)
 		SelectObject(Canvas.Handle, OldFont)
+	#else
+		'The line above the row, the row under the mouse, the round picture with the first letter, the arrow
+		Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 12)
+		Canvas.Line 0, 0, Sender.Width, 0
+		If AIAccountHover Then
+			Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 12)
+			Canvas.Brush.Color = AIImageBlend(ClrText, ClrBack, 12)
+			Canvas.RoundRect 4, 4, Sender.Width - 4, Sender.Height - 4, 12, 12
+		End If
+		Dim As Integer ay = (Sender.Height - Avatar) \ 2
+		Canvas.Pen.Color = BGR(217, 119, 87)
+		Canvas.Brush.Color = BGR(217, 119, 87)
+		Canvas.RoundRect AvatarLeft, ay, AvatarLeft + Avatar, ay + Avatar, Avatar, Avatar
+		Dim As WString * 2 Letter = UCase(Left(Name_, 1))
+		AICanvasSetFont Sender, Canvas
+		Canvas.TextOut AvatarLeft + (Avatar - Canvas.TextWidth(Letter)) / 2, (Sender.Height - Canvas.TextHeight(Letter)) \ 2, Letter, BGR(255, 255, 255), -1
+		Dim As Integer cx = Sender.Width - 18, cy = Sender.Height \ 2
+		Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 60)
+		Canvas.Line cx - 4, cy - 2, cx, cy + 2
+		Canvas.Line cx, cy + 2, cx + 4, cy - 2
 	#endif
 	Dim As Integer x = AvatarLeft + Avatar + 10
 	AIStatusText Sender, Canvas, x, Name_, ClrText
@@ -15642,6 +15949,26 @@ End Sub
 Sub pnlAIAccount_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
 	AIAccountHover = False
 	Sender.Repaint
+End Sub
+
+'The item of the menu of the accounts: an account, Add account, Sign in again, Remove from the list
+Sub AIAccountChoose(Chosen As Integer)
+	Dim As Integer Count = UBound(AIAccountDirs) + 1
+	If Chosen < 0 Then Exit Sub
+	If Chosen < Count Then
+		If Chosen <> AIAccountIndex Then AIAccountIndex = Chosen: AIAccountChanged
+	ElseIf Chosen = Count Then
+		AIAccountAdd
+	ElseIf Chosen = Count + 1 Then
+		'The e-mail which was signed in this folder (else the e-mail which is there now)
+		Dim As UString Name_, Email, Plan
+		AIAccountInfo AIAccountIndex, Name_, Email, Plan
+		Dim As UString Saved = AIAccountSavedEmail(AIAccountIndex)
+		If Saved = "" Then Saved = Email
+		AIAccountLogin Saved
+	ElseIf AIAccountIndex > 0 Then
+		AIAccountRemove
+	End If
 End Sub
 
 Sub pnlAIAccount_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -15692,22 +16019,20 @@ Sub pnlAIAccount_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		AIStatusMenuPart = 0
 		AIAccountHover = False
 		Sender.Repaint
+	#else
+		'The menu of GTK: the item is done by mnuAIModels_Click (AIAccountChoose)
+		mnuAIModels.Clear
+		For i As Integer = 0 To Items - 1
+			If i = Count Then mnuAIModels.Add("-")
+			Dim As UString Title = AIMenuTitles(i)
+			If AIMenuNotes(i) <> "" Then Title &= " " & WChr(&H2014) & " " & AIMenuNotes(i)
+			Var mi = mnuAIModels.Add(Title, "", "AIAccount" & i, @mnuAIModels_Click, i < Count)
+			If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
+		Next
+		AIMenuPopup
+		Exit Sub
 	#endif
-	If Chosen < 0 Then Exit Sub
-	If Chosen < Count Then
-		If Chosen <> AIAccountIndex Then AIAccountIndex = Chosen: AIAccountChanged
-	ElseIf Chosen = Count Then
-		AIAccountAdd
-	ElseIf Chosen = Count + 1 Then
-		'The e-mail which was signed in this folder (else the e-mail which is there now)
-		Dim As UString Name_, Email, Plan
-		AIAccountInfo AIAccountIndex, Name_, Email, Plan
-		Dim As UString Saved = AIAccountSavedEmail(AIAccountIndex)
-		If Saved = "" Then Saved = Email
-		AIAccountLogin Saved
-	Else
-		AIAccountRemove
-	End If
+	AIAccountChoose Chosen
 End Sub
 
 Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -15733,7 +16058,20 @@ Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 			Exit Sub
 		End If
 	#else
-		If Part = 3 Then ShowMessages(AIContextHint()): Exit Sub
+		If Part = 3 Then
+			'The usage (the context and the limits of the plan) in a menu: its rows are not chosen
+			AIPanelSetRows
+			mnuAIModels.ParentWindow = @frmMain
+			mnuAIModels.Clear
+			For i As Integer = 0 To UBound(AIPanelTitles)
+				Dim As UString Text = AIPanelTitles(i)
+				If AIPanelRights(i) <> "" Then Text &= "    " & AIPanelRights(i)
+				If AIPanelValues(i) = -1 AndAlso i > 0 Then mnuAIModels.Add("-")
+				mnuAIModels.Add(Text, "", "AIUsage" & i, @mnuAIModels_Click, False, -1, AIPanelValues(i) = -1)
+			Next
+			AIMenuPopup
+			Exit Sub
+		End If
 	#endif
 	If bInAIThread OrElse Not cboAIAgentModels.Enabled Then Exit Sub
 	AIMenuSetItems Part
@@ -15795,11 +16133,44 @@ Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 	#else
 		mnuAIModels.ParentWindow = @frmMain
 		mnuAIModels.Clear
-		For i As Integer = 0 To UBound(AIMenuTitles)
-			Var mi = mnuAIModels.Add(AIMenuTitles(i), "", IIf(Part = 1, "AIModel", "AIMode") & i, @mnuAIModels_Click, True)
-			If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
-		Next
-		mnuAIModels.Popup 0, 0
+		If Part = 1 AndAlso IsClaudeCodeAgent() Then
+			'Claude Code: the models of claude, Effort > (the levels), More models > (the agents of the list)
+			Dim As String Current = LCase(AIClaudeModelName())
+			For i As Integer = 0 To 3
+				Dim As String Alias_ = AIClaudeMenuModel(i)
+				Dim As UString Title = AIClaudeModelTitle(IIf(AIClaudeModelID <> "" AndAlso InStr(LCase(AIClaudeModelID), Alias_) > 0, AIClaudeModelID, Alias_))
+				If Alias_ = "fable" Then Title &= " " & WChr(&HB7) & " " & ML("Requires usage credits")
+				Var mi = mnuAIModels.Add(Title, "", "AIClaude" & i, @mnuAIModels_Click, True)
+				If mi <> 0 AndAlso (Current = Alias_ OrElse (Left(Current, 7) = "claude-" AndAlso InStr(Current, Alias_) > 0)) Then mi->Checked = True
+			Next
+			mnuAIModels.Add("-")
+			Var miEffort = mnuAIModels.Add(ML("Effort") & ": " & AIClaudeEffortTitle(AIClaudeEffort), "", "AIEffortMenu")
+			If miEffort <> 0 Then
+				For i As Integer = 0 To 4
+					Dim As UString Title = AIClaudeEffortTitle(AIClaudeEffortValue(i))
+					If i = 1 Then Title &= " " & WChr(&HB7) & " " & ML("Recommended")
+					If i = 4 Then Title &= " " & WChr(&HB7) & " " & ML("Uses the limits faster")
+					Var mi = miEffort->Add(Title, "", "AIEffort" & i, @mnuAIModels_Click, True)
+					If mi <> 0 AndAlso AIClaudeEffortValue(i) = LCase(AIClaudeEffort) Then mi->Checked = True
+				Next
+			End If
+			Var miMore = mnuAIModels.Add(ML("More models"), "", "AIMoreModels")
+			If miMore <> 0 Then
+				For i As Integer = 0 To cboAIAgentModels.ItemCount - 1
+					Var mi = miMore->Add(cboAIAgentModels.Item(i), "", "AIModel" & i, @mnuAIModels_Click, True)
+					If mi <> 0 AndAlso i = cboAIAgentModels.ItemIndex Then mi->Checked = True
+				Next
+			End If
+		Else
+			'The agents of the list, or the modes of Claude Code (the note after the title; AIMenuSetItems above)
+			For i As Integer = 0 To UBound(AIMenuTitles)
+				Dim As UString Title = AIMenuTitles(i)
+				If i <= UBound(AIMenuNotes) AndAlso AIMenuNotes(i) <> "" Then Title &= " " & WChr(&H2014) & " " & AIMenuNotes(i)
+				Var mi = mnuAIModels.Add(Title, "", IIf(Part = 1, "AIModel", "AIMode") & i, @mnuAIModels_Click, True)
+				If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
+			Next
+		End If
+		AIMenuPopup
 	#endif
 End Sub
 
@@ -15841,6 +16212,15 @@ End Sub
 Sub pnlAIAdd_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
 	If MouseButton <> 0 OrElse Not AIButtonHit(Sender, x, y) Then Exit Sub
 	AIButtonSetHover Sender, AIAddHover, False
+	#ifndef __USE_WINAPI__
+		'The menu of GTK (always, as the menu of the row): the item is done by mnuAIModels_Click. A folder is only for
+		'Claude Code (--add-dir)
+		mnuAIModels.Clear
+		mnuAIModels.Add(ML("Add files or photos"), "", "AIAddFiles", @mnuAIModels_Click)
+		mnuAIModels.Add(ML("Add folder"), "", "AIAddFolder", @mnuAIModels_Click, False, -1, IsClaudeCodeAgent())
+		AIMenuPopup
+		Exit Sub
+	#endif
 	Dim As Integer Chosen = 0
 	If IsClaudeCodeAgent() Then
 		#ifdef __USE_WINAPI__
@@ -15869,7 +16249,10 @@ pnlAIStatus.Name = "pnlAIStatus"
 pnlAIStatus.Align = DockStyle.alBottom
 pnlAIStatus.Height = 24
 pnlAIStatus.DoubleBuffered = True
-pnlAIStatus.Font.Name = "Segoe UI"
+'Windows: Segoe UI, the other systems: the font of the system (a font which is not installed is a serif font)
+#ifdef __USE_WINAPI__
+	pnlAIStatus.Font.Name = "Segoe UI"
+#endif
 pnlAIStatus.Font.Size = 9
 pnlAIStatus.OnPaint = @pnlAIStatus_Paint
 pnlAIStatus.OnMouseMove = @pnlAIStatus_MouseMove
@@ -15880,9 +16263,14 @@ pnlAIAccount.Name = "pnlAIAccount"
 pnlAIAccount.Align = DockStyle.alBottom
 pnlAIAccount.Height = 44
 pnlAIAccount.DoubleBuffered = True
-pnlAIAccount.Font.Name = "Segoe UI"
+'Windows: Segoe UI, the other systems: the font of the system (a font which is not installed is a serif font)
+#ifdef __USE_WINAPI__
+	pnlAIAccount.Font.Name = "Segoe UI"
+#endif
 pnlAIAccount.Font.Size = 10
-pnlAIAccount.Visible = False
+'The agent of the start is loaded already (LoadSettings, without cboAIAgentModels_Change and AIStateRepaint): the row
+'of the account is shown for Claude Code from the start
+pnlAIAccount.Visible = IsClaudeCodeAgent()
 pnlAIAccount.OnPaint = @pnlAIAccount_Paint
 pnlAIAccount.OnMouseMove = @pnlAIAccount_MouseMove
 pnlAIAccount.OnMouseLeave = @pnlAIAccount_MouseLeave
@@ -17670,6 +18058,15 @@ Sub ShowMessages(ByRef msg As WString, ChangeTab As Boolean = True)
 		While gtk_events_pending()
 			gtk_main_iteration()
 		Wend
+		'The text view scrolls to the end of the inserted text: after a long line (the command of the compiler) it stayed
+		'scrolled to the right. The new line begins at the left, the horizontal scroll is at the beginning again.
+		If txtOutput.Handle <> 0 Then
+			Dim As GtkWidget Ptr Scrolled = gtk_widget_get_parent(txtOutput.Handle)
+			If Scrolled <> 0 AndAlso GTK_IS_SCROLLED_WINDOW(Scrolled) Then
+				Dim As GtkAdjustment Ptr HAdj = gtk_scrolled_window_get_hadjustment(GTK_SCROLLED_WINDOW(Scrolled))
+				If HAdj <> 0 AndAlso gtk_adjustment_get_value(HAdj) <> gtk_adjustment_get_lower(HAdj) Then gtk_adjustment_set_value(HAdj, gtk_adjustment_get_lower(HAdj))
+			End If
+		End If
 	#endif
 	'    txtOutput.ScrollToCaret
 End Sub
@@ -17874,6 +18271,8 @@ Sub CloseUnpinnedPanels(Ctrl As Control Ptr)
 End Sub
 
 Sub frmMain_ActiveControlChanged(ByRef Designer As My.Sys.Object, ByRef sender As My.Sys.Object)
+	'The IDE is closing: the destructors of the global controls (after End) move the focus, the tabs can be destroyed already
+	If FormClosing Then Exit Sub
 	If frmMain.ActiveControl = 0 Then Exit Sub
 	CloseUnpinnedPanels frmMain.ActiveControl
 	Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)

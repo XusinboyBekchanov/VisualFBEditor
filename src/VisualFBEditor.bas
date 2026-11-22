@@ -245,7 +245,7 @@ Sub AIChatOpenName(ByRef ChatName As WString)
 	FileName= ChatDirectory & ChatName
 	If bInAIThread Then
 		ShowMessages(ML("Please waiting, AI is working hard......"))
-		AIChatsFill 'The selection of the list goes back to the chat of now
+		AIChatsSelectOpened 'The selection of the list goes back to the chat of now
 		Exit Sub
 	End If
 	'The chat which is open now
@@ -258,11 +258,11 @@ Sub AIChatOpenName(ByRef ChatName As WString)
 	AIChatDirty = False
 	AddMRUAIChat ChatName
 	WLet(RecentAIChat, ChatName)
-	AIChatsFill
+	'The order of the chats is the same (the opened chat is not written): only the selection is changed
+	AIChatsSelectOpened
 	_Deallocate(AIBodyWStringPtr)
 	Dim As Integer Capacity
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-	txtAIAgent.TextRTF = ""
+	AIChatReset
 	For i As Integer = 0 To AIMessages.Count - 1
 		If i <> AIMessages.Count - 1 Then
 			WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10), , Capacity)
@@ -272,7 +272,7 @@ Sub AIChatOpenName(ByRef ChatName As WString)
 		End If
 	Next
 	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+	AIChatFeed(*AIBodyWStringPtr)
 	'txtAIAgent.TextRTF = *AIBodyWStringPtr
 	'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 	txtAIRequest.Enabled = True
@@ -285,6 +285,11 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As UString ChatDirectory
 	Select Case Sender.ToString
 	Case "AIChatEdit"
+		If AIChatViewMode <> acvRTF Then
+			'The selected text, the code block under the mouse or the last code block of the chat
+			If Trim(AIChatViewSelection, Any !" \r\n\t") <> "" AndAlso InStr(AIChatViewSelection, "```") = 0 Then AIChatOpenCode AIChatViewSelection Else AIChatOpenCode AIChatLastCode()
+			Exit Sub
+		End If
 		If Trim(txtAIAgent.SelText) = "" Then
 			txtAIAgent.SelStart = InStrRev(txtAIAgent.Text, "```", txtAIAgent.SelStart + 3)
 			txtAIAgent.SelEnd = InStr(txtAIAgent.SelStart + 3, txtAIAgent.Text, "```")
@@ -317,8 +322,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 			WLet(RecentAIChat, FileName)
 			_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
 			Dim As Integer Capacity
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-			txtAIAgent.TextRTF = ""
+			AIChatReset
 			For i As Integer = 0 To AIMessages.Count - 1
 				If i <> AIMessages.Count - 1 Then
 					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text & Chr(10), , Capacity)
@@ -327,7 +331,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text, , Capacity)
 				End If
 			Next
-			If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+			AIChatFeed(*AIBodyWStringPtr)
 			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
 			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			frmMain.Cursor = 0
@@ -1296,6 +1300,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 				End If
 			End If
 		End If
+		'The chat of the AI Agent (its own control): Copy, Select All
+		If AIChatViewCommand(Sender.ToString) Then Exit Sub
 		Dim As Form Ptr ActiveForm = Cast(Form Ptr, pApp->ActiveForm)
 		If ActiveForm = 0 Then Exit Sub
 		If ActiveForm->ActiveControl = 0 Then
