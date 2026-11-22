@@ -26,6 +26,15 @@
 		Declare Sub cboAIAgentProvider_Change(ByRef Sender As ComboBoxEdit)
 		Declare Sub cboAIAgentModelName_Change(ByRef Sender As ComboBoxEdit)
 		Declare Sub Form_Create(ByRef Sender As Control)
+		Declare Function IsClaudeCodeProvider(ByRef Provider As WString) As Boolean
+		Declare Sub SetClaudeCodeDefaults(Force As Boolean = False)
+		Declare Function ProviderText() As UString
+		Declare Function AgentKey() As UString
+		Declare Sub SetAgentKey(ByRef Key As WString)
+		Declare Sub UpdateAutoName(ByRef Provider As WString)
+		Declare Sub LoadLists()
+		Dim As Boolean ListsLoaded
+		Dim As Integer LastProviderIndex = -2
 		Declare Constructor
 		
 		Dim As Label lblAIAgentName, lblAIAgentModelName, lblAIAgentHost, lblAIAgentPort, lblAIAgentAPIKey, lblAIAgentTemperature, lblAIAgentAddress, lblAIAgentprovider, lblAIAgentContentSize
@@ -55,8 +64,7 @@
 			.WindowState = WindowStates.wsNormal
 			.StartPosition = FormStartPosition.CenterParent
 			.BorderStyle = FormBorderStyle.FixedSingle
-			.AutoSize = True
-			.SetBounds 0, 0, 528, 269
+			.SetBounds 0, 0, 535, 269
 		End With
 		' lblAIAgentName
 		With lblAIAgentName
@@ -145,7 +153,7 @@
 			.TabIndex = 6
 			.ControlIndex = 5
 			.Text = "443"
-			.SetBounds 80, 0, 54, 21
+			.SetBounds 80, 0, 50, 21
 			.Designer = @This
 			.Parent = @HorizontalBox5
 		End With
@@ -158,7 +166,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.ID = 1922
 			.CenterImage = True
-			.SetBounds 154, 0, 80, 21
+			.SetBounds 154, 0, 72, 21
 			.Designer = @This
 			.Parent = @HorizontalBox5
 		End With
@@ -181,14 +189,14 @@
 			.TabIndex = 10
 			.Checked = True
 			.ControlIndex = 9
-			.SetBounds 263, 0, 58, 21
+			.ExtraMargins.Left = 13
+			.SetBounds 263, 0, 57, 21
 			.Designer = @This
 			.Parent = @HorizontalBox5
 		End With
-		' cboAIAgentAddress
-		With cboAIAgentAddress
-			.Name = "cboAIAgentAddress"
-			.Text = "cboAIAgentAddress"
+		' cboAIAgentHost
+		With cboAIAgentHost
+			.Name = "cboAIAgentHost"
 			.Style = cbDropDown
 			.TabIndex = 11
 			.ControlIndex = 9
@@ -209,10 +217,9 @@
 			.Designer = @This
 			.Parent = @HorizontalBox4
 		End With
-		' cboAIAgentHost
-		With cboAIAgentHost
-			.Name = "cboAIAgentHost"
-			.Text = "cboAIAgentHost"
+		' cboAIAgentAddress
+		With cboAIAgentAddress
+			.Name = "cboAIAgentAddress"
 			.Style = cbDropDown
 			.TabIndex = 13
 			.ControlIndex = 12
@@ -277,7 +284,6 @@
 		' cboAIAgentModelName
 		With cboAIAgentModelName
 			.Name = "cboAIAgentModelName"
-			.Text = "cboAIAgentModelName"
 			.Style = cbDropDown
 			.TabIndex = 21
 			'.ImagesList = pimgListAIModels32
@@ -290,7 +296,6 @@
 		' cboAIAgentProvider
 		With cboAIAgentProvider
 			.Name = "cboAIAgentProvider"
-			.Text = "cboAIAgentProvider"
 			.Style = cbDropDown
 			'.ImagesList = pimgListAIProviders32
 			.TabIndex = 19
@@ -440,7 +445,7 @@
 			.Alignment = AlignmentConstants.taRight
 			.CenterImage = True
 			.ControlIndex = 0
-			.SetBounds 361, 0, 80, 21
+			.SetBounds 361, 0, 70, 21
 			.Designer = @This
 			.Parent = @HorizontalBox5
 		End With
@@ -473,6 +478,8 @@ Private Sub frmAIAgentType.cmdCancel_Click(ByRef Sender As Control)
 End Sub
 
 Private Sub frmAIAgentType.cmdOK_Click(ByRef Sender As Control)
+	'Claude Code (the claude program of the computer) has no address, port and API key
+	If IsClaudeCodeProvider(cboAIAgentProvider.Text) Then SetClaudeCodeDefaults
 	If Trim(txtAIAgentName.Text) = "" Then
 		MsgBox ML("Enter name of AI Agent!")
 		This.BringToFront()
@@ -536,22 +543,89 @@ End Sub
 
 Private Sub frmAIAgentType.chkAIAgentAuto_Click(ByRef Sender As CheckBox)
 	txtAIAgentName.Enabled = Not chkAIAgentAuto.Checked
+	UpdateAutoName cboAIAgentProvider.Text
 End Sub
 
-Private Sub frmAIAgentType.cboAIAgentProvider_Change(ByRef Sender As ComboBoxEdit)
-	If chkAIAgentAuto.Checked Then
-		txtAIAgentName.Text = cboAIAgentModelName.Text & "|" & cboAIAgentProvider.Text
+'With Auto the name of the agent is model|provider, the text box shows the short name (AIAgentShortName)
+Private Sub frmAIAgentType.UpdateAutoName(ByRef Provider As WString)
+	If Not chkAIAgentAuto.Checked Then Exit Sub
+	If cboAIAgentModelName.Text = "" AndAlso Provider = "" Then
+		txtAIAgentName.Text = ""
+	Else
+		txtAIAgentName.Text = AIAgentShortName(cboAIAgentModelName.Text & "|" & Provider)
 	End If
+End Sub
+
+Private Function frmAIAgentType.AgentKey() As UString
+	If chkAIAgentAuto.Checked Then Return cboAIAgentModelName.Text & "|" & cboAIAgentProvider.Text
+	Return txtAIAgentName.Text
+End Function
+
+'Call after the model and the provider are set: an agent with its own name turns Auto off
+Private Sub frmAIAgentType.SetAgentKey(ByRef Key As WString)
+	Dim As Boolean IsAuto = (Key = "" OrElse Key = cboAIAgentModelName.Text & "|" & cboAIAgentProvider.Text)
+	chkAIAgentAuto.Checked = IsAuto
+	txtAIAgentName.Enabled = Not IsAuto
+	If IsAuto Then UpdateAutoName cboAIAgentProvider.Text Else txtAIAgentName.Text = Key
+End Sub
+
+Private Function frmAIAgentType.IsClaudeCodeProvider(ByRef Provider As WString) As Boolean
+	Select Case LCase(Trim(Provider))
+	Case "claude code", "claudecode", "claude-code", "claude cli"
+		Return True
+	End Select
+	Return False
+End Function
+
+'Claude Code: Host is the program (claude or its full path), Model name is the model of claude (sonnet, opus, default)
+'Force: Claude Code is chosen as the provider, the address, port and API key of the previous provider are not used by it
+Private Sub frmAIAgentType.SetClaudeCodeDefaults(Force As Boolean = False)
+	If Trim(cboAIAgentHost.Text) = "" OrElse InStr(cboAIAgentHost.Text, ".") > 0 AndAlso InStr(cboAIAgentHost.Text, "\") < 1 AndAlso InStr(cboAIAgentHost.Text, "/") < 1 Then cboAIAgentHost.Text = "claude"
+	Dim As Boolean ClaudeModel
+	Select Case LCase(Trim(cboAIAgentModelName.Text))
+	Case "sonnet", "opus", "haiku", "fable", "default", "opusplan": ClaudeModel = True
+	Case Else: ClaudeModel = StartsWith(LCase(Trim(cboAIAgentModelName.Text)), "claude")
+	End Select
+	If Trim(cboAIAgentModelName.Text) = "" OrElse InStr(cboAIAgentModelName.Text, "/") > 0 OrElse CInt(Force AndAlso Not ClaudeModel) Then cboAIAgentModelName.Text = "sonnet"
+	If Force OrElse Trim(cboAIAgentAddress.Text) = "" Then cboAIAgentAddress.Text = "-"
+	If Force OrElse Trim(cboAIAgentPort.Text) = "" Then cboAIAgentPort.Text = "0"
+	If Force OrElse Trim(txtAIAgentAPIKey.Text) = "" Then txtAIAgentAPIKey.Text = "-"
+	If Trim(cboAIAgentContentSize.Text) = "" Then cboAIAgentContentSize.Text = "128"
+	If Trim(updnAIAgentTemperature.Text) = "" Then updnAIAgentTemperature.Text = "1"
+End Sub
+
+'On Windows when an item is chosen from the list (CBN_SELCHANGE) the edit of the combobox still has the previous text,
+'then the provider is the chosen item
+Private Function frmAIAgentType.ProviderText() As UString
+	Dim As Integer Index = cboAIAgentProvider.ItemIndex
+	If Index > -1 AndAlso Index <> LastProviderIndex Then
+		LastProviderIndex = Index
+		Return cboAIAgentProvider.Item(Index)
+	End If
+	LastProviderIndex = Index
+	Return cboAIAgentProvider.Text
+End Function
+
+Private Sub frmAIAgentType.cboAIAgentProvider_Change(ByRef Sender As ComboBoxEdit)
+	Dim As UString Provider = ProviderText
+	If IsClaudeCodeProvider(Provider) Then SetClaudeCodeDefaults True
+	UpdateAutoName Provider
 End Sub
 
 Private Sub frmAIAgentType.cboAIAgentModelName_Change(ByRef Sender As ComboBoxEdit)
-	If chkAIAgentAuto.Checked Then
-		txtAIAgentName.Text = cboAIAgentModelName.Text & "|" & cboAIAgentProvider.Text
-	End If
+	UpdateAutoName cboAIAgentProvider.Text
 End Sub
 
 Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
-	txtAIAgentName.Enabled = chkAIAgentAuto.Checked
+	txtAIAgentName.Enabled = Not chkAIAgentAuto.Checked
+	LoadLists
+End Sub
+
+'The lists of the combo boxes are loaded once, before the window is made (frmOptions calls it before ShowModal):
+'loaded in the shown window the texts of the combo boxes were cleared and came back
+Private Sub frmAIAgentType.LoadLists()
+	If ListsLoaded Then Exit Sub
+	ListsLoaded = True
 	Dim As WString * 260 Temp = cboAIAgentPort.Text
 	cboAIAgentPort.Clear
 	cboAIAgentPort.AddItem "80"
@@ -649,5 +723,7 @@ Private Sub frmAIAgentType.Form_Create(ByRef Sender As Control)
 		End With
 		cboAIAgentProvider.SaveToFile(tmpName)
 	End If
+	'The claude program of the computer (Claude Code)
+	If Not cboAIAgentProvider.Contains("Claude Code") Then cboAIAgentProvider.AddItem "Claude Code"
 	cboAIAgentProvider.Text = Temp
 End Sub

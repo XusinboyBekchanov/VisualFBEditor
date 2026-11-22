@@ -8,6 +8,7 @@
 
 #include once "Main.bi"
 #include once "mff/Dialogs.bi"
+#include once "crt/time.bi"
 #include once "mff/Form.bi"
 #include once "mff/SearchBox.bi"
 #include once "mff/TextBox.bi"
@@ -145,7 +146,7 @@ Dim Shared As PopupMenu mnuForm, mnuVars, mnuWatch, mnuShowExpand, mnuMemory, mn
 Dim Shared As ImageList imgList, imgListD, imgListTools, imgListStates, imgList32, imgListAIProviders32, imgListAIModels32
 Dim Shared As TreeListView lvProperties, lvEvents, lvLocals, lvGlobals, lvProcedures, lvThreads, lvWatches, lvProfiler
 Dim Shared As ToolPalette tbToolBox
-Dim Shared As Panel pnlToolBox, pnlAIAgent
+Dim Shared As Panel pnlToolBox, pnlAIAgent, pnlAIChat
 Dim Shared As HTTPConnection HTTPAIAgent
 Dim Shared As Boolean bInAIThread, bInThingk, bInNOTThingk, AIBold, AIPostDataFirstTime
 Dim Shared As Dictionary AIMessages, AIContext
@@ -8562,12 +8563,94 @@ Sub UpdateAllTabWindows
 	#endif
 End Sub
 
+' AI agent names: the key is "model|provider", the lists show "DeepSeek-V3 · Silicon".
+' The combos keep the key in ItemData (a WString Ptr).
+Function AIAgentShortName(ByRef Key As WString) As UString
+	Dim As Integer p = InStrRev(Key, "|")
+	If p = 0 Then Return Key
+	Dim As UString ModelPart = Trim(Left(Key, p - 1)), ProviderPart = Trim(Mid(Key, p + 1))
+	Dim As UString ShortModel = Mid(ModelPart, InStrRev(ModelPart, "/") + 1)
+	If ShortModel = "" Then ShortModel = ModelPart
+	If ShortModel = "" Then Return Key
+	If ProviderPart = "" Then Return ShortModel
+	Return ShortModel & " " & WChr(183) & " " & ProviderPart
+End Function
+
+Function AIMaskAPIKey(ByRef APIKey As WString) As UString
+	If Len(APIKey) <= 12 OrElse InStr(APIKey, "XXX") > 0 Then Return APIKey
+	Return Left(APIKey, 6) & WChr(8230) & Right(APIKey, 4)
+End Function
+
+Function AIComboKey(ByRef Cbo As ComboBoxEdit, Index As Integer) As UString
+	If Index < 0 OrElse Index >= Cbo.ItemCount Then Return ""
+	Dim As WString Ptr p = Cbo.ItemData(Index)
+	If p Then Return *p
+	Return Cbo.Item(Index)
+End Function
+
+Function AIComboIndexOf(ByRef Cbo As ComboBoxEdit, ByRef Key As WString) As Integer
+	Dim As WString Ptr p
+	For i As Integer = 0 To Cbo.ItemCount - 1
+		p = Cbo.ItemData(i)
+		If p <> 0 AndAlso *p = Key Then Return i
+	Next
+	Return -1
+End Function
+
+Sub AIComboInsert(ByRef Cbo As ComboBoxEdit, Index As Integer, ByRef Key As WString)
+	Dim As UString DisplayName = AIAgentShortName(Key)
+	If Cbo.IndexOf(DisplayName) > -1 Then
+		Dim As Integer p = InStrRev(Key, "|")
+		If p > 0 Then DisplayName = Left(Key, p - 1) & " " & WChr(183) & " " & Mid(Key, p + 1) Else DisplayName = Key
+		If Cbo.IndexOf(DisplayName) > -1 Then DisplayName = Key
+	End If
+	Dim As WString Ptr pKey
+	WLet(pKey, Key)
+	If Index < 0 OrElse Index >= Cbo.ItemCount Then
+		Cbo.AddItem DisplayName
+		Index = Cbo.ItemCount - 1
+	Else
+		Cbo.InsertItem Index, DisplayName
+	End If
+	Cbo.ItemData(Index) = pKey
+End Sub
+
+Sub AIComboAdd(ByRef Cbo As ComboBoxEdit, ByRef Key As WString)
+	AIComboInsert Cbo, -1, Key
+End Sub
+
+Sub AIComboRemove(ByRef Cbo As ComboBoxEdit, Index As Integer)
+	If Index < 0 OrElse Index >= Cbo.ItemCount Then Exit Sub
+	Dim As WString Ptr p = Cbo.ItemData(Index)
+	Cbo.RemoveItem Index
+	If p Then WDeAllocate(p)
+End Sub
+
+Sub AIComboSet(ByRef Cbo As ComboBoxEdit, Index As Integer, ByRef Key As WString)
+	If Index < 0 OrElse Index >= Cbo.ItemCount Then Exit Sub
+	Dim As Integer CurrentIndex = Cbo.ItemIndex
+	Dim As UString NewKey = Key
+	AIComboRemove Cbo, Index
+	AIComboInsert Cbo, Index, NewKey
+	If CurrentIndex = Index Then Cbo.ItemIndex = Index
+End Sub
+
+Sub AIComboClear(ByRef Cbo As ComboBoxEdit)
+	Dim As WString Ptr p
+	For i As Integer = 0 To Cbo.ItemCount - 1
+		p = Cbo.ItemData(i)
+		If p Then WDeAllocate(p)
+	Next
+	Cbo.Clear
+End Sub
+
 Sub LoadSettings
 	Dim As UString Temp
 	Dim As ToolType Ptr Tool
 	Dim As ModelInfo Ptr Info
 	Dim i As Integer = 0
 	WLet(DefaultAIAgent, iniSettings.ReadString("AIAgents", "DefaultAIAgent", "deepseek/deepseek-chat-v3-0324:free|OpenRouter"))
+	AILoadClaudeSettings
 	WLet(CurrentAIAgent, *DefaultAIAgent)
 	cboAIAgentModels.AddItem ML("(not selected)")
 	cboBuildConfiguration.AddItem ML("No options")
@@ -8599,7 +8682,7 @@ Sub LoadSettings
 			Info->Top_P = iniSettings.ReadFloat("AIAgents", "Top_P_" & WStr(i), 0)
 			Info->Stream = iniSettings.ReadBool("AIAgents", "Stream_" & WStr(i), True)
 			Info->ContentSize = iniSettings.ReadInteger("AIAgents", "ContentSize_" & WStr(i), 100) * 1024
-			cboAIAgentModels.AddItem(Temp)
+			AIComboAdd cboAIAgentModels, Temp
 			AIAgents.Add Temp, Info->Host, Info
 			If *CurrentAIAgent = Temp Then
 				AIAgentModelName = Info->ModelName
@@ -8612,7 +8695,7 @@ Sub LoadSettings
 				AIAgentStream  = Info->Stream
 				AIAgentContentSize  = Info->ContentSize
 				'cboAIAgentModels.Text = Temp
-				cboAIAgentModels.ItemIndex = Max(0, cboAIAgentModels.IndexOf(Temp))
+				cboAIAgentModels.ItemIndex = Max(0, AIComboIndexOf(cboAIAgentModels, Temp))
 				AIPostDataFirstTime= True
 				AIIncludeFileNameList.Clear
 			End If
@@ -10864,7 +10947,7 @@ tpToolbox->Add @tbForm
 'pnlLeft.Align = 1
 'pnlLeft.AddRange 1, @tabLeft
 Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
-	Dim As Integer Index = pAIAgents->IndexOfKey(cboAIAgentModels.Text)
+	Dim As Integer Index = pAIAgents->IndexOfKey(AIComboKey(cboAIAgentModels, cboAIAgentModels.ItemIndex))
 	If Index < 0 Then
 		ShowMessages("AIAgents not found! ") & cboAIAgentModels.Text
 		Return
@@ -10888,6 +10971,7 @@ Sub cboAIAgentModels_Change(ByRef Designer As My.Sys.Object, ByRef Sender As Con
 		AIIncludeFileNameList.Clear
 	End If
 	If bInAIThread Then ThreadsLeave
+	AIStateRepaint 'The model in the row under the box of the question
 End Sub
 
 tbAIAgent.ImagesList = @imgList
@@ -10897,14 +10981,367 @@ tbAIAgent.Align = DockStyle.alTop
 tbAIAgent.AutoSize = True
 tbAIAgent.ExtraMargins.Right = tbLeft.Width + PinToolBarGap
 tbAIAgent.Buttons.Add , "NewChat", , @mClick, "AINewChat", , ML("New Chat"), True
-tbAIAgent.Buttons.Add , "AddComment", , @mClick, "AIAddComment", , ML("Comment selected code"), True
-tbAIAgent.Buttons.Add , "OptimizeCode", , @mClick, "AIOptimizeCode", , ML("Optimize selected code"), True
-tbAIAgent.Buttons.Add , "Intellicode", , @mClick, "AIIntellicode", , ML("Generate code based on the requirements of the selected comment lines"), True
+'The saved chats on the left of the AI Agent (the last changed first): a chat is opened and continued.
+'The chats are grouped by the day (Today, Yesterday, Earlier). On Windows every row is drawn by the IDE
+'(owner-draw ListView): the title (the first question), the time, the beginning of the first answer and
+'the state of the chat (the opened chat, AI is working)
+Dim Shared As ListView lvAIChats
+'The list of the chats and the row of the account of Claude Code under it
+Dim Shared As Panel pnlAIChatsSide, pnlAIAccount
+Dim Shared As Splitter splAIChats
+'The chats of the list: the file, the title, the beginning of the answer, the time
+Dim Shared As UString AIChatNames(Any), AIChatTitles(Any), AIChatSnippets(Any), AIChatTimeTexts(Any)
+'The rows of the list: >= 0 is the index of the chat (AIChatNames), < 0 is the header of the group -(Group + 1)
+Dim Shared As Integer AIChatRows(Any)
+Dim Shared As Integer AIChatHoverRow = -1
+Dim Shared As Boolean AIChatsFilling
+'There is a question in the chat which is not saved yet
+Dim Shared As Boolean AIChatDirty
+Const AIChatGroupToday = 0, AIChatGroupYesterday = 1, AIChatGroupEarlier = 2
+
+Function AIChatGroupName(Group As Integer) As UString
+	Select Case Group
+	Case AIChatGroupToday: Return ML("Today")
+	Case AIChatGroupYesterday: Return ML("Yesterday")
+	Case Else: Return ML("Earlier")
+	End Select
+End Function
+
+'The row of the chat in the list (-1: the chat is not in the list)
+Function AIChatRowOf(ByRef ChatName As WString) As Integer
+	For i As Integer = 0 To UBound(AIChatRows)
+		If AIChatRows(i) >= 0 AndAlso AIChatNames(AIChatRows(i)) = ChatName Then Return i
+	Next
+	Return -1
+End Function
+
+'No row is selected (SelectedItemIndex = -1 of ListView selects all rows on Windows)
+Sub AIChatsClearSelection()
+	#ifdef __USE_WINAPI__
+		If lvAIChats.Handle Then
+			ListView_SetItemState(lvAIChats.Handle, -1, 0, LVIS_SELECTED Or LVIS_FOCUSED)
+		End If
+	#else
+		lvAIChats.SelectedItemIndex = -1
+	#endif
+End Sub
+
+#ifdef __USE_WINAPI__
+	'The chat chosen in the list, opened by the timer (after LVN_ITEMCHANGED)
+	Dim Shared As UString AIChatPendingOpen
+	Const AIChatOpenTimerID = 7301
+
+	Sub AIChatsOpenTimer(ByVal hWnd As HWND, ByVal uMsg As UINT, ByVal idEvent As UINT_PTR, ByVal dwTime As DWORD)
+		KillTimer(hWnd, idEvent)
+		If AIChatPendingOpen = "" Then Exit Sub
+		Dim As UString ChatName = AIChatPendingOpen
+		AIChatPendingOpen = ""
+		AIChatOpenName ChatName
+	End Sub
+#endif
+
+Sub lvAIChats_SelectedItemChanged(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer)
+	If AIChatsFilling Then Exit Sub
+	If ItemIndex < 0 OrElse ItemIndex > UBound(AIChatRows) Then Exit Sub
+	Dim As Integer Chat = AIChatRows(ItemIndex)
+	If Chat < 0 Then
+		'The header of a group is not chosen: the opened chat stays selected
+		AIChatsFilling = True
+		Dim As Integer Row = -1
+		If RecentAIChat <> 0 Then Row = AIChatRowOf(*RecentAIChat)
+		If Row >= 0 Then lvAIChats.SelectedItemIndex = Row Else AIChatsClearSelection
+		AIChatsFilling = False
+		Exit Sub
+	End If
+	'ListView sends LVN_ITEMCHANGED also when the row is selected by the program (not only by the user):
+	'the opened chat is not opened again
+	If RecentAIChat <> 0 AndAlso *RecentAIChat = AIChatNames(Chat) Then Exit Sub
+	#ifdef __USE_WINAPI__
+		'The chat is opened after the notification: AIChatsFill deletes the items of the list, and the items
+		'must not be deleted in LVN_ITEMCHANGED (the heap was corrupted, C0000374)
+		AIChatPendingOpen = AIChatNames(Chat)
+		If lvAIChats.Handle Then SetTimer(lvAIChats.Handle, AIChatOpenTimerID, 0, @AIChatsOpenTimer)
+	#else
+		AIChatOpenName AIChatNames(Chat)
+	#endif
+End Sub
+
+'The only column is as wide as the list (also after the vertical scroll bar appears or goes away)
+Sub AIChatsFitColumn()
+	#ifdef __USE_WINAPI__
+		If lvAIChats.Handle = 0 Then Exit Sub
+		Dim As RECT rc
+		GetClientRect(lvAIChats.Handle, @rc)
+		SendMessage(lvAIChats.Handle, LVM_SETCOLUMNWIDTH, 0, rc.right)
+	#endif
+End Sub
+
+Sub lvAIChats_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	AIChatsFitColumn
+End Sub
+
+#ifdef __USE_WINAPI__
+	'The fonts of the rows are made from the font of the list (again when the font of the list is changed)
+	Dim Shared As HFONT AIChatFontBase, AIChatFontTitle, AIChatFontTitleBold, AIChatFontSmall, AIChatFontHeader
+
+	Sub AIChatFontsUpdate(BaseFont As HFONT)
+		If AIChatFontTitle <> 0 AndAlso BaseFont = AIChatFontBase Then Exit Sub
+		If AIChatFontTitle Then DeleteObject AIChatFontTitle
+		If AIChatFontTitleBold Then DeleteObject AIChatFontTitleBold
+		If AIChatFontSmall Then DeleteObject AIChatFontSmall
+		If AIChatFontHeader Then DeleteObject AIChatFontHeader
+		AIChatFontBase = BaseFont
+		Dim As LOGFONT lf
+		If BaseFont = 0 OrElse GetObject(BaseFont, SizeOf(lf), @lf) = 0 Then GetObject(GetStockObject(DEFAULT_GUI_FONT), SizeOf(lf), @lf)
+		Dim As Long FontHeight = Abs(lf.lfHeight)
+		If FontHeight < 8 Then FontHeight = 12
+		lf.lfWeight = FW_NORMAL
+		AIChatFontTitle = CreateFontIndirect(@lf)
+		lf.lfWeight = FW_BOLD
+		AIChatFontTitleBold = CreateFontIndirect(@lf)
+		lf.lfWeight = FW_NORMAL
+		lf.lfHeight = -Max(FontHeight * 85 \ 100, 8)
+		AIChatFontSmall = CreateFontIndirect(@lf)
+		lf.lfWeight = FW_BOLD
+		lf.lfHeight = -Max(FontHeight * 80 \ 100, 8)
+		AIChatFontHeader = CreateFontIndirect(@lf)
+	End Sub
+
+	Sub AIChatFillRound(ByVal hDC As HDC, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long, ByVal Radius As Long, ByVal Clr As COLORREF)
+		Dim As HBRUSH Brush = CreateSolidBrush(Clr)
+		Dim As HGDIOBJ OldBrush = SelectObject(hDC, Brush)
+		Dim As HGDIOBJ OldPen = SelectObject(hDC, GetStockObject(NULL_PEN))
+		RoundRect(hDC, x1, y1, x2 + 1, y2 + 1, Radius, Radius)
+		SelectObject(hDC, OldPen)
+		SelectObject(hDC, OldBrush)
+		DeleteObject(Brush)
+	End Sub
+
+	Sub AIChatDrawText(ByVal hDC As HDC, ByRef Text As WString, ByVal x1 As Long, ByVal y1 As Long, ByVal x2 As Long, ByVal y2 As Long, ByVal Flags As ULong)
+		If x2 <= x1 Then Exit Sub
+		Dim As RECT r
+		SetRect(@r, x1, y1, x2, y2)
+		DrawText(hDC, @Text, -1, @r, Flags Or DT_SINGLELINE Or DT_NOPREFIX)
+	End Sub
+
+	Function AIChatTextWidth(ByVal hDC As HDC, ByRef Text As WString) As Long
+		Dim As SIZE sz
+		GetTextExtentPoint32(hDC, @Text, Len(Text), @sz)
+		Return sz.cx
+	End Function
+
+	'The color between the color and the background (Percent: of the color)
+	Function AIChatBlend(ByVal Clr As COLORREF, ByVal Back As COLORREF, ByVal Percent As Long) As COLORREF
+		Dim As Long r = ((Clr And &HFF) * Percent + (Back And &HFF) * (100 - Percent)) \ 100
+		Dim As Long g = (((Clr Shr 8) And &HFF) * Percent + ((Back Shr 8) And &HFF) * (100 - Percent)) \ 100
+		Dim As Long b = (((Clr Shr 16) And &HFF) * Percent + ((Back Shr 16) And &HFF) * (100 - Percent)) \ 100
+		Return r Or (g Shl 8) Or (b Shl 16)
+	End Function
+
+	'The rows are owner-drawn after the window of the list is made: with LVS_OWNERDRAWFIXED at the creation the list
+	'sends WM_MEASUREITEM from CreateWindowEx, and Control of MyFbFramework took then another control by the ID
+	'(Handles.Item(ID - 1000)) and changed its Handle (the heap was corrupted, C0000374).
+	'The height of the rows (two lines: the title and the time, the beginning of the answer and the state)
+	'is the height of the small images (an empty ImageList 1 x height)
+	Dim Shared As HIMAGELIST AIChatRowImages
+
+	Sub lvAIChats_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		If Sender.Handle = 0 Then Exit Sub
+		If AIChatRowImages = 0 Then AIChatRowImages = ImageList_Create(1, Sender.ScaleY(44), ILC_COLOR32, 1, 0)
+		SendMessage(Sender.Handle, LVM_SETIMAGELIST, LVSIL_SMALL, Cast(LPARAM, AIChatRowImages))
+		SetWindowLongPtr(Sender.Handle, GWL_STYLE, GetWindowLongPtr(Sender.Handle, GWL_STYLE) Or LVS_OWNERDRAWFIXED)
+		AIChatsFitColumn
+		InvalidateRect(Sender.Handle, NULL, True)
+	End Sub
+
+	'ItemState: MyFbFramework gives the itemState of DRAWITEMSTRUCT as the 4th parameter (ItemAction) of OnDrawItem
+	Sub lvAIChats_DrawItem(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ItemState As Integer, ItemAction As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas)
+		Dim As HDC hDC = Canvas.Handle
+		Dim As Long w = R.Right - R.Left, h = R.Bottom - R.Top
+		If ItemIndex < 0 OrElse ItemIndex > UBound(AIChatRows) Then Exit Sub
+		If hDC = 0 OrElse w <= 0 OrElse h <= 0 Then Exit Sub
+		AIChatFontsUpdate Sender.Font.Handle
+
+		Dim As Boolean Dark = g_darkModeEnabled
+		Dim As COLORREF ClrBack = IIf(Dark, darkBkColor, GetSysColor(COLOR_WINDOW))
+		Dim As COLORREF ClrText = IIf(Dark, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+		Dim As COLORREF ClrMuted = AIChatBlend(ClrText, ClrBack, 58)
+		Dim As COLORREF ClrHeader = AIChatBlend(ClrText, ClrBack, 50)
+		Dim As COLORREF ClrHover = AIChatBlend(ClrText, ClrBack, 7)
+		Dim As COLORREF ClrSelected = IIf(Dark, BGR(9, 71, 113), BGR(225, 236, 252))
+		Dim As COLORREF ClrAccent = IIf(Dark, BGR(89, 143, 236), BGR(37, 99, 235))
+		Dim As COLORREF ClrWorking = IIf(Dark, BGR(55, 166, 96), BGR(22, 163, 74))
+
+		'The row is drawn in the memory and then at once (no flicker)
+		Dim As HDC hMemDC = CreateCompatibleDC(hDC)
+		Dim As HBITMAP hBitmap = CreateCompatibleBitmap(hDC, w, h)
+		Dim As HGDIOBJ OldBitmap = SelectObject(hMemDC, hBitmap)
+		Dim As HGDIOBJ OldFont = SelectObject(hMemDC, AIChatFontTitle)
+		Dim As RECT rcAll
+		SetRect(@rcAll, 0, 0, w, h)
+		Dim As HBRUSH BackBrush = CreateSolidBrush(ClrBack)
+		FillRect(hMemDC, @rcAll, BackBrush)
+		DeleteObject(BackBrush)
+		SetBkMode(hMemDC, TRANSPARENT)
+
+		Dim As Long Pad = Sender.ScaleX(8)
+		Dim As Integer Chat = AIChatRows(ItemIndex)
+		If Chat < 0 Then
+			'The header of the group
+			SelectObject(hMemDC, AIChatFontHeader)
+			SetTextColor(hMemDC, ClrHeader)
+			AIChatDrawText(hMemDC, UCase(AIChatGroupName(-Chat - 1)), Pad + 2, 0, w - Pad, h - Sender.ScaleY(6), DT_LEFT Or DT_BOTTOM)
+		Else
+			Dim As Boolean Selected = (ItemState And ODS_SELECTED) <> 0
+			Dim As Boolean Hovered = (ItemIndex = AIChatHoverRow)
+			Dim As Boolean Opened = RecentAIChat <> 0 AndAlso *RecentAIChat = AIChatNames(Chat)
+			Dim As Boolean Working = Opened AndAlso bInAIThread
+			Dim As Long Radius = Sender.ScaleX(8)
+			If Selected Then
+				AIChatFillRound(hMemDC, 3, 1, w - 4, h - 2, Radius, ClrSelected)
+			ElseIf Hovered Then
+				AIChatFillRound(hMemDC, 3, 1, w - 4, h - 2, Radius, ClrHover)
+			End If
+
+			Dim As Long LineH = (h - Sender.ScaleY(8)) \ 2
+			Dim As Long yTop = Sender.ScaleY(4), yBottom = yTop + LineH
+			Dim As Long DotSize = Sender.ScaleX(7)
+			Dim As Long xText = Pad + DotSize + Sender.ScaleX(7)
+
+			'The point of the state: the opened chat, AI is working, the other chats
+			Dim As COLORREF ClrDot = IIf(Working, ClrWorking, IIf(Opened, ClrAccent, AIChatBlend(ClrText, ClrBack, 30)))
+			AIChatFillRound(hMemDC, Pad, yTop + (LineH - DotSize) \ 2, Pad + DotSize, yTop + (LineH - DotSize) \ 2 + DotSize, DotSize, ClrDot)
+
+			'The time on the right
+			SelectObject(hMemDC, AIChatFontSmall)
+			SetTextColor(hMemDC, IIf(Opened, ClrAccent, ClrMuted))
+			Dim As Long TimeW = AIChatTextWidth(hMemDC, AIChatTimeTexts(Chat))
+			AIChatDrawText(hMemDC, AIChatTimeTexts(Chat), w - Pad - TimeW, yTop, w - Pad, yTop + LineH, DT_RIGHT Or DT_VCENTER)
+
+			'The title (the opened chat in bold)
+			SelectObject(hMemDC, IIf(Opened, AIChatFontTitleBold, AIChatFontTitle))
+			SetTextColor(hMemDC, ClrText)
+			AIChatDrawText(hMemDC, AIChatTitles(Chat), xText, yTop, w - Pad - TimeW - Sender.ScaleX(6), yTop + LineH, DT_LEFT Or DT_VCENTER Or DT_END_ELLIPSIS)
+
+			'The badge: AI is working in this chat
+			SelectObject(hMemDC, AIChatFontSmall)
+			Dim As Long BadgeW
+			If Working Then
+				Dim As UString BadgeText = ML("Working")
+				BadgeW = AIChatTextWidth(hMemDC, BadgeText) + Sender.ScaleX(12)
+				Dim As Long BadgeH = LineH - Sender.ScaleY(2)
+				Dim As Long by1 = yBottom + (LineH - BadgeH) \ 2
+				AIChatFillRound(hMemDC, w - Pad - BadgeW, by1, w - Pad, by1 + BadgeH, BadgeH, AIChatBlend(ClrWorking, ClrBack, 20))
+				SetTextColor(hMemDC, ClrWorking)
+				AIChatDrawText(hMemDC, BadgeText, w - Pad - BadgeW, by1, w - Pad, by1 + BadgeH, DT_CENTER Or DT_VCENTER)
+				BadgeW += Sender.ScaleX(6)
+			End If
+
+			'The beginning of the first answer
+			SetTextColor(hMemDC, ClrMuted)
+			AIChatDrawText(hMemDC, AIChatSnippets(Chat), xText, yBottom, w - Pad - BadgeW, yBottom + LineH, DT_LEFT Or DT_VCENTER Or DT_END_ELLIPSIS)
+
+			If (ItemState And ODS_FOCUS) <> 0 AndAlso Not Selected AndAlso GetFocus() = Sender.Handle Then
+				Dim As RECT rcFocus
+				SetRect(@rcFocus, 3, 1, w - 3, h - 1)
+				DrawFocusRect(hMemDC, @rcFocus)
+			End If
+		End If
+
+		BitBlt(hDC, R.Left, R.Top, w, h, hMemDC, 0, 0, SRCCOPY)
+		SelectObject(hMemDC, OldFont)
+		SelectObject(hMemDC, OldBitmap)
+		DeleteObject(hBitmap)
+		DeleteDC(hMemDC)
+	End Sub
+
+	Sub AIChatsRedrawRow(Row As Integer)
+		If Row >= 0 AndAlso Row <= UBound(AIChatRows) AndAlso lvAIChats.Handle <> 0 Then SendMessage(lvAIChats.Handle, LVM_REDRAWITEMS, Row, Row)
+	End Sub
+
+	'The row under the mouse is highlighted (the headers of the groups are not)
+	Sub lvAIChats_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+		If lvAIChats.Handle = 0 Then Exit Sub
+		'The buffer is bigger than LVHITTESTINFO of the headers (without iGroup when _WIN32_WINNT < &h0600):
+		'comctl32 6 can write iGroup
+		Dim As Long HitTest(15)
+		Dim As LVHITTESTINFO Ptr ht = Cast(LVHITTESTINFO Ptr, @HitTest(0))
+		GetCursorPos(@ht->pt)
+		ScreenToClient(lvAIChats.Handle, @ht->pt)
+		Dim As Integer Row = SendMessage(lvAIChats.Handle, LVM_HITTEST, 0, Cast(LPARAM, ht))
+		If Row >= 0 AndAlso Row <= UBound(AIChatRows) Then
+			If AIChatRows(Row) < 0 Then Row = -1
+		Else
+			Row = -1
+		End If
+		If Row <> AIChatHoverRow Then
+			Dim As Integer OldRow = AIChatHoverRow
+			AIChatHoverRow = Row
+			AIChatsRedrawRow OldRow
+			AIChatsRedrawRow Row
+		End If
+	End Sub
+
+	Sub lvAIChats_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+		Dim As Integer OldRow = AIChatHoverRow
+		AIChatHoverRow = -1
+		AIChatsRedrawRow OldRow
+	End Sub
+#endif
+
+pnlAIChatsSide.Name = "pnlAIChatsSide"
+pnlAIChatsSide.Align = DockStyle.alLeft
+pnlAIChatsSide.Width = iniSettings.ReadInteger("MainWindow", "AIChatsWidth", 180)
+pnlAIChatsSide.Parent = @pnlAIAgent
+lvAIChats.Name = "lvAIChats"
+lvAIChats.Align = DockStyle.alClient
+lvAIChats.ColumnHeaderHidden = True
+lvAIChats.GridLines = False
+#ifdef __USE_WINAPI__
+	lvAIChats.OnCreate = @lvAIChats_Create
+	lvAIChats.OnDrawItem = Cast(Sub(ByRef Designer As My.Sys.Object, ByRef Sender As ListView, ByVal ItemIndex As Integer, ItemAction As Integer, ItemState As Integer, ByRef R As My.Sys.Drawing.Rect, ByRef Canvas As My.Sys.Drawing.Canvas), @lvAIChats_DrawItem)
+	lvAIChats.OnMouseMove = @lvAIChats_MouseMove
+	lvAIChats.OnMouseLeave = @lvAIChats_MouseLeave
+#endif
+lvAIChats.OnResize = @lvAIChats_Resize
+lvAIChats.OnSelectedItemChanged = @lvAIChats_SelectedItemChanged
+lvAIChats.Columns.Add "", , pnlAIChatsSide.Width
+lvAIChats.Parent = @pnlAIChatsSide
+splAIChats.Align = SplitterAlignmentConstants.alLeft
+splAIChats.Parent = @pnlAIAgent
+'The chat and the text box of the request are in their own panel on the right of the list of the chats:
+'the list of the chats goes to the bottom and the text box of the request is as wide as the chat
+pnlAIChat.Name = "pnlAIChat"
+pnlAIChat.Align = DockStyle.alClient
+pnlAIChat.Parent = @pnlAIAgent
+Dim Shared As Boolean AIChatsVisible
+AIChatsVisible = iniSettings.ReadBool("MainWindow", "AIChatsVisible", True)
+pnlAIChatsSide.Visible = AIChatsVisible
+splAIChats.Visible = AIChatsVisible
+Dim Shared As ToolButton Ptr tbtAIChats
+tbtAIChats = tbAIAgent.Buttons.Add(tbsCheck, "List", , @mClick, "AIChatsShow", , ML("Show/Hide the list of the chats"), True, Cast(ToolButtonState, tstEnabled Or IIf(AIChatsVisible, tstChecked, 0)))
+
+'The button on the toolbar of the AI Agent shows or hides the list of the chats
+Sub AIChatsShow()
+	AIChatsVisible = tbtAIChats->Checked
+	pnlAIChatsSide.Visible = AIChatsVisible
+	splAIChats.Visible = AIChatsVisible
+	pnlAIAgent.RequestAlign
+End Sub
+AIChatsFill
 tbAIAgent.Buttons.Add , "TracepointError", , @mClick, "AITracepointError", , ML("Explain the selected compiler error message"), True
-tbAIAgent.Buttons.Add , "WebBrowserItem", , @mClick, "AIWebBrowserItem", , ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis."), True
-tbAIAgent.Buttons.Add , "ConvertC", , @mClick, "AIConvertCtoFB", , ML("Convert the given C source code into equivalent FreeBasic source code."), True
-tbAIAgent.Buttons.Add , "Translate", , @mClick, "AITranslate", , ML("Output with MARKDOWN source code, translate the selected message to") & " " &  ML(App.CurLanguage), True
-tbAIAgent.Buttons.Add , "TranslateE", , @mClick, "AITranslateE", , ML("Output with MARKDOWN source code, translate the selected message to") & " " & ML("English"), True
+'The other requests are in the drop down menu, so that the list of the models stays wide when the panel is narrow
+Var tbAIActions = tbAIAgent.Buttons.Add(tbsWholeDropdown, "Intellicode", , @mClick, "AIActions", , ML("Requests to AI"), True)
+tbAIActions->DropDownMenu.ImagesList = IIf(DisplayMenuIcons, @imgList, 0)
+tbAIActions->DropDownMenu.Add ML("Comment selected code"), "AddComment", "AIAddComment", @mClick
+tbAIActions->DropDownMenu.Add ML("Optimize selected code"), "OptimizeCode", "AIOptimizeCode", @mClick
+tbAIActions->DropDownMenu.Add ML("Generate code based on the requirements of the selected comment lines"), "Intellicode", "AIIntellicode", @mClick
+tbAIActions->DropDownMenu.Add "-"
+tbAIActions->DropDownMenu.Add ML("Convert the given C source code into equivalent FreeBasic source code."), "ConvertC", "AIConvertCtoFB", @mClick
+tbAIActions->DropDownMenu.Add ML("Translate the selected message to") & " " & ML(App.CurLanguage), "Translate", "AITranslate", @mClick
+tbAIActions->DropDownMenu.Add ML("Translate the selected message to") & " " & ML("English"), "TranslateE", "AITranslateE", @mClick
+tbAIActions->DropDownMenu.Add "-"
+tbAIActions->DropDownMenu.Add ML("Regular search and analysis (ignore the constraints of the provided references)"), "WebBrowserItem", "AIWebBrowserItem", @mClick
 tbAIAgent.Buttons.Add , "Close", , @mClick, "AIRelease", , ML("Release the AI Agent"), True
 tbAIAgent.Buttons.Add tbsSeparator
 Var tbAIModels = tbAIAgent.Buttons.Add(tbsCustom)
@@ -10924,7 +11361,7 @@ txtAIAgent.WordWraps = True
 txtAIAgent.MaxLength = 0
 txtAIAgent.ScrollBars = ScrollBarsType.Vertical
 txtAIAgent.ContextMenu = @mnuAIChat
-txtAIAgent.Parent = @pnlAIAgent
+txtAIAgent.Parent = @pnlAIChat
 
 Function EscapeJsonForPrompt(ByRef iText As WString) As String
 	Dim As Integer Posi = 0, iLen = Len(iText)
@@ -11362,6 +11799,32 @@ Sub UpdateRTB(ByRef tempChunk As WString = "")
 	txtAIRequest.SetFocus
 End Sub
 
+'The context of the chat: the tokens of the last request of the model and the size of the context window of the
+'model (the circle in the row under the box of the question)
+Dim Shared As LongInt AIContextUsed, AIContextWindow
+'Claude Code: the mode of the permissions (--permission-mode) and the folders added by + (--add-dir, Chr(1) between)
+Dim Shared As String AIClaudePermissionMode
+'Claude Code: the model chosen in the menu of the model (--model, "": the model of the agent) and the effort (--effort:
+'low, medium, high, xhigh, max; "": the default of claude)
+Dim Shared As String AIClaudeModelOverride, AIClaudeEffort
+Dim Shared As UString AIClaudeAddDirs
+'The limits of the plan of Claude Code (rate_limit_event of claude): the used part (0..1, -1: not known) and the
+'time of the reset (Unix seconds) of the 5 hours and of the week
+Dim Shared As Double AILimitHoursUsed = -1, AILimitWeekUsed = -1
+Dim Shared As LongInt AILimitHoursReset, AILimitWeekReset
+
+'The settings of Claude Code of the AI Agent (from LoadSettings: the settings are loaded there)
+Declare Sub AILoadClaudeLimits()
+Sub AILoadClaudeSettings()
+	AIAccountsLoad
+	AIClaudePermissionMode = iniSettings.ReadString("AIAgents", "ClaudePermissionMode", "auto")
+	If AIClaudePermissionMode = "" Then AIClaudePermissionMode = "auto"
+	AIClaudeModelOverride = iniSettings.ReadString("AIAgents", "ClaudeModel", "")
+	AIClaudeEffort = LCase(Trim(iniSettings.ReadString("AIAgents", "ClaudeEffort", "")))
+	If AIClaudeEffort = "" Then AIClaudeEffort = "medium"
+	AILoadClaudeLimits
+End Sub
+
 Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPConnection, ByRef Request As HTTPRequest, ByRef Buffer As String)
 	'ShowMessages(Buffer) ' Sometimes got party of the string   'data: [DONE] ': OPENROUTER PROCESSING
 	Dim As WString Ptr tmpBodyWStrPtr = FromUtf8(StrPtr(Buffer))
@@ -11477,6 +11940,13 @@ Sub HTTPAIAgent_Receive(ByRef Designer As My.Sys.Object, ByRef Sender As HTTPCon
 				Next
 				iPosStart = InStr(*Buff(i), ",""usage"":")
 				If iPosStart Then
+					'The circle of the context: the tokens of the question and the answer of the model
+					Dim As Integer PosTotal = InStr(iPosStart, *Buff(i), """total_tokens"":")
+					If PosTotal > 0 AndAlso ValLng(Mid(*Buff(i), PosTotal + 15, 24)) > 0 Then
+						AIContextUsed = ValLng(Mid(*Buff(i), PosTotal + 15, 24))
+						AIContextWindow = AIAgentContentSize
+						AIStateRepaint
+					End If
 					k = InStr(*Buff(i), """total_tokens"":")  '15
 					If k < 1 Then iPos3 = Len(*Buff(i)) Else iPos3 = InStr(k, *Buff(i), ",")
 					If iPos3 < 1 Then iPos3 = Len(*Buff(i))
@@ -11598,6 +12068,7 @@ Sub AIRequest(Param As Any Ptr)
 		WDeAllocate(BuffPtr)
 	End If
 	bInAIThread = False
+	AIStateRepaint
 End Sub
 
 Sub CheckAndFlushAIRequest()
@@ -11612,21 +12083,1838 @@ Sub CheckAndFlushAIRequest()
 	AIPostData = AIPostDataInitStr ' 重新初始化 JSON
 End Sub
 
+'AI Agent with the provider "Claude Code": the claude program installed on the computer (Claude Code CLI) answers.
+'Each question runs "claude -p" with the question on its standard input and the answer comes as stream-json lines;
+'the next questions continue the same conversation with --resume <session_id>. Host: the program (claude by default,
+'or its full path), Model name: the model of claude (sonnet, opus, haiku, a full name or "default"). The program
+'must be signed in once: run claude in a terminal and use /login.
+Dim Shared As String AIClaudeSessionID
+Dim Shared As WString Ptr AIClaudeCommandPtr, AIClaudeWorkDirPtr, AIClaudePromptFilePtr
+Dim Shared As Boolean AIClaudeAborted
+#ifdef __USE_WINAPI__
+	Dim Shared As HANDLE AIClaudeJob
+#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+	#include once "crt/stdio.bi"
+	Declare Function AIClaudeKill Alias "kill" (ByVal pid As Long, ByVal sig As Long) As Long
+	Dim Shared As Long AIClaudePid
+#endif
+
+Function IsClaudeCodeAgent() As Boolean
+	Select Case LCase(Trim(AIAgentProvider))
+	Case "claude code", "claudecode", "claude-code", "claude cli"
+		Return True
+	End Select
+	Return False
+End Function
+
+'The model of Claude Code: the model chosen in the menu, else the model of the agent
+Function AIClaudeModelName() As String
+	If AIClaudeModelOverride <> "" Then Return AIClaudeModelOverride
+	Return Trim(AIAgentModelName)
+End Function
+
+'The levels of the effort of claude (--effort) and their titles
+Function AIClaudeEffortValue(Index As Integer) As String
+	Select Case Index
+	Case 0: Return "low"
+	Case 1: Return "medium"
+	Case 2: Return "high"
+	Case 3: Return "xhigh"
+	Case 4: Return "max"
+	End Select
+	Return ""
+End Function
+
+Function AIClaudeEffortTitle(ByRef Value As String) As UString
+	Select Case LCase(Value)
+	Case "low": Return ML("Low")
+	Case "medium": Return ML("Medium")
+	Case "high": Return ML("High")
+	Case "xhigh": Return ML("Extra")
+	Case "max": Return ML("Max")
+	End Select
+	Return ML("Default")
+End Function
+
+'The value (still escaped) of the string key Key of the JSON line Line_ from the position Start, "" if there is none
+Function AIJsonStringValue(ByRef Line_ As String, ByRef Key As String, Start As Integer = 1) As String
+	Dim As String KeyPattern = """" & Key & """:"""
+	Dim As Integer Pos1 = InStr(Start, Line_, KeyPattern)
+	If Pos1 < 1 Then Return ""
+	Pos1 += Len(KeyPattern)
+	Dim As Integer i = Pos1
+	Do While i <= Len(Line_)
+		Select Case Line_[i - 1]
+		Case 92 ' \
+			i += 2
+			Continue Do
+		Case 34 ' "
+			Exit Do
+		End Select
+		i += 1
+	Loop
+	Return Mid(Line_, Pos1, i - Pos1)
+End Function
+
+'Text of a JSON string value (UTF-8, escaped)
+Function AIJsonToText(ByRef JsonValue As String) As UString
+	If JsonValue = "" Then Return ""
+	Dim As WString Ptr Utf = FromUtf8(StrPtr(JsonValue))
+	If Utf = 0 Then Return ""
+	Dim As WString Ptr Text = EscapeFromJson(*Utf)
+	_Deallocate(Utf)
+	If Text = 0 Then Return ""
+	Dim As UString Result = *Text
+	_Deallocate(Text)
+	Return Result
+End Function
+
+Sub AIClaudeFeed(ByRef Text As WString, IsAnswer As Boolean)
+	If Text = "" Then Exit Sub
+	If IsAnswer Then WAdd(AIAssistantsAnswersPtr, Text)
+	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(Text)
+End Sub
+
+'One line of the output of claude (in the thread of the request, the caller has ThreadsEnter)
+
+'The number of "Key": after Start (-1: not found)
+Function AIJsonNumberAfter(ByRef Line_ As String, ByRef Key As String, Start As Integer = 1) As LongInt
+	Dim As Integer Pos1 = InStr(Start, Line_, """" & Key & """:")
+	If Pos1 = 0 Then Return -1
+	Return ValLng(Mid(Line_, Pos1 + Len(Key) + 3, 24))
+End Function
+
+'The fractional number of "Key": after Start (-1: not found)
+Function AIJsonDoubleAfter(ByRef Line_ As String, ByRef Key As String, Start As Integer = 1) As Double
+	Dim As Integer Pos1 = InStr(Start, Line_, """" & Key & """:")
+	If Pos1 = 0 Then Return -1
+	Return Val(Mid(Line_, Pos1 + Len(Key) + 3, 24))
+End Function
+
+'One window of the limits: "Name":{"utilization":0.77,"resetsAt":1795321200,...}
+Declare Function AIClaudeLimitKey(ByRef Name_ As String) As String
+'The model which answers in Claude Code (claude-opus-5-5 ...): the name of the model of the agent can be an alias (opus)
+Dim Shared As String AIClaudeModelID, AIClaudeModelAlias
+
+'claude-opus-5-5 -> Opus 5.5, claude-3-5-sonnet-20241022 -> Sonnet 3.5, opus -> Opus
+'The name of the latest model of the alias of claude (opus, sonnet, fable, haiku): the model which answered last with
+'it (it is saved), else the latest model known when this was written
+Function AIClaudeKnownID(ByRef Alias_ As String) As String
+	Dim As String Key = LCase(Trim(Alias_))
+	Dim As String ID = Trim(iniSettings.ReadString("AIAgents", "ClaudeModelID_" & Key, ""))
+	If ID <> "" Then Return ID
+	Select Case Key
+	Case "opus": Return "claude-opus-5-5"
+	Case "sonnet": Return "claude-sonnet-5-5"
+	Case "fable": Return "claude-fable-5-2"
+	Case "haiku": Return "claude-haiku-5-5"
+	End Select
+	Return Alias_
+End Function
+
+Function AIClaudeModelTitle(ByRef ID As String) As String
+	Dim As String Text = LCase(Trim(ID)), Family, Ver, Part
+	'An alias: the version of its model
+	If Text = "opus" OrElse Text = "sonnet" OrElse Text = "fable" OrElse Text = "haiku" Then Text = LCase(AIClaudeKnownID(Text))
+	Dim As Integer p = InStr(Text, "[")
+	If p > 0 Then Text = Left(Text, p - 1)
+	If Left(Text, 7) = "claude-" Then Text = Mid(Text, 8)
+	Text &= "-"
+	Dim As Integer Pos0 = 1, Pos1 = InStr(Text, "-")
+	Do While Pos1 > 0
+		Part = Mid(Text, Pos0, Pos1 - Pos0)
+		If Part <> "" Then
+			If Part = Str(ValInt(Part)) Then
+				If Len(Part) < 8 Then Ver &= IIf(Ver = "", "", ".") & Part 'Not the date
+			ElseIf Family = "" Then
+				Family = UCase(Left(Part, 1)) & Mid(Part, 2)
+			End If
+		End If
+		Pos0 = Pos1 + 1: Pos1 = InStr(Pos0, Text, "-")
+	Loop
+	If Family = "" Then Return ID
+	Return Family & IIf(Ver = "", "", " " & Ver)
+End Function
+
+Sub AIClaudeRateLimit(ByRef Line_ As String, ByRef Name_ As String, ByRef Used As Double, ByRef Reset_ As LongInt)
+	Dim As Integer Pos0 = InStr(Line_, """unifiedWindows"":{")
+	If Pos0 > 0 Then
+		Dim As Integer Pos1 = InStr(Pos0, Line_, """" & Name_ & """:{")
+		If Pos1 = 0 Then Exit Sub
+		Dim As Integer Pos2 = InStr(Pos1, Line_, "}")
+		Dim As String Window_ = Mid(Line_, Pos1, IIf(Pos2 > 0, Pos2 - Pos1 + 1, Len(Line_)))
+		Dim As Double Value = AIJsonDoubleAfter(Window_, "utilization")
+		If Value >= 0 Then Used = Value
+		Dim As LongInt ResetAt = AIJsonNumberAfter(Window_, "resetsAt")
+		If ResetAt > 0 Then Reset_ = ResetAt
+	ElseIf InStr(Line_, """rateLimitType"":""" & Name_ & """") > 0 Then
+		'Older claude: only the window which is nearest to its limit
+		Dim As Double Value = AIJsonDoubleAfter(Line_, "utilization")
+		If Value >= 0 Then Used = Value
+		Dim As LongInt ResetAt = AIJsonNumberAfter(Line_, "resetsAt")
+		If ResetAt > 0 Then Reset_ = ResetAt
+	Else
+		Exit Sub
+	End If
+	iniSettings.WriteString("AIAgents", AIClaudeLimitKey(Name_), Str(Used) & "," & Str(Reset_))
+End Sub
+
+'The tokens of a message of the model (its beginning or the whole message; result has the sum of all messages)
+Sub AIClaudeContextUsage(ByRef Line_ As String)
+	'The model of the answer (the line of the start of claude and the messages of the model)
+	Dim As Integer PosModel = InStr(Line_, """model"":""claude-")
+	If PosModel > 0 Then
+		Dim As String ModelID = AIJsonStringValue(Line_, "model", PosModel)
+		If ModelID <> "" AndAlso (ModelID <> AIClaudeModelID OrElse AIClaudeModelAlias <> AIClaudeModelName()) Then
+			AIClaudeModelID = ModelID
+			AIClaudeModelAlias = AIClaudeModelName()
+			'The version of the model of the alias for the menu (claude-opus-5-5 is the model of opus)
+			Dim As String Lower = LCase(ModelID)
+			Dim As Integer pb = InStr(Lower, "[")
+			If pb > 0 Then Lower = Left(Lower, pb - 1)
+			For i As Integer = 0 To 3
+				Dim As String Alias_ = IIf(i = 0, "opus", IIf(i = 1, "sonnet", IIf(i = 2, "fable", "haiku")))
+				If InStr(Lower, "claude-" & Alias_ & "-") = 1 AndAlso AIClaudeKnownID(Alias_) <> Lower Then iniSettings.WriteString("AIAgents", "ClaudeModelID_" & Alias_, Lower)
+			Next
+			AIStateRepaint
+		End If
+	End If
+	If InStr(Line_, """type"":""rate_limit_event""") > 0 Then
+		AIClaudeRateLimit Line_, "five_hour", AILimitHoursUsed, AILimitHoursReset
+		AIClaudeRateLimit Line_, "seven_day", AILimitWeekUsed, AILimitWeekReset
+		Exit Sub
+	End If
+	If InStr(Line_, """type"":""result""") > 0 Then
+		Dim As LongInt Window_ = AIJsonNumberAfter(Line_, "contextWindow")
+		If Window_ > 0 AndAlso Window_ <> AIContextWindow Then AIContextWindow = Window_: AIStateRepaint
+		Exit Sub
+	End If
+	Dim As Integer Pos1 = InStr(Line_, """usage"":{")
+	If Pos1 = 0 OrElse InStr(Line_, """model"":""<synthetic>""") > 0 Then Exit Sub
+	Dim As LongInt Inputs = Max(0LL, AIJsonNumberAfter(Line_, "input_tokens", Pos1)) + Max(0LL, AIJsonNumberAfter(Line_, "cache_creation_input_tokens", Pos1)) + Max(0LL, AIJsonNumberAfter(Line_, "cache_read_input_tokens", Pos1))
+	If Inputs <= 0 Then Exit Sub
+	AIContextUsed = Inputs + Max(0LL, AIJsonNumberAfter(Line_, "output_tokens", Pos1))
+	AIStateRepaint
+End Sub
+
+'The bytes of a text of base64
+Function AIBase64Decode(ByRef Text As String, Start As Integer, Length As Integer) As String
+	Static As Byte Values(255)
+	Static As Boolean Ready
+	If Not Ready Then
+		Dim As String Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+		For i As Integer = 0 To 255: Values(i) = -1: Next
+		For i As Integer = 0 To 63: Values(Chars[i]) = i: Next
+		Ready = True
+	End If
+	Dim As String Result = Space(Length * 3 \ 4 + 3)
+	Dim As Integer Count, Bits
+	Dim As ULong Acc
+	For i As Integer = Start - 1 To Start + Length - 2
+		Dim As Integer v = Values(Text[i])
+		If v < 0 Then Continue For
+		Acc = ((Acc Shl 6) Or v) And &HFFFFFF
+		Bits += 6
+		If Bits >= 8 Then
+			Bits -= 8
+			Result[Count] = (Acc Shr Bits) And 255
+			Count += 1
+		End If
+	Next
+	Return Left(Result, Count)
+End Function
+
+'The pictures of the results of the tools of claude (Read of a picture, a screenshot ...):
+'{"type":"image","source":{"type":"base64","media_type":"image/png","data":"..."}} are saved in the folder of the temporary
+'files of the AI Agent and shown in the chat as the pictures of Markdown
+Sub AIClaudeShowImages(ByRef Line_ As String)
+	Static As Integer ImageNumber
+	'tool_use_result has the same pictures again
+	Dim As Integer LineEnd = InStr(Line_, """tool_use_result""")
+	If LineEnd = 0 Then LineEnd = Len(Line_)
+	Dim As Integer Pos1 = InStr(Line_, """type"":""image""")
+	Do While Pos1 > 0 AndAlso Pos1 < LineEnd
+		Dim As Integer PosData = InStr(Pos1, Line_, """data"":""")
+		If PosData = 0 OrElse PosData > LineEnd Then Exit Do
+		PosData += 8
+		Dim As Integer PosEnd = InStr(PosData, Line_, """")
+		If PosEnd = 0 Then Exit Do
+		Dim As Integer PosType = InStr(Pos1, Line_, """media_type"":""image/")
+		Dim As String Ext = "png"
+		If PosType > 0 AndAlso PosType < PosEnd Then
+			Ext = LCase(Mid(Line_, PosType + 20, InStr(PosType + 20, Line_, """") - PosType - 20))
+			If Ext = "jpeg" Then Ext = "jpg"
+		End If
+		ImageNumber += 1
+		Dim As UString FileName = GetUserTempPath("AIAgent/Claude_" & Replace(Date, "-", "") & "_" & Replace(Time, ":", "") & "_" & ImageNumber & "." & Ext)
+		If FileName <> "" Then
+			Dim As String Bytes = AIBase64Decode(Line_, PosData, PosEnd - PosData)
+			Dim As Integer Fn = FreeFile
+			If Len(Bytes) > 0 AndAlso Open(FileName For Binary Access Write As #Fn) = 0 Then
+				Put #Fn, , Bytes
+				Close #Fn
+				AIClaudeFeed(!"\n![" & ML("Image") & "](" & FileName & !")\n", True)
+			End If
+		End If
+		Pos1 = InStr(PosEnd, Line_, """type"":""image""")
+	Loop
+End Sub
+
+Sub AIClaudeProcessLine(ByRef Line_ As String, ByRef GotText As Boolean, ByRef InThinking As Boolean, ByRef ErrorText As UString)
+	If Trim(Line_) = "" Then Exit Sub
+	Dim As Integer Pos1
+	If Left(LTrim(Line_), 1) = "{" Then AIClaudeContextUsage Line_
+	'The pictures of the results of the tools
+	If Left(LTrim(Line_), 1) = "{" AndAlso InStr(Line_, """type"":""image""") > 0 AndAlso InStr(Line_, """type"":""user""") > 0 Then
+		AIClaudeShowImages Line_
+		Exit Sub
+	End If
+	If Left(LTrim(Line_), 1) <> "{" Then
+		'Not JSON: a message of the shell or of claude (the program is not found, wrong option, ...)
+		If ErrorText <> "" Then ErrorText &= Chr(10)
+		Dim As WString Ptr Utf = FromUtf8(StrPtr(Line_))
+		If Utf <> 0 Then ErrorText &= *Utf: _Deallocate(Utf)
+	ElseIf InStr(Line_, """type"":""stream_event""") > 0 Then
+		Pos1 = InStr(Line_, """type"":""text_delta""")
+		If Pos1 > 0 Then
+			If InThinking Then
+				InThinking = False
+				AIClaudeFeed(!"\n</think>\n", False)
+			End If
+			AIClaudeFeed(AIJsonToText(AIJsonStringValue(Line_, "text", Pos1)), True)
+			GotText = True
+			Exit Sub
+		End If
+		Pos1 = InStr(Line_, """type"":""thinking_delta""")
+		If Pos1 > 0 Then
+			'Some models send the thinking empty: no <think></think> for it
+			Dim As UString Thinking = AIJsonToText(AIJsonStringValue(Line_, "thinking", Pos1))
+			If Thinking = "" Then Exit Sub
+			If Not InThinking Then
+				InThinking = True
+				AIClaudeFeed(!"\n<think>\n", False)
+			End If
+			AIClaudeFeed(Thinking, False)
+			Exit Sub
+		End If
+		'A tool of Claude (Read, Grep ...)
+		Pos1 = InStr(Line_, """type"":""tool_use""")
+		If Pos1 > 0 AndAlso InStr(Line_, """content_block_start""") > 0 Then
+			'Plain text: the backquotes of Markdown broke the next lines
+			AIClaudeFeed(!"\n" & WChr(8594) & " " & AIJsonToText(AIJsonStringValue(Line_, "name", Pos1)) & !"\n", False)
+		End If
+	ElseIf InStr(Line_, """type"":""result""") > 0 Then
+		Dim As String SessionID = AIJsonStringValue(Line_, "session_id")
+		If SessionID <> "" Then AIClaudeSessionID = SessionID
+		Dim As UString ResultText = AIJsonToText(AIJsonStringValue(Line_, "result"))
+		If InStr(Line_, """is_error"":true") > 0 Then
+			If ResultText <> "" AndAlso InStr(ErrorText, ResultText) < 1 Then
+				If ErrorText <> "" Then ErrorText &= Chr(10)
+				ErrorText &= ResultText
+			End If
+			If ErrorText = "" Then ErrorText = "Error"
+		ElseIf Not GotText AndAlso ResultText <> "" Then
+			AIClaudeFeed(ResultText, True)
+			GotText = True
+		End If
+		Pos1 = InStr(Line_, """total_cost_usd"":")
+		If Pos1 > 0 Then ShowMessages("Claude Code: total_cost_usd " & Val(Mid(Line_, Pos1 + 17)) & ", session " & AIClaudeSessionID)
+	ElseIf InStr(Line_, """type"":""assistant""") > 0 Then
+		'Messages of claude itself (Not logged in, ...) come without stream events
+		If (Not GotText) AndAlso InStr(Line_, """model"":""<synthetic>""") > 0 Then ErrorText = AIJsonToText(AIJsonStringValue(Line_, "text"))
+	ElseIf InStr(Line_, """subtype"":""init""") > 0 Then
+		Dim As String SessionID = AIJsonStringValue(Line_, "session_id")
+		If SessionID <> "" Then AIClaudeSessionID = SessionID
+	End If
+End Sub
+
+'Writes a line (JSON) to the standard input of claude (the question, the answers to the questions of permission)
+#ifdef __USE_WINAPI__
+	Dim Shared As HANDLE AIClaudeStdin
+#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+	Dim Shared As FILE Ptr AIClaudeStdin
+	Declare Function AIClaudeMkfifo cdecl Alias "mkfifo" (ByVal Path As ZString Ptr, ByVal Mode As Long) As Long
+#endif
+Dim Shared As String AIClaudeInput
+
+Sub AIClaudeWrite(ByRef JsonLine As String)
+	Dim As String Buffer = JsonLine & Chr(10)
+	#ifdef __USE_WINAPI__
+		If AIClaudeStdin = NULL Then Exit Sub
+		Dim As DWORD Written
+		WriteFile(AIClaudeStdin, StrPtr(Buffer), Len(Buffer), @Written, NULL)
+	#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+		If AIClaudeStdin = 0 Then Exit Sub
+		fputs(StrPtr(Buffer), AIClaudeStdin)
+		fflush(AIClaudeStdin)
+	#endif
+End Sub
+
+'The end of the input: claude ends after its answer
+Sub AIClaudeCloseStdin()
+	#ifdef __USE_WINAPI__
+		If AIClaudeStdin <> NULL Then CloseHandle AIClaudeStdin: AIClaudeStdin = NULL
+	#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+		If AIClaudeStdin <> 0 Then fclose(AIClaudeStdin): AIClaudeStdin = 0
+	#endif
+End Sub
+
+'Text as a JSON string (UTF-8, without the quotes)
+Function AIJsonEscape(ByRef Text As WString) As String
+	Dim As String Utf = ToUtf8(Text), Result
+	For i As Integer = 0 To Len(Utf) - 1
+		Select Case Utf[i]
+		Case 34: Result &= "\"""
+		Case 92: Result &= "\\"
+		Case 10: Result &= "\n"
+		Case 13: Result &= "\r"
+		Case 9: Result &= "\t"
+		Case Is < 32: Result &= "\u00" & Hex(Utf[i], 2)
+		Case Else: Result &= Chr(Utf[i])
+		End Select
+	Next
+	Return Result
+End Function
+
+'The JSON object (as it is) of the key Key of the JSON line Line_ from the position Start, "{}" if there is none
+Function AIJsonObjectValue(ByRef Line_ As String, ByRef Key As String, Start As Integer = 1) As String
+	Dim As Integer Pos1 = InStr(Start, Line_, """" & Key & """:{")
+	If Pos1 < 1 Then Return "{}"
+	Pos1 += Len(Key) + 3
+	Dim As Integer Level, i = Pos1
+	Dim As Boolean InString
+	Do While i <= Len(Line_)
+		Select Case Line_[i - 1]
+		Case 92 ' \
+			If InString Then i += 1
+		Case 34 ' "
+			InString = Not InString
+		Case 123 ' {
+			If Not InString Then Level += 1
+		Case 125 ' }
+			If Not InString Then
+				Level -= 1
+				If Level = 0 Then Return Mid(Line_, Pos1, i - Pos1 + 1)
+			End If
+		End Select
+		i += 1
+	Loop
+	Return "{}"
+End Function
+
+'The question of permission is asked in the main thread
+#if defined(__USE_GTK__) AndAlso Not defined(__USE_WINAPI__)
+	Dim Shared As Any Ptr AIClaudeAskMutex, AIClaudeAskCond
+	Dim Shared As Boolean AIClaudeAskDone, AIClaudeAskResult
+	Dim Shared As WString Ptr AIClaudeAskTextPtr
+	Function AIClaudeAskIdle cdecl(ByVal Param As gpointer) As gboolean
+		Dim As Boolean Result = MsgBox(*AIClaudeAskTextPtr, "Claude Code", mtQuestion, btYesNo) = mrYes
+		MutexLock AIClaudeAskMutex
+		AIClaudeAskResult = Result
+		AIClaudeAskDone = True
+		CondSignal AIClaudeAskCond
+		MutexUnlock AIClaudeAskMutex
+		Return False
+	End Function
+#endif
+
+Function AIClaudeAsk(ByRef Text As WString) As Boolean
+	#ifdef __USE_WINAPI__
+		'MessageBox can be shown by this thread (MB_TOPMOST)
+		Return MsgBox(Text, "Claude Code", mtQuestion, btYesNo) = mrYes
+	#elseif defined(__USE_GTK__)
+		If AIClaudeAskMutex = 0 Then AIClaudeAskMutex = MutexCreate: AIClaudeAskCond = CondCreate
+		WLet(AIClaudeAskTextPtr, Text)
+		MutexLock AIClaudeAskMutex
+		AIClaudeAskDone = False
+		g_idle_add(Cast(GSourceFunc, @AIClaudeAskIdle), 0)
+		Do Until AIClaudeAskDone
+			CondWait AIClaudeAskCond, AIClaudeAskMutex
+		Loop
+		Dim As Boolean Result = AIClaudeAskResult
+		MutexUnlock AIClaudeAskMutex
+		Return Result
+	#else
+		Return False
+	#endif
+End Function
+
+'A request of claude (control_request): can_use_tool asks the permission of the user as Claude Code in a terminal does
+Sub AIClaudeControlRequest(ByRef Line_ As String)
+	Dim As String RequestID = AIJsonStringValue(Line_, "request_id")
+	If InStr(Line_, """subtype"":""can_use_tool""") < 1 Then
+		AIClaudeWrite("{""type"":""control_response"",""response"":{""subtype"":""error"",""request_id"":""" & RequestID & """,""error"":""Not supported by VisualFBEditor""}}")
+		Exit Sub
+	End If
+	Dim As Integer Pos1 = InStr(Line_, """request"":{")
+	Dim As String ToolName = AIJsonStringValue(Line_, "tool_name", Pos1)
+	Dim As String DisplayName = AIJsonStringValue(Line_, "display_name", Pos1)
+	If DisplayName = "" Then DisplayName = ToolName
+	Dim As String ToolInput = AIJsonObjectValue(Line_, "input", Pos1)
+	'What will be done: the command, the file, the address ...
+	Dim As UString Details = AIJsonToText(AIJsonStringValue(ToolInput, "command"))
+	If Details = "" Then Details = AIJsonToText(AIJsonStringValue(ToolInput, "file_path"))
+	If Details = "" Then Details = AIJsonToText(AIJsonStringValue(ToolInput, "notebook_path"))
+	If Details = "" Then Details = AIJsonToText(AIJsonStringValue(ToolInput, "url"))
+	If Details = "" Then Details = AIJsonToText(AIJsonStringValue(ToolInput, "path"))
+	'The description of the request (after its input)
+	Dim As UString Description = AIJsonToText(AIJsonStringValue(Line_, "description", InStr(Line_, """input"":{") + Len(ToolInput)))
+	Dim As UString Question = ML("Claude Code asks for permission") & ":" & Chr(10) & Chr(10) & AIJsonToText(DisplayName)
+	If Description <> "" Then Question &= ": " & Description
+	If Details <> "" Then Question &= Chr(10) & Chr(10) & Left(Details, 1000)
+	Question &= Chr(10) & Chr(10) & ML("Allow?")
+	Dim As Boolean Allowed = AIClaudeAsk(Question)
+	ThreadsEnter
+	'Plain text: the backquotes of Markdown with the paths broke the next lines
+	AIClaudeFeed(!"\n" & AIJsonToText(DisplayName) & IIf(Details <> "", ": " & Left(Details, 200), "") & " - " & IIf(Allowed, ML("allowed"), ML("denied")) & !"\n", False)
+	ThreadsLeave
+	If Allowed Then
+		AIClaudeWrite("{""type"":""control_response"",""response"":{""subtype"":""success"",""request_id"":""" & RequestID & """,""response"":{""behavior"":""allow"",""updatedInput"":" & ToolInput & "}}}")
+	Else
+		AIClaudeWrite("{""type"":""control_response"",""response"":{""subtype"":""success"",""request_id"":""" & RequestID & """,""response"":{""behavior"":""deny"",""message"":""The user denied this action in VisualFBEditor""}}}")
+	End If
+End Sub
+
+'One line of the output of claude (in the thread of the request)
+Sub AIClaudeLine(ByRef Line_ As String, ByRef GotText As Boolean, ByRef InThinking As Boolean, ByRef ErrorText As UString)
+	If InStr(Line_, """type"":""control_request""") > 0 Then
+		AIClaudeControlRequest(Line_)
+		Exit Sub
+	End If
+	ThreadsEnter
+	AIClaudeProcessLine(Line_, GotText, InThinking, ErrorText)
+	ThreadsLeave
+	'The answer is complete: the end of the input ends claude
+	If InStr(Line_, """type"":""result""") > 0 Then AIClaudeCloseStdin
+End Sub
+
+Sub AIClaudeRequest(Param As Any Ptr)
+	Dim As Boolean GotText, InThinking
+	Dim As UString ErrorText
+	Dim As String Pending, Line_
+	Dim As Integer Pos1
+	'A conversation without an answer (error) is not continued
+	Dim As String PrevSessionID = AIClaudeSessionID
+	AIClaudeAborted = False
+	#ifdef __USE_WINAPI__
+		Dim sa As SECURITY_ATTRIBUTES
+		sa.nLength = SizeOf(SECURITY_ATTRIBUTES)
+		sa.bInheritHandle = True
+		Dim As HANDLE hReadPipe, hWritePipe, hInRead, hInWrite
+		Dim si As STARTUPINFO
+		Dim pi As PROCESS_INFORMATION
+		If CreatePipe(@hReadPipe, @hWritePipe, @sa, 0) = 0 OrElse CreatePipe(@hInRead, @hInWrite, @sa, 0) = 0 Then
+			ErrorText = ML("Error: Couldn't Create Pipe")
+		Else
+			'Only the ends of claude are inherited
+			SetHandleInformation(hReadPipe, HANDLE_FLAG_INHERIT, 0)
+			SetHandleInformation(hInWrite, HANDLE_FLAG_INHERIT, 0)
+			si.cb = SizeOf(STARTUPINFO)
+			si.dwFlags = STARTF_USESTDHANDLES Or STARTF_USESHOWWINDOW
+			si.hStdOutput = hWritePipe
+			si.hStdError = hWritePipe
+			si.hStdInput = hInRead
+			si.wShowWindow = SW_HIDE
+			'cmd runs claude.exe and also claude.cmd of npm
+			Dim As WString Ptr CmdL
+			WLet(CmdL, "cmd /s /c """ & *AIClaudeCommandPtr & """")
+			Dim As WString Ptr WorkDir
+			If AIClaudeWorkDirPtr <> 0 AndAlso *AIClaudeWorkDirPtr <> "" Then WorkDir = AIClaudeWorkDirPtr
+			If CreateProcess(0, CmdL, @sa, @sa, 1, NORMAL_PRIORITY_CLASS Or CREATE_NO_WINDOW Or CREATE_SUSPENDED, 0, WorkDir, @si, @pi) = 0 Then
+				ErrorText = ML("Error: Couldn't Create Process") & ": " & GetErrorString(GetLastError)
+				CloseHandle hWritePipe
+				CloseHandle hInRead
+				CloseHandle hInWrite
+			Else
+				CloseHandle hWritePipe
+				CloseHandle hInRead
+				AIClaudeStdin = hInWrite
+				'In a job: Release the AI Agent ends claude with all its processes
+				AIClaudeJob = CreateJobObject(NULL, NULL)
+				If AIClaudeJob <> NULL AndAlso AssignProcessToJobObject(AIClaudeJob, pi.hProcess) = 0 Then CloseHandle AIClaudeJob: AIClaudeJob = NULL
+				ResumeThread(pi.hThread)
+				AIClaudeWrite(AIClaudeInput)
+				Dim As ZString * 4097 Buffer
+				Dim As DWORD BytesRead
+				Do While ReadFile(hReadPipe, @Buffer, 4096, @BytesRead, 0) AndAlso BytesRead > 0
+					Buffer[BytesRead] = 0
+					Pending &= Left(Buffer, BytesRead)
+					Do
+						Pos1 = InStr(Pending, Chr(10))
+						If Pos1 < 1 Then Exit Do
+						Line_ = RTrim(Left(Pending, Pos1 - 1), Chr(13))
+						Pending = Mid(Pending, Pos1 + 1)
+						AIClaudeLine(Line_, GotText, InThinking, ErrorText)
+					Loop
+				Loop
+				AIClaudeCloseStdin
+				WaitForSingleObject(pi.hProcess, 5000)
+				CloseHandle pi.hProcess
+				CloseHandle pi.hThread
+				If AIClaudeJob <> NULL Then CloseHandle AIClaudeJob: AIClaudeJob = NULL
+			End If
+			CloseHandle hReadPipe
+			WDeAllocate(CmdL)
+		End If
+	#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+		'The standard input of claude is a named pipe (popen only reads)
+		Dim As UString Fifo = *AIClaudePromptFilePtr
+		Kill Fifo
+		If AIClaudeMkfifo(ToUtf8(Fifo), &o600) <> 0 Then
+			ErrorText = ML("Error: Couldn't Create Pipe")
+		Else
+			Dim As UString Command_ = "exec 2>&1; "
+			If AIClaudeWorkDirPtr <> 0 AndAlso *AIClaudeWorkDirPtr <> "" Then Command_ &= "cd '" & Replace(*AIClaudeWorkDirPtr, "'", "'\''") & "' 2>/dev/null; "
+			Command_ &= "echo __VFBE_PID__$$; exec " & *AIClaudeCommandPtr & " < '" & Replace(Fifo, "'", "'\''") & "'"
+			Dim As FILE Ptr PipeFile = popen(ToUtf8(Command_), "r")
+			If PipeFile = 0 Then
+				ErrorText = ML("Error: Couldn't Create Process")
+			Else
+				'Opened when the shell opens it for claude
+				AIClaudeStdin = fopen(ToUtf8(Fifo), "w")
+				AIClaudeWrite(AIClaudeInput)
+				Dim As ZString * 65537 Buffer
+				While fgets(@Buffer, SizeOf(Buffer), PipeFile) <> 0
+					Pending &= Buffer
+					If Right(Pending, 1) <> Chr(10) Then Continue While
+					Line_ = RTrim(Pending, Any !"\r\n")
+					Pending = ""
+					If StartsWith(Line_, "__VFBE_PID__") Then
+						AIClaudePid = ValInt(Mid(Line_, 13))
+						If AIClaudeAborted AndAlso AIClaudePid > 0 Then AIClaudeKill(AIClaudePid, 15)
+						Continue While
+					End If
+					AIClaudeLine(Line_, GotText, InThinking, ErrorText)
+				Wend
+				AIClaudeCloseStdin
+				pclose(PipeFile)
+				AIClaudePid = 0
+			End If
+			Kill Fifo
+		End If
+	#else
+		ErrorText = "Claude Code is not supported on this platform"
+	#endif
+	ThreadsEnter
+	If Pending <> "" Then AIClaudeProcessLine(Pending, GotText, InThinking, ErrorText)
+	If InThinking Then AIClaudeFeed(!"\n</think>\n", False)
+	'The converter keeps the last line until its end of line: without it the start of the line is lost
+	If GotText Then AIClaudeFeed(!"\n", False)
+	If Not GotText Then AIClaudeSessionID = PrevSessionID
+	If AIClaudeAborted Then
+		AIClaudeFeed(!"\n\n*" & ML("Stopped") & !"*\n", False)
+	ElseIf ErrorText <> "" AndAlso Not GotText Then
+		AIClaudeFeed(!"\n**Claude Code:** " & ErrorText & !"\n", False)
+		If InStr(LCase(ErrorText), "log") > 0 Then AIClaudeFeed(!"\n" & ML("Run claude in a terminal and sign in with /login.") & !"\n", False)
+		ShowMessages("Claude Code: " & ErrorText)
+	End If
+	If AIMessages.Count > 0 Then
+		If AIAssistantsAnswersPtr <> 0 AndAlso Trim(*AIAssistantsAnswersPtr) <> "" Then
+			AIMessages.Item(AIMessages.Count - 1)->Text = Chr(10) & Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10) & *AIAssistantsAnswersPtr
+		Else
+			AIMessages.Remove AIMessages.Count - 1
+		End If
+	End If
+	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
+	'The chat is in the list of the chats at once (Chats) and can be continued later
+	If GotText Then AIChatSaveCurrent False
+	bInAIThread = False
+	lvAIChats.Repaint
+	AIStateRepaint
+	txtAIRequest.Enabled = True
+	txtAIRequest.SetFocus
+	cboAIAgentModels.Enabled = True
+	ThreadsLeave
+End Sub
+
+'Pictures of the question of the AI Agent: Ctrl+V (Shift+Insert) of a picture (a screenshot) or of picture files copied in
+'the file manager adds the picture to the question: its small image is shown above the text box of the question (the
+'button x on it removes the picture), the pictures are sent with the next question: an image block of stream-json for
+'Claude Code, an image_url (data: address) of the OpenAI format for the other providers.
+'The pictures of the clipboard are saved as PNG in the temporary folder of the IDE.
+Dim Shared As UString AIImageFiles(Any)
+Dim Shared As My.Sys.Drawing.BitmapType Ptr AIImageBitmaps(Any)
+Dim Shared As Integer AIImageCount
+'pnlAIInput: the box of the question (the small images of the pictures and the text box), its height follows the text
+Dim Shared As Panel pnlAIInput, pnlAIImages
+'pnlAIAdd: the button + (the pictures of a file) on the left of the text box, pnlAISend: the button Send (Stop while
+'AI is working) on its right, pnlAIStatus: the row under the box of the question (the model, AI is working)
+Dim Shared As Panel pnlAIAdd, pnlAISend, pnlAIStatus
+Const AIButtonSize = 24
+'The buttons are repainted when AI starts or ends the work
+Sub AIStateRepaint()
+	pnlAISend.Repaint
+	pnlAIStatus.Repaint
+	'The row of the account only for Claude Code
+	Dim As Boolean ShowAccount = IsClaudeCodeAgent()
+	If pnlAIAccount.Visible <> ShowAccount Then
+		pnlAIAccount.Visible = ShowAccount
+		pnlAIChatsSide.RequestAlign
+	End If
+	pnlAIAccount.Repaint
+End Sub
+Const AIImageMaxSize = 5 * 1024 * 1024 'The limit of the size of a picture of the API of Anthropic
+Const AIImageThumbSize = 64 'The size of the small image of a picture (without the scale of the screen)
+Const AIImageThumbGap = 8
+Const AIImageStripHeight = AIImageThumbSize + 2 * AIImageThumbGap
+Const AIImageCloseSize = 18 'The button x on the small image
+
+'The left of the small image of the picture Index
+Function AIImageThumbLeft(Index As Integer) As Integer
+	Return AIImageThumbGap + Index * (AIImageThumbSize + AIImageThumbGap)
+End Function
+
+'The color between the color and the background (Percent: of the color)
+Function AIImageBlend(Clr As Integer, Back As Integer, Percent As Integer) As Integer
+	Dim As Integer r = ((Clr And &HFF) * Percent + (Back And &HFF) * (100 - Percent)) \ 100
+	Dim As Integer g = (((Clr Shr 8) And &HFF) * Percent + ((Back Shr 8) And &HFF) * (100 - Percent)) \ 100
+	Dim As Integer b = (((Clr Shr 16) And &HFF) * Percent + ((Back Shr 16) And &HFF) * (100 - Percent)) \ 100
+	Return r Or (g Shl 8) Or (b Shl 16)
+End Function
+
+#ifdef __USE_WINAPI__
+	'The color (BGR) for GDI+ (ARGB)
+	Function AIImageARGB(Clr As Integer, Alpha As Integer = 255) As ARGB
+		Return (CULng(Alpha) Shl 24) Or (CULng(Clr And &HFF) Shl 16) Or CULng(Clr And &HFF00) Or CULng((Clr Shr 16) And &HFF)
+	End Function
+
+	'The path of a rectangle with round corners
+	Function AIImageRoundPath(x As Single, y As Single, w As Single, h As Single, r As Single) As GpPath Ptr
+		Dim As GpPath Ptr Path
+		If GdipCreatePath(FillModeAlternate, @Path) <> 0 Then Return 0
+		Dim As Single d = r * 2
+		GdipAddPathArc(Path, x, y, d, d, 180, 90)
+		GdipAddPathArc(Path, x + w - d, y, d, d, 270, 90)
+		GdipAddPathArc(Path, x + w - d, y + h - d, d, d, 0, 90)
+		GdipAddPathArc(Path, x, y + h - d, d, d, 90, 90)
+		GdipClosePathFigure(Path)
+		Return Path
+	End Function
+#endif
+
+'The strip of the small images is shown when there are pictures: the box of the question grows by its height
+Declare Sub AIInputUpdateHeight()
+Sub AIImagesUpdate()
+	Dim As Boolean Show = AIImageCount > 0
+	If pnlAIImages.Visible <> Show Then
+		pnlAIImages.Visible = Show
+		AIInputUpdateHeight
+	End If
+	If Show Then pnlAIImages.Repaint
+	pnlAISend.Repaint 'Send is not grey with the pictures
+End Sub
+
+'Removes the picture Index from the question
+Sub AIImageRemove(Index As Integer)
+	If Index < 0 OrElse Index >= AIImageCount Then Exit Sub
+	If AIImageBitmaps(Index) <> 0 Then Delete AIImageBitmaps(Index)
+	For i As Integer = Index To AIImageCount - 2
+		AIImageFiles(i) = AIImageFiles(i + 1)
+		AIImageBitmaps(i) = AIImageBitmaps(i + 1)
+	Next
+	AIImageCount -= 1
+	If AIImageCount = 0 Then
+		Erase AIImageFiles, AIImageBitmaps
+	Else
+		ReDim Preserve AIImageFiles(AIImageCount - 1)
+		ReDim Preserve AIImageBitmaps(AIImageCount - 1)
+	End If
+	AIImagesUpdate
+End Sub
+
+'Removes all pictures of the question (they were sent)
+Sub AIImagesClear()
+	For i As Integer = 0 To AIImageCount - 1
+		If AIImageBitmaps(i) <> 0 Then Delete AIImageBitmaps(i)
+	Next
+	AIImageCount = 0
+	Erase AIImageFiles, AIImageBitmaps
+	AIImagesUpdate
+End Sub
+
+'The names of the pictures of the question for the chat
+Function AIImagesNote() As UString
+	Dim As UString Result
+	For i As Integer = 0 To AIImageCount - 1
+		If i = 0 Then Result &= Chr(10) Else Result &= " "
+		'The picture of Markdown: the chat shows it (the file is kept in the folder of the temporary files of the AI Agent)
+		Result &= "![" & ML("Image") & ": " & Mid(AIImageFiles(i), InStrRev(AIImageFiles(i), Any "\/") + 1) & "](" & AIImageFiles(i) & ")"
+	Next
+	Return Result
+End Function
+
+'The colors of the box of the question: the background and the text
+Sub AIImageColors(ByRef Sender As Control, ByRef ClrBack As Integer, ByRef ClrText As Integer)
+	#ifdef __USE_WINAPI__
+		ClrBack = IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_WINDOW))
+		ClrText = IIf(g_darkModeEnabled, darkTextColor, GetSysColor(COLOR_WINDOWTEXT))
+	#else
+		ClrBack = Sender.BackColor
+		ClrText = Sender.Font.Color
+	#endif
+End Sub
+
+'The small image under the mouse (-1: none) and whether the mouse is on its button x
+Dim Shared As Integer AIImageHoverIndex = -1
+Dim Shared As Boolean AIImageHoverClose
+
+'The small image at x, y (-1: none), OnClose: the point is on its button x
+Function AIImageHitTest(x As Integer, y As Integer, ByRef OnClose As Boolean) As Integer
+	OnClose = False
+	If y < AIImageThumbGap OrElse y > AIImageThumbGap + AIImageThumbSize Then Return -1
+	For i As Integer = 0 To AIImageCount - 1
+		Dim As Integer Left_ = AIImageThumbLeft(i)
+		If x >= Left_ AndAlso x <= Left_ + AIImageThumbSize Then
+			Dim As Integer cx = Left_ + AIImageThumbSize - AIImageCloseSize - 3, cy = AIImageThumbGap + 3
+			OnClose = x >= cx - 2 AndAlso x <= cx + AIImageCloseSize + 2 AndAlso y >= cy - 2 AndAlso y <= cy + AIImageCloseSize + 2
+			Return i
+		End If
+	Next
+	Return -1
+End Function
+
+'The small image under the mouse is lighter, the button x under the mouse is inverted, the hint says what a click does
+Sub AIImageSetHover(Index As Integer, OnClose As Boolean)
+	If Index = AIImageHoverIndex AndAlso OnClose = AIImageHoverClose Then Exit Sub
+	AIImageHoverIndex = Index
+	AIImageHoverClose = OnClose
+	If Index < 0 OrElse Index >= AIImageCount Then
+		pnlAIImages.Hint = ""
+	ElseIf OnClose Then
+		pnlAIImages.Hint = ML("Remove the picture")
+	Else
+		pnlAIImages.Hint = Mid(AIImageFiles(Index), InStrRev(AIImageFiles(Index), Any "\/") + 1) & " - " & ML("Click to open")
+	End If
+	#ifdef __USE_WINAPI__
+		If Index >= 0 Then pnlAIImages.Cursor = crHand Else pnlAIImages.Cursor = crArrow
+	#endif
+	pnlAIImages.Repaint
+End Sub
+
+Sub pnlAIImages_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	Dim As Integer ClrTile = AIImageBlend(ClrText, ClrBack, 8), ClrBorder = AIImageBlend(ClrText, ClrBack, 30)
+	Dim As Integer ClrHover = AIImageBlend(ClrText, ClrBack, 70)
+	Dim As Integer x, y = AIImageThumbGap, s = AIImageThumbSize
+	#ifdef __USE_WINAPI__
+		'GDI+: the round corners, the circle and the x are smooth (antialiased), the picture covers the small image
+		'(the middle of the picture, cut by the round corners). In device pixels.
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle = 0 OrElse GdipCreateFromHDC(Canvas.Handle, @G) <> 0 OrElse G = 0 Then Exit Sub
+		GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+		GdipSetInterpolationMode(G, InterpolationModeHighQualityBicubic)
+		GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+		GdipGraphicsClear(G, AIImageARGB(ClrBack))
+		Dim As GpSolidFill Ptr Brush
+		Dim As GpPen Ptr Pen
+		Dim As Single sy = Sender.ScaleY(y), ss = Sender.ScaleX(s), Radius = Sender.ScaleX(8), One = Sender.ScaleX(1)
+		For i As Integer = 0 To AIImageCount - 1
+			Dim As Boolean Hover = (i = AIImageHoverIndex), HoverClose = Hover AndAlso AIImageHoverClose
+			Dim As Single sx = Sender.ScaleX(AIImageThumbLeft(i))
+			Dim As GpPath Ptr Path = AIImageRoundPath(sx + 0.5, sy + 0.5, ss - 1, ss - 1, Radius)
+			If Path = 0 Then Continue For
+			GdipCreateSolidFill(AIImageARGB(ClrTile), @Brush)
+			GdipFillPath(G, Brush, Path)
+			GdipDeleteBrush(Brush)
+			Dim As My.Sys.Drawing.BitmapType Ptr Bitm = AIImageBitmaps(i)
+			If Bitm <> 0 AndAlso Bitm->pImage <> 0 AndAlso Bitm->Width > 0 AndAlso Bitm->Height > 0 Then
+				Dim As Integer Side = Min(Bitm->Width, Bitm->Height)
+				GdipSetClipPath(G, Path, CombineModeReplace)
+				GdipDrawImageRectRectI(G, Bitm->pImage, CInt(sx), CInt(sy), CInt(ss), CInt(ss), (Bitm->Width - Side) \ 2, (Bitm->Height - Side) \ 2, Side, Side, UnitPixel, 0, 0, 0)
+				'The small image under the mouse is lighter
+				If Hover AndAlso Not HoverClose Then
+					GdipCreateSolidFill(AIImageARGB(&HFFFFFF, 40), @Brush)
+					GdipFillPath(G, Brush, Path)
+					GdipDeleteBrush(Brush)
+				End If
+				GdipResetClip(G)
+			Else
+				'A picture that cannot be shown (WebP): its extension
+				Dim As UString Ext = UCase(Mid(AIImageFiles(i), InStrRev(AIImageFiles(i), ".") + 1))
+				Canvas.TextOut AIImageThumbLeft(i) + (s - Canvas.TextWidth(Ext)) / 2, y + s / 2 - 8, Ext, ClrText, ClrTile
+			End If
+			GdipCreatePen1(AIImageARGB(IIf(Hover, ClrHover, ClrBorder)), IIf(Hover, One * 1.5, One), UnitPixel, @Pen)
+			GdipDrawPath(G, Pen, Path)
+			GdipDeletePen(Pen)
+			GdipDeletePath(Path)
+			'The button x: a dark circle with a border and the x of the color of the text, inverted under the mouse
+			Dim As Single c = Sender.ScaleX(AIImageCloseSize), cx = sx + ss - c - Sender.ScaleX(3), cy = sy + Sender.ScaleY(3)
+			GdipCreateSolidFill(IIf(HoverClose, AIImageARGB(ClrText), AIImageARGB(AIImageBlend(ClrText, ClrBack, 12), 235)), @Brush)
+			GdipFillEllipse(G, Brush, cx, cy, c, c)
+			GdipDeleteBrush(Brush)
+			GdipCreatePen1(AIImageARGB(IIf(HoverClose, ClrText, ClrBorder)), One, UnitPixel, @Pen)
+			GdipDrawEllipse(G, Pen, cx, cy, c, c)
+			GdipDeletePen(Pen)
+			Dim As Single d = c * 0.32
+			GdipCreatePen1(AIImageARGB(IIf(HoverClose, ClrBack, ClrText)), Max(1.5, One * 1.6), UnitPixel, @Pen)
+			GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+			GdipDrawLine(G, Pen, cx + d, cy + d, cx + c - d, cy + c - d)
+			GdipDrawLine(G, Pen, cx + c - d, cy + d, cx + d, cy + c - d)
+			GdipDeletePen(Pen)
+		Next
+		GdipDeleteGraphics(G)
+		Exit Sub
+	#endif
+	Canvas.Pen.Color = ClrBack
+	Canvas.Brush.Color = ClrBack
+	Canvas.Rectangle 0, 0, Sender.Width, Sender.Height
+	For i As Integer = 0 To AIImageCount - 1
+		Dim As Boolean Hover = (i = AIImageHoverIndex), HoverClose = Hover AndAlso AIImageHoverClose
+		x = AIImageThumbLeft(i)
+		Canvas.Pen.Color = IIf(Hover, ClrHover, ClrBorder)
+		Canvas.Brush.Color = ClrTile
+		Canvas.RoundRect x, y, x + s, y + s, 10, 10
+		Dim As My.Sys.Drawing.BitmapType Ptr Bitm = AIImageBitmaps(i)
+		If Bitm <> 0 AndAlso Bitm->Width > 0 AndAlso Bitm->Height > 0 Then
+			'The picture fits in the small image, its proportions are kept
+			Dim As Double Scale_ = Min((s - 4) / Bitm->Width, (s - 4) / Bitm->Height)
+			Dim As Double dw = Bitm->Width * Scale_, dh = Bitm->Height * Scale_
+			Canvas.DrawAlpha Sender.ScaleX(x + (s - dw) / 2), Sender.ScaleY(y + (s - dh) / 2), Sender.ScaleX(dw), Sender.ScaleY(dh), *Bitm
+		Else
+			'A picture that cannot be shown (WebP): its extension
+			Dim As UString Ext = UCase(Mid(AIImageFiles(i), InStrRev(AIImageFiles(i), ".") + 1))
+			Canvas.TextOut x + (s - Canvas.TextWidth(Ext)) / 2, y + s / 2 - 8, Ext, ClrText, ClrTile
+		End If
+		'The button x
+		Dim As Integer cx = x + s - AIImageCloseSize - 3, cy = y + 3, c = AIImageCloseSize
+		Canvas.Pen.Color = IIf(HoverClose, ClrText, ClrBorder)
+		Canvas.Brush.Color = IIf(HoverClose, ClrText, AIImageBlend(ClrText, ClrBack, 12))
+		Canvas.Ellipse cx, cy, cx + c, cy + c
+		Canvas.Pen.Color = IIf(HoverClose, ClrBack, ClrText)
+		Canvas.Line cx + 6, cy + 6, cx + c - 6, cy + c - 6
+		Canvas.Line cx + c - 6, cy + 6, cx + 6, cy + c - 6
+	Next
+End Sub
+
+'The color of the borders of the text boxes (dark: the border of DarkMode_Explorer)
+Function AIInputBorderColor() As Integer
+	#ifdef __USE_WINAPI__
+		If g_darkModeEnabled Then Return BGR(130, 135, 144)
+		'Light: the border of the theme of the text boxes (as the other windows)
+		Static As Integer Clr = -1
+		If Clr = -1 Then
+			Dim As HTHEME Theme = OpenThemeData(frmMain.Handle, "Edit")
+			Dim As COLORREF c
+			If Theme <> 0 AndAlso GetThemeColor(Theme, 1, 1, TMT_BORDERCOLOR, @c) = S_OK Then Clr = c Else Clr = GetSysColor(COLOR_BTNSHADOW)
+			If Theme <> 0 Then CloseThemeData(Theme)
+		End If
+		Return Clr
+	#else
+		Return &H908782
+	#endif
+End Function
+
+'The box of the question: one frame with round corners around the small images and the text box
+Sub pnlAIInput_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	'The color of the borders of the other windows (the same also with the focus)
+	Dim As Integer ClrBorder = AIInputBorderColor()
+	#ifdef __USE_WINAPI__
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle = 0 OrElse GdipCreateFromHDC(Canvas.Handle, @G) <> 0 OrElse G = 0 Then Exit Sub
+		GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+		GdipGraphicsClear(G, AIImageARGB(ClrBack))
+		Dim As Single One = Sender.ScaleX(1)
+		Dim As GpPath Ptr Path = AIImageRoundPath(One / 2 + 1, One / 2 + 1, Sender.ScaleX(Sender.Width) - One - 2, Sender.ScaleY(Sender.Height) - One - 2, Sender.ScaleX(10))
+		If Path <> 0 Then
+			Dim As GpPen Ptr Pen
+			GdipCreatePen1(AIImageARGB(ClrBorder), One, UnitPixel, @Pen)
+			GdipDrawPath(G, Pen, Path)
+			GdipDeletePen(Pen)
+			GdipDeletePath(Path)
+		End If
+		GdipDeleteGraphics(G)
+	#else
+		Canvas.Pen.Color = ClrBack
+		Canvas.Brush.Color = ClrBack
+		Canvas.Rectangle 0, 0, Sender.Width, Sender.Height
+		Canvas.Pen.Color = ClrBorder
+		Canvas.RoundRect 1, 1, Sender.Width - 2, Sender.Height - 2, 20, 20
+	#endif
+End Sub
+
+
+'The text box of the question grows with its text (the lines after the word wrap); only above the maximum
+'height it gets the vertical scroll bar
+Dim Shared As Boolean AIInputSizing
+Dim Shared As Integer AIInputTextWidth = -1, AIInputTextHeight
+'pnlAIText: the place of the text box between the buttons, the text box is in its middle (one line by the buttons)
+Dim Shared As Panel pnlAIText
+
+Sub AIInputLayoutText()
+	If pnlAIText.Width <= 0 OrElse pnlAIText.Height <= 0 Then Exit Sub
+	Dim As Integer h = IIf(AIInputTextHeight > 0, Min(AIInputTextHeight, pnlAIText.Height), pnlAIText.Height)
+	Dim As Integer t = (pnlAIText.Height - h) \ 2
+	If txtAIRequest.Left <> 0 OrElse txtAIRequest.Top <> t OrElse txtAIRequest.Width <> pnlAIText.Width OrElse txtAIRequest.Height <> h Then
+		txtAIRequest.SetBounds 0, t, pnlAIText.Width, h
+	End If
+End Sub
+
+Sub AIInputUpdateHeight()
+	If AIInputSizing Then Exit Sub
+	AIInputSizing = True
+	Dim As Integer Lines = 1, LineHeight
+	#ifdef __USE_WINAPI__
+		If txtAIRequest.Handle Then
+			Lines = Max(1, SendMessage(txtAIRequest.Handle, EM_GETLINECOUNT, 0, 0))
+			Dim As HDC DC = GetDC(txtAIRequest.Handle)
+			Dim As HGDIOBJ OldFont = SelectObject(DC, txtAIRequest.Font.Handle)
+			Dim As TEXTMETRIC TM
+			GetTextMetrics(DC, @TM)
+			SelectObject(DC, OldFont)
+			ReleaseDC(txtAIRequest.Handle, DC)
+			LineHeight = txtAIRequest.UnScaleY(TM.tmHeight)
+		End If
+	#else
+		Lines = Max(1, txtAIRequest.LinesCount)
+	#endif
+	If LineHeight <= 0 Then LineHeight = Max(12, CInt(txtAIRequest.Font.Size * 1.7))
+	Dim As Integer MaxLines = Max(3, Min(12, (pnlAIChat.Height \ 3) \ LineHeight))
+	Dim As Boolean NeedScroll = Lines > MaxLines
+	Dim As Integer TextHeight = Min(Lines, MaxLines) * LineHeight + 2
+	AIInputTextHeight = TextHeight
+	'One line is not lower than the buttons + and Send: it is in the middle of them
+	Dim As Integer NewHeight = Max(TextHeight, AIButtonSize) + pnlAIInput.Margins.Top + pnlAIInput.Margins.Bottom + IIf(pnlAIImages.Visible, AIImageStripHeight, 0)
+	#ifdef __USE_WINAPI__
+		If txtAIRequest.Handle Then
+			Dim As Boolean HasScroll = (GetWindowLong(txtAIRequest.Handle, GWL_STYLE) And WS_VSCROLL) <> 0
+			If HasScroll <> NeedScroll Then ShowScrollBar(txtAIRequest.Handle, SB_VERT, NeedScroll)
+		End If
+	#endif
+	If pnlAIInput.Height <> NewHeight Then
+		pnlAIInput.Height = NewHeight
+		pnlAIChat.RequestAlign
+		pnlAIInput.Repaint
+	End If
+	AIInputLayoutText
+	AIInputSizing = False
+End Sub
+
+Sub pnlAIText_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	AIInputLayoutText
+End Sub
+
+Sub pnlAIText_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	Canvas.Pen.Color = ClrBack
+	Canvas.Brush.Color = ClrBack
+	Canvas.Rectangle 0, 0, Sender.Width + 1, Sender.Height + 1
+End Sub
+
+'A click above or below the text box (one line) goes to the text box
+Sub pnlAIText_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If txtAIRequest.Enabled Then txtAIRequest.SetFocus
+End Sub
+
+#ifdef __USE_WINAPI__
+	'The grey hint in the empty text box (EM_SETCUEBANNER is only for the text box of one line): it is drawn after
+	'the text box is drawn
+	Dim Shared As Boolean AIHintShown
+	Function AIRequestHintProc(ByVal hWnd As HWND, ByVal uMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM, ByVal uIdSubclass As UINT_PTR, ByVal dwRefData As DWORD_PTR) As LRESULT
+		'Enter sends the question (txtAIRequest_OnKeyDown): its character must not be a new line of the text box,
+		'only Shift+Enter and Ctrl+Enter are new lines
+		If uMsg = WM_CHAR AndAlso wParam = 13 AndAlso GetKeyState(VK_SHIFT) >= 0 AndAlso GetKeyState(VK_CONTROL) >= 0 Then Return 0
+		Dim As LRESULT Result = DefSubclassProc(hWnd, uMsg, wParam, lParam)
+		Select Case uMsg
+		Case WM_PAINT
+			AIHintShown = GetWindowTextLength(hWnd) = 0
+			If AIHintShown Then
+				Dim As Integer ClrBack, ClrText
+				AIImageColors txtAIRequest, ClrBack, ClrText
+				Dim As RECT rc
+				SendMessage(hWnd, EM_GETRECT, 0, Cast(LPARAM, @rc))
+				HideCaret(hWnd)
+				Dim As HDC DC = GetDC(hWnd)
+				Dim As HGDIOBJ OldFont = SelectObject(DC, Cast(HGDIOBJ, SendMessage(hWnd, WM_GETFONT, 0, 0)))
+				SetBkMode(DC, TRANSPARENT)
+				SetTextColor(DC, AIImageBlend(ClrText, ClrBack, 45))
+				Dim As WString * 256 Hint = Replace(ML("Enter - send, Shift+Enter - new line"), " - ", " " & WChr(&H2014) & " ")
+				DrawTextW(DC, @Hint, -1, @rc, DT_SINGLELINE Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+				SelectObject(DC, OldFont)
+				ReleaseDC(hWnd, DC)
+				ShowCaret(hWnd)
+			End If
+		Case WM_NCDESTROY
+			RemoveWindowSubclass(hWnd, @AIRequestHintProc, 1)
+		End Select
+		Return Result
+	End Function
+#endif
+
+Sub txtAIRequest_Change(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
+	AIInputUpdateHeight
+	#ifdef __USE_WINAPI__
+		'The text box draws only the changed text: the hint goes away (or comes) with the whole text box
+		If txtAIRequest.Handle AndAlso AIHintShown <> (GetWindowTextLength(txtAIRequest.Handle) = 0) Then InvalidateRect(txtAIRequest.Handle, NULL, True)
+	#endif
+	pnlAISend.Repaint 'Send is grey without the text and the pictures
+End Sub
+
+Sub txtAIRequest_Create(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	AIInputTextWidth = -1
+	#ifdef __USE_WINAPI__
+		SetWindowSubclass(txtAIRequest.Handle, @AIRequestHintProc, 1, 0)
+	#endif
+	AIInputUpdateHeight
+End Sub
+
+'Another width wraps the text in other lines
+Sub txtAIRequest_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	If NewWidth = AIInputTextWidth OrElse txtAIRequest.Handle = 0 Then Exit Sub
+	AIInputTextWidth = NewWidth
+	AIInputUpdateHeight
+End Sub
+
+'The window of a picture of the question in its size (a click on its small image): a click or Esc closes it
+Dim Shared As Form frmAIImagePreview
+Dim Shared As Integer AIImagePreviewIndex = -1
+#ifdef __USE_WINAPI__
+	'The picture scaled to the window once (high quality), the paint only copies it: the window does not flicker
+	Dim Shared As GpBitmap Ptr AIImagePreviewCache
+	Dim Shared As Integer AIImagePreviewCacheW, AIImagePreviewCacheH
+
+	Sub AIImagePreviewFreeCache()
+		If AIImagePreviewCache <> 0 Then GdipDisposeImage(Cast(GpImage Ptr, AIImagePreviewCache))
+		AIImagePreviewCache = 0
+		AIImagePreviewCacheW = 0
+		AIImagePreviewCacheH = 0
+	End Sub
+#endif
+
+Sub frmAIImagePreview_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer i = AIImagePreviewIndex
+	If i < 0 OrElse i >= AIImageCount Then Exit Sub
+	Dim As My.Sys.Drawing.BitmapType Ptr Bitm = AIImageBitmaps(i)
+	If Bitm = 0 OrElse Bitm->Width = 0 OrElse Bitm->Height = 0 Then Exit Sub
+	'The picture fits in the window, its proportions are kept (device pixels)
+	Dim As Double cw = Sender.ScaleX(Sender.ClientWidth), ch = Sender.ScaleY(Sender.ClientHeight)
+	Dim As Double Scale_ = Min(1, Min(cw / Bitm->Width, ch / Bitm->Height))
+	Dim As Integer dw = Max(1, CInt(Bitm->Width * Scale_)), dh = Max(1, CInt(Bitm->Height * Scale_))
+	#ifdef __USE_WINAPI__
+		If Bitm->pImage = 0 Then Exit Sub
+		If AIImagePreviewCache = 0 OrElse AIImagePreviewCacheW <> dw OrElse AIImagePreviewCacheH <> dh Then
+			AIImagePreviewFreeCache
+			If GdipCreateBitmapFromScan0(dw, dh, 0, PixelFormat32bppPARGB, NULL, @AIImagePreviewCache) = 0 AndAlso AIImagePreviewCache <> 0 Then
+				Dim As GpGraphics Ptr CG
+				If GdipGetImageGraphicsContext(Cast(GpImage Ptr, AIImagePreviewCache), @CG) = 0 AndAlso CG <> 0 Then
+					GdipSetInterpolationMode(CG, InterpolationModeHighQualityBicubic)
+					GdipSetPixelOffsetMode(CG, PixelOffsetModeHighQuality)
+					GdipDrawImageRectI(CG, Bitm->pImage, 0, 0, dw, dh)
+					GdipDeleteGraphics(CG)
+				End If
+				AIImagePreviewCacheW = dw
+				AIImagePreviewCacheH = dh
+			End If
+		End If
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle = 0 OrElse GdipCreateFromHDC(Canvas.Handle, @G) <> 0 OrElse G = 0 Then Exit Sub
+		GdipGraphicsClear(G, AIImageARGB(IIf(g_darkModeEnabled, darkBkColor, GetSysColor(COLOR_BTNFACE))))
+		If AIImagePreviewCache <> 0 Then GdipDrawImageI(G, Cast(GpImage Ptr, AIImagePreviewCache), CInt((cw - dw) / 2), CInt((ch - dh) / 2))
+		GdipDeleteGraphics(G)
+	#else
+		Canvas.DrawAlpha (cw - dw) / 2, (ch - dh) / 2, dw, dh, *Bitm
+	#endif
+End Sub
+
+Sub frmAIImagePreview_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	frmAIImagePreview.CloseForm
+End Sub
+
+Sub frmAIImagePreview_KeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+	#ifdef __USE_GTK__
+		If Key = GDK_KEY_Escape OrElse Key = GDK_KEY_Return OrElse Key = GDK_KEY_space Then frmAIImagePreview.CloseForm
+	#else
+		If Key = 27 OrElse Key = 13 OrElse Key = 32 Then frmAIImagePreview.CloseForm
+	#endif
+End Sub
+
+Sub frmAIImagePreview_Resize(ByRef Designer As My.Sys.Object, ByRef Sender As Control, NewWidth As Integer, NewHeight As Integer)
+	frmAIImagePreview.Repaint
+End Sub
+
+Sub AIImagePreviewShow(Index As Integer)
+	If Index < 0 OrElse Index >= AIImageCount Then Exit Sub
+	Dim As My.Sys.Drawing.BitmapType Ptr Bitm = AIImageBitmaps(Index)
+	If Bitm = 0 OrElse Bitm->Width = 0 OrElse Bitm->Height = 0 Then Exit Sub
+	AIImagePreviewIndex = Index
+	Static As Boolean Created
+	If Not Created Then
+		Created = True
+		With frmAIImagePreview
+			.Name = "frmAIImagePreview"
+			.StartPosition = FormStartPosition.CenterParent
+			.MinimizeBox = False
+			.KeyPreview = True
+			.DoubleBuffered = True
+			.OnPaint = @frmAIImagePreview_Paint
+			.OnMouseDown = @frmAIImagePreview_MouseDown
+			.OnKeyDown = @frmAIImagePreview_KeyDown
+			.OnResize = @frmAIImagePreview_Resize
+		End With
+	End If
+	'The picture in its size, not larger than 85% of the main window
+	Dim As Double w = frmMain.UnScaleX(Bitm->Width), h = frmMain.UnScaleY(Bitm->Height)
+	Dim As Double Scale_ = Min(1, Min(frmMain.Width * 0.85 / w, frmMain.Height * 0.85 / h))
+	frmAIImagePreview.Text = Mid(AIImageFiles(Index), InStrRev(AIImageFiles(Index), Any "\/") + 1) & "  (" & Bitm->Width & " x " & Bitm->Height & ")"
+	frmAIImagePreview.Width = Max(200, CInt(w * Scale_) + 16)
+	frmAIImagePreview.Height = Max(150, CInt(h * Scale_) + 39)
+	frmAIImagePreview.ShowModal frmMain
+	AIImagePreviewIndex = -1
+	#ifdef __USE_WINAPI__
+		AIImagePreviewFreeCache
+	#endif
+End Sub
+
+'The button x on a small image removes its picture, a click on the small image shows the picture in its size
+Sub pnlAIImages_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 Then Exit Sub
+	Dim As Boolean OnClose
+	Dim As Integer Index = AIImageHitTest(x, y, OnClose)
+	If Index < 0 Then Exit Sub
+	If OnClose Then
+		AIImageRemove Index
+		'The small image that came to the place of the removed one is under the mouse now
+		AIImageHoverIndex = -2
+		Index = AIImageHitTest(x, y, OnClose)
+		AIImageSetHover Index, OnClose
+	Else
+		AIImageSetHover -1, False
+		AIImagePreviewShow Index
+	End If
+	txtAIRequest.SetFocus
+End Sub
+
+Sub pnlAIImages_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	Dim As Boolean OnClose
+	Dim As Integer Index = AIImageHitTest(x, y, OnClose)
+	AIImageSetHover Index, OnClose
+End Sub
+
+Sub pnlAIImages_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	AIImageSetHover -1, False
+End Sub
+
+'The media type of a picture by the extension of its file, "" if it cannot be sent
+Function AIImageMediaType(ByRef FileName As WString) As String
+	Select Case LCase(Mid(FileName, InStrRev(FileName, ".") + 1))
+	Case "png": Return "image/png"
+	Case "jpg", "jpeg": Return "image/jpeg"
+	Case "gif": Return "image/gif"
+	Case "webp": Return "image/webp"
+	End Select
+	Return ""
+End Function
+
+Function AIBase64(ByRef Bytes As String) As String
+	Static As ZString * 65 Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/"
+	Dim As Integer n = Len(Bytes), j
+	Dim As ULong b
+	If n = 0 Then Return ""
+	Dim As String Result = String(((n + 2) \ 3) * 4, 61) '61: =
+	For i As Integer = 0 To n - 1 Step 3
+		b = CULng(Bytes[i]) Shl 16
+		If i + 1 < n Then b Or= CULng(Bytes[i + 1]) Shl 8
+		If i + 2 < n Then b Or= Bytes[i + 2]
+		Result[j] = Chars[(b Shr 18) And 63]
+		Result[j + 1] = Chars[(b Shr 12) And 63]
+		If i + 1 < n Then Result[j + 2] = Chars[(b Shr 6) And 63]
+		If i + 2 < n Then Result[j + 3] = Chars[b And 63]
+		j += 4
+	Next
+	Return Result
+End Function
+
+Function AIReadBinaryFile(ByRef FileName As WString) As String
+	Dim As String Result
+	Dim As Integer Fn = FreeFile_
+	If Open(FileName For Binary Access Read As #Fn) = 0 Then
+		If LOF(Fn) > 0 Then
+			Result = String(LOF(Fn), 0)
+			Get #Fn, , Result
+		End If
+		CloseFile_(Fn)
+	End If
+	Return Result
+End Function
+
+'Adds the picture to the question: its small image is shown above the text box of the question
+Function AIAddImage(ByRef FileName As WString) As Boolean
+	If FileLen(FileName) > AIImageMaxSize Then
+		ShowMessages(ML("The picture is larger than 5 MB, it is not sent") & ": " & FileName)
+		Return False
+	End If
+	For i As Integer = 0 To AIImageCount - 1
+		If AIImageFiles(i) = FileName Then Return True 'Already added
+	Next
+	Dim As My.Sys.Drawing.BitmapType Ptr Bitm = New My.Sys.Drawing.BitmapType
+	If Not Bitm->LoadFromFile(FileName) Then Delete Bitm: Bitm = 0 'The extension is shown instead of the picture
+	AIImageCount += 1
+	ReDim Preserve AIImageFiles(AIImageCount - 1)
+	ReDim Preserve AIImageBitmaps(AIImageCount - 1)
+	AIImageFiles(AIImageCount - 1) = FileName
+	AIImageBitmaps(AIImageCount - 1) = Bitm
+	AIImagesUpdate
+	Return True
+End Function
+
+'The file of a picture of the clipboard
+Function AIPastedImageFile() As UString
+	Return GetUserTempPath("AIAgent/Paste_" & Replace(Date, "-", "") & "_" & Replace(Time, ":", "") & "_" & (AIImageCount + 1) & ".png")
+End Function
+
+'Ctrl+V in the question: the picture files or the picture of the clipboard are added (the text of the clipboard is pasted
+'by the text box). True: a picture was added
+Function AIPasteImages() As Boolean
+	Dim As Boolean Added
+	#ifdef __USE_WINAPI__
+		If OpenClipboard(NULL) = 0 Then Return False
+		If IsClipboardFormatAvailable(CF_HDROP) Then
+			'Files copied in Explorer
+			Dim As HDROP hDrop = GetClipboardData(CF_HDROP)
+			If hDrop <> 0 Then
+				Dim As WString * (MAX_PATH + 1) FileName
+				Dim As Integer Count = DragQueryFileW(hDrop, &hFFFFFFFF, NULL, 0)
+				For i As Integer = 0 To Count - 1
+					If DragQueryFileW(hDrop, i, @FileName, MAX_PATH) > 0 AndAlso AIImageMediaType(FileName) <> "" Then
+						If AIAddImage(FileName) Then Added = True
+					End If
+				Next
+			End If
+		ElseIf IsClipboardFormatAvailable(CF_BITMAP) AndAlso IsClipboardFormatAvailable(CF_UNICODETEXT) = 0 Then
+			'A picture (Print Screen, Snipping Tool, a picture copied in a browser), PNG by GDI+
+			Dim As HBITMAP hBitmap = GetClipboardData(CF_BITMAP)
+			Dim As UString FileName = IIf(hBitmap <> 0, AIPastedImageFile(), "")
+			If FileName <> "" Then
+				Static As ULONG_PTR GdipToken
+				If GdipToken = 0 Then
+					Dim As GdiplusStartupInput StartupInput
+					StartupInput.GdiplusVersion = 1
+					GdiplusStartup(@GdipToken, @StartupInput, NULL)
+				End If
+				'The encoder of PNG from the list of GDI+: GdipSaveImageToFile does not know an encoder before this list is made
+				Dim As CLSID PngEncoder
+				Dim As Integer FoundEncoder
+				Dim As UINT EncoderCount, EncodersSize
+				If GdipGetImageEncodersSize(@EncoderCount, @EncodersSize) = 0 AndAlso EncodersSize > 0 Then
+					Dim As ImageCodecInfo Ptr Encoders = _Allocate(EncodersSize)
+					If Encoders <> 0 AndAlso GdipGetImageEncoders(EncoderCount, EncodersSize, Encoders) = 0 Then
+						For i As Integer = 0 To EncoderCount - 1
+							If Encoders[i].MimeType <> 0 AndAlso *Cast(WString Ptr, Encoders[i].MimeType) = "image/png" Then PngEncoder = Encoders[i].Clsid: FoundEncoder = 1: Exit For
+						Next
+					End If
+					If Encoders <> 0 Then _Deallocate(Encoders)
+				End If
+				Dim As GpBitmap Ptr pBitmap
+				If FoundEncoder <> 0 AndAlso GdipCreateBitmapFromHBITMAP(hBitmap, NULL, @pBitmap) = 0 Then
+					If GdipSaveImageToFile(Cast(GpImage Ptr, pBitmap), FileName, @PngEncoder, NULL) = 0 Then Added = AIAddImage(FileName) Else Kill FileName
+					GdipDisposeImage(Cast(GpImage Ptr, pBitmap))
+				End If
+			End If
+		End If
+		CloseClipboard
+	#elseif defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
+		Dim As GtkClipboard Ptr Clip = gtk_clipboard_get(GDK_SELECTION_CLIPBOARD)
+		'Files copied in the file manager
+		Dim As gchar Ptr Ptr Uris = gtk_clipboard_wait_for_uris(Clip)
+		If Uris <> 0 Then
+			Dim As Integer i
+			While Uris[i] <> 0
+				Dim As gchar Ptr Path = g_filename_from_uri(Uris[i], NULL, NULL)
+				If Path <> 0 Then
+					Dim As UString FileName = WStr(*Path)
+					If AIImageMediaType(FileName) <> "" AndAlso AIAddImage(FileName) Then Added = True
+					g_free(Path)
+				End If
+				i += 1
+			Wend
+			g_strfreev(Uris)
+		ElseIf gtk_clipboard_wait_is_text_available(Clip) = 0 Then
+			Dim As GdkPixbuf Ptr Pixbuf = gtk_clipboard_wait_for_image(Clip)
+			If Pixbuf <> 0 Then
+				Dim As UString FileName = AIPastedImageFile()
+				If FileName <> "" AndAlso gdk_pixbuf_save(Pixbuf, ToUtf8(FileName), "png", NULL, NULL) Then Added = AIAddImage(FileName)
+				g_object_unref(Pixbuf)
+			End If
+		End If
+	#endif
+	Return Added
+End Function
+
+'The content of the question in JSON: a string, or with pictures an array of the text and the pictures.
+'EscapedText: the text escaped for JSON. The pictures are sent once: AIImagesClear after the question is sent.
+Function AIUserContentJson(ByRef EscapedText As String, ByRef Text As WString, IsClaude As Boolean) As String
+	Dim As String Images, MediaType, Bytes
+	For i As Integer = 0 To AIImageCount - 1
+		MediaType = AIImageMediaType(AIImageFiles(i))
+		Bytes = AIReadBinaryFile(AIImageFiles(i))
+		If MediaType = "" OrElse Bytes = "" Then
+			ShowMessages(ML("The picture cannot be read") & ": " & AIImageFiles(i))
+			Continue For
+		End If
+		If IsClaude Then
+			Images &= ",{""type"":""image"",""source"":{""type"":""base64"",""media_type"":""" & MediaType & """,""data"":""" & AIBase64(Bytes) & """}}"
+		Else
+			Images &= ",{""type"":""image_url"",""image_url"":{""url"":""data:" & MediaType & ";base64," & AIBase64(Bytes) & """}}"
+		End If
+	Next
+	If Images = "" Then Return """" & EscapedText & """"
+	'A question of only pictures: an empty text block is not accepted by the API
+	If EscapedText = "" Then Return "[" & Mid(Images, 2) & "]"
+	Return "[{""type"":""text"",""text"":""" & EscapedText & """}" & Images & "]"
+End Function
+
+'Sends the question of txtAIRequest to claude (from txtAIRequest_OnKeyDown)
+Dim Shared As UString AIClaudeSessionAgent
+'The folder of the session of claude: --resume finds a session only in the folder where it was started
+Dim Shared As UString AIClaudeSessionDir
+
+'The chats of the AI Agent are the .md files of GetAIChatDirectory. A chat of Claude Code keeps its session (the id and
+'the folder of claude) in <chat>.md.session: an opened chat is continued (--resume) by the next question.
+Sub AIChatSaveSession(ByRef ChatFile As WString)
+	If AIClaudeSessionID = "" Then Exit Sub
+	SaveToFile(ChatFile & ".session", AIClaudeSessionID & Chr(10) & AIClaudeSessionDir)
+End Sub
+
+Function AIReadFileBytes(ByRef FileName As WString) As String
+	Dim As Integer Fn = FreeFile
+	If Open(FileName For Binary Access Read As #Fn) <> 0 Then Return ""
+	Dim As String Result
+	If LOF(Fn) > 0 Then Result = String(LOF(Fn), 0): Get #Fn, , Result
+	Close #Fn
+	Return Result
+End Function
+
+'The tokens of the context of an opened chat of Claude Code: the last message of the model in the file of its session
+'(<config of claude>/projects/<folder, its characters other than letters and digits are ->/<id>.jsonl)
+'The folder of the settings of claude of an account ("": the folder .claude of the home folder)
+Function AIClaudeConfigFolder(ByRef ConfigDir As WString) As UString
+	If ConfigDir = "" Then Return Environ("USERPROFILE") & Slash & ".claude"
+	Return ConfigDir
+End Function
+
+'The folder of the projects of claude for a folder: its characters other than letters and digits are -
+Function AIClaudeProjectFolder(ByRef WorkDir As WString) As UString
+	Dim As UString Folder
+	For i As Integer = 1 To Len(WorkDir)
+		Dim As UString Ch = Mid(WorkDir, i, 1)
+		Folder &= IIf(InStr("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", Ch) > 0, Ch, "-")
+	Next
+	Return Folder
+End Function
+
+'The file of the session of claude in the folder of an account ("": it is not there)
+Function AIClaudeFindSessionFile(ByRef ConfigDir As WString, ByRef SessionID As WString, ByRef WorkDir As WString) As UString
+	If SessionID = "" Then Return ""
+	Dim As UString Projects = AIClaudeConfigFolder(ConfigDir) & Slash & "projects"
+	Dim As UString SessionFile = Projects & Slash & AIClaudeProjectFolder(WorkDir) & Slash & SessionID & ".jsonl"
+	If FileExists(SessionFile) Then Return SessionFile
+	'The folder is not known: the session is looked for in all folders of the projects
+	Dim As UString Found = Dir(Projects & Slash & "*", fbDirectory)
+	Dim As UString Folders
+	Do While Found <> ""
+		If Found <> "." AndAlso Found <> ".." Then Folders &= Found & Chr(1)
+		Found = Dir()
+	Loop
+	Dim As Integer Pos0 = 1, Pos1 = InStr(Folders, Chr(1))
+	Do While Pos1 > 0
+		Dim As UString Test = Projects & Slash & Mid(Folders, Pos0, Pos1 - Pos0) & Slash & SessionID & ".jsonl"
+		If FileExists(Test) Then Return Test
+		Pos0 = Pos1 + 1: Pos1 = InStr(Pos0, Folders, Chr(1))
+	Loop
+	Return ""
+End Function
+
+Sub AIClaudeSessionUsage()
+	AIContextUsed = 0
+	If AIClaudeSessionID <> "" Then
+		Dim As UString SessionFile = AIClaudeFindSessionFile(AIAccountConfigDir(), AIClaudeSessionID, AIClaudeSessionDir)
+		If SessionFile <> "" Then
+			Dim As String Text = AIReadFileBytes(SessionFile)
+			Dim As Integer LineEnd = Len(Text), LineStart
+			Do While LineEnd > 0
+				LineStart = InStrRev(Text, Chr(10), LineEnd - 1)
+				Dim As String Line_ = Mid(Text, LineStart + 1, LineEnd - LineStart)
+				If InStr(Line_, """type"":""assistant""") > 0 AndAlso InStr(Line_, """usage"":{") > 0 AndAlso InStr(Line_, """model"":""<synthetic>""") = 0 Then
+					AIClaudeContextUsage Line_
+					If AIContextUsed > 0 Then Exit Do
+				End If
+				LineEnd = LineStart
+			Loop
+		End If
+	End If
+	AIStateRepaint
+End Sub
+
+Sub AIChatLoadSession(ByRef ChatFile As WString)
+	AIClaudeSessionID = ""
+	AIClaudeSessionDir = ""
+	If Not FileExists(ChatFile & ".session") Then Exit Sub
+	Dim As WString Ptr pText = LoadFromFile(ChatFile & ".session")
+	If pText = 0 Then Exit Sub
+	Dim As UString Text = Replace(*pText, Chr(13), "")
+	_Deallocate(pText)
+	Dim As Integer Pos1 = InStr(Text, Chr(10))
+	If Pos1 > 0 Then
+		AIClaudeSessionID = Trim(Left(Text, Pos1 - 1))
+		AIClaudeSessionDir = Trim(Mid(Text, Pos1 + 1), Any !" \n")
+	Else
+		AIClaudeSessionID = Trim(Text)
+	End If
+	'The chat continues with the agent of Claude Code which is selected now
+	AIClaudeSessionAgent = *CurrentAIAgent
+	AIClaudeSessionUsage
+End Sub
+
+'Loads a chat of the AI Agent to AIMessages. Dictionary.SaveToFile writes Key Tab Text and a new line for every item,
+'but the questions and the answers have many lines: Dictionary.LoadFromFile reads one line for an item. The tabs are
+'the separators (they are replaced in the keys and the texts), the end of the text is the last new line before the
+'next question.
+Function AIChatLoadFile(ByRef FileName As WString) As Boolean
+	AIMessages.Clear
+	Dim As WString Ptr pText = LoadFromFile(FileName)
+	If pText = 0 Then Return False
+	Dim As UString Parts(Any)
+	Split(*pText, WChr(9), Parts())
+	_Deallocate(pText)
+	Dim As UString Key, Text, Part
+	If UBound(Parts) >= 0 Then Key = Parts(0)
+	Dim As Integer Pos1
+	For i As Integer = 1 To UBound(Parts)
+		Part = Parts(i)
+		If i = UBound(Parts) Then
+			Text = Part
+			Part = ""
+		Else
+			Pos1 = InStrRev(Part, Chr(13, 10, 10, 10) & "[**")
+			If Pos1 = 0 Then Pos1 = InStrRev(Part, Chr(13, 10))
+			If Pos1 = 0 Then Pos1 = InStrRev(Part, Chr(10, 10, 10) & "[**")
+			If Pos1 = 0 Then Pos1 = InStrRev(Part, Chr(10))
+			If Pos1 = 0 Then
+				Text = Part
+				Part = ""
+			Else
+				Text = Left(Part, Pos1 - 1)
+				Part = Mid(Part, Pos1 + IIf(Mid(Part, Pos1, 1) = Chr(13), 2, 1))
+			End If
+		End If
+		If Right(Text, 2) = Chr(13, 10) Then
+			Text = Left(Text, Len(Text) - 2)
+		ElseIf Right(Text, 1) = Chr(10) Then
+			Text = Left(Text, Len(Text) - 1)
+		End If
+		If Trim(Key, Any !" \r\n") <> "" Then AIMessages.Add Key, Text
+		Key = Part
+	Next
+	Return AIMessages.Count > 0
+End Function
+
+'The menu of the button Chats of the AI Agent: the saved chats, the last changed first
+Sub AIChatsFill()
+	AIChatsFilling = True
+	AIChatHoverRow = -1
+	lvAIChats.ListItems.Clear
+	Erase AIChatNames, AIChatTitles, AIChatSnippets, AIChatTimeTexts, AIChatRows
+	Dim As UString ChatDirectory = GetAIChatDirectory()
+	Dim As UString Names(Any)
+	Dim As Double Times(Any)
+	Dim As Integer Count
+	If ChatDirectory <> "" Then
+		#ifdef __USE_WINAPI__
+			'FindFirstFileW: the names of the chats are in the language of the questions (Dir gives them in ANSI)
+			Dim As WString * MAX_PATH Mask = ChatDirectory & "*.md"
+			Dim As WIN32_FIND_DATAW fd
+			Dim As HANDLE hFind = FindFirstFileW(@Mask, @fd)
+			If hFind <> INVALID_HANDLE_VALUE Then
+				Do
+					If (fd.dwFileAttributes And FILE_ATTRIBUTE_DIRECTORY) = 0 Then
+						ReDim Preserve Names(Count), Times(Count)
+						Names(Count) = fd.cFileName
+						'The local time: Today and Yesterday of the list are the days of the user
+						Dim As FILETIME ChatFileTime
+						FileTimeToLocalFileTime(@fd.ftLastWriteTime, @ChatFileTime)
+						Times(Count) = ChatFileTime.dwHighDateTime * 4294967296.0 + ChatFileTime.dwLowDateTime
+						Count += 1
+					End If
+				Loop While FindNextFileW(hFind, @fd)
+				FindClose hFind
+			End If
+		#else
+			Dim As String FileName = Dir(ToUtf8(ChatDirectory & "*.md"))
+			While FileName <> ""
+				Dim As WString Ptr pName = FromUtf8(StrPtr(FileName))
+				If pName <> 0 Then
+					ReDim Preserve Names(Count), Times(Count)
+					Names(Count) = *pName
+					Times(Count) = FileDateTime(ChatDirectory & *pName)
+					Count += 1
+					_Deallocate(pName)
+				End If
+				FileName = Dir()
+			Wend
+		#endif
+	End If
+	'The last changed first (the order of the indexes: Swap of the strings in an array is not used)
+	Dim As Integer Order(Any), Best
+	If Count > 0 Then ReDim Order(Count - 1)
+	For i As Integer = 0 To Count - 1
+		Order(i) = i
+	Next
+	For i As Integer = 0 To Min(Count, 30) - 1
+		Best = i
+		For j As Integer = i + 1 To Count - 1
+			If Times(Order(j)) > Times(Order(Best)) Then Best = j
+		Next
+		If Best <> i Then Swap Order(i), Order(Best)
+	Next
+	Dim As UString Caption, Stamp, ChatName, Snippet
+	Dim As Integer n, Pos1, Group, LastGroup = -1, Row
+	Dim As Double ChatTime, Today = Int(Now)
+	For i As Integer = 0 To Min(Count, 30) - 1
+		ChatName = Names(Order(i))
+		'The title is the first question of the chat (like the list of the chats of Claude)
+		Caption = ""
+		Snippet = ""
+		Dim As WString Ptr pText = LoadFromFile(ChatDirectory & ChatName)
+		If pText <> 0 Then
+			Dim As UString Text = Left(*pText, 4000)
+			_Deallocate(pText)
+			'The beginning of the first answer is the second line of the row
+			Pos1 = InStr(Text, "[**AI Response:**]")
+			If Pos1 > 0 Then Pos1 = InStr(Pos1, Text, Chr(10))
+			If Pos1 > 0 Then
+				Snippet = Mid(Text, Pos1 + 1, 600)
+				Pos1 = InStr(Snippet, "[**")
+				If Pos1 > 0 Then Snippet = Left(Snippet, Pos1 - 1)
+				Snippet = Replace(Replace(Replace(Snippet, Chr(13), " "), Chr(10), " "), Chr(9), " ")
+				Snippet = Replace(Replace(Replace(Replace(Snippet, "**", ""), "`", ""), "#", ""), "> ", "")
+				Do While InStr(Snippet, "  ") > 0
+					Snippet = Replace(Snippet, "  ", " ")
+				Loop
+				Snippet = Trim(Left(Trim(Snippet), 160))
+			End If
+			Pos1 = InStr(Text, "[**User Question:**]")
+			If Pos1 > 0 Then
+				Pos1 = InStr(Pos1, Text, Chr(10))
+				If Pos1 > 0 Then
+					Text = Mid(Text, Pos1 + 1)
+					Text = Replace(Replace(Text, Chr(13), " "), Chr(10), " ")
+					Pos1 = InStr(Text, Chr(9))
+					If Pos1 > 0 Then Text = Left(Text, Pos1 - 1)
+					Caption = Trim(Left(Text, 80))
+				End If
+			End If
+		End If
+		If Caption = "" Then
+			Caption = Trim(ChatName)
+			If LCase(Right(Caption, 3)) = ".md" Then Caption = Left(Caption, Len(Caption) - 3)
+			'Title_yyyymmdd_hhmm: the title without the time
+			Stamp = Right(Caption, 13)
+			If Len(Caption) > 13 AndAlso Mid(Stamp, 9, 1) = "_" AndAlso Val(Left(Stamp, 8)) > 19000000 Then Caption = RTrim(Left(Caption, Len(Caption) - 13), Any "_ ")
+			'Older names begin with the time of the question: MM-DD-YYYY HHMMSS
+			If Len(Caption) > 18 AndAlso Mid(Caption, 3, 1) = "-" AndAlso Mid(Caption, 6, 1) = "-" AndAlso Mid(Caption, 11, 1) = " " Then Caption = LTrim(Mid(Caption, 18))
+			If Trim(Caption) = "" Then Caption = ChatName
+		End If
+		'The day of the chat: the group of the row and the time on the right
+		#ifdef __USE_WINAPI__
+			ChatTime = Times(Order(i)) / 864000000000.0 - 109205 'FILETIME (from 1601) to the date of FreeBASIC (from 1899-12-30)
+		#else
+			ChatTime = Times(Order(i))
+		#endif
+		If Int(ChatTime) >= Today Then
+			Group = AIChatGroupToday
+		ElseIf Int(ChatTime) = Today - 1 Then
+			Group = AIChatGroupYesterday
+		Else
+			Group = AIChatGroupEarlier
+		End If
+		ReDim Preserve AIChatNames(i), AIChatTitles(i), AIChatSnippets(i), AIChatTimeTexts(i)
+		AIChatNames(i) = ChatName
+		AIChatTitles(i) = Caption
+		AIChatSnippets(i) = Snippet
+		AIChatTimeTexts(i) = Format(ChatTime, IIf(Group = AIChatGroupEarlier, "dd.mm.yyyy", "hh:nn"))
+		If Group <> LastGroup Then
+			LastGroup = Group
+			Row = UBound(AIChatRows) + 1
+			ReDim Preserve AIChatRows(Row)
+			AIChatRows(Row) = -(Group + 1)
+			lvAIChats.ListItems.Add AIChatGroupName(Group)
+		End If
+		Row = UBound(AIChatRows) + 1
+		ReDim Preserve AIChatRows(Row)
+		AIChatRows(Row) = i
+		lvAIChats.ListItems.Add Caption
+		If RecentAIChat <> 0 AndAlso *RecentAIChat = ChatName Then lvAIChats.SelectedItemIndex = Row
+	Next
+	AIChatsFitColumn
+	AIChatsFilling = False
+End Sub
+
+'Saves the chat of the AI Agent (New Chat, another chat is opened, after an answer of Claude Code)
+Sub AIChatSaveCurrent(ClearAfter As Boolean = True)
+	If AIMessages.Count < 1 Then Exit Sub
+	'An opened chat without a new question is not written again (it stays at its place in the list)
+	If RecentAIChat <> 0 AndAlso Not AIChatDirty AndAlso CInt(FileExists(GetAIChatDirectory() & *RecentAIChat)) Then
+		If ClearAfter Then AIMessages.Clear
+		Exit Sub
+	End If
+	AIChatDirty = False
+	Dim As WString * 260 FileName, tmpName = Left(AIMessages.Item(0)->Key, 200)
+	Dim As Integer iBracketPos, iFirstNlPos, iSecondNlPos
+	iBracketPos = InStr(tmpName, "]")
+	If iBracketPos < 1 Then
+		tmpName = ML("Untitled")
+	Else
+		iFirstNlPos = InStr(iBracketPos + 1, tmpName, !"\n")
+		If iFirstNlPos > 0 Then
+			tmpName = Mid(tmpName, iFirstNlPos + 1)
+			iSecondNlPos = InStr(tmpName, !"\n")
+			If iSecondNlPos > 0 AndAlso iSecondNlPos <= 50 Then
+				tmpName = Left(tmpName, iSecondNlPos - 1)
+			Else
+				tmpName = Left(tmpName, 50)
+			End If
+		Else
+			tmpName = Trim(Mid(tmpName, iBracketPos + 1, 50))
+		End If
+	End If
+	If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
+	Dim As UString ChatDirectory = GetAIChatDirectory()
+	If ChatDirectory = "" Then Exit Sub
+	AIMessages.SaveToFile(ChatDirectory & FileName)
+	AIChatSaveSession(ChatDirectory & FileName)
+	If Not MRUAIChat.Contains(FileName) Then
+		MRUAIChat.Add FileName
+		miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
+	End If
+	If ClearAfter Then
+		ShowMessages(ML("The conversation context was saved to") & " " & ChatDirectory & FileName)
+		AIMessages.Clear
+	Else
+		'The next saves of this chat go to the same file
+		WLet(RecentAIChat, FileName)
+	End If
+	AIChatsFill
+End Sub
+
+'The program claude (the host of the agent, else claude of the PATH), in quotes when it has spaces
+Function AIClaudeExe() As UString
+	Dim As UString Exe = Trim(AIAgentHost)
+	If Exe = "" OrElse InStr(LCase(Exe), "anthropic.com") > 0 Then Exe = "claude"
+	If InStr(Exe, " ") > 0 AndAlso Left(Exe, 1) <> """" Then Exe = """" & Exe & """"
+	Return Exe
+End Function
+
+Declare Function AIClaudeSessionToAccount() As Boolean
+Sub AIClaudeStart()
+	'Another agent was selected: a new conversation of claude
+	If AIClaudeSessionAgent <> *CurrentAIAgent Then AIClaudeSessionID = ""
+	AIClaudeSessionAgent = *CurrentAIAgent
+	'The session of the chat can be in the folder of another account: it is copied to the chosen account (else a new conversation)
+	If AIClaudeSessionID <> "" AndAlso Not AIClaudeSessionToAccount() Then AIClaudeSessionID = ""
+	'Claude Code works as when it is run in a terminal: its own system prompt, tools, settings (CLAUDE.md, memory), skills
+	'and MCP servers. Only the question is sent by the IDE, the conversation continues with --resume.
+	'Folder: the folder of the current file (else the folder of the IDE), the folder of the IDE is added (--add-dir) for the
+	'questions about VisualFBEditor. The questions of permission (Edit, Bash ...) come as control_request on the output of
+	'claude (--permission-prompt-tool stdio) and are asked as in a terminal, the answers go to its input (stream-json).
+	'Auto mode: the safe actions are done without questions (as Claude Code in its desktop app), the others are asked.
+	AIClaudeInput = "{""type"":""user"",""message"":{""role"":""user"",""content"":" & AIUserContentJson(AIJsonEscape(Replace(txtAIRequest.Text, Chr(13, 10), Chr(10))), txtAIRequest.Text, True) & "}}"
+	#ifndef __USE_WINAPI__
+		Dim As UString Fifo = GetUserTempPath("AIAgent/ClaudeInput")
+		If Fifo = "" Then
+			bInAIThread = False
+			AIStateRepaint
+			txtAIRequest.Enabled = True
+			Exit Sub
+		End If
+		WLet(AIClaudePromptFilePtr, Fifo)
+	#endif
+	Dim As UString IDEDir = ExePath
+	Dim As UString WorkDir = IDEDir
+	If AIClaudeSessionID <> "" AndAlso AIClaudeSessionDir <> "" AndAlso CInt(FolderExists(AIClaudeSessionDir)) Then
+		'A continued conversation: claude finds the session only in its folder
+		WorkDir = AIClaudeSessionDir
+	Else
+		Dim As TabWindow Ptr tb = Cast(TabWindow Ptr, ptabCode->SelectedTab)
+		If tb <> 0 AndAlso tb->FileName <> "" AndAlso CInt(FileExists(tb->FileName)) Then WorkDir = GetFolderName(tb->FileName, False)
+	End If
+	If AIClaudeSessionID = "" Then AIClaudeSessionDir = WorkDir
+	Dim As UString Exe = AIClaudeExe()
+	Dim As UString Command_ = Exe & " -p --input-format stream-json --output-format stream-json --verbose --include-partial-messages" & _
+	" --permission-prompt-tool stdio --permission-mode " & AIClaudePermissionMode
+	If WorkDir <> IDEDir Then Command_ &= " --add-dir """ & IDEDir & """"
+	If AIClaudeAddDirs <> "" Then
+		Dim As UString Dirs = AIClaudeAddDirs & Chr(1)
+		Dim As Integer Pos1 = 1, Pos2 = InStr(Dirs, Chr(1))
+		While Pos2 > 0
+			If Pos2 > Pos1 Then Command_ &= " --add-dir """ & Mid(Dirs, Pos1, Pos2 - Pos1) & """"
+			Pos1 = Pos2 + 1
+			Pos2 = InStr(Pos1, Dirs, Chr(1))
+		Wend
+	End If
+	Dim As String Model = AIClaudeModelName()
+	If Model <> "" AndAlso LCase(Model) <> "default" AndAlso InStr(Model, " ") < 1 AndAlso InStr(Model, """") < 1 Then Command_ &= " --model " & Model
+	If AIClaudeEffort <> "" AndAlso InStr(AIClaudeEffort, " ") < 1 Then Command_ &= " --effort " & AIClaudeEffort
+	If AIClaudeSessionID <> "" Then Command_ &= " --resume " & AIClaudeSessionID
+	WLet(AIClaudeCommandPtr, Command_)
+	WLet(AIClaudeWorkDirPtr, WorkDir)
+	AIMessages.Add(Chr(10) & Chr(10) & "[**User Question:**] " & Date & " " & Time & Chr(10) & txtAIRequest.Text & AIImagesNote() & Chr(10), " NA "): AIChatDirty = True
+	WLet(AIAssistantsAnswersPtr, "")
+	txtAIRequest.Text = ""
+	AIImagesClear
+	ClearMessages
+	cboAIAgentModels.Enabled = False
+	If AIThread Then ThreadDetach(AIThread)
+	AIThread = ThreadCreate(@AIClaudeRequest)
+End Sub
+
+'Ends the answer of claude (Release the AI Agent)
+Sub AIClaudeAbort()
+	AIClaudeAborted = True
+	AIClaudeCloseStdin
+	#ifdef __USE_WINAPI__
+		If AIClaudeJob <> NULL Then TerminateJobObject(AIClaudeJob, 1)
+	#elseif (defined(__FB_LINUX__) AndAlso Not defined(__USE_JNI__)) OrElse defined(__USE_COCOA__)
+		If AIClaudePid > 0 Then AIClaudeKill(AIClaudePid, 15)
+	#endif
+End Sub
+
 Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)
+	'Shift+Insert: the pictures of the clipboard (Ctrl+V is Paste of the menu Edit)
+	#ifdef __USE_GTK__
+		Const KeyInsert = GDK_KEY_Insert
+	#else
+		Const KeyInsert = 45
+	#endif
+	If Key = KeyInsert AndAlso Shift = ShiftMask Then
+		AIPasteImages
+		Return
+	End If
 	If Key <> 13 Then Return
 	If Shift = 4 OrElse Shift = 1 Then Return 'Ctrl ,Shift
 	If bInAIThread Then
 		ShowMessages(ML("Please waiting, AI is working hard......"))
 		Return
 	End If
-	If txtAIRequest.Text = "" Then Return
+	If txtAIRequest.Text = "" AndAlso AIImageCount = 0 Then Return
+	'The tables of the answer are not wider than the panel (twips, a margin for the scroll bar)
+	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->RTFMaxWidth = Max(3000, (txtAIAgent.Width - 40) * 15)
 	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**User Question:**] " & Date & " " & Time & !"\n")
-	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n" & txtAIRequest.Text & !"\n")
+	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n" & txtAIRequest.Text & AIImagesNote() & !"\n")
 	'txtAIAgent.ScrollToEnd
 	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(!"\n[**AI Response:**] " & *CurrentAIAgent & !"\n")
 	WLet(AIBodyWStringSavePtr, txtAIAgent.Text)
 	bInAIThread = True
+	lvAIChats.Repaint 'The badge Working of the opened chat
+	AIStateRepaint
 	txtAIRequest.Enabled = False
+	'Provider "Claude Code": the question goes to the claude program (Claude Code) of the computer, not to an HTTP API
+	If IsClaudeCodeAgent() Then
+		AIClaudeStart
+		Return
+	End If
 	Dim As String site_url = "https://github.com/XusinboyBekchanov/VisualFBEditor"
 	Dim As String site_name = "VisualFBEditor"
 	Dim As String ExtraHeaders = IIf(InStr(LCase(AIAgentProvider),  "openrouter"), ", ""extra_headers"": {""HTTP-Referer"": """ & site_url & """, ""X-Title"": """ & site_name & """}}", "}")
@@ -11755,13 +14043,14 @@ Sub txtAIRequest_OnKeyDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 			AIPostData &= ", {""role"": ""assistant"", ""content"": ""[**Received** part " & (i + 1) & "/" & (MaxChunks) & "] - please send next segment: " & """}"
 		Next
 		i = MaxChunks - 1
-		AIPostData &= ", {""role"": ""user"", ""content"": ""[**User question** final part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i) & """}]" & ExtraHeaders
+		AIPostData &= ", {""role"": ""user"", ""content"": " & AIUserContentJson("[**User question** final part " & (i + 1) & "/" & (MaxChunks) & "] " & UserChunks(i), txtAIRequest.Text, False) & "}]" & ExtraHeaders
 		
 	Else
-		AIPostData  &= ", {""role"": ""user"", ""content"": """ & EscapeJsonForPrompt(txtAIRequest.Text) & """}]" & ExtraHeaders
+		AIPostData  &= ", {""role"": ""user"", ""content"": " & AIUserContentJson(EscapeJsonForPrompt(txtAIRequest.Text), txtAIRequest.Text, False) & "}]" & ExtraHeaders
 	End If
 	
-	AIMessages.Add(Chr(10) & Chr(10) & "[**User Question:**] " & Date & " " & Time & Chr(10) & txtAIRequest.Text & Chr(10), " NA ")
+	AIMessages.Add(Chr(10) & Chr(10) & "[**User Question:**] " & Date & " " & Time & Chr(10) & txtAIRequest.Text & AIImagesNote() & Chr(10), " NA "): AIChatDirty = True
+	AIImagesClear
 	WLet(AIAssistantsAnswersPtr, "")
 	ClearMessages
 	'Debug.Print "--AIRequest Begin-- " & Time, True
@@ -11819,6 +14108,11 @@ Public Sub AIChatPaste(ByVal IsFBCode As Boolean = False)
 End Sub
 
 Public Sub AIRelease()
+	If IsClaudeCodeAgent() Then
+		'The thread of the request enables the controls when claude ends
+		If bInAIThread Then AIClaudeAbort Else txtAIRequest.Enabled = True: cboAIAgentModels.Enabled = True
+		Exit Sub
+	End If
 	ThreadsEnter
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
@@ -11826,18 +14120,25 @@ Public Sub AIRelease()
 	'If AIThread Then ThreadDetach(AIThread)
 	WLet(AIAssistantsAnswersPtr, "")
 	bInAIThread = False
+	lvAIChats.Repaint
+	AIStateRepaint
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
 	cboAIAgentModels.Enabled = True
 End Sub
 
 Public Sub AIResetContext()
+	AIContextUsed = 0
+	AIClaudeAddDirs = ""
+	AIStateRepaint
 	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
 	txtAIAgent.Text = " "
 	txtAIAgent.TextRTF = ""
 	ThreadsEnter
 	If pHTTPAIAgent <> 0 Then pHTTPAIAgent->Abort = True
 	ThreadsLeave
+	'Claude Code: the next question starts a new conversation (session) of claude
+	If bInAIThread AndAlso IsClaudeCodeAgent() Then AIClaudeAbort
 	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 	_Deallocate(AIBodyWStringSavePtr): AIBodyWStringSavePtr = 0
 	AIPostData = _
@@ -11847,38 +14148,12 @@ Public Sub AIResetContext()
 	"{""role"": ""system"", ""content"": """ & "Clear all historical context and start a completely new conversation."  & """}, " & _
 	"{""role"": ""user"", ""content"": """ & "Please use " & App.CurLanguage & " confirm the context has been reset." & """}]}"
 	
-	If AIMessages.Count > 0 Then
-		Dim As WString * 260 FileName, tmpName = Left(AIMessages.Item(0)->Key, 200)
-		Dim As Integer iBracketPos, iFirstNlPos, iSecondNlPos
-		iBracketPos = InStr(tmpName, "]")
-		If iBracketPos < 1 Then
-			tmpName = ML("Untitled")
-		Else
-			iFirstNlPos = InStr(iBracketPos + 1, tmpName, !"\n")
-			If iFirstNlPos > 0 Then
-				tmpName = Mid(tmpName, iFirstNlPos + 1)
-				iSecondNlPos = InStr(tmpName, !"\n")
-				If iSecondNlPos > 0 AndAlso iSecondNlPos <= 50 Then
-					tmpName = Left(tmpName, iSecondNlPos - 1)
-				Else
-					tmpName = Left(tmpName, 50)
-				End If
-			Else
-				tmpName = Trim(Mid(tmpName, iBracketPos + 1, 50))
-			End If
-		End If
-		If RecentAIChat Then FileName = *RecentAIChat Else FileName = FormatFileName(tmpName) & Format(Now, "_yyyymmdd_hhmm") & ".md"
-		Dim As UString ChatDirectory = GetAIChatDirectory()
-		If ChatDirectory = "" Then Exit Sub
-		AIMessages.SaveToFile(ChatDirectory & FileName)
-		If Not MRUAIChat.Contains(FileName) Then
-			MRUAIChat.Add FileName
-			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
-		End If
-		ShowMessages(ML("The conversation context was saved to") & " " & ChatDirectory & FileName)
-		AIMessages.Clear
-	End If
+	AIChatSaveCurrent
+	'The next question starts a new session of claude (after the chat with its session was saved)
+	AIClaudeSessionID = ""
+	AIClaudeSessionDir = ""
 	_Deallocate((RecentAIChat)): RecentAIChat = 0
+	AIChatsClearSelection
 	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(Chr(10) & "[**AI Response:**] " & *CurrentAIAgent & Chr(10))
 	AIIncludeFileNameList.Clear
 	AIPostDataFirstTime = True
@@ -11887,26 +14162,1806 @@ Public Sub AIResetContext()
 	txtAIRequest.Enabled = True
 	txtAIRequest.SetFocus
 	cboAIAgentModels.Enabled = True
+	If IsClaudeCodeAgent() Then Exit Sub
 	Sleep(300)
 	If AIThread Then ThreadDetach(AIThread)
 	AIThread = ThreadCreate(@AIRequest)
 End Sub
 
-txtAIRequest.Align = DockStyle.alBottom
-txtAIRequest.Height = 50
+'The buttons + and Send of the box of the question: a circle at the bottom of the panel (by the last line of the text)
+Dim Shared As Boolean AIAddHover, AISendHover
+
+Function AIRequestCanSend() As Boolean
+	Return txtAIRequest.Text <> "" OrElse AIImageCount > 0
+End Function
+
+Sub AIButtonPaint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas, IsSend As Boolean)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	Dim As Boolean Hover = IIf(IsSend, AISendHover, AIAddHover)
+	Dim As Boolean Working = bInAIThread
+	Dim As Boolean Active = Working OrElse AIRequestCanSend()
+	#ifdef __USE_WINAPI__
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle = 0 OrElse GdipCreateFromHDC(Canvas.Handle, @G) <> 0 OrElse G = 0 Then Exit Sub
+		GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+		GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+		GdipGraphicsClear(G, AIImageARGB(ClrBack))
+		Dim As Single D = Sender.ScaleX(AIButtonSize - 2)
+		Dim As Single cx = Sender.ScaleX(Sender.Width) / 2, cy = Sender.ScaleY(Sender.Height) - Sender.ScaleY(AIButtonSize) / 2
+		Dim As GpSolidFill Ptr Brush
+		Dim As GpPen Ptr Pen
+		If IsSend Then
+			'A filled circle with an arrow up (Stop: a square), grey when there is nothing to send
+			Dim As Integer ClrCircle = IIf(Active, IIf(Hover, AIImageBlend(ClrText, ClrBack, 80), ClrText), AIImageBlend(ClrText, ClrBack, 30))
+			GdipCreateSolidFill(AIImageARGB(ClrCircle), @Brush)
+			GdipFillEllipse(G, Brush, cx - D / 2, cy - D / 2, D, D)
+			GdipDeleteBrush(Brush)
+			If Working Then
+				Dim As Single q = D * 0.32
+				Dim As GpPath Ptr Path = AIImageRoundPath(cx - q / 2, cy - q / 2, q, q, Sender.ScaleX(2))
+				GdipCreateSolidFill(AIImageARGB(ClrBack), @Brush)
+				If Path <> 0 Then GdipFillPath(G, Brush, Path): GdipDeletePath(Path)
+				GdipDeleteBrush(Brush)
+			Else
+				GdipCreatePen1(AIImageARGB(ClrBack), Sender.ScaleX(1.8), UnitPixel, @Pen)
+				GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+				GdipDrawLine(G, Pen, cx, cy + D * 0.24, cx, cy - D * 0.24)
+				GdipDrawLine(G, Pen, cx - D * 0.2, cy - D * 0.04, cx, cy - D * 0.24)
+				GdipDrawLine(G, Pen, cx + D * 0.2, cy - D * 0.04, cx, cy - D * 0.24)
+				GdipDeletePen(Pen)
+			End If
+		Else
+			'+ on a light circle while the mouse is over it
+			If Hover Then
+				GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 16)), @Brush)
+				GdipFillEllipse(G, Brush, cx - D / 2, cy - D / 2, D, D)
+				GdipDeleteBrush(Brush)
+			End If
+			GdipCreatePen1(AIImageARGB(AIImageBlend(ClrText, ClrBack, IIf(Hover, 95, 75))), Sender.ScaleX(1.6), UnitPixel, @Pen)
+			GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+			GdipDrawLine(G, Pen, cx - D * 0.26, cy, cx + D * 0.26, cy)
+			GdipDrawLine(G, Pen, cx, cy - D * 0.26, cx, cy + D * 0.26)
+			GdipDeletePen(Pen)
+		End If
+		GdipDeleteGraphics(G)
+	#else
+		Dim As Integer D = AIButtonSize - 2, x = (Sender.Width - D) \ 2, y = Sender.Height - AIButtonSize + 1
+		Canvas.Pen.Color = ClrBack
+		Canvas.Brush.Color = ClrBack
+		Canvas.Rectangle 0, 0, Sender.Width, Sender.Height
+		Dim As Integer cx = x + D \ 2, cy = y + D \ 2
+		If IsSend Then
+			Dim As Integer ClrCircle = IIf(Active, ClrText, AIImageBlend(ClrText, ClrBack, 30))
+			Canvas.Pen.Color = ClrCircle
+			Canvas.Brush.Color = ClrCircle
+			Canvas.RoundRect x, y, x + D, y + D, D, D
+			Canvas.Pen.Color = ClrBack
+			If Working Then
+				Canvas.Brush.Color = ClrBack
+				Canvas.Rectangle cx - 3, cy - 3, cx + 4, cy + 4
+			Else
+				Canvas.Line cx, cy + 5, cx, cy - 5
+				Canvas.Line cx - 4, cy - 1, cx, cy - 5
+				Canvas.Line cx + 4, cy - 1, cx, cy - 5
+			End If
+		Else
+			Canvas.Pen.Color = AIImageBlend(ClrText, ClrBack, 75)
+			Canvas.Line cx - 5, cy, cx + 6, cy
+			Canvas.Line cx, cy - 5, cx, cy + 6
+		End If
+	#endif
+End Sub
+
+Sub pnlAIAdd_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	AIButtonPaint Sender, Canvas, False
+End Sub
+
+Sub pnlAISend_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	AIButtonPaint Sender, Canvas, True
+End Sub
+
+'The mouse is over the circle of the button (the logical coordinates of the panel)
+Function AIButtonHit(ByRef Sender As Control, x As Integer, y As Integer) As Boolean
+	Return y >= Sender.Height - AIButtonSize AndAlso y < Sender.Height
+End Function
+
+Sub AIButtonSetHover(ByRef Sender As Control, ByRef Hover As Boolean, Value As Boolean)
+	If Hover = Value Then Exit Sub
+	Hover = Value
+	#ifdef __USE_WINAPI__
+		Sender.Cursor = IIf(Value, crHand, crArrow)
+	#endif
+	Sender.Repaint
+End Sub
+
+Sub pnlAIAdd_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	AIButtonSetHover Sender, AIAddHover, AIButtonHit(Sender, x, y)
+End Sub
+
+Sub pnlAISend_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	AIButtonSetHover Sender, AISendHover, AIButtonHit(Sender, x, y)
+End Sub
+
+Sub pnlAIAdd_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	AIButtonSetHover Sender, AIAddHover, False
+End Sub
+
+Sub pnlAISend_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	AIButtonSetHover Sender, AISendHover, False
+End Sub
+
+'Send: the question is sent like with Enter; while AI is working the button stops it
+Sub pnlAISend_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 OrElse Not AIButtonHit(Sender, x, y) Then Exit Sub
+	If bInAIThread Then
+		AIRelease
+	ElseIf AIRequestCanSend() Then
+		txtAIRequest_OnKeyDown txtAIRequest, txtAIRequest, 13, 0
+	End If
+	AIStateRepaint
+End Sub
+
+'The row under the box of the question: AI is working (on the left); the model, the mode of Claude Code (a click shows
+'their menu) and the circle of the context (on the right)
+Dim Shared As PopupMenu mnuAIModels
+'The places in the row (logical): the model, the mode, the circle
+Dim Shared As Integer AIStatusModelLeft, AIStatusModelRight, AIStatusModeLeft, AIStatusModeRight, AIStatusRingLeft
+'The part under the mouse or with the open menu: 0 none, 1 the model, 2 the mode
+Dim Shared As Integer AIStatusHoverPart, AIStatusMenuPart
+Const AIStatusRingSize = 14
+'The blue of the circle and of the check of the menu, orange: the context is almost full
+#define AIAccentColor BGR(89, 143, 236)
+#define AIAccentWarnColor BGR(230, 150, 60)
+
+'The modes of the permissions of Claude Code (--permission-mode)
+Function AIClaudeModeValue(Index As Integer) As String
+	Select Case Index
+	Case 1: Return "default"
+	Case 2: Return "acceptEdits"
+	Case 3: Return "plan"
+	Case 4: Return "bypassPermissions"
+	Case Else: Return "auto"
+	End Select
+End Function
+
+Function AIClaudeModeIndex() As Integer
+	For i As Integer = 0 To 4
+		If AIClaudeModeValue(i) = AIClaudePermissionMode Then Return i
+	Next
+	Return 0
+End Function
+
+Function AIClaudeModeTitle(Index As Integer) As UString
+	Select Case Index
+	Case 1: Return ML("Manual")
+	Case 2: Return ML("Accept edits")
+	Case 3: Return ML("Plan")
+	Case 4: Return ML("Bypass permissions")
+	Case Else: Return ML("Auto")
+	End Select
+End Function
+
+Function AIClaudeModeNote(Index As Integer) As UString
+	Select Case Index
+	Case 1: Return ML("Always ask before changes")
+	Case 2: Return ML("Accept all the edits of the files")
+	Case 3: Return ML("Make a plan before changes")
+	Case 4: Return ML("Do everything without questions")
+	Case Else: Return ML("Claude decides about the permissions")
+	End Select
+End Function
+
+Function AIContextWindowSize() As LongInt
+	Return IIf(AIContextWindow > 0, AIContextWindow, 200000)
+End Function
+
+Function AIThousands(Value As LongInt) As String
+	Dim As String s = Str(Value), r
+	Dim As Integer n = Len(s)
+	For i As Integer = 1 To n
+		r &= Mid(s, i, 1)
+		If (n - i) Mod 3 = 0 AndAlso i < n Then r &= " "
+	Next
+	Return r
+End Function
+
+Function AIContextHint() As UString
+	If AIContextUsed <= 0 Then Return ML("Context") & ": " & ML("no data yet")
+	Dim As LongInt Size = AIContextWindowSize()
+	Return ML("Context") & ": " & AIThousands(AIContextUsed) & " / " & AIThousands(Size) & " " & ML("tokens") & " (" & Min(100, CInt(AIContextUsed * 100 \ Size)) & "%)"
+End Function
+
+'The texts of the row are measured and drawn with the font of the row (logical units)
+Function AIStatusTextWidth(ByRef Sender As Control, ByRef Text As WString) As Integer
+	#ifdef __USE_WINAPI__
+		Dim As HDC DC = GetDC(Sender.Handle)
+		Dim As HGDIOBJ OldFont = SelectObject(DC, Sender.Font.Handle)
+		Dim As ..SIZE sz
+		GetTextExtentPoint32W(DC, @Text, Len(Text), @sz)
+		SelectObject(DC, OldFont)
+		ReleaseDC(Sender.Handle, DC)
+		Return Sender.UnScaleX(sz.cx)
+	#else
+		Return Sender.Canvas.TextWidth(Text)
+	#endif
+End Function
+
+Sub AIStatusText(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas, x As Integer, ByRef Text As WString, Clr As Integer)
+	#ifdef __USE_WINAPI__
+		Dim As HGDIOBJ OldFont = SelectObject(Canvas.Handle, Sender.Font.Handle)
+		SetBkMode(Canvas.Handle, TRANSPARENT)
+		SetTextColor(Canvas.Handle, Clr)
+		Dim As RECT rc = Type(Sender.ScaleX(x), 0, Sender.ScaleX(Sender.Width), Sender.ScaleY(Sender.Height))
+		DrawTextW(Canvas.Handle, @Text, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX)
+		SelectObject(Canvas.Handle, OldFont)
+	#else
+		Canvas.TextOut x, (Sender.Height - Canvas.TextHeight(Text)) \ 2, Text, Clr, -1
+	#endif
+End Sub
+
+'A text on a round background while the mouse is over it or its menu is open
+Sub AIStatusDrawPill(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas, Part As Integer, PillLeft As Integer, PillRight As Integer, ByRef Text As WString, ClrBack As Integer, ClrText As Integer, ByRef Extra As WString = "")
+	Dim As Boolean Lit = AIStatusHoverPart = Part OrElse AIStatusMenuPart = Part
+	If Lit Then
+		Dim As Integer PillColor = AIImageBlend(ClrText, ClrBack, 14)
+		#ifdef __USE_WINAPI__
+			Dim As GpGraphics Ptr G
+			If Canvas.Handle <> 0 AndAlso GdipCreateFromHDC(Canvas.Handle, @G) = 0 AndAlso G <> 0 Then
+				GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(PillLeft), Sender.ScaleY(1), Sender.ScaleX(PillRight - PillLeft), Sender.ScaleY(Sender.Height - 2), Sender.ScaleX(6))
+				If Path <> 0 Then
+					Dim As GpSolidFill Ptr Brush
+					GdipCreateSolidFill(AIImageARGB(PillColor), @Brush)
+					GdipFillPath(G, Brush, Path)
+					GdipDeleteBrush(Brush)
+					GdipDeletePath(Path)
+				End If
+				GdipDeleteGraphics(G)
+			End If
+		#else
+			Canvas.Pen.Color = PillColor
+			Canvas.Brush.Color = PillColor
+			Canvas.RoundRect PillLeft, 1, PillRight, Sender.Height - 1, 12, 12
+		#endif
+	End If
+	AIStatusText Sender, Canvas, PillLeft + 8, Text, AIImageBlend(ClrText, ClrBack, IIf(Lit, 100, 80))
+	'The grey text after it (the effort of Claude Code)
+	If Extra <> "" Then
+		Dim As Integer ExtraLeft = PillLeft + 8 + AIStatusTextWidth(Sender, Text & " " & Extra) - AIStatusTextWidth(Sender, Extra)
+		AIStatusText Sender, Canvas, ExtraLeft, Extra, AIImageBlend(ClrText, ClrBack, IIf(Lit, 65, 50))
+	End If
+End Sub
+
+Sub pnlAIStatus_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	Canvas.Pen.Color = ClrBack
+	Canvas.Brush.Color = ClrBack
+	Canvas.Rectangle 0, 0, Sender.Width + 1, Sender.Height + 1
+	Dim As UString Model = cboAIAgentModels.Text, ModelExtra
+	If Model = "" Then
+		Model = ML("No model")
+	ElseIf IsClaudeCodeAgent() Then
+		'Opus 5.5 Medium: the version is known after the first answer (or from the session of the opened chat)
+		Dim As String ModelID = IIf(AIClaudeModelID <> "" AndAlso AIClaudeModelAlias = AIClaudeModelName(), AIClaudeModelID, AIClaudeModelName())
+		If Trim(ModelID) <> "" Then
+			'Opus 5.5 Medium (as in Claude; the effort grey, Claude Code is seen in the list of the agents)
+			Model = AIClaudeModelTitle(ModelID)
+			ModelExtra = AIClaudeEffortTitle(AIClaudeEffort)
+		End If
+	End If
+	Dim As UString Mode = IIf(IsClaudeCodeAgent(), AIClaudeModeTitle(AIClaudeModeIndex()), "")
+	AIStatusRingLeft = Sender.Width - 10 - AIStatusRingSize
+	If Mode <> "" Then
+		AIStatusModeRight = AIStatusRingLeft - 6
+		AIStatusModeLeft = AIStatusModeRight - AIStatusTextWidth(Sender, Mode) - 16
+	Else
+		AIStatusModeRight = AIStatusRingLeft - 2
+		AIStatusModeLeft = AIStatusModeRight
+	End If
+	AIStatusModelRight = AIStatusModeLeft - 4
+	AIStatusModelLeft = AIStatusModelRight - AIStatusTextWidth(Sender, IIf(ModelExtra <> "", Model & " " & ModelExtra, Model)) - 16
+	'The circle of the context: the track and the used part from the top clockwise
+	'The ring: the 5-hour limit of the plan for Claude Code (when it is known), else the context
+	Dim As Double Part = IIf(AIContextUsed > 0, Min(1.0, AIContextUsed / AIContextWindowSize()), 0)
+	If IsClaudeCodeAgent() AndAlso AILimitHoursUsed >= 0 Then
+		Part = IIf(AILimitHoursReset > 0 AndAlso AILimitHoursReset <= time_(NULL), 0, Min(1.0, AILimitHoursUsed))
+	End If
+	#ifdef __USE_WINAPI__
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle <> 0 AndAlso GdipCreateFromHDC(Canvas.Handle, @G) = 0 AndAlso G <> 0 Then
+			GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+			If AIStatusHoverPart = 3 OrElse AIStatusMenuPart = 3 Then
+				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(AIStatusRingLeft - 5), Sender.ScaleY(1), Sender.ScaleX(AIStatusRingSize + 10), Sender.ScaleY(Sender.Height - 2), Sender.ScaleX(6))
+				If Path <> 0 Then
+					Dim As GpSolidFill Ptr Brush
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), @Brush)
+					GdipFillPath(G, Brush, Path)
+					GdipDeleteBrush(Brush)
+					GdipDeletePath(Path)
+				End If
+			End If
+			Dim As Single Thick = Sender.ScaleX(2), d = Sender.ScaleX(AIStatusRingSize) - Thick
+			Dim As Single rx = Sender.ScaleX(AIStatusRingLeft) + Thick / 2, ry = (Sender.ScaleY(Sender.Height) - d) / 2
+			Dim As GpPen Ptr Pen
+			GdipCreatePen1(AIImageARGB(AIImageBlend(ClrText, ClrBack, 25)), Thick, UnitPixel, @Pen)
+			GdipDrawEllipse(G, Pen, rx, ry, d, d)
+			GdipDeletePen(Pen)
+			If Part > 0 Then
+				GdipCreatePen1(AIImageARGB(IIf(Part > 0.8, AIAccentWarnColor, AIAccentColor)), Thick, UnitPixel, @Pen)
+				GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+				GdipDrawArc(G, Pen, rx, ry, d, d, -90, Max(4.0, CSng(Part * 360)))
+				GdipDeletePen(Pen)
+			End If
+			GdipDeleteGraphics(G)
+		End If
+	#else
+		Canvas.Pen.Color = IIf(Part > 0, IIf(Part > 0.8, AIAccentWarnColor, AIAccentColor), AIImageBlend(ClrText, ClrBack, 25))
+		Canvas.Brush.Color = ClrBack
+		Canvas.RoundRect AIStatusRingLeft, (Sender.Height - AIStatusRingSize) \ 2, AIStatusRingLeft + AIStatusRingSize, (Sender.Height + AIStatusRingSize) \ 2, AIStatusRingSize, AIStatusRingSize
+	#endif
+	AIStatusDrawPill Sender, Canvas, 1, AIStatusModelLeft, AIStatusModelRight, Model, ClrBack, ClrText, ModelExtra
+	If Mode <> "" Then AIStatusDrawPill Sender, Canvas, 2, AIStatusModeLeft, AIStatusModeRight, Mode, ClrBack, ClrText
+	If bInAIThread Then
+		Dim As UString Working = WChr(&H25CF) & " " & ML("AI is working...")
+		AIStatusText Sender, Canvas, 10, Working, AIImageBlend(ClrText, ClrBack, 70)
+	End If
+End Sub
+
+Function AIStatusPartAt(x As Integer) As Integer
+	If x >= AIStatusModelLeft AndAlso x < AIStatusModelRight Then Return 1
+	If x >= AIStatusModeLeft AndAlso x < AIStatusModeRight Then Return 2
+	If x >= AIStatusRingLeft - 5 AndAlso x < AIStatusRingLeft + AIStatusRingSize + 5 Then Return 3
+	Return 0
+End Function
+
+Sub pnlAIStatus_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	Dim As Integer Part = AIStatusPartAt(x)
+	If Part = AIStatusHoverPart Then Exit Sub
+	AIStatusHoverPart = Part
+	#ifdef __USE_WINAPI__
+		Sender.Cursor = IIf(Part <> 0, crHand, crArrow)
+	#endif
+	Sender.Repaint
+End Sub
+
+Sub pnlAIStatus_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	If AIStatusHoverPart = 0 Then Exit Sub
+	AIStatusHoverPart = 0
+	Sender.Repaint
+End Sub
+
+Sub AIModelSelect(Index As Integer)
+	If Index < 0 OrElse Index >= cboAIAgentModels.ItemCount OrElse Index = cboAIAgentModels.ItemIndex Then Exit Sub
+	cboAIAgentModels.ItemIndex = Index
+	cboAIAgentModels_Change cboAIAgentModels, cboAIAgentModels
+	pnlAIStatus.Repaint
+End Sub
+
+'The mode is used by the next question (claude is started for every question)
+Sub AIClaudeModeSelect(Index As Integer)
+	If Index < 0 OrElse Index > 4 Then Exit Sub
+	AIClaudePermissionMode = AIClaudeModeValue(Index)
+	iniSettings.WriteString("AIAgents", "ClaudePermissionMode", AIClaudePermissionMode)
+	pnlAIStatus.Repaint
+End Sub
+
+Sub mnuAIModels_Click(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+	Dim As String Key = Sender.ToString
+	If Left(Key, 7) = "AIModel" Then
+		AIModelSelect Val(Mid(Key, 8))
+	ElseIf Left(Key, 6) = "AIMode" Then
+		AIClaudeModeSelect Val(Mid(Key, 7))
+	End If
+End Sub
+
+'The items of the menu of the row: the titles, the notes under them (the modes), the checked item, the title of the menu
+Dim Shared As UString AIMenuTitles(Any), AIMenuNotes(Any), AIMenuHeader
+Dim Shared As Integer AIMenuChecked = -1
+'The items which open a menu next to the menu (Effort, More models): ">" and the grey text on the right ("" for the
+'other items; AIMenuShow clears them)
+Dim Shared As UString AIMenuSubs(Any)
+'The line above the item (the groups of the items)
+Dim Shared As Boolean AIMenuSepBefore(Any)
+'The keys of the items (1..4 for the models): grey on the right (the check instead of it on the chosen item)
+Dim Shared As String AIMenuKeys(Any)
+Dim Shared As Boolean AIMenuSubOpened, AIMenuBack
+
+Function AIMenuIsSub(Index As Integer) As Boolean
+	Return Index >= 0 AndAlso Index <= UBound(AIMenuSubs) AndAlso AIMenuSubs(Index) <> ""
+End Function
+
+'The models of Claude Code in the menu of the model (--model): the aliases of claude for the latest models
+Function AIClaudeMenuModel(Index As Integer) As String
+	Select Case Index
+	Case 0: Return "opus"
+	Case 1: Return "sonnet"
+	Case 2: Return "fable"
+	Case 3: Return "haiku"
+	End Select
+	Return ""
+End Function
+
+Sub AIMenuSetItems(Part As Integer, AgentsOnly As Boolean = False)
+	#ifdef __USE_WINAPI__
+		If Part = 1 AndAlso CInt(IsClaudeCodeAgent()) AndAlso CInt(Not AgentsOnly) Then
+			'Claude Code: the models, Effort >, More models > (the agents of the list)
+			ReDim AIMenuTitles(5)
+			ReDim AIMenuNotes(5)
+			ReDim AIMenuSubs(5)
+			ReDim AIMenuSepBefore(5)
+			ReDim AIMenuKeys(5)
+			AIMenuSepBefore(4) = True
+			AIMenuSepBefore(5) = True
+			Dim As String Current = LCase(AIClaudeModelName())
+			AIMenuChecked = -1
+			For i As Integer = 0 To 3
+				Dim As String Alias_ = AIClaudeMenuModel(i)
+				'The version is known for the model which answered
+				If AIClaudeModelID <> "" AndAlso InStr(LCase(AIClaudeModelID), Alias_) > 0 Then
+					AIMenuTitles(i) = AIClaudeModelTitle(AIClaudeModelID)
+				Else
+					AIMenuTitles(i) = AIClaudeModelTitle(Alias_)
+				End If
+				'Fable: as in Claude
+				If Alias_ = "fable" Then AIMenuTitles(i) &= " " & WChr(&HB7) & " " & ML("Requires usage credits")
+				AIMenuKeys(i) = Str(i + 1)
+				If Current = Alias_ OrElse (Left(Current, 7) = "claude-" AndAlso InStr(Current, Alias_) > 0) Then AIMenuChecked = i
+			Next
+			AIMenuTitles(4) = ML("Effort")
+			AIMenuSubs(4) = ">" & AIClaudeEffortTitle(AIClaudeEffort)
+			AIMenuTitles(5) = ML("More models")
+			AIMenuSubs(5) = ">"
+			AIMenuHeader = ""
+			Exit Sub
+		End If
+	#endif
+	If Part = 1 Then
+		Dim As Integer Count = cboAIAgentModels.ItemCount
+		ReDim AIMenuTitles(Count - 1)
+		ReDim AIMenuNotes(Count - 1)
+		For i As Integer = 0 To Count - 1
+			AIMenuTitles(i) = cboAIAgentModels.Item(i)
+		Next
+		AIMenuChecked = cboAIAgentModels.ItemIndex
+		AIMenuHeader = ""
+	Else
+		ReDim AIMenuTitles(4)
+		ReDim AIMenuNotes(4)
+		For i As Integer = 0 To 4
+			AIMenuTitles(i) = AIClaudeModeTitle(i)
+			AIMenuNotes(i) = AIClaudeModeNote(i)
+		Next
+		AIMenuChecked = AIClaudeModeIndex()
+		AIMenuHeader = ML("Mode")
+	End If
+End Sub
+
+#ifdef __USE_WINAPI__
+	'The menu like the menu of Claude: a window with round corners, the rows (a title, a note under it), the check of
+	'the chosen item on the right. It works like a menu: the mouse is captured until an item is chosen or a click is
+	'outside it (Esc, the arrows, Enter, the wheel)
+	Dim Shared As HWND AIMenuWnd
+	Dim Shared As RECT AIMenuSubRect
+	'The menu stays when the menu of its item is opened: its window shows the picture of it (AIMenuSnapBmp) until the
+	'menu of the item is closed. The mouse on another item of it goes back to it (AIMenuBack, AIMenuBackHover).
+	Dim Shared As HWND AIMenuSnapWnd
+	Dim Shared As HBITMAP AIMenuSnapBmp
+	Dim Shared As Integer AIMenuSnapW, AIMenuSnapH, AIMenuSnapOffset, AIMenuSnapItemH, AIMenuSnapFirst, AIMenuSnapVisible, AIMenuSnapSub, AIMenuBackHover = -1
+
+	Sub AIMenuSnapDestroy()
+		If AIMenuSnapWnd <> 0 Then DestroyWindow AIMenuSnapWnd: AIMenuSnapWnd = 0
+		If AIMenuSnapBmp <> 0 Then DeleteObject AIMenuSnapBmp: AIMenuSnapBmp = 0
+	End Sub
+
+	'The item of the menu which stays (-1: the point is not on an item of it)
+	Function AIMenuSnapItemAt(ByVal pt As ..POINT) As Integer
+		If AIMenuSnapWnd = 0 Then Return -1
+		Dim As RECT rc
+		GetWindowRect(AIMenuSnapWnd, @rc)
+		If PtInRect(@rc, pt) = 0 Then Return -1
+		Dim As Integer y = pt.y - rc.top - AIMenuSnapOffset
+		If y < 0 OrElse AIMenuSnapItemH <= 0 OrElse y \ AIMenuSnapItemH >= AIMenuSnapVisible Then Return -1
+		Return AIMenuSnapFirst + y \ AIMenuSnapItemH
+	End Function
+	Dim Shared As HFONT AIMenuFont, AIMenuFontSmall
+	Dim Shared As Integer AIMenuHover = -1, AIMenuTop, AIMenuVisible, AIMenuItemH, AIMenuPad, AIMenuHeaderH, AIMenuWidth, AIMenuHeight
+
+	Function AIMenuCount() As Integer
+		Return UBound(AIMenuTitles) + 1
+	End Function
+
+	Sub AIMenuPaint(ByVal hWnd As HWND)
+		Dim As PAINTSTRUCT ps
+		Dim As HDC DC = BeginPaint(hWnd, @ps)
+		Dim As Integer W = AIMenuWidth, H = AIMenuHeight, Count = AIMenuCount()
+		Dim As HDC MemDC = CreateCompatibleDC(DC)
+		Dim As HBITMAP MemBmp = CreateCompatibleBitmap(DC, W, H)
+		Dim As HGDIOBJ OldBmp = SelectObject(MemDC, MemBmp)
+		Dim As Integer ClrBack, ClrText
+		AIImageColors pnlAIStatus, ClrBack, ClrText
+		Dim As Integer ClrMenu = AIImageBlend(ClrText, ClrBack, 5)
+		Dim As Single S = pnlAIStatus.ScaleX(1)
+		Dim As Integer Top = AIMenuPad + AIMenuHeaderH
+		Dim As GpGraphics Ptr G
+		If GdipCreateFromHDC(MemDC, @G) = 0 AndAlso G <> 0 Then
+			GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+			GdipGraphicsClear(G, AIImageARGB(ClrMenu))
+			Dim As GpPen Ptr Pen
+			Dim As GpSolidFill Ptr Brush
+			'The border (the corners are round by Windows 11, else by the region of the window)
+			Dim As GpPath Ptr Path = AIImageRoundPath(0.5, 0.5, W - 1, H - 1, 8 * S)
+			If Path <> 0 Then
+				GdipCreatePen1(AIImageARGB(AIInputBorderColor()), 1, UnitPixel, @Pen)
+				GdipDrawPath(G, Pen, Path)
+				GdipDeletePen(Pen)
+				GdipDeletePath(Path)
+			End If
+			For i As Integer = AIMenuTop To Min(AIMenuTop + AIMenuVisible, Count) - 1
+				Dim As Single y = Top + (i - AIMenuTop) * AIMenuItemH
+				If i > AIMenuTop AndAlso i <= UBound(AIMenuSepBefore) AndAlso CInt(AIMenuSepBefore(i)) Then
+					GdipCreatePen1(AIImageARGB(AIImageBlend(ClrText, ClrBack, 18)), 1, UnitPixel, @Pen)
+					GdipDrawLine(G, Pen, AIMenuPad + 10 * S, y, W - AIMenuPad - 10 * S, y)
+					GdipDeletePen(Pen)
+				End If
+				If i = AIMenuHover Then
+					Path = AIImageRoundPath(AIMenuPad, y + 2 * S, W - 2 * AIMenuPad, AIMenuItemH - 4 * S, 6 * S)
+					If Path <> 0 Then
+						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), @Brush)
+						GdipFillPath(G, Brush, Path)
+						GdipDeleteBrush(Brush)
+						GdipDeletePath(Path)
+					End If
+				End If
+				If i = AIMenuChecked Then
+					'The check of the chosen item (by the title)
+					Dim As Single cx = W - AIMenuPad - 20 * S, cy = y + IIf(AIMenuNotes(i) <> "", 16 * S, AIMenuItemH / 2)
+					GdipCreatePen1(AIImageARGB(AIAccentColor), 1.8 * S, UnitPixel, @Pen)
+					GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+					GdipSetPenLineJoin(Pen, LineJoinRound)
+					Dim As GpPointF pts(2) = {Type(cx - 6 * S, cy), Type(cx - 2 * S, cy + 4 * S), Type(cx + 6 * S, cy - 5 * S)}
+					GdipDrawLines(G, Pen, @pts(0), 3)
+					GdipDeletePen(Pen)
+				End If
+			Next
+			'The scroll bar when not all the items are seen
+			If AIMenuVisible < Count Then
+				Dim As Single TrackH = H - Top - AIMenuPad
+				Dim As Single ThumbH = Max(16 * S, TrackH * AIMenuVisible / Count)
+				Dim As Single ThumbY = Top + (TrackH - ThumbH) * AIMenuTop / (Count - AIMenuVisible)
+				Path = AIImageRoundPath(W - 5 * S, ThumbY, 3 * S, ThumbH, 1.5 * S)
+				If Path <> 0 Then
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 30)), @Brush)
+					GdipFillPath(G, Brush, Path)
+					GdipDeleteBrush(Brush)
+					GdipDeletePath(Path)
+				End If
+			End If
+			GdipDeleteGraphics(G)
+		End If
+		Dim As HGDIOBJ OldFont = SelectObject(MemDC, AIMenuFont)
+		SetBkMode(MemDC, TRANSPARENT)
+		If AIMenuHeader <> "" Then
+			Dim As RECT rh = Type(AIMenuPad + 12 * S, AIMenuPad, W - AIMenuPad, AIMenuPad + AIMenuHeaderH)
+			Dim As WString * 1024 Header = AIMenuHeader
+			SelectObject(MemDC, AIMenuFontSmall)
+			SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 55))
+			If AIMenuHeaderH > CInt(28 * S) Then
+				rh.right -= 12 * S
+				rh.top += 7 * S
+				DrawTextW(MemDC, @Header, -1, @rh, DT_WORDBREAK Or DT_NOPREFIX)
+			Else
+				DrawTextW(MemDC, @Header, -1, @rh, DT_SINGLELINE Or DT_VCENTER Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+			End If
+		End If
+		'The titles (the part after the middle dot grey: the provider of the model), the notes grey under them
+		For i As Integer = AIMenuTop To Min(AIMenuTop + AIMenuVisible, Count) - 1
+			Dim As Integer y = Top + (i - AIMenuTop) * AIMenuItemH
+			Dim As WString * 512 Item = AIMenuTitles(i)
+			Dim As Integer DotPos = InStrRev(Item, WChr(&HB7))
+			Dim As Boolean HasNote = AIMenuNotes(i) <> ""
+			Dim As RECT rc = Type(AIMenuPad + 12 * S, y + IIf(HasNote, 6 * S, 0), W - AIMenuPad - 34 * S, y + IIf(HasNote, 26 * S, AIMenuItemH))
+			Dim As WString * 512 Name_ = IIf(DotPos > 0, RTrim(Left(Item, DotPos - 1)), Item)
+			SelectObject(MemDC, AIMenuFont)
+			SetTextColor(MemDC, ClrText)
+			DrawTextW(MemDC, @Name_, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+			If DotPos > 0 Then
+				Dim As RECT rm = rc
+				DrawTextW(MemDC, @Name_, -1, @rm, DT_SINGLELINE Or DT_VCENTER Or DT_NOPREFIX Or DT_CALCRECT)
+				rm.left = rm.right + 8 * S
+				rm.right = rc.right
+				rm.top = rc.top
+				rm.bottom = rc.bottom
+				Dim As WString * 512 Provider = LTrim(Mid(Item, DotPos + 1))
+				SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 55))
+				If rm.left < rm.right Then DrawTextW(MemDC, @Provider, -1, @rm, DT_SINGLELINE Or DT_VCENTER Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+			End If
+			If i <> AIMenuChecked AndAlso i <= UBound(AIMenuKeys) AndAlso AIMenuKeys(i) <> "" Then
+				Dim As RECT rk = Type(W - AIMenuPad - 30 * S, rc.top, W - AIMenuPad - 10 * S, rc.bottom)
+				Dim As WString * 8 Key_ = AIMenuKeys(i)
+				SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 55))
+				DrawTextW(MemDC, @Key_, -1, @rk, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER Or DT_NOPREFIX)
+			End If
+			If AIMenuIsSub(i) Then
+				'The grey text on the right and the arrow of the menu of the item
+				Dim As RECT rs = Type(rc.left, rc.top, W - AIMenuPad - 28 * S, rc.bottom)
+				Dim As WString * 256 SubText = Mid(AIMenuSubs(i), 2)
+				SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 55))
+				DrawTextW(MemDC, @SubText, -1, @rs, DT_SINGLELINE Or DT_VCENTER Or DT_RIGHT Or DT_NOPREFIX)
+				Dim As RECT ra = Type(W - AIMenuPad - 24 * S, rc.top, W - AIMenuPad - 8 * S, rc.bottom)
+				Dim As WString * 2 Arrow = WChr(&H203A)
+				SetTextColor(MemDC, ClrText)
+				DrawTextW(MemDC, @Arrow, -1, @ra, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER Or DT_NOPREFIX)
+			End If
+			If HasNote Then
+				Dim As RECT rn = Type(rc.left, y + 26 * S, W - AIMenuPad - 12 * S, y + AIMenuItemH - 6 * S)
+				Dim As WString * 512 Note = AIMenuNotes(i)
+				SelectObject(MemDC, AIMenuFontSmall)
+				SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 55))
+				DrawTextW(MemDC, @Note, -1, @rn, DT_SINGLELINE Or DT_VCENTER Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+			End If
+		Next
+		SelectObject(MemDC, OldFont)
+		BitBlt(DC, 0, 0, W, H, MemDC, 0, 0, SRCCOPY)
+		SelectObject(MemDC, OldBmp)
+		DeleteObject(MemBmp)
+		DeleteDC(MemDC)
+		EndPaint(hWnd, @ps)
+	End Sub
+
+	'The panel of the circle (like the usage of Claude): the rows are the titles of the groups (AIPanelValues = -1),
+	'the texts (-2) and the rows with a bar (0..1): a title on the left, a grey text on the right, the bar under them
+	Dim Shared As Boolean AIMenuPanel
+	Dim Shared As UString AIPanelTitles(Any), AIPanelRights(Any)
+	Dim Shared As Double AIPanelValues(Any)
+
+	Sub AIPanelAdd(ByRef Title As WString, ByRef Right_ As WString, Value As Double)
+		Dim As Integer n = UBound(AIPanelTitles) + 1
+		ReDim Preserve AIPanelTitles(n)
+		ReDim Preserve AIPanelRights(n)
+		ReDim Preserve AIPanelValues(n)
+		AIPanelTitles(n) = Title
+		AIPanelRights(n) = Right_
+		AIPanelValues(n) = Value
+	End Sub
+
+	Function AIPanelRowHeight(i As Integer, S As Single) As Integer
+		Return CInt(IIf(AIPanelValues(i) = -1, 30, IIf(AIPanelValues(i) = -2, 28, 46)) * S)
+	End Function
+
+	'The time of the reset in the local time: today the hour, else the day of the week and the hour
+	Function AIResetText(ResetAt As LongInt) As UString
+		Dim As time_t t = ResetAt, NowT = time_(NULL)
+		If ResetAt <= NowT Then Return ML("Reset")
+		Dim As tm Ptr p = localtime(@NowT)
+		If p = 0 Then Return ""
+		Dim As Integer Today = p->tm_yday, ThisYear = p->tm_year
+		p = localtime(@t)
+		If p = 0 Then Return ""
+		Dim As String HM = p->tm_hour & ":" & Right("0" & p->tm_min, 2)
+		If p->tm_yday = Today AndAlso p->tm_year = ThisYear Then Return ML("Resets at") & " " & HM
+		Dim As UString DayName
+		Select Case p->tm_wday
+		Case 0: DayName = ML("Sun")
+		Case 1: DayName = ML("Mon")
+		Case 2: DayName = ML("Tue")
+		Case 3: DayName = ML("Wed")
+		Case 4: DayName = ML("Thu")
+		Case 5: DayName = ML("Fri")
+		Case Else: DayName = ML("Sat")
+		End Select
+		Return ML("Resets") & ": " & DayName & " " & HM
+	End Function
+
+	Function AIPercent(Value As Double) As String
+		Return CInt(Min(1.0, Max(0.0, Value)) * 100) & " %"
+	End Function
+
+	Sub AIPanelSetRows()
+		Erase AIPanelTitles, AIPanelRights, AIPanelValues
+		Dim As LongInt Size = AIContextWindowSize()
+		AIPanelAdd ML("Context window"), "", -1
+		If AIContextUsed > 0 Then
+			AIPanelAdd AIThousands(AIContextUsed) & " / " & AIThousands(Size) & " " & ML("tokens"), AIPercent(AIContextUsed / Size), AIContextUsed / Size
+		Else
+			AIPanelAdd ML("No data yet: it is shown after the answer"), "", -2
+		End If
+		If IsClaudeCodeAgent() Then
+			AIPanelAdd ML("Plan usage limits"), "Claude Code", -1
+			If AILimitHoursUsed < 0 AndAlso AILimitWeekUsed < 0 Then
+				AIPanelAdd ML("No data yet: it is shown after the answer"), "", -2
+			End If
+			Dim As LongInt NowT = time_(NULL)
+			If AILimitHoursUsed >= 0 Then
+				Dim As Double Used = IIf(AILimitHoursReset > 0 AndAlso AILimitHoursReset <= NowT, 0, AILimitHoursUsed)
+				AIPanelAdd ML("5-hour limit"), AIResetText(AILimitHoursReset) & "    " & AIPercent(Used), Used
+			End If
+			If AILimitWeekUsed >= 0 Then
+				Dim As Double Used = IIf(AILimitWeekReset > 0 AndAlso AILimitWeekReset <= NowT, 0, AILimitWeekUsed)
+				AIPanelAdd ML("Weekly") & " " & WChr(&HB7) & " " & ML("all models"), AIResetText(AILimitWeekReset) & "    " & AIPercent(Used), Used
+			End If
+		End If
+	End Sub
+
+	Sub AIPanelPaint(ByVal hWnd As HWND)
+		Dim As PAINTSTRUCT ps
+		Dim As HDC DC = BeginPaint(hWnd, @ps)
+		Dim As Integer W = AIMenuWidth, H = AIMenuHeight
+		Dim As HDC MemDC = CreateCompatibleDC(DC)
+		Dim As HBITMAP MemBmp = CreateCompatibleBitmap(DC, W, H)
+		Dim As HGDIOBJ OldBmp = SelectObject(MemDC, MemBmp)
+		Dim As Integer ClrBack, ClrText
+		AIImageColors pnlAIStatus, ClrBack, ClrText
+		Dim As Integer ClrGrey = AIImageBlend(ClrText, ClrBack, 55)
+		Dim As Single S = pnlAIStatus.ScaleX(1)
+		Dim As Integer Pad = CInt(16 * S)
+		Dim As GpGraphics Ptr G
+		If GdipCreateFromHDC(MemDC, @G) = 0 AndAlso G <> 0 Then
+			GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+			GdipGraphicsClear(G, AIImageARGB(AIImageBlend(ClrText, ClrBack, 5)))
+			Dim As GpPen Ptr Pen
+			Dim As GpSolidFill Ptr Brush
+			Dim As GpPath Ptr Path = AIImageRoundPath(0.5, 0.5, W - 1, H - 1, 8 * S)
+			If Path <> 0 Then
+				GdipCreatePen1(AIImageARGB(AIInputBorderColor()), 1, UnitPixel, @Pen)
+				GdipDrawPath(G, Pen, Path)
+				GdipDeletePen(Pen)
+				GdipDeletePath(Path)
+			End If
+			'The bars: the track and the used part
+			Dim As Integer y = AIMenuPad
+			For i As Integer = 0 To UBound(AIPanelTitles)
+				If AIPanelValues(i) >= 0 Then
+					Dim As Single BarY = y + 32 * S, BarW = W - 2 * Pad, BarH = 4 * S
+					Path = AIImageRoundPath(Pad, BarY, BarW, BarH, BarH / 2)
+					If Path <> 0 Then
+						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 18)), @Brush)
+						GdipFillPath(G, Brush, Path)
+						GdipDeleteBrush(Brush)
+						GdipDeletePath(Path)
+					End If
+					Dim As Double Value = Min(1.0, AIPanelValues(i))
+					If Value > 0 Then
+						Path = AIImageRoundPath(Pad, BarY, Max(BarH, CSng(BarW * Value)), BarH, BarH / 2)
+						If Path <> 0 Then
+							GdipCreateSolidFill(AIImageARGB(IIf(Value >= 0.75, AIAccentWarnColor, AIAccentColor)), @Brush)
+							GdipFillPath(G, Brush, Path)
+							GdipDeleteBrush(Brush)
+							GdipDeletePath(Path)
+						End If
+					End If
+				End If
+				y += AIPanelRowHeight(i, S)
+			Next
+			GdipDeleteGraphics(G)
+		End If
+		SetBkMode(MemDC, TRANSPARENT)
+		Dim As HGDIOBJ OldFont = SelectObject(MemDC, AIMenuFont)
+		Dim As Integer y = AIMenuPad
+		For i As Integer = 0 To UBound(AIPanelTitles)
+			Dim As Integer RowH = AIPanelRowHeight(i, S)
+			Dim As WString * 512 Title = AIPanelTitles(i), Right_ = AIPanelRights(i)
+			Dim As RECT rc = Type(Pad, y, W - Pad, y + IIf(AIPanelValues(i) >= 0, CInt(28 * S), RowH))
+			Dim As RECT rr = rc
+			If Right_ <> "" Then
+				SelectObject(MemDC, AIMenuFontSmall)
+				SetTextColor(MemDC, ClrGrey)
+				DrawTextW(MemDC, @Right_, -1, @rr, DT_SINGLELINE Or DT_VCENTER Or DT_RIGHT Or DT_NOPREFIX)
+				Dim As RECT rw = rr
+				DrawTextW(MemDC, @Right_, -1, @rw, DT_SINGLELINE Or DT_NOPREFIX Or DT_CALCRECT)
+				rc.right -= (rw.right - rw.left) + CInt(12 * S)
+			End If
+			If AIPanelValues(i) = -1 Then
+				SelectObject(MemDC, AIMenuFontSmall)
+				SetTextColor(MemDC, ClrGrey)
+			ElseIf AIPanelValues(i) = -2 Then
+				SelectObject(MemDC, AIMenuFontSmall)
+				SetTextColor(MemDC, AIImageBlend(ClrText, ClrBack, 75))
+			Else
+				SelectObject(MemDC, AIMenuFont)
+				SetTextColor(MemDC, ClrText)
+			End If
+			DrawTextW(MemDC, @Title, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_END_ELLIPSIS Or DT_NOPREFIX)
+			y += RowH
+		Next
+		SelectObject(MemDC, OldFont)
+		BitBlt(DC, 0, 0, W, H, MemDC, 0, 0, SRCCOPY)
+		SelectObject(MemDC, OldBmp)
+		DeleteObject(MemBmp)
+		DeleteDC(MemDC)
+		EndPaint(hWnd, @ps)
+	End Sub
+
+	Function AIMenuWndProc(ByVal hWnd As HWND, ByVal uMsg As UINT, ByVal wParam As WPARAM, ByVal lParam As LPARAM) As LRESULT
+		Select Case uMsg
+		Case WM_PAINT
+			If hWnd = AIMenuSnapWnd AndAlso AIMenuSnapBmp <> 0 Then
+				Dim As PAINTSTRUCT ps
+				Dim As HDC DC = BeginPaint(hWnd, @ps)
+				Dim As HDC MemDC = CreateCompatibleDC(DC)
+				Dim As HGDIOBJ OldBmp = SelectObject(MemDC, AIMenuSnapBmp)
+				BitBlt(DC, 0, 0, AIMenuSnapW, AIMenuSnapH, MemDC, 0, 0, SRCCOPY)
+				SelectObject(MemDC, OldBmp)
+				DeleteDC(MemDC)
+				EndPaint(hWnd, @ps)
+			ElseIf AIMenuPanel Then
+				AIPanelPaint hWnd
+			Else
+				AIMenuPaint hWnd
+			End If
+			Return 0
+		Case WM_ERASEBKGND
+			Return 1
+		Case WM_MOUSEACTIVATE
+			Return MA_NOACTIVATE
+		End Select
+		Return DefWindowProc(hWnd, uMsg, wParam, lParam)
+	End Function
+
+	'The item of the menu under the point of the screen (-1: none)
+	Function AIMenuItemAt(ByVal pt As ..POINT) As Integer
+		Dim As RECT rc
+		GetWindowRect(AIMenuWnd, @rc)
+		If PtInRect(@rc, pt) = 0 Then Return -1
+		Dim As Integer y = pt.y - rc.top - AIMenuPad - AIMenuHeaderH
+		If y < 0 OrElse pt.x - rc.left < AIMenuPad OrElse pt.x - rc.left >= AIMenuWidth - AIMenuPad Then Return -1
+		Dim As Integer Index = AIMenuTop + y \ AIMenuItemH
+		If y \ AIMenuItemH >= AIMenuVisible OrElse Index >= AIMenuCount() Then Return -1
+		Return Index
+	End Function
+
+	Sub AIMenuScrollTo(Index As Integer)
+		If Index < AIMenuTop Then AIMenuTop = Index
+		If Index >= AIMenuTop + AIMenuVisible Then AIMenuTop = Index - AIMenuVisible + 1
+		AIMenuTop = Max(0, Min(AIMenuTop, AIMenuCount() - AIMenuVisible))
+	End Sub
+
+	Function AIMenuMakeFont(Height As Integer) As HFONT
+		Dim As LOGFONTW lf
+		GetObject(GetStockObject(DEFAULT_GUI_FONT), SizeOf(lf), @lf)
+		lf.lfHeight = -Height
+		lf.lfWeight = FW_NORMAL
+		lf.lfFaceName = "Segoe UI"
+		Return CreateFontIndirectW(@lf)
+	End Function
+
+	'Shows the menu (AIMenuTitles ...) above Pill (the place of the clicked text on the screen): the chosen item or -1
+	'Side: the menu is next to Pill (the menu of an item of a menu), else above (under) it
+	Function AIMenuShow(ByRef Pill As RECT, AlignLeft As Boolean = False, Side As Boolean = False) As Integer
+		AIMenuSubOpened = False
+		AIMenuBack = False
+		Dim As Integer Count = IIf(AIMenuPanel, 0, AIMenuCount())
+		If (Count = 0 AndAlso Not AIMenuPanel) OrElse AIMenuWnd <> 0 Then Return -1
+		Static As Boolean Registered
+		Dim As WString * 32 ClassName = "VFBE.AIMenu"
+		If Not Registered Then
+			Dim As WNDCLASSEXW wc
+			wc.cbSize = SizeOf(wc)
+			wc.style = CS_DROPSHADOW
+			wc.lpfnWndProc = @AIMenuWndProc
+			wc.hInstance = GetModuleHandle(NULL)
+			wc.hCursor = LoadCursor(NULL, IDC_ARROW)
+			wc.lpszClassName = @ClassName
+			RegisterClassExW(@wc)
+			Registered = True
+		End If
+		Dim As Single S = pnlAIStatus.ScaleX(1)
+		Dim As Boolean HasNotes
+		For i As Integer = 0 To Count - 1
+			If AIMenuNotes(i) <> "" Then HasNotes = True
+		Next
+		AIMenuItemH = CInt(IIf(HasNotes, 52, 32) * S)
+		AIMenuPad = CInt(6 * S)
+		AIMenuHeaderH = IIf(AIMenuHeader <> "", CInt(28 * S), 0)
+		AIMenuFont = AIMenuMakeFont(CInt(14 * S))
+		AIMenuFontSmall = AIMenuMakeFont(CInt(12.5 * S))
+		'The width of the longest title and note
+		Dim As HDC DC = GetDC(NULL)
+		Dim As HGDIOBJ OldFont = SelectObject(DC, AIMenuFont)
+		Dim As Integer MaxW
+		Dim As ..SIZE sz
+		For i As Integer = 0 To Count - 1
+			Dim As WString * 512 Item = AIMenuTitles(i)
+			If AIMenuIsSub(i) Then Item &= "     " & Mid(AIMenuSubs(i), 2)
+			GetTextExtentPoint32W(DC, @Item, Len(Item), @sz)
+			MaxW = Max(MaxW, sz.cx + CInt(IIf(AIMenuIsSub(i), 24, 8) * S))
+		Next
+		SelectObject(DC, AIMenuFontSmall)
+		For i As Integer = 0 To Count - 1
+			Dim As WString * 512 Note = AIMenuNotes(i)
+			GetTextExtentPoint32W(DC, @Note, Len(Note), @sz)
+			MaxW = Max(MaxW, sz.cx - CInt(20 * S))
+		Next
+		SelectObject(DC, OldFont)
+		ReleaseDC(NULL, DC)
+		AIMenuWidth = Min(CInt(520 * S), Max(CInt(240 * S), MaxW + CInt(70 * S)))
+		If AIMenuHeader <> "" AndAlso Not AIMenuPanel Then
+			'The height of the header (its lines in the width of the menu)
+			Dim As HDC HDC_ = GetDC(NULL)
+			Dim As HFONT OldF = SelectObject(HDC_, AIMenuFontSmall)
+			Dim As WString * 1024 Header = AIMenuHeader
+			Dim As RECT rh = Type(0, 0, AIMenuWidth - 2 * AIMenuPad - CInt(24 * S), 0)
+			DrawTextW(HDC_, @Header, -1, @rh, DT_WORDBREAK Or DT_CALCRECT Or DT_NOPREFIX)
+			SelectObject(HDC_, OldF)
+			ReleaseDC(NULL, HDC_)
+			AIMenuHeaderH = Max(CInt(28 * S), rh.bottom + CInt(14 * S))
+		End If
+		Dim As MONITORINFO mi
+		mi.cbSize = SizeOf(mi)
+		GetMonitorInfo(MonitorFromRect(@Pill, MONITOR_DEFAULTTONEAREST), @mi)
+		If AIMenuPanel Then
+			AIMenuWidth = CInt(380 * S)
+			AIMenuPad = CInt(8 * S)
+			AIMenuHeight = 2 * AIMenuPad
+			For i As Integer = 0 To UBound(AIPanelTitles)
+				AIMenuHeight += AIPanelRowHeight(i, S)
+			Next
+			AIMenuVisible = 0
+		Else
+			Dim As Integer Room = Max(Pill.top - mi.rcWork.top, mi.rcWork.bottom - Pill.bottom) - CInt(16 * S) - 2 * AIMenuPad - AIMenuHeaderH
+			AIMenuVisible = Max(1, Min(Count, Min(14, Room \ AIMenuItemH)))
+			AIMenuHeight = AIMenuVisible * AIMenuItemH + 2 * AIMenuPad + AIMenuHeaderH
+		End If
+		Dim As Integer x = Max(mi.rcWork.left, Min(IIf(AlignLeft, Pill.left, Pill.right - AIMenuWidth), mi.rcWork.right - AIMenuWidth))
+		Dim As Integer y = Pill.top - CInt(6 * S) - AIMenuHeight
+		If y < mi.rcWork.top Then y = Pill.bottom + CInt(6 * S)
+		If Side Then
+			'On the right of the item (on the left when there is no room), its first item at the height of the item
+			x = Pill.right + CInt(2 * S)
+			If x + AIMenuWidth > mi.rcWork.right Then x = Max(mi.rcWork.left, Pill.left - AIMenuWidth - CInt(2 * S))
+			y = Max(mi.rcWork.top, Min(Pill.top - AIMenuPad - AIMenuHeaderH, mi.rcWork.bottom - AIMenuHeight))
+		End If
+		AIMenuHover = IIf(AIMenuPanel, -1, AIMenuChecked)
+		'Back from the menu of an item: the item under the mouse
+		If AIMenuBackHover >= 0 AndAlso Not Side Then AIMenuHover = AIMenuBackHover
+		AIMenuBackHover = -1
+		AIMenuTop = 0
+		If AIMenuHover >= 0 Then AIMenuScrollTo AIMenuHover
+		If CInt(Not Side) AndAlso AIMenuSnapWnd <> 0 Then
+			'Back from the menu of an item: the window of the menu which stayed works again (it is not drawn anew)
+			AIMenuWnd = AIMenuSnapWnd
+			AIMenuSnapWnd = 0
+			If AIMenuSnapBmp <> 0 Then DeleteObject AIMenuSnapBmp: AIMenuSnapBmp = 0
+			If AIMenuSnapW <> AIMenuWidth OrElse AIMenuSnapH <> AIMenuHeight Then SetWindowPos(AIMenuWnd, NULL, x, y, AIMenuWidth, AIMenuHeight, SWP_NOZORDER Or SWP_NOACTIVATE)
+			InvalidateRect(AIMenuWnd, NULL, False)
+			If AIMenuIsSub(AIMenuHover) Then SetTimer(AIMenuWnd, 7, 400, NULL)
+		Else
+			If Not Side Then AIMenuSnapDestroy
+			AIMenuWnd = CreateWindowExW(WS_EX_TOOLWINDOW Or WS_EX_TOPMOST, @ClassName, NULL, WS_POPUP, x, y, AIMenuWidth, AIMenuHeight, frmMain.Handle, NULL, GetModuleHandle(NULL), NULL)
+			If AIMenuWnd = 0 Then
+				DeleteObject AIMenuFont: AIMenuFont = 0
+				DeleteObject AIMenuFontSmall: AIMenuFontSmall = 0
+				Return -1
+			End If
+			'Windows 11: round corners and the shadow of DWM; else the region of the window
+			Dim As Boolean Rounded
+			Dim As HMODULE Dwm = LoadLibrary("dwmapi.dll")
+			If Dwm <> 0 Then
+				Dim As Function(ByVal As HWND, ByVal As DWORD, ByVal As LPCVOID, ByVal As DWORD) As HRESULT SetAttr = Cast(Any Ptr, GetProcAddress(Dwm, "DwmSetWindowAttribute"))
+				Dim As Long Pref = 2 'DWMWCP_ROUND
+				If SetAttr <> 0 AndAlso SetAttr(AIMenuWnd, 33, @Pref, SizeOf(Pref)) = 0 Then Rounded = True
+				FreeLibrary Dwm
+			End If
+			If Not Rounded Then SetWindowRgn(AIMenuWnd, CreateRoundRectRgn(0, 0, AIMenuWidth + 1, AIMenuHeight + 1, CInt(16 * S), CInt(16 * S)), False)
+			ShowWindow(AIMenuWnd, SW_SHOWNOACTIVATE)
+		End If
+		UpdateWindow(AIMenuWnd)
+		SetCapture(AIMenuWnd)
+		Dim As Integer Chosen = -1
+		Dim As tagMSG AIMenuMsg
+		Dim As Boolean Done
+		Do While Not Done
+			If GetMessage(@AIMenuMsg, NULL, 0, 0) <= 0 Then PostQuitMessage(0): Exit Do
+			If GetCapture() <> AIMenuWnd Then Exit Do
+			Select Case AIMenuMsg.message
+			Case WM_MOUSEMOVE
+				If AIMenuPanel Then Continue Do
+				Dim As Integer Index = AIMenuItemAt(AIMenuMsg.pt)
+				If Side AndAlso Index < 0 Then
+					Dim As Integer SnapIndex = AIMenuSnapItemAt(AIMenuMsg.pt)
+					If SnapIndex >= 0 AndAlso SnapIndex <> AIMenuSnapSub Then AIMenuBack = True: AIMenuBackHover = SnapIndex: Done = True: Continue Do
+				End If
+				If Index <> AIMenuHover AndAlso (Index >= 0 OrElse AIMenuHover >= 0) Then
+					AIMenuHover = Index: InvalidateRect(AIMenuWnd, NULL, False)
+					'The menu of the item opens when the mouse stays on it
+					If AIMenuIsSub(Index) Then SetTimer(AIMenuWnd, 7, 400, NULL) Else KillTimer(AIMenuWnd, 7)
+				End If
+			Case WM_TIMER
+				If AIMenuMsg.hwnd = AIMenuWnd AndAlso AIMenuMsg.wParam = 7 Then
+					KillTimer(AIMenuWnd, 7)
+					If AIMenuIsSub(AIMenuHover) Then Chosen = AIMenuHover: AIMenuSubOpened = True: Done = True
+				Else
+					DispatchMessage(@AIMenuMsg)
+				End If
+			Case WM_LBUTTONDOWN, WM_RBUTTONDOWN, WM_MBUTTONDOWN, WM_NCLBUTTONDOWN, WM_NCRBUTTONDOWN
+				Dim As RECT rc
+				GetWindowRect(AIMenuWnd, @rc)
+				If PtInRect(@rc, AIMenuMsg.pt) = 0 Then
+					'A click on the menu which stays: on its item of this menu nothing, on another item back to it
+					Dim As Integer SnapIndex = IIf(Side, AIMenuSnapItemAt(AIMenuMsg.pt), -1)
+					If SnapIndex >= 0 Then
+						If SnapIndex <> AIMenuSnapSub Then AIMenuBack = True: AIMenuBackHover = SnapIndex: Done = True
+					Else
+						Dim As RECT rs
+						If Side AndAlso AIMenuSnapWnd <> 0 AndAlso GetWindowRect(AIMenuSnapWnd, @rs) <> 0 AndAlso PtInRect(@rs, AIMenuMsg.pt) <> 0 Then
+						Else
+							Done = True
+						End If
+					End If
+				End If
+			Case WM_LBUTTONUP
+				If AIMenuPanel Then Continue Do
+				Dim As Integer Index = AIMenuItemAt(AIMenuMsg.pt)
+				If Index >= 0 Then Chosen = Index: AIMenuSubOpened = AIMenuIsSub(Index): Done = True
+			Case WM_MOUSEWHEEL
+				If AIMenuPanel Then Continue Do
+				Dim As Integer OldTop = AIMenuTop
+				AIMenuTop = Max(0, Min(AIMenuTop - Sgn(CShort(HiWord(AIMenuMsg.wParam))) * 3, Count - AIMenuVisible))
+				If AIMenuTop <> OldTop Then AIMenuHover = AIMenuItemAt(AIMenuMsg.pt): InvalidateRect(AIMenuWnd, NULL, False)
+			Case WM_KEYDOWN, WM_SYSKEYDOWN
+				Select Case AIMenuMsg.wParam
+				Case VK_ESCAPE, VK_MENU, VK_TAB: Done = True
+				Case VK_RETURN, VK_SPACE
+					If AIMenuHover >= 0 Then Chosen = AIMenuHover: AIMenuSubOpened = AIMenuIsSub(AIMenuHover)
+					Done = True
+				Case VK_RIGHT
+					If AIMenuIsSub(AIMenuHover) Then Chosen = AIMenuHover: AIMenuSubOpened = True: Done = True
+				Case VK_LEFT
+					'Back to the menu of the item
+					If Side Then AIMenuBack = True: AIMenuBackHover = AIMenuSnapSub: Done = True
+				Case Asc("1") To Asc("9"), VK_NUMPAD1 To VK_NUMPAD9
+					'The key of an item
+					Dim As String Key_ = Chr(IIf(AIMenuMsg.wParam >= VK_NUMPAD1, AIMenuMsg.wParam - VK_NUMPAD1 + Asc("1"), AIMenuMsg.wParam))
+					For i As Integer = 0 To Min(UBound(AIMenuKeys), Count - 1)
+						If AIMenuKeys(i) = Key_ Then Chosen = i: AIMenuSubOpened = False: Done = True: Exit For
+					Next
+				Case VK_UP, VK_DOWN, VK_HOME, VK_END, VK_PRIOR, VK_NEXT
+					If AIMenuPanel Then Continue Do
+					Dim As Integer Index = AIMenuHover
+					Select Case AIMenuMsg.wParam
+					Case VK_UP: Index = IIf(Index <= 0, Count - 1, Index - 1)
+					Case VK_DOWN: Index = IIf(Index >= Count - 1, 0, Index + 1)
+					Case VK_HOME: Index = 0
+					Case VK_END: Index = Count - 1
+					Case VK_PRIOR: Index = Max(0, Index - AIMenuVisible)
+					Case VK_NEXT: Index = Min(Count - 1, Index + AIMenuVisible)
+					End Select
+					AIMenuHover = Index
+					AIMenuScrollTo Index
+					InvalidateRect(AIMenuWnd, NULL, False)
+				End Select
+			Case WM_KEYUP, WM_SYSKEYUP, WM_CHAR, WM_SYSCHAR
+			Case Else
+				TranslateMessage(@AIMenuMsg)
+				DispatchMessage(@AIMenuMsg)
+			End Select
+		Loop
+		ReleaseCapture
+		'The row of the item whose menu is opened (in the coordinates of the screen) for the next menu
+		If AIMenuSubOpened AndAlso Chosen >= 0 Then
+			Dim As RECT rw
+			GetWindowRect(AIMenuWnd, @rw)
+			Dim As Integer RowTop = rw.top + AIMenuPad + AIMenuHeaderH + (Chosen - AIMenuTop) * AIMenuItemH
+			AIMenuSubRect.left = rw.left: AIMenuSubRect.top = RowTop
+			AIMenuSubRect.right = rw.right: AIMenuSubRect.bottom = RowTop + AIMenuItemH
+		End If
+		KillTimer(AIMenuWnd, 7)
+		If AIMenuSubOpened AndAlso CInt(Chosen >= 0) AndAlso CInt(Not Side) Then
+			'The picture of the menu (the item of the opened menu is marked) in its window
+			AIMenuHover = Chosen
+			InvalidateRect(AIMenuWnd, NULL, False)
+			UpdateWindow(AIMenuWnd)
+			AIMenuSnapDestroy
+			Dim As HDC WndDC = GetDC(AIMenuWnd)
+			Dim As HDC MemDC = CreateCompatibleDC(WndDC)
+			AIMenuSnapBmp = CreateCompatibleBitmap(WndDC, AIMenuWidth, AIMenuHeight)
+			Dim As HGDIOBJ OldBmp = SelectObject(MemDC, AIMenuSnapBmp)
+			BitBlt(MemDC, 0, 0, AIMenuWidth, AIMenuHeight, WndDC, 0, 0, SRCCOPY)
+			SelectObject(MemDC, OldBmp)
+			DeleteDC(MemDC)
+			ReleaseDC(AIMenuWnd, WndDC)
+			AIMenuSnapW = AIMenuWidth: AIMenuSnapH = AIMenuHeight
+			AIMenuSnapOffset = AIMenuPad + AIMenuHeaderH: AIMenuSnapItemH = AIMenuItemH
+			AIMenuSnapFirst = AIMenuTop: AIMenuSnapVisible = AIMenuVisible: AIMenuSnapSub = Chosen
+			AIMenuSnapWnd = AIMenuWnd
+		Else
+			DestroyWindow AIMenuWnd
+		End If
+		Erase AIMenuSubs
+		Erase AIMenuSepBefore
+		Erase AIMenuKeys
+		AIMenuWnd = 0
+		DeleteObject AIMenuFont: AIMenuFont = 0
+		DeleteObject AIMenuFontSmall: AIMenuFontSmall = 0
+		Return Chosen
+	End Function
+#endif
+
+'The accounts of Claude Code: every account has its folder of the settings (CLAUDE_CONFIG_DIR, its login is there),
+'the first account is the folder of claude when the IDE was started. ini: AIAgents/ClaudeAccounts (the other folders,
+'| between them), AIAgents/ClaudeAccount (the folder of the chosen account)
+Dim Shared As UString AIAccountDirs(Any)
+Dim Shared As Integer AIAccountIndex
+Dim Shared As UString AIAccountDefaultDir, AIAccountName, AIAccountPlan
+Dim Shared As Boolean AIAccountHover
+
+Function AIAccountDir(Index As Integer) As UString
+	If Index > 0 AndAlso Index <= UBound(AIAccountDirs) Then Return AIAccountDirs(Index)
+	Return AIAccountDefaultDir
+End Function
+
+Function AIAccountConfigDir() As UString
+	Return AIAccountDir(AIAccountIndex)
+End Function
+
+Sub AIAccountsSave()
+	Dim As UString AccountList
+	For i As Integer = 1 To UBound(AIAccountDirs)
+		If AccountList <> "" Then AccountList &= "|"
+		AccountList &= AIAccountDirs(i)
+	Next
+	iniSettings.WriteString("AIAgents", "ClaudeAccounts", AccountList)
+	If AIAccountIndex > 0 Then
+		iniSettings.WriteString("AIAgents", "ClaudeAccount", AIAccountDirs(AIAccountIndex))
+	Else
+		iniSettings.WriteString("AIAgents", "ClaudeAccount", "")
+	End If
+End Sub
+
+'The string of Key after Start in a JSON file (the spaces after the colon are allowed), "" if it is not a string
+Function AIJsonLooseString(ByRef Text As String, ByRef Key As String, Start As Integer) As UString
+	Dim As Integer Pos1 = InStr(Start, Text, """" & Key & """")
+	If Pos1 = 0 Then Return ""
+	Pos1 += Len(Key) + 2
+	Do While Pos1 <= Len(Text) AndAlso InStr(": " & Chr(9, 13, 10), Mid(Text, Pos1, 1)) > 0
+		Pos1 += 1
+	Loop
+	If Mid(Text, Pos1, 1) <> """" Then Return ""
+	Dim As Integer Pos2 = Pos1 + 1
+	Do While Pos2 <= Len(Text)
+		Dim As String Ch = Mid(Text, Pos2, 1)
+		If Ch = "\" Then
+			Pos2 += 2
+		ElseIf Ch = """" Then
+			Exit Do
+		Else
+			Pos2 += 1
+		End If
+	Loop
+	Dim As String Value = Mid(Text, Pos1 + 1, Pos2 - Pos1 - 1)
+	Dim As WString Ptr p = FromUtf8(StrPtr(Value))
+	If p = 0 Then Return ""
+	Dim As UString Result = *p
+	_Deallocate(p)
+	Return Result
+End Function
+
+'The name, the e-mail and the plan of an account from .claude.json of its folder (of the home folder for the first one)
+Sub AIAccountInfo(Index As Integer, ByRef Name_ As UString, ByRef Email As UString, ByRef Plan As UString)
+	Name_ = "": Email = "": Plan = ""
+	Dim As UString Dir_ = AIAccountDir(Index), File_
+	If Dir_ <> "" Then File_ = Dir_ & Slash & ".claude.json" Else File_ = Environ("USERPROFILE") & Slash & ".claude.json"
+	Dim As String Text = AIReadFileBytes(File_)
+	Dim As Integer Pos1 = InStr(Text, """oauthAccount""")
+	If Pos1 > 0 Then
+		Dim As Integer Pos2 = InStr(Pos1, Text, "{"), Pos3 = InStr(Pos1, Text, "null")
+		If Pos2 = 0 OrElse (Pos3 > 0 AndAlso Pos3 < Pos2) Then Pos1 = 0
+	End If
+	If Pos1 = 0 Then
+		Name_ = ML("Not signed in")
+		Exit Sub
+	End If
+	Email = AIJsonLooseString(Text, "emailAddress", Pos1)
+	Name_ = AIJsonLooseString(Text, "displayName", Pos1)
+	If Name_ = "" Then Name_ = AIJsonLooseString(Text, "fullName", Pos1)
+	If Name_ = "" Then Name_ = Left(Email, InStr(Email & "@", "@") - 1)
+	Dim As UString OrgType = LCase(AIJsonLooseString(Text, "organizationType", Pos1))
+	If Left(OrgType, 7) = "claude_" Then OrgType = Mid(OrgType, 8)
+	If OrgType <> "" Then Plan = UCase(Left(OrgType, 1)) & Mid(OrgType, 2)
+End Sub
+
+'The e-mail of the account which was signed in the folder of the account (ini: ClaudeEmail[_<folder>]): claude auth login
+'signs in to the account of claude.ai of the browser, the e-mail is the hint of the account for Sign in again
+Declare Function AIAccountIniKey(ByRef Name_ As String, Index As Integer) As String
+Function AIAccountSavedEmail(Index As Integer) As UString
+	Return iniSettings.ReadString("AIAgents", AIAccountIniKey("ClaudeEmail", Index), "")
+End Function
+
+'The other account of the list with the same e-mail (-1: no)
+Function AIAccountSameAs(Index As Integer, ByRef Email As WString) As Integer
+	If Email = "" Then Return -1
+	For i As Integer = 0 To UBound(AIAccountDirs)
+		If i = Index Then Continue For
+		Dim As UString Name_, OtherEmail, Plan
+		AIAccountInfo i, Name_, OtherEmail, Plan
+		If LCase(OtherEmail) = LCase(Email) Then Return i
+	Next
+	Return -1
+End Function
+
+'The e-mail of an account is kept when it is not the e-mail of another account of the list
+Sub AIAccountSaveEmail(Index As Integer, ByRef Email As WString)
+	If Email = "" OrElse AIAccountSameAs(Index, Email) >= 0 Then Exit Sub
+	If LCase(AIAccountSavedEmail(Index)) = LCase(Email) Then Exit Sub
+	iniSettings.WriteString("AIAgents", AIAccountIniKey("ClaudeEmail", Index), Email)
+End Sub
+
+Dim Shared As UString AIAccountWarned
+
+'Two accounts of the list are signed in to one account of claude.ai: a warning once (not from LoadSettings: the messages
+'are not created there)
+Sub AIAccountWarnSame()
+	Dim As UString Name_, Email, Plan
+	AIAccountInfo AIAccountIndex, Name_, Email, Plan
+	If AIAccountSameAs(AIAccountIndex, Email) >= 0 Then
+		If AIAccountWarned <> Email Then
+			AIAccountWarned = Email
+			ShowMessages(ML("Claude Code") & ": " & Email & " - " & ML("this account is already in the list. Choose it, press Sign in again and sign in to another account in the browser (sign out of claude.ai there or open the link in a private window)."))
+		End If
+	Else
+		AIAccountWarned = ""
+	End If
+End Sub
+
+Sub AIAccountRefresh()
+	Dim As UString Email
+	AIAccountInfo AIAccountIndex, AIAccountName, Email, AIAccountPlan
+	AIAccountSaveEmail AIAccountIndex, Email
+	pnlAIAccount.Repaint
+End Sub
+
+'The folder of the chosen account for claude (the child processes get the environment of the IDE)
+Sub AIAccountApply()
+	Dim As UString Dir_ = AIAccountConfigDir()
+	#ifdef __USE_WINAPI__
+		If Dir_ = "" Then
+			SetEnvironmentVariableW("CLAUDE_CONFIG_DIR", NULL)
+		Else
+			SetEnvironmentVariableW("CLAUDE_CONFIG_DIR", StrPtr(Dir_))
+		End If
+	#endif
+	SetEnviron "CLAUDE_CONFIG_DIR=" & Dir_
+End Sub
+
+'The key of the ini of an account: Name_ for the first account, Name_ & "_" & <the letters and the digits of the folder>
+'for the others
+Function AIAccountIniKey(ByRef Name_ As String, Index As Integer) As String
+	Dim As String Key = Name_
+	If Index > 0 Then
+		Dim As String Dir_ = AIAccountDir(Index), Suffix
+		For i As Integer = 1 To Len(Dir_)
+			Dim As String Ch = Mid(Dir_, i, 1)
+			If InStr("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", Ch) > 0 Then Suffix &= Ch
+		Next
+		Key &= "_" & Suffix
+	End If
+	Return Key
+End Function
+
+'Every account has its own limits in the ini: ClaudeLimit_<window>[_<folder>]
+Function AIClaudeLimitKey(ByRef Name_ As String) As String
+	Return AIAccountIniKey("ClaudeLimit_" & Name_, AIAccountIndex)
+End Function
+
+Sub AILoadClaudeLimits()
+	AILimitHoursUsed = -1: AILimitHoursReset = 0
+	AILimitWeekUsed = -1: AILimitWeekReset = 0
+	Dim As String Limit = iniSettings.ReadString("AIAgents", AIClaudeLimitKey("five_hour"), "")
+	If InStr(Limit, ",") > 0 Then AILimitHoursUsed = Val(Limit): AILimitHoursReset = ValLng(Mid(Limit, InStr(Limit, ",") + 1))
+	Limit = iniSettings.ReadString("AIAgents", AIClaudeLimitKey("seven_day"), "")
+	If InStr(Limit, ",") > 0 Then AILimitWeekUsed = Val(Limit): AILimitWeekReset = ValLng(Mid(Limit, InStr(Limit, ",") + 1))
+End Sub
+
+Sub AIAccountsLoad()
+	AIAccountDefaultDir = Environ("CLAUDE_CONFIG_DIR")
+	ReDim AIAccountDirs(0)
+	AIAccountIndex = 0
+	Dim As UString AccountList = iniSettings.ReadString("AIAgents", "ClaudeAccounts", "")
+	Dim As UString Current = iniSettings.ReadString("AIAgents", "ClaudeAccount", "")
+	If AccountList <> "" Then
+		AccountList &= "|"
+		Dim As Integer Pos1 = 1, Pos2 = InStr(AccountList, "|")
+		While Pos2 > 0
+			If Pos2 > Pos1 Then
+				Dim As Integer n = UBound(AIAccountDirs) + 1
+				ReDim Preserve AIAccountDirs(n)
+				AIAccountDirs(n) = Mid(AccountList, Pos1, Pos2 - Pos1)
+				If Current <> "" AndAlso AIAccountDirs(n) = Current Then AIAccountIndex = n
+			End If
+			Pos1 = Pos2 + 1
+			Pos2 = InStr(Pos1, AccountList, "|")
+		Wend
+	End If
+	AIAccountApply
+	AIAccountRefresh
+End Sub
+
+'Another account: its own sessions and limits (the session of the opened chat is in the folder of the other account)
+Sub AIAccountChanged()
+	AIAccountsSave
+	AIAccountApply
+	'The chat and its context stay: its session is copied to the folder of this account with the next question
+	'(AIClaudeSessionToAccount)
+	AILoadClaudeLimits 'The last known limits of this account
+	AIAccountRefresh
+	AIAccountWarnSame
+	AIStateRepaint
+End Sub
+
+'The session of the opened chat for the chosen account: claude finds it only in the folder of the account where it was
+'started. When it is in the folder of another account, it is copied to the same folder of the projects of the chosen account,
+'the conversation continues with the chosen account. False: the session is not found.
+Function AIClaudeSessionToAccount() As Boolean
+	If AIClaudeFindSessionFile(AIAccountConfigDir(), AIClaudeSessionID, AIClaudeSessionDir) <> "" Then Return True
+	For i As Integer = 0 To UBound(AIAccountDirs)
+		If i = AIAccountIndex Then Continue For
+		Dim As UString Source = AIClaudeFindSessionFile(AIAccountDir(i), AIClaudeSessionID, AIClaudeSessionDir)
+		If Source = "" Then Continue For
+		Dim As UString Projects = AIClaudeConfigFolder(AIAccountConfigDir()) & Slash & "projects"
+		Dim As UString Target = Projects & Slash & AIClaudeProjectFolder(AIClaudeSessionDir)
+		If Not CInt(FolderExists(Projects)) Then MkDir Projects
+		If Not CInt(FolderExists(Target)) Then MkDir Target
+		Target &= Slash & AIClaudeSessionID & ".jsonl"
+		Dim As String Text = AIReadFileBytes(Source)
+		Dim As Integer Fn = FreeFile
+		If Open(Target For Binary Access Write As #Fn) <> 0 Then Return False
+		If Len(Text) > 0 Then Put #Fn, , Text
+		Close #Fn
+		Return True
+	Next
+	Return False
+End Function
+
+'claude auth login in a console (the console gets the folder of the chosen account)
+Sub AIAccountLogin(ByRef Email As WString = "")
+	'The e-mail is written on the page of the sign in
+	Dim As UString EmailOption
+	If Email <> "" AndAlso InStr(Email, """") = 0 AndAlso InStr(Email, " ") = 0 AndAlso InStr(Email, "&") = 0 Then EmailOption = " --email " & Email
+	#ifdef __USE_WINAPI__
+		Dim As WString * 2048 Cmd = "cmd.exe /c " & AIClaudeExe() & " auth login" & EmailOption & " & echo. & pause"
+		Dim As STARTUPINFOW si
+		Dim As PROCESS_INFORMATION pi
+		si.cb = SizeOf(si)
+		If CreateProcessW(NULL, @Cmd, NULL, NULL, False, CREATE_NEW_CONSOLE, NULL, NULL, @si, @pi) Then
+			CloseHandle(pi.hThread)
+			CloseHandle(pi.hProcess)
+		Else
+			ShowMessages(ML("Could not start") & ": " & Cmd)
+		End If
+	#else
+		ShowMessages(ML("Run in a terminal") & ": CLAUDE_CONFIG_DIR=""" & AIAccountConfigDir() & """ " & AIClaudeExe() & " auth login" & EmailOption)
+	#endif
+End Sub
+
+Sub AIAccountAdd()
+	Dim As UString Home = Environ("USERPROFILE")
+	If Home = "" Then Home = Environ("HOME")
+	Dim As UString Dir_
+	For n As Integer = 2 To 99
+		Dir_ = Home & Slash & ".claude-" & n
+		Dim As Boolean Used = CInt(FolderExists(Dir_))
+		For i As Integer = 1 To UBound(AIAccountDirs)
+			If AIAccountDirs(i) = Dir_ Then Used = True
+		Next
+		If Not Used Then Exit For
+	Next
+	MkDir Dir_
+	Dim As Integer n = UBound(AIAccountDirs) + 1
+	ReDim Preserve AIAccountDirs(n)
+	AIAccountDirs(n) = Dir_
+	AIAccountIndex = n
+	AIAccountChanged
+	AIAccountLogin
+End Sub
+
+Sub AIAccountRemove()
+	If AIAccountIndex < 1 Then Exit Sub
+	For i As Integer = AIAccountIndex To UBound(AIAccountDirs) - 1
+		AIAccountDirs(i) = AIAccountDirs(i + 1)
+	Next
+	ReDim Preserve AIAccountDirs(UBound(AIAccountDirs) - 1)
+	AIAccountIndex = 0
+	AIAccountChanged
+End Sub
+
+'The row of the account: the round picture with the first letter, the name, the plan in grey, the arrow
+Sub pnlAIAccount_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas)
+	Dim As Integer ClrBack, ClrText
+	AIImageColors Sender, ClrBack, ClrText
+	Canvas.Pen.Color = ClrBack
+	Canvas.Brush.Color = ClrBack
+	Canvas.Rectangle 0, 0, Sender.Width + 1, Sender.Height + 1
+	Dim As Integer Avatar = 24, AvatarLeft = 10
+	Dim As UString Name_ = AIAccountName
+	If Name_ = "" Then Name_ = ML("Not signed in")
+	#ifdef __USE_WINAPI__
+		Dim As GpGraphics Ptr G
+		If Canvas.Handle <> 0 AndAlso GdipCreateFromHDC(Canvas.Handle, @G) = 0 AndAlso G <> 0 Then
+			GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
+			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
+			Dim As GpSolidFill Ptr Brush
+			'The line above the row
+			GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), @Brush)
+			GdipFillRectangle(G, Brush, 0, 0, Sender.ScaleX(Sender.Width), Sender.ScaleY(1))
+			GdipDeleteBrush(Brush)
+			If AIAccountHover OrElse AIStatusMenuPart = 4 Then
+				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(4), Sender.ScaleY(4), Sender.ScaleX(Sender.Width - 8), Sender.ScaleY(Sender.Height - 8), Sender.ScaleX(6))
+				If Path <> 0 Then
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), @Brush)
+					GdipFillPath(G, Brush, Path)
+					GdipDeleteBrush(Brush)
+					GdipDeletePath(Path)
+				End If
+			End If
+			Dim As Single d = Sender.ScaleX(Avatar), ax = Sender.ScaleX(AvatarLeft), ay = (Sender.ScaleY(Sender.Height) - d) / 2
+			GdipCreateSolidFill(AIImageARGB(BGR(217, 119, 87)), @Brush)
+			GdipFillEllipse(G, Brush, ax, ay, d, d)
+			GdipDeleteBrush(Brush)
+			'The arrow on the right
+			Dim As GpPen Ptr Pen
+			Dim As Single cx = Sender.ScaleX(Sender.Width - 18), cy = Sender.ScaleY(Sender.Height) / 2, a = Sender.ScaleX(4)
+			GdipCreatePen1(AIImageARGB(AIImageBlend(ClrText, ClrBack, 60)), Sender.ScaleX(1.5), UnitPixel, @Pen)
+			GdipSetPenLineCap197819(Pen, LineCapRound, LineCapRound, DashCapRound)
+			GdipSetPenLineJoin(Pen, LineJoinRound)
+			Dim As GpPointF pts(2) = {Type(cx - a, cy - a / 2), Type(cx, cy + a / 2), Type(cx + a, cy - a / 2)}
+			GdipDrawLines(G, Pen, @pts(0), 3)
+			GdipDeletePen(Pen)
+			GdipDeleteGraphics(G)
+		End If
+		'The first letter in the circle
+		Dim As WString * 2 Letter = UCase(Left(Name_, 1))
+		Dim As HGDIOBJ OldFont = SelectObject(Canvas.Handle, Sender.Font.Handle)
+		SetBkMode(Canvas.Handle, TRANSPARENT)
+		SetTextColor(Canvas.Handle, BGR(255, 255, 255))
+		Dim As RECT rc = Type(Sender.ScaleX(AvatarLeft), 0, Sender.ScaleX(AvatarLeft + Avatar), Sender.ScaleY(Sender.Height))
+		DrawTextW(Canvas.Handle, @Letter, -1, @rc, DT_SINGLELINE Or DT_VCENTER Or DT_CENTER Or DT_NOPREFIX)
+		SelectObject(Canvas.Handle, OldFont)
+	#endif
+	Dim As Integer x = AvatarLeft + Avatar + 10
+	AIStatusText Sender, Canvas, x, Name_, ClrText
+	If AIAccountPlan <> "" Then
+		x += AIStatusTextWidth(Sender, Name_)
+		AIStatusText Sender, Canvas, x, " " & WChr(&HB7) & " " & AIAccountPlan, AIImageBlend(ClrText, ClrBack, 55)
+	End If
+End Sub
+
+Sub pnlAIAccount_MouseMove(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If AIAccountHover Then Exit Sub
+	AIAccountHover = True
+	'The login could be done in the console
+	AIAccountRefresh
+	#ifdef __USE_WINAPI__
+		Sender.Cursor = crHand
+	#endif
+End Sub
+
+Sub pnlAIAccount_MouseLeave(ByRef Designer As My.Sys.Object, ByRef Sender As Control)
+	AIAccountHover = False
+	Sender.Repaint
+End Sub
+
+Sub pnlAIAccount_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 Then Exit Sub
+	If bInAIThread Then ShowMessages(ML("Please waiting, AI is working hard......")): Exit Sub
+	Dim As Integer Count = UBound(AIAccountDirs) + 1
+	Dim As Integer Items = Count + IIf(AIAccountIndex > 0, 3, 2)
+	ReDim AIMenuTitles(Items - 1)
+	ReDim AIMenuNotes(Items - 1)
+	For i As Integer = 0 To Count - 1
+		Dim As UString Name_, Email, Plan
+		AIAccountInfo i, Name_, Email, Plan
+		AIMenuTitles(i) = Name_
+		If Plan <> "" Then AIMenuTitles(i) &= " " & WChr(&HB7) & " " & Plan
+		If Email <> "" Then
+			AIMenuNotes(i) = Email
+			Dim As UString Saved = AIAccountSavedEmail(i)
+			If Saved <> "" AndAlso LCase(Saved) <> LCase(Email) Then
+				AIMenuNotes(i) &= " " & WChr(&H2014) & " " & ML("was") & " " & Saved
+			ElseIf AIAccountSameAs(i, Email) >= 0 Then
+				AIMenuNotes(i) &= " " & WChr(&H2014) & " " & ML("the same account twice")
+			End If
+		ElseIf AIAccountDir(i) <> "" Then
+			AIMenuNotes(i) = AIAccountDir(i)
+		Else
+			AIMenuNotes(i) = ML("The settings of claude")
+		End If
+	Next
+	AIMenuTitles(Count) = ML("Add account")
+	AIMenuNotes(Count) = ML("Sign in to another account in a console")
+	AIMenuTitles(Count + 1) = ML("Sign in again")
+	AIMenuNotes(Count + 1) = ML("Sign in to the chosen account in a console")
+	If AIAccountIndex > 0 Then
+		AIMenuTitles(Count + 2) = ML("Remove from the list")
+		AIMenuNotes(Count + 2) = ML("The folder of its settings is kept")
+	End If
+	AIMenuChecked = AIAccountIndex
+	AIMenuHeader = ML("Accounts of Claude Code")
+	Dim As Integer Chosen = -1
+	#ifdef __USE_WINAPI__
+		Dim As ..POINT p1 = Type(Sender.ScaleX(4), Sender.ScaleY(4)), p2 = Type(Sender.ScaleX(Sender.Width - 4), Sender.ScaleY(Sender.Height - 4))
+		ClientToScreen(Sender.Handle, @p1)
+		ClientToScreen(Sender.Handle, @p2)
+		Dim As RECT Row = Type(p1.x, p1.y, p2.x, p2.y)
+		AIStatusMenuPart = 4
+		Sender.Repaint
+		Chosen = AIMenuShow(Row, True)
+		AIStatusMenuPart = 0
+		AIAccountHover = False
+		Sender.Repaint
+	#endif
+	If Chosen < 0 Then Exit Sub
+	If Chosen < Count Then
+		If Chosen <> AIAccountIndex Then AIAccountIndex = Chosen: AIAccountChanged
+	ElseIf Chosen = Count Then
+		AIAccountAdd
+	ElseIf Chosen = Count + 1 Then
+		'The e-mail which was signed in this folder (else the e-mail which is there now)
+		Dim As UString Name_, Email, Plan
+		AIAccountInfo AIAccountIndex, Name_, Email, Plan
+		Dim As UString Saved = AIAccountSavedEmail(AIAccountIndex)
+		If Saved = "" Then Saved = Email
+		AIAccountLogin Saved
+	Else
+		AIAccountRemove
+	End If
+End Sub
+
+Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 Then Exit Sub
+	Dim As Integer Part = AIStatusPartAt(x)
+	If Part = 0 OrElse (Part = 1 AndAlso cboAIAgentModels.ItemCount = 0) Then Exit Sub
+	#ifdef __USE_WINAPI__
+		If Part = 3 Then
+			'The usage: the context and the limits of the plan
+			Dim As ..POINT q1 = Type(Sender.ScaleX(AIStatusRingLeft - 5), 0), q2 = Type(Sender.ScaleX(AIStatusRingLeft + AIStatusRingSize + 5), Sender.ScaleY(Sender.Height))
+			ClientToScreen(Sender.Handle, @q1)
+			ClientToScreen(Sender.Handle, @q2)
+			Dim As RECT Ring = Type(q1.x, q1.y, q2.x, q2.y)
+			AIPanelSetRows
+			AIMenuPanel = True
+			AIStatusMenuPart = 3
+			Sender.Repaint
+			AIMenuShow Ring
+			AIMenuPanel = False
+			AIStatusMenuPart = 0
+			AIStatusHoverPart = 0
+			Sender.Repaint
+			Exit Sub
+		End If
+	#else
+		If Part = 3 Then ShowMessages(AIContextHint()): Exit Sub
+	#endif
+	If bInAIThread OrElse Not cboAIAgentModels.Enabled Then Exit Sub
+	AIMenuSetItems Part
+	#ifdef __USE_WINAPI__
+		Dim As Integer PillLeft = IIf(Part = 1, AIStatusModelLeft, AIStatusModeLeft), PillRight = IIf(Part = 1, AIStatusModelRight, AIStatusModeRight)
+		Dim As ..POINT p1 = Type(Sender.ScaleX(PillLeft), 0), p2 = Type(Sender.ScaleX(PillRight), Sender.ScaleY(Sender.Height))
+		ClientToScreen(Sender.Handle, @p1)
+		ClientToScreen(Sender.Handle, @p2)
+		Dim As RECT Pill = Type(p1.x, p1.y, p2.x, p2.y)
+		AIStatusMenuPart = Part
+		Sender.Repaint
+		Dim As Integer Chosen = AIMenuShow(Pill)
+		If Part = 1 AndAlso IsClaudeCodeAgent() Then
+			'Claude Code: the models (0..3), Effort > (4), More models > (5); Left in the menu of an item goes back
+			Do While Chosen >= 0 AndAlso AIMenuSubOpened
+				Dim As RECT Row = AIMenuSubRect
+				Dim As Integer Item = Chosen, SubChosen
+				If Item = 4 Then
+					ReDim AIMenuTitles(4)
+					ReDim AIMenuNotes(4)
+					AIMenuChecked = -1
+					For i As Integer = 0 To 4
+						AIMenuTitles(i) = AIClaudeEffortTitle(AIClaudeEffortValue(i))
+						If i = 1 Then AIMenuTitles(i) &= " " & WChr(&HB7) & " " & ML("Recommended")
+						If i = 4 Then AIMenuTitles(i) &= " " & WChr(&HB7) & " " & ML("Uses the limits faster")
+						If AIClaudeEffortValue(i) = LCase(AIClaudeEffort) Then AIMenuChecked = i
+					Next
+					AIMenuHeader = ML("Higher effort means more thorough responses, but takes longer and uses your limits faster.")
+				Else
+					AIMenuSetItems 1, True
+				End If
+				SubChosen = AIMenuShow(Row, False, True)
+				Chosen = -1
+				If SubChosen >= 0 Then
+					If Item = 4 Then
+						AIClaudeEffort = AIClaudeEffortValue(SubChosen)
+						iniSettings.WriteString("AIAgents", "ClaudeEffort", AIClaudeEffort)
+					Else
+						AIModelSelect SubChosen
+					End If
+				ElseIf AIMenuBack Then
+					AIMenuSetItems 1
+					Chosen = AIMenuShow(Pill)
+				End If
+			Loop
+			AIMenuSnapDestroy
+			If Chosen >= 0 AndAlso Chosen <= 3 Then
+				AIClaudeModelOverride = AIClaudeMenuModel(Chosen)
+				iniSettings.WriteString("AIAgents", "ClaudeModel", AIClaudeModelOverride)
+			End If
+			Chosen = -1
+		End If
+		AIStatusMenuPart = 0
+		AIStatusHoverPart = 0
+		Sender.Repaint
+		If Chosen >= 0 Then
+			If Part = 1 Then AIModelSelect Chosen Else AIClaudeModeSelect Chosen
+		End If
+	#else
+		mnuAIModels.ParentWindow = @frmMain
+		mnuAIModels.Clear
+		For i As Integer = 0 To UBound(AIMenuTitles)
+			Var mi = mnuAIModels.Add(AIMenuTitles(i), "", IIf(Part = 1, "AIModel", "AIMode") & i, @mnuAIModels_Click, True)
+			If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
+		Next
+		mnuAIModels.Popup 0, 0
+	#endif
+End Sub
+
+'Files of the question: the pictures go to the small images, the other files (Claude Code) are named in the text (@)
+Sub AIAddFiles()
+	Dim OpenD As OpenFileDialog
+	OpenD.MultiSelect = True
+	OpenD.Caption = ML("Add files or photos")
+	OpenD.Filter = ML("All Files") & "|*.*|" & ML("Pictures") & " (*.png, *.jpg, *.jpeg, *.gif, *.webp)|*.png;*.jpg;*.jpeg;*.gif;*.webp|"
+	If Not OpenD.Execute Then Exit Sub
+	Dim As UString Mentions
+	For i As Integer = 0 To Max(OpenD.FileNames.Count, 1) - 1
+		Dim As UString FileName = IIf(OpenD.FileNames.Count > 0, OpenD.FileNames.Item(i), OpenD.FileName)
+		If FileName = "" Then Continue For
+		If AIImageMediaType(FileName) <> "" Then
+			AIAddImage FileName
+		Else
+			Mentions &= "@" & IIf(InStr(FileName, " ") > 0, """" & FileName & """", FileName) & " "
+		End If
+	Next
+	If Mentions <> "" Then txtAIRequest.SelText = Mentions
+End Sub
+
+'A folder for Claude Code: it may work in it (--add-dir) and it is named in the text (@)
+Sub AIAddFolder()
+	Dim As FolderBrowserDialog BrowseD
+	BrowseD.Caption = ML("Add folder")
+	If Not BrowseD.Execute Then Exit Sub
+	Dim As UString Folder = BrowseD.Directory
+	If Folder = "" Then Exit Sub
+	If InStr(Chr(1) & AIClaudeAddDirs & Chr(1), Chr(1) & Folder & Chr(1)) = 0 Then
+		If AIClaudeAddDirs <> "" Then AIClaudeAddDirs &= Chr(1)
+		AIClaudeAddDirs &= Folder
+	End If
+	txtAIRequest.SelText = "@" & IIf(InStr(Folder, " ") > 0, """" & Folder & """", Folder) & " "
+End Sub
+
+'+: the menu Add files or photos, Add folder (Claude Code)
+Sub pnlAIAdd_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
+	If MouseButton <> 0 OrElse Not AIButtonHit(Sender, x, y) Then Exit Sub
+	AIButtonSetHover Sender, AIAddHover, False
+	Dim As Integer Chosen = 0
+	If IsClaudeCodeAgent() Then
+		#ifdef __USE_WINAPI__
+			ReDim AIMenuTitles(1)
+			ReDim AIMenuNotes(1)
+			AIMenuTitles(0) = ML("Add files or photos")
+			AIMenuTitles(1) = ML("Add folder")
+			AIMenuChecked = -1
+			AIMenuHeader = ""
+			Dim As ..POINT p1 = Type(0, Sender.ScaleY(Sender.Height - AIButtonSize)), p2 = Type(Sender.ScaleX(Sender.Width), Sender.ScaleY(Sender.Height))
+			ClientToScreen(Sender.Handle, @p1)
+			ClientToScreen(Sender.Handle, @p2)
+			Dim As RECT Pill = Type(p1.x, p1.y, p2.x, p2.y)
+			Chosen = AIMenuShow(Pill, True)
+		#endif
+	End If
+	Select Case Chosen
+	Case 0: AIAddFiles
+	Case 1: AIAddFolder
+	End Select
+	If txtAIRequest.Enabled Then txtAIRequest.SetFocus
+End Sub
+
+'The row under the box of the question (the first panel of the bottom is the lowest)
+pnlAIStatus.Name = "pnlAIStatus"
+pnlAIStatus.Align = DockStyle.alBottom
+pnlAIStatus.Height = 24
+pnlAIStatus.DoubleBuffered = True
+pnlAIStatus.Font.Name = "Segoe UI"
+pnlAIStatus.Font.Size = 9
+pnlAIStatus.OnPaint = @pnlAIStatus_Paint
+pnlAIStatus.OnMouseMove = @pnlAIStatus_MouseMove
+pnlAIStatus.OnMouseLeave = @pnlAIStatus_MouseLeave
+pnlAIStatus.OnMouseDown = @pnlAIStatus_MouseDown
+pnlAIStatus.Parent = @pnlAIChat
+pnlAIAccount.Name = "pnlAIAccount"
+pnlAIAccount.Align = DockStyle.alBottom
+pnlAIAccount.Height = 44
+pnlAIAccount.DoubleBuffered = True
+pnlAIAccount.Font.Name = "Segoe UI"
+pnlAIAccount.Font.Size = 10
+pnlAIAccount.Visible = False
+pnlAIAccount.OnPaint = @pnlAIAccount_Paint
+pnlAIAccount.OnMouseMove = @pnlAIAccount_MouseMove
+pnlAIAccount.OnMouseLeave = @pnlAIAccount_MouseLeave
+pnlAIAccount.OnMouseDown = @pnlAIAccount_MouseDown
+pnlAIAccount.Parent = @pnlAIChatsSide
+'The box of the question: the small images of the pictures above the text box
+pnlAIInput.Name = "pnlAIInput"
+pnlAIInput.Align = DockStyle.alBottom
+pnlAIInput.Height = 34
+pnlAIInput.Margins.Left = 6
+pnlAIInput.Margins.Top = 6
+pnlAIInput.Margins.Right = 6
+pnlAIInput.Margins.Bottom = 6
+pnlAIInput.DoubleBuffered = True
+pnlAIInput.OnPaint = @pnlAIInput_Paint
+pnlAIInput.Parent = @pnlAIChat
+pnlAIImages.Name = "pnlAIImages"
+pnlAIImages.Align = DockStyle.alTop
+pnlAIImages.Height = AIImageStripHeight
+pnlAIImages.Visible = False
+pnlAIImages.DoubleBuffered = True
+pnlAIImages.ShowHint = True
+pnlAIImages.OnPaint = @pnlAIImages_Paint
+pnlAIImages.OnMouseDown = @pnlAIImages_MouseDown
+pnlAIImages.OnMouseMove = @pnlAIImages_MouseMove
+pnlAIImages.OnMouseLeave = @pnlAIImages_MouseLeave
+pnlAIImages.Parent = @pnlAIInput
+'The buttons + and Send on the left and the right of the text box
+pnlAIAdd.Name = "pnlAIAdd"
+pnlAIAdd.Align = DockStyle.alLeft
+pnlAIAdd.Width = AIButtonSize + 6
+pnlAIAdd.DoubleBuffered = True
+pnlAIAdd.Hint = ML("Add files or photos")
+pnlAIAdd.ShowHint = True
+pnlAIAdd.OnPaint = @pnlAIAdd_Paint
+pnlAIAdd.OnMouseMove = @pnlAIAdd_MouseMove
+pnlAIAdd.OnMouseLeave = @pnlAIAdd_MouseLeave
+pnlAIAdd.OnMouseDown = @pnlAIAdd_MouseDown
+pnlAIAdd.Parent = @pnlAIInput
+pnlAISend.Name = "pnlAISend"
+pnlAISend.Align = DockStyle.alRight
+pnlAISend.Width = AIButtonSize + 4
+pnlAISend.DoubleBuffered = True
+pnlAISend.Hint = ML("Send (Enter); while AI is working: Stop")
+pnlAISend.ShowHint = True
+pnlAISend.OnPaint = @pnlAISend_Paint
+pnlAISend.OnMouseMove = @pnlAISend_MouseMove
+pnlAISend.OnMouseLeave = @pnlAISend_MouseLeave
+pnlAISend.OnMouseDown = @pnlAISend_MouseDown
+pnlAISend.Parent = @pnlAIInput
+'The text box is in the box of the question without its own border
+txtAIRequest.BorderStyle = BorderStyles.bsNone
+pnlAIText.Name = "pnlAIText"
+pnlAIText.Align = DockStyle.alClient
+pnlAIText.DoubleBuffered = True
+pnlAIText.OnPaint = @pnlAIText_Paint
+pnlAIText.OnResize = @pnlAIText_Resize
+pnlAIText.OnMouseDown = @pnlAIText_MouseDown
+pnlAIText.Parent = @pnlAIInput
+txtAIRequest.Align = DockStyle.alNone
 txtAIRequest.MaxLength = 0
-txtAIRequest.Parent = @pnlAIAgent
+txtAIRequest.Parent = @pnlAIText
 txtAIRequest.Font.Name = *EditorFontName
 txtAIRequest.Font.Size = EditorFontSize
-txtAIRequest.ScrollBars = ScrollBarsType.Vertical
+txtAIRequest.OnChange = @txtAIRequest_Change
+txtAIRequest.OnResize = @txtAIRequest_Resize
 txtAIRequest.Hint = ML("Press Shift+Enter for a line break; Enter alone submits.") '按 Shift Enter 换行；单独按 Enter 提交。"
 txtAIRequest.Multiline= True
 txtAIRequest.WantReturn = False
 txtAIRequest.WordWraps = True
+'WordWraps gives the vertical scroll bar (with it the text box is made with ES_AUTOVSCROLL, it takes the text
+'below its height): AIInputUpdateHeight hides it, it shows it only above the maximum height
+txtAIRequest.OnCreate = @txtAIRequest_Create
 txtAIRequest.OnKeyDown = @txtAIRequest_OnKeyDown
 ptxtAIRequest = @txtAIRequest
 AIPostDataFirstTime = True
-splAIAgent.Parent = @pnlAIAgent
+'The height of the box of the question follows its text, there is no splitter for it
+splAIAgent.Visible = False
+splAIAgent.Parent = @pnlAIChat
 splAIAgent.Align = SplitterAlignmentConstants.alBottom
 
 Sub tbProperties_ButtonClick(ByRef Designer As My.Sys.Object, ByRef Sender As My.Sys.Object)
@@ -14704,6 +18759,7 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 			miRecentAIChat->Add(FileName, "", FileName, @mClickAIChat)
 		End If
 		AIMessages.SaveToFile(ChatDirectory & FileName)
+		AIChatSaveSession(ChatDirectory & FileName)
 		AIMessages.Clear
 	End If
 	If frmMain.WindowState <> WindowStates.wsMaximized Then
@@ -14735,6 +18791,8 @@ Sub frmMain_Close(ByRef Designer As My.Sys.Object, ByRef Sender As Form, ByRef A
 	iniSettings.WriteString("MainWindow", "ToolBoxParent", tpToolbox->Parent->Name)
 	iniSettings.WriteInteger("MainWindow", "ToolBoxIndex", tpToolbox->Parent->IndexOfTab(tpToolbox))
 	iniSettings.WriteString("MainWindow", "AIAgentParent", tpAIAgent->Parent->Name)
+	iniSettings.WriteInteger("MainWindow", "AIChatsWidth", pnlAIChatsSide.Width)
+	iniSettings.WriteBool("MainWindow", "AIChatsVisible", AIChatsVisible)
 	iniSettings.WriteInteger("MainWindow", "AIAgentIndex", tpAIAgent->Parent->IndexOfTab(tpAIAgent))
 	iniSettings.WriteString("MainWindow", "PropertiesParent", tpProperties->Parent->Name)
 	iniSettings.WriteInteger("MainWindow", "PropertiesIndex", tpProperties->Parent->IndexOfTab(tpProperties))

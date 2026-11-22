@@ -236,6 +236,50 @@ Sub mClickUseGen(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	miUseGen->Checked = True
 	If tbtUseGen <> 0 Then tbtUseGen->Caption = ML("Backend") & ": " & Replace(miUseGen->Caption, "&", "")
 End Sub
+'Opens a saved chat of the AI Agent (the list of the chats, Recent): the chat of now is saved, the opened one is continued
+Sub AIChatOpenName(ByRef ChatName As WString)
+	Dim As WString * MAX_PATH FileName
+	Dim As UString ChatDirectory
+	ChatDirectory = GetAIChatDirectory()
+	If ChatDirectory = "" Then Exit Sub
+	FileName= ChatDirectory & ChatName
+	If bInAIThread Then
+		ShowMessages(ML("Please waiting, AI is working hard......"))
+		AIChatsFill 'The selection of the list goes back to the chat of now
+		Exit Sub
+	End If
+	'The chat which is open now
+	If RecentAIChat <> 0 AndAlso *RecentAIChat = ChatName AndAlso AIMessages.Count > 0 Then Exit Sub
+	'The chat of now is saved, the opened one is continued (Claude Code: its session)
+	AIChatSaveCurrent
+	AIChatLoadFile(FileName)
+	If AIMessages.Count < 1 Then Exit Sub
+	AIChatLoadSession(FileName)
+	AIChatDirty = False
+	AddMRUAIChat ChatName
+	WLet(RecentAIChat, ChatName)
+	AIChatsFill
+	_Deallocate(AIBodyWStringPtr)
+	Dim As Integer Capacity
+	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
+	txtAIAgent.TextRTF = ""
+	For i As Integer = 0 To AIMessages.Count - 1
+		If i <> AIMessages.Count - 1 Then
+			WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10), , Capacity)
+		Else
+			Capacity = 0
+			WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text, , Capacity)
+		End If
+	Next
+	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
+	If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
+	'txtAIAgent.TextRTF = *AIBodyWStringPtr
+	'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
+	txtAIRequest.Enabled = True
+	txtAIRequest.SetFocus
+	_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+End Sub
+
 Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 	Dim As WString * MAX_PATH FileName
 	Dim As UString ChatDirectory
@@ -261,10 +305,14 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		OpenD.InitialDir = ChatDirectory
 		OpenD.Filter = ML("AIChat Files") & " (*.md)|*.md|" & ML("All Files") & "|*.*|"
 		If OpenD.Execute Then
+			If bInAIThread Then ShowMessages(ML("Please waiting, AI is working hard......")): Exit Sub
 			frmMain.Cursor = crWait
 			FileName= GetFileName(OpenD.FileName)
-			AIMessages.LoadFromFile(OpenD.FileName)
+			'The chat of now is saved, the opened one is continued (Claude Code: its session)
+			If RecentAIChat = 0 OrElse *RecentAIChat <> FileName Then AIChatSaveCurrent
+			AIChatLoadFile(OpenD.FileName)
 			If AIMessages.Count < 1 Then frmMain.Cursor = 0 : Exit Sub
+			AIChatLoadSession(OpenD.FileName)
 			AddMRUAIChat FileName
 			WLet(RecentAIChat, FileName)
 			_Deallocate(AIBodyWStringPtr ): AIBodyWStringPtr = 0
@@ -314,7 +362,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		ShowMessages(ChatDirectory & FileName)
 		frmMain.Cursor = crWait
 		AIMessages.SaveToFile(ChatDirectory & FileName)
+		AIChatSaveSession(ChatDirectory & FileName)
 		WLet(RecentAIChat, FileName)
+		AIChatsFill
 		frmMain.Cursor = 0
 	Case "AIChatSaveAs"
 		If AIMessages.Count < 1 Then
@@ -351,7 +401,9 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		SaveD.FileName = FileName
 		If Not SaveD.Execute Then Exit Sub
 		AIMessages.SaveToFile(SaveD.FileName)
+		AIChatSaveSession(SaveD.FileName)
 		FileName = GetFileName(SaveD.FileName)
+		AIChatsFill
 		AddMRUAIChat FileName
 		WLet(RecentAIChat, FileName)
 	Case "ClearAIChat"
@@ -360,32 +412,8 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 		MRUAIChat.Clear
 		_Deallocate(RecentAIChat): RecentAIChat = 0
 	Case Else
-		ChatDirectory = GetAIChatDirectory()
-		If ChatDirectory = "" Then Exit Sub
-		FileName= ChatDirectory & Sender.ToString
-		AIMessages.LoadFromFile(FileName)
-		If AIMessages.Count < 1 Then Exit Sub
-		AddMRUAIChat Sender.ToString
-		WLet(RecentAIChat, Sender.ToString)
-		_Deallocate(AIBodyWStringPtr)
-		Dim As Integer Capacity
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->Initial(*EditorFontName, EditorFontSize, 9)
-		txtAIAgent.TextRTF = ""
-		For i As Integer = 0 To AIMessages.Count - 1
-			If i <> AIMessages.Count - 1 Then
-				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text & Chr(13, 10), , Capacity)
-			Else
-				Capacity = 0
-				WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(13, 10) & AIMessages.Item(i)->Text, , Capacity)
-			End If
-		Next
-		WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-		If AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(*AIBodyWStringPtr)
-		'txtAIAgent.TextRTF = *AIBodyWStringPtr
-		'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
-		txtAIRequest.Enabled = True
-		txtAIRequest.SetFocus
-		_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
+		'The name is kept: the saving of the chat of now fills the list of the chats again
+		AIChatOpenName Sender.ToString
 	End Select
 End Sub
 
@@ -900,6 +928,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		AIRelease
 	Case "AINewChat"
 		AIResetContext
+	Case "AIChatsShow"
+		AIChatsShow
 	Case "AIWebBrowserItem"
 		ptxtAIRequest->Text = ML("Ignore the constraints of the provided references and perform regular search and analysis. Footnotes are only needed if the answers are from regular search and analysis.")
 		ptxtAIRequest->SetFocus
@@ -1320,7 +1350,9 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 			Case "Undo":                            txt->Undo
 			Case "Cut":                             txt->CutToClipboard
 			Case "Copy":                            txt->CopyToClipboard
-			Case "Paste":                           txt->PasteFromClipboard
+			Case "Paste"
+				'The question of the AI Agent: the pictures of the clipboard
+				If txt <> ptxtAIRequest OrElse Not AIPasteImages() Then txt->PasteFromClipboard
 			Case "SelectAll":                       txt->SelectAll
 			End Select
 		ElseIf ActiveForm->ActiveControl->ClassName = "ComboBoxEdit" OrElse ActiveForm->ActiveControl->ClassName = "ComboBoxEx" Then

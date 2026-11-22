@@ -213,7 +213,11 @@ Declare Sub cboDefaultProjectFileCheckEnable
 Declare Sub HistoryCodeClean()
 Common Shared pfOptions As frmOptions Ptr
 
+Declare Sub SetAIAgentItem(lvi As ListViewItem Ptr, ByRef Key As WString, ByRef APIKey As WString)
+Declare Function AIAgentItemKey(lvi As ListViewItem Ptr) As UString
+Declare Function AIAgentItemAPIKey(lvi As ListViewItem Ptr) As UString
+Declare Sub FreeAIAgentItems(ByRef lv As ListView)
+
 #ifndef __USE_MAKE__
 	#include once "frmOptions.frm"
 #endif
-

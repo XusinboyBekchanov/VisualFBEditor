@@ -135,8 +135,29 @@ Declare Function MLCompilerFun(ByRef V As WString) ByRef As WString
 Declare Function MC(ByRef V As WString) ByRef As WString
 Declare Function GetLineWithoutComments(ByRef sLine As WString, ByRef sComment As UString) As UString
 Declare Function GetParametersComments(ByRef sText As WString) As UString
+Declare Function AIAgentShortName(ByRef Key As WString) As UString
+Declare Function AIMaskAPIKey(ByRef APIKey As WString) As UString
+Declare Function AIComboKey(ByRef Cbo As ComboBoxEdit, Index As Integer) As UString
+Declare Function AIComboIndexOf(ByRef Cbo As ComboBoxEdit, ByRef Key As WString) As Integer
+Declare Sub AIComboInsert(ByRef Cbo As ComboBoxEdit, Index As Integer, ByRef Key As WString)
+Declare Sub AIComboAdd(ByRef Cbo As ComboBoxEdit, ByRef Key As WString)
+Declare Sub AIComboRemove(ByRef Cbo As ComboBoxEdit, Index As Integer)
+Declare Sub AIComboSet(ByRef Cbo As ComboBoxEdit, Index As Integer, ByRef Key As WString)
+Declare Sub AIComboClear(ByRef Cbo As ComboBoxEdit)
+Declare Sub AIChatsFill()
+Declare Sub AIChatOpenName(ByRef ChatName As WString)
+Declare Sub AIStateRepaint()
+Declare Sub AILoadClaudeSettings()
+Declare Sub AIAccountsLoad()
+Declare Function AIAccountConfigDir() As UString
+Declare Sub AIChatSaveCurrent(ClearAfter As Boolean = True)
+Declare Sub AIChatSaveSession(ByRef ChatFile As WString)
+Declare Sub AIChatLoadSession(ByRef ChatFile As WString)
+Declare Function AIChatLoadFile(ByRef FileName As WString) As Boolean
 Declare Function GetVariableParameters(ByRef sName As WString, ByRef sTypeName As WString, ByRef sValue As WString, bConstant As Boolean) As UString
 Declare Sub AIResetContext()
+Declare Sub AIChatsShow()
+Declare Function AIPasteImages() As Boolean
 Declare Sub AIRequest(Param As Any Ptr)
 Declare Function EscapeJsonForPrompt(ByRef iText As WString) As String
 Declare Function EscapeFromJson(ByRef iText As WString) As WString Ptr
