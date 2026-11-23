@@ -1113,7 +1113,20 @@ Function TabWindow.SaveTab As Boolean
 End Function
 
 Function TabWindow.SaveAs As Boolean
-	SetSaveDialogParameters(FileName)
+	' #891: for a new (never saved) form, suggest the form's Name as the file name
+	Dim As UString DefaultFileName = FileName
+	If IsNew AndAlso Des <> 0 AndAlso Des->DesignControl <> 0 Then
+		Dim As SymbolsType Ptr stDesignControl = Des->Symbols(Des->DesignControl)
+		If stDesignControl <> 0 AndAlso stDesignControl->ReadPropertyFunc <> 0 Then
+			Dim As Any Ptr hName = stDesignControl->ReadPropertyFunc(Des->DesignControl, "Name")
+			If hName <> 0 AndAlso Trim(QWString(hName)) <> "" Then
+				Dim As UString Ext = Mid(GetFileName(FileName), Len(GetFileName(FileName, False)) + 1)
+				If InStr(Ext, ".") = 0 Then Ext = ".frm"
+				DefaultFileName = GetFolderName(FileName) & Trim(QWString(hName)) & Ext
+			End If
+		End If
+	End If
+	SetSaveDialogParameters(DefaultFileName)
 	If pSaveD->Execute Then
 		WLet(LastOpenPath, GetFolderName(pSaveD->FileName))
 		If FileExists(pSaveD->FileName) AndAlso Not SaveDialogAsksOverwrite Then
