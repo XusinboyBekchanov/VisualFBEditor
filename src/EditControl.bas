@@ -9549,14 +9549,10 @@ Namespace My.Sys.Forms
 				#endif
 				
 			End If
-			#ifndef __USE_GTK2__
-				#ifdef __USE_GTK4__
-					' The context of GTK4 belongs to this snapshot only (it is destroyed afterwards)
-					ec->cr = cr
-				#endif
-			#else
-				ec->cr = cr
-			#endif
+			' The context belongs to this drawing only (GTK destroys it afterwards, GTK3 and GTK4 too): the first one
+			' kept and used in the next drawings was freed and its memory was given to the context of another window
+			' (the text of the editor was drawn on the Menu Editor, the editor stayed white)
+			ec->cr = cr
 			'If ec->bChanged Then
 			'ec->bChanged = False
 			#ifndef __USE_GTK2__
@@ -9570,17 +9566,15 @@ Namespace My.Sys.Forms
 			
 			ec->PaintControlPriv
 
-			#ifdef __USE_GTK4__
-				' Outside of drawing cr is used for measuring the text (and as a sign of the first drawing):
-				' a context of its own instead of the destroyed one
-				Static As cairo_t Ptr crMeasure
-				If crMeasure = 0 Then
-					Dim As cairo_surface_t Ptr MeasureSurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
-					crMeasure = cairo_create(MeasureSurface)
-					cairo_surface_destroy(MeasureSurface)
-				End If
-				ec->cr = crMeasure
-			#endif
+			' Outside of drawing cr is used for measuring the text (and as a sign of the first drawing):
+			' a context of its own instead of the destroyed one
+			Static As cairo_t Ptr crMeasure
+			If crMeasure = 0 Then
+				Dim As cairo_surface_t Ptr MeasureSurface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, 1, 1)
+				crMeasure = cairo_create(MeasureSurface)
+				cairo_surface_destroy(MeasureSurface)
+			End If
+			ec->cr = crMeasure
 
 			Return False
 		End Function

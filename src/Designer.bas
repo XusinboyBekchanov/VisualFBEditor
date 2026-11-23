@@ -2216,7 +2216,14 @@ Namespace My.Sys.Forms
 						st->WritePropertyFunc(Cpnt, "DesignMode", @bTrue)
 						Dim As BitmapType pBitmap
 						#ifdef __USE_GTK__
-							pBitmap.LoadFromFile(*MFFPath & "/resources/" & AClassName &".png")
+							'The folder of the library is current here (ChDir above): MFFPath is relative to the IDE, the
+							'icons are in the resources folder next to the library
+							Dim As UString IconFile = GetFolderName(st->Path) & "resources/" & AClassName & ".png"
+							If Dir(IconFile) = "" Then
+								IconFile = *MFFPath & "/resources/" & AClassName & ".png"
+								If InStr(IconFile, ":") = 0 AndAlso Not StartsWith(IconFile, "/") Then IconFile = ExePath & "/" & IconFile
+							End If
+							pBitmap.LoadFromFile(IconFile)
 							Dim As GtkWidget Ptr Result
 							Dim As Integer FWidth = 16, FHeight = 16
 							Dim As SymbolsType Ptr stParentCtrl = Symbols(AParent)
@@ -2239,13 +2246,15 @@ Namespace My.Sys.Forms
 							'							WritePropertyFunc(Cpnt, "Top", @y)
 							'							WritePropertyFunc(Cpnt, "Width", @FWidth)
 							'							WritePropertyFunc(Cpnt, "Height", @FHeight)
-							'If GTK_IS_WIDGET(FSelControl) Then
-							'	If AParent = 0 OrElse Result = 0 Then
-							'		If st->ReadPropertyFunc Then gtk_layout_put(GTK_LAYOUT(st->ReadPropertyFunc(DesignControl, "layoutwidget")), FSelControl, x, y)
-							'	Else
-							'		gtk_layout_put(GTK_LAYOUT(Result), FSelControl, x, y)
-							'	End If
-							'End If
+							'The library sets Parent before the widget of the component is given (it was not put into the layout:
+							'only the dots of the selection were seen), so the image is put into the layout of the parent here
+							If GTK_IS_WIDGET(FSelControl) AndAlso gtk_widget_get_parent(FSelControl) = 0 Then
+								If AParent = 0 OrElse Result = 0 Then
+									Dim As SymbolsType Ptr stDesignControl = Symbols(DesignControl)
+									If stDesignControl <> 0 AndAlso stDesignControl->ReadPropertyFunc <> 0 Then Result = stDesignControl->ReadPropertyFunc(DesignControl, "layoutwidget")
+								End If
+								If Result <> 0 AndAlso GTK_IS_LAYOUT(Result) Then gtk_layout_put(GTK_LAYOUT(Result), FSelControl, ScaleX(x), ScaleY(y))
+							End If
 							gtk_widget_show_all(FSelControl)
 						#else
 							If st->ReadPropertyFunc Then

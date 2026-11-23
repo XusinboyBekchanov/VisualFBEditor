@@ -17,6 +17,7 @@
 		Declare Static Sub txtActive_Change_(ByRef Designer As My.Sys.Object, ByRef Sender As TextBox)
 		Declare Sub txtActive_Change(ByRef Sender As TextBox)
 		Declare Sub GetDropdowns(mi As Any Ptr)
+		Declare Sub UpdateActiveBounds
 		Declare Sub SelectRect(Index As Integer)
 		Declare Sub EditRect(i As Integer, NewObject As Boolean = False)
 		Declare Static Sub Form_KeyDown_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key As Integer, Shift As Integer)

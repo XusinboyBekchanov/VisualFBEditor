@@ -46,6 +46,19 @@
 			.OnChange = @txtActive_Change_
 			.OnKeyDown = @txtActive_KeyDown_
 			.Parent = @picActive
+			#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
+				'The padding of the theme (about 8 pixels on each side) did not let the text fit into the item: it was
+				'scrolled and its start was hidden. The text of the entry is where the caption of the item is drawn
+				Dim As GtkCssProvider Ptr Provider = gtk_css_provider_new()
+				Dim As String Css = "entry { padding: 0 3px; min-height: 0; border-width: 1px; }"
+				#ifdef __USE_GTK4__
+					gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
+				#else
+					gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1, NULL)
+				#endif
+				gtk_style_context_add_provider(gtk_widget_get_style_context(.Handle), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+				g_object_unref(Provider)
+			#endif
 		End With
 		' PopupMenu1
 		With PopupMenu1
@@ -269,7 +282,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 						Else
 							#ifdef __USE_GTK__
 								.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
-									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)), -1
+									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), BGR(109, 109, 109)), -1
 							#else
 								.TextOut Rects(RectsCount).Left + IIf(IsToolBarList, BitmapWidth + 7, (Rects(RectsCount).Right - Rects(RectsCount).Left - .TextWidth(QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption"))) - IIf(QInteger(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Style")) = ToolButtonStyle.tbsDropDown, 15, 0)) / 2), _
 									IIf(IsToolBarList, Rects(RectsCount).Top + (Rects(RectsCount).Bottom - Rects(RectsCount).Top - .TextHeight("A")) / 2, Rects(RectsCount).Bottom - .TextHeight("A") - 6), QWString(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentToolBar->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), BGR(109, 109, 109)), -1
@@ -294,16 +307,16 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 							End If
 							.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 						#else
-							.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), BGR(0, 0, 0), -1
+							.TextOut Rects(RectsCount).Left + 5 + IIf(IconHandle, 16 + 2, 0), Rects(RectsCount).Top + 3, QWString(stCurrentStatusBar->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 						#endif
 					End If
 				Else
 					If stCurrentMenu AndAlso stCurrentMenu->ReadPropertyFunc Then
 						#ifdef __USE_GTK__
 							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
-								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", BGR(0, 0, 0), -1
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, "|", IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), -1
 							Else
-								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), BGR(0, 0, 0), BGR(109, 109, 109)), -1
+								.TextOut Rects(RectsCount).Left + 5, Rects(RectsCount).Top + 3, QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")), IIf(QBoolean(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Enabled")), IIf(g_darkModeEnabled AndAlso RectsCount <> ActiveRect, darkTextColor, BGR(0, 0, 0)), BGR(109, 109, 109)), -1
 							End If
 						#else
 							If QWString(stCurrentMenu->ReadPropertyFunc(Ctrls(RectsCount), "Caption")) = "-" Then
@@ -539,6 +552,7 @@ Private Sub frmMenuEditor.Form_Paint(ByRef Sender As Control, ByRef Canvas As My
 		'.TransferDoubleBuffer
 		'.DeleteDoubleBuffer
 	End With
+	If picActive.Visible Then UpdateActiveBounds
 End Sub
 
 Private Sub frmMenuEditor.Form_MouseDown_(ByRef Designer As My.Sys.Object, ByRef Sender As Control, MouseButton As Integer, x As Integer, y As Integer, Shift As Integer)
@@ -674,6 +688,7 @@ Sub frmMenuEditor.EditRect(i As Integer, NewObject As Boolean)
 			End If
 			picActive.Height = .Bottom - .Top - 3
 		End If
+		UpdateActiveBounds
 		picActive.Visible = True
 		'If NewObject Then TabWindowFormDesign
 		Repaint
@@ -693,24 +708,46 @@ Private Sub frmMenuEditor.txtActive_Change(ByRef Sender As TextBox)
 			If Parents(ActiveRect) = 0 Then Des->TopMenu->Repaint
 		End If
 		Repaint
-		Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
-		If CBool(CurrentToolBar <> 0) AndAlso CBool(ActiveRect < TopCount) AndAlso CBool(stCurrentToolBar <> 0) AndAlso CBool(stCurrentToolBar->ReadPropertyFunc <> 0) AndAlso QBoolean(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "List")) Then
-			Dim As Integer BitmapWidth = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
-			picActive.Left = Rects(ActiveRect).Left + 3 + BitmapWidth
-			If ActiveCtrl <> 0 AndAlso QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown Then
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15 - BitmapWidth - 3
-			Else
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - BitmapWidth - 3
-			End If
+		UpdateActiveBounds
+	End If
+End Sub
+
+'The edit box is put on the rectangle of the active item (the rectangles are calculated in Form_Paint: on GTK
+'Repaint only asks to draw, so the box is also placed again at the end of Form_Paint)
+Sub frmMenuEditor.UpdateActiveBounds
+	If ActiveRect <= 0 OrElse ActiveRect > RectsCount Then Exit Sub
+	Dim As Integer NewLeft, NewWidth
+	Dim As SymbolsType Ptr stCurrentToolBar = Des->Symbols(CurrentToolBar)
+	If CBool(CurrentToolBar <> 0) AndAlso CBool(ActiveRect < TopCount) AndAlso CBool(stCurrentToolBar <> 0) AndAlso CBool(stCurrentToolBar->ReadPropertyFunc <> 0) AndAlso QBoolean(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "List")) Then
+		Dim As Integer BitmapWidth = QInteger(stCurrentToolBar->ReadPropertyFunc(CurrentToolBar, "BitmapWidth"))
+		NewLeft = Rects(ActiveRect).Left + 3 + BitmapWidth
+		If ActiveCtrl <> 0 AndAlso QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown Then
+			NewWidth = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15 - BitmapWidth - 3
 		Else
-			picActive.Left = Rects(ActiveRect).Left + 1
-			If CurrentToolBar AndAlso ActiveRect < TopCount AndAlso ActiveCtrl <> 0 AndAlso stCurrentToolBar <> 0 AndAlso stCurrentToolBar->ReadPropertyFunc <> 0 AndAlso (QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown) Then
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15
-			Else
-				picActive.Width = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2
-			End If
+			NewWidth = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - BitmapWidth - 3
+		End If
+	Else
+		NewLeft = Rects(ActiveRect).Left + 1
+		If CurrentToolBar AndAlso ActiveRect < TopCount AndAlso ActiveCtrl <> 0 AndAlso stCurrentToolBar <> 0 AndAlso stCurrentToolBar->ReadPropertyFunc <> 0 AndAlso (QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsDropDown OrElse QInteger(stCurrentToolBar->ReadPropertyFunc(ActiveCtrl, "Style")) = ToolButtonStyle.tbsWholeDropdown) Then
+			NewWidth = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2 - 15
+		Else
+			NewWidth = Rects(ActiveRect).Right - Rects(ActiveRect).Left - 2
 		End If
 	End If
+	'Only a change is given (this is also called while drawing: a new size asks to draw again)
+	If picActive.Left <> NewLeft Then picActive.Left = NewLeft
+	If picActive.Width <> NewWidth Then picActive.Width = NewWidth
+	#ifdef __USE_GTK__
+		'The entry of GTK is not lower than its theme allows (higher than the item): it is centered in the box,
+		'else its text was cut below the item; it is as wide as the box (it was 780 pixels wide)
+		Dim As gint MinHeight, NaturalHeight
+		gtk_widget_get_preferred_height(txtActive.Handle, @MinHeight, @NaturalHeight)
+		Dim As Integer EntryHeight = Max(UnScaleY(MinHeight), picActive.Height)
+		Dim As Integer EntryTop = (picActive.Height - EntryHeight) \ 2
+		If txtActive.Left <> 0 OrElse txtActive.Top <> EntryTop OrElse txtActive.Width <> NewWidth OrElse txtActive.Height <> EntryHeight Then
+			txtActive.SetBounds 0, EntryTop, NewWidth, EntryHeight
+		End If
+	#endif
 End Sub
 
 Sub frmMenuEditor.SelectRect(Index As Integer)
@@ -890,6 +927,10 @@ Private Sub frmMenuEditor.Form_KeyDown_(ByRef Designer As My.Sys.Object, ByRef S
 End Sub
 Private Sub frmMenuEditor.Form_KeyDown(ByRef Sender As Control, Key As Integer, Shift As Integer)
 	Dim As Boolean IsPopup
+	#ifdef __USE_GTK__
+		'GTK gives the keys to the window before the focused entry: they belong to the edit box while it is shown
+		If picActive.Visible Then Exit Sub
+	#endif
 	If CurrentMenu <> 0 AndAlso Des->Symbols(CurrentMenu) AndAlso QWString(Des->Symbols(CurrentMenu)->ReadPropertyFunc(CurrentMenu, "ClassName")) = "PopupMenu" Then IsPopup = True
 	Select Case Key
 	Case Keys.F2
@@ -999,6 +1040,10 @@ Private Sub frmMenuEditor.Form_KeyPress_(ByRef Designer As My.Sys.Object, ByRef 
 	(*Cast(frmMenuEditor Ptr, Sender.Designer)).Form_KeyPress(Sender, Key)
 End Sub
 Private Sub frmMenuEditor.Form_KeyPress(ByRef Sender As Control, Key As Integer)
+	#ifdef __USE_GTK__
+		'GTK gives the keys to the window before the focused entry: each key replaced the text of the edit box
+		If picActive.Visible Then Exit Sub
+	#endif
 	If ActiveRect <> 0 Then
 		EditRect ActiveRect
 		txtActive.Text = WChr(Key)
