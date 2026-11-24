@@ -5434,6 +5434,26 @@ Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As US
 	End If
 End Function
 
+Private Function IsIdentifierChar(ByRef s As WString) As Boolean
+	If s = "" Then Return False
+	Dim As Integer c = Asc(s)
+	Return c >= Asc("A") AndAlso c <= Asc("Z") OrElse c >= Asc("a") AndAlso c <= Asc("z") OrElse c >= Asc("0") AndAlso c <= Asc("9") OrElse c = Asc("_")
+End Function
+
+'Returns the 1-based column of the element name in the line (whole word, case-insensitive), or the first non-blank column if not found
+Private Function GetElementStartChar(ByRef sLine As WString, ByRef sName As WString) As Integer
+	Dim As UString sLineLCase = LCase(sLine), sNameLCase = LCase(Trim(sName))
+	Dim As Integer iLen = Len(sNameLCase), iPos
+	If iLen > 0 Then
+		iPos = InStr(sLineLCase, sNameLCase)
+		Do While iPos > 0
+			If CInt(iPos = 1 OrElse Not IsIdentifierChar(Mid(sLineLCase, iPos - 1, 1))) AndAlso CInt(Not IsIdentifierChar(Mid(sLineLCase, iPos + iLen, 1))) Then Return iPos
+			iPos = InStr(iPos + 1, sLineLCase, sNameLCase)
+		Loop
+	End If
+	Return Len(sLine) - Len(LTrim(sLine, Any !"\t ")) + 1
+End Function
+
 Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAndIncludeFiles, ByRef Types As WStringOrStringList, ByRef Enums As WStringOrStringList, ByRef Functions As WStringOrStringList, ByRef TypeProcedures As WStringOrStringList, ByRef Args As WStringOrStringList, ec As Control Ptr = 0, CtlLibrary As Library Ptr = 0, CurFileItem As Any Ptr = 0, OldFileItem As Any Ptr = 0)
 	If FormClosing Then Exit Sub
 	Dim As EditControlContent Ptr File = CurFileItem, OldFile = OldFileItem
@@ -5686,6 +5706,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->ElementType = IIf(Pos3 > 0, E_TypeCopy, E_Type)
 						tbi->InCondition = CurrentCondition
 						tbi->StartLine = i
+						tbi->StartChar = GetElementStartChar(Lines.Item(i), tbi->Name)
 						tbi->FileName = PathFunction
 						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
 						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
@@ -5745,6 +5766,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 					tbi->TypeName = ""
 					tbi->ElementType = E_Union
 					tbi->StartLine = i
+					tbi->StartChar = GetElementStartChar(Lines.Item(i), tbi->Name)
 					tbi->FileName = PathFunction
 					tbi->CtlLibrary = CtlLibrary
 					Types.Add t, tbi
@@ -5795,6 +5817,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Locals = inPubProPri
 						End If
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->EndLine = i
 						If Comment <> "" Then te->Comment= Comment: Comment = ""
 						te->FileName = PathFunction
@@ -5839,6 +5862,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Value = Trim(Mid(bTrim, IIf(Pos2 > 0, Pos3 + 1, Pos1 + 1)))
 					End If
 					te->StartLine = i
+					te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 					te->EndLine = i
 					If Comment <> "" Then te->Comment= Comment: Comment = ""
 					te->FileName = PathFunction
@@ -5883,6 +5907,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
 						End If
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->EndLine = i
 						te->ControlType = nc
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
@@ -5992,6 +6017,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->Parameters = Trim(Left(te->Parameters, Pos4 - 1))
 					End If
 					te->StartLine = i
+					te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 					te->EndLine = i
 					If Comment <> "" Then te->Comment = Comment: Comment = ""
 					te->FileName = PathFunction
@@ -6180,6 +6206,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->ElementType = IIf(StartsWith(bTrimLCase, "const "), E_Constant, IIf(StartsWith(LCase(te->TypeName), "sub(") OrElse StartsWith(LCase(te->TypeName), "function("), E_Event, E_Field))
 							te->Locals = inPubProPri
 							te->StartLine = i
+							te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 							te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
 							te->FileName = PathFunction
 							te->CtlLibrary = CtlLibrary
@@ -6202,6 +6229,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->TypeName = ""
 						tbi->ElementType = E_Enum
 						tbi->StartLine = i
+						tbi->StartChar = GetElementStartChar(Lines.Item(i), tbi->Name)
 						tbi->FileName = PathFunction
 						tbi->CtlLibrary = CtlLibrary
 						If InFunc = False Then
@@ -6253,6 +6281,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ElementType = E_EnumItem
 						te->Value = ElementValue
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = Trim(*res1(n))
 						te->FileName = PathFunction
 						If tbi Then tbi->Elements.Add te->Name, te
@@ -6266,6 +6295,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ElementType = E_EnumItem
 						te->Value = ElementValue
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = Trim(*res1(n))
 						te->FileName = PathFunction
 						te->CtlLibrary = CtlLibrary
@@ -6309,6 +6339,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ElementType = E_Constructor
 						te->Locals = IIf(StartsWith(bTrimLCase, "private "), 1, 0)
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
@@ -6345,6 +6376,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->ElementType = E_Destructor
 						te->Locals = IIf(StartsWith(bTrimLCase, "private "), 1, 0)
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = te->Name & IIf(Pos3 > 0, Mid(bTrim, Pos3), "()")
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
@@ -6390,6 +6422,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = ""
 						te->ElementType = E_Sub
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
 							te->Parameters = Trim(Left(te->Parameters, Len(te->Parameters) - 11))
@@ -6468,6 +6501,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->ElementType = E_Function
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If EndsWith(LCase(te->Parameters), " __export__") Then
 							te->Parameters = Trim(Left(te->Parameters, Len(te->Parameters) - 11))
@@ -6549,6 +6583,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						te->TypeName = WithoutPointers(te->TypeName)
 						te->ElementType = E_Property
 						te->StartLine = i
+						te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 						te->Parameters = Trim(Mid(bTrim, Pos5))
 						If Comment <> "" Then te->Comment = Comment: Comment = ""
 						te->FileName = PathFunction
@@ -6689,6 +6724,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 							te->Value = ElementValue
 							te->Locals = 0 'IIf(bShared, 0, 2)
 							te->StartLine = i
+							te->StartChar = GetElementStartChar(Lines.Item(i), te->Name)
 							te->Parameters = GetVariableParameters(*res1(n), CurType, te->Value, te->ElementType = E_Constant)
 							te->FileName = PathFunction
 							te->CtlLibrary = CtlLibrary
