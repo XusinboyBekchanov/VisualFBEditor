@@ -1172,6 +1172,24 @@ Function TabWindow.SaveAs As Boolean
 	Return False
 End Function
 
+'A new file of a project which was never saved: the project is saved first (its file name, then the names of its
+'files), the file is not saved alone without the project (#891)
+Function SaveNewFileWithProject(tb As TabWindow Ptr) As Boolean
+	If tb = 0 OrElse tb->tn = 0 Then Return False
+	If InStr(tb->FileName, "/") > 0 OrElse InStr(tb->FileName, "\") > 0 Then Return False
+	Dim As TreeNode Ptr tnP = GetParentNode(tb->tn)
+	If tnP = 0 OrElse tnP->ImageKey <> "Project" Then Return False
+	Dim As ProjectElement Ptr ppe = tnP->Tag
+	If ppe <> 0 AndAlso (InStr(WGet(ppe->FileName), "/") > 0 OrElse InStr(WGet(ppe->FileName), "\") > 0) Then Return False
+	If SaveProject(tnP) Then
+		'The file was not modified: SaveProject did not save it, it is saved now and the project is written with its name
+		If InStr(tb->FileName, "/") = 0 AndAlso InStr(tb->FileName, "\") = 0 Then
+			If tb->Save Then SaveProject tnP
+		End If
+	End If
+	Return True
+End Function
+
 Function TabWindow.Save As Boolean
 	If InStr(*FFileName, "/") > 0 OrElse InStr(*FFileName, "\") > 0 Then Return SaveTab Else Return SaveAs
 End Function

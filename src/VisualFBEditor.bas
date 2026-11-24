@@ -947,7 +947,8 @@ Sub mClick(ByRef Designer_ As My.Sys.Object, Sender As My.Sys.Object)
 		If tb = 0 Then Exit Sub
 		Select Case Sender.ToString
 		Case "Save":                        tb->Save
-		Case "SaveAs":                      tb->SaveAs:  frmMain.Caption = tb->FileName & " - " & App.Title
+		Case "SaveAs":                      If Not SaveNewFileWithProject(tb) Then tb->SaveAs
+			frmMain.Caption = tb->FileName & " - " & App.Title
 		Case "Close":                       CloseTab(tb)
 		Case "SplitLines":                  tb->SplitLines
 		Case "CombineLines":                tb->CombineLines

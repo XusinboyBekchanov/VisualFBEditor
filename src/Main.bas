@@ -4736,6 +4736,7 @@ Sub Save()
 	Else
 		Dim tb As TabWindow Ptr = Cast(TabWindow Ptr, ptabCode->SelectedTab)
 		If tb = 0 Then Exit Sub
+		If SaveNewFileWithProject(tb) Then Exit Sub
 		tb->Save
 	End If
 End Sub

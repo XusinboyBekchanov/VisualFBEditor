@@ -297,6 +297,7 @@ Declare Function FileNameExists(tn As TreeNode Ptr, ByRef FileName As WString) A
 Declare Function GetTab(ByRef FileName As WString) As TabWindow Ptr
 
 Declare Function GetTabFromTn(tn As TreeNode Ptr) As TabWindow Ptr
+Declare Function SaveNewFileWithProject(tb As TabWindow Ptr) As Boolean
 
 Declare Function AddTab(ByRef FileName As WString = "", bNew As Boolean = False, TreeN As TreeNode Ptr = 0, bNoActivate As Boolean = False) As TabWindow Ptr
 

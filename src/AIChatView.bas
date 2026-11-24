@@ -3386,7 +3386,7 @@ Declare Sub AIChatSetViewMode(Mode As Integer, SaveMode As Boolean = True)
 		#ifndef __USE_GTK4__
 			AIWKResultValue = DyLibSymbol(AIWKLib, "webkit_javascript_result_get_js_value")
 		#endif
-		If ViewNew = 0 OrElse GetContentManager = 0 OrElse RegisterHandler = 0 OrElse LoadHtml = 0 OrElse CBool(AIWKEvaluate = 0 AndAlso AIWKRunScript = 0) Then
+		If ViewNew = 0 OrElse GetContentManager = 0 OrElse RegisterHandler = 0 OrElse LoadHtml = 0 OrElse (AIWKEvaluate = 0 AndAlso AIWKRunScript = 0) Then
 			AIWKFail(ML("The functions of WebKitGTK are not found") & " (" & LibName & ")")
 			Exit Sub
 		End If
