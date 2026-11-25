@@ -111,6 +111,7 @@ End Function
 
 'Adds the text to the chat (from any thread)
 Declare Function AIChatAgentTitle(ByRef Key As WString) As UString
+Declare Function AIToolBlockRTF(ByRef Chunk As WString) As UString
 
 'The text for the RTF view: the names of the agents of the answers as in the other views (Opus 5.5 · Claude Code)
 Function AIChatRTFText(ByRef Text As WString) As UString
@@ -139,8 +140,39 @@ Sub AIChatFeed(ByRef Chunk As WString)
 	WAdd(AIChatMD, Chunk, , AIChatMDCapacity)
 	AIChatViewDirty = True
 	MutexUnlock AIChatMDMutex
-	If AIChatViewMode = acvRTF AndAlso AIMDtoRTFConverterPtr <> 0 Then AIMDtoRTFConverterPtr->FeedChunk(AIChatRTFText(Chunk))
+	If AIChatViewMode = acvRTF AndAlso AIMDtoRTFConverterPtr <> 0 Then
+		If Left(Chunk, 8) = !"\n~~~vfb-" Then
+			'The input or the result of a call of a tool: a code block
+			Dim As UString RTFText = AIToolBlockRTF(Chunk)
+			If RTFText <> "" Then AIMDtoRTFConverterPtr->FeedChunk(RTFText)
+		Else
+			AIMDtoRTFConverterPtr->FeedChunk(AIChatRTFText(Chunk))
+		End If
+	End If
 End Sub
+
+'The chat as it is shown (the questions, the answers with the calls of the tools and their results, thinking) is
+'saved in <chat>.md.view: the file of the chat has only the questions and the answers (the context of the agents)
+Sub AIChatSaveView(ByRef ChatFile As WString)
+	Dim As UString MD
+	MutexLock AIChatMDMutex
+	If AIChatMD <> 0 Then MD = *AIChatMD
+	MutexUnlock AIChatMDMutex
+	If InStr(MD, WChr(8594) & " ") = 0 AndAlso InStr(MD, "<think>") = 0 Then Exit Sub
+	SaveToFile(ChatFile & ".view", MD)
+End Sub
+
+'Shows the saved view of an opened chat (False: it has none, the chat is shown from its questions and answers)
+Function AIChatLoadView(ByRef ChatFile As WString) As Boolean
+	If AIChatViewMode = acvRTF OrElse Not FileExists(ChatFile & ".view") Then Return False
+	Dim As WString Ptr pText = LoadFromFile(ChatFile & ".view")
+	If pText = 0 Then Return False
+	Dim As UString Text = Replace(*pText, Chr(13), "")
+	_Deallocate(pText)
+	If Trim(Text, Any !" \r\n\t") = "" Then Return False
+	AIChatFeed(Text)
+	Return True
+End Function
 
 'The chat becomes empty (a new chat, a chat opened from a file)
 Sub AIChatReset()
@@ -223,6 +255,10 @@ Function AIChatSplitMessages(ByRef Text As WString, Offset As Integer, Msgs() As
 	Return Count
 End Function
 
+Dim Shared As Double AIChatBusyStart
+Declare Function AITaskList(ByRef Body As WString) As UString
+Declare Function AIRunningTool(ByRef Body As WString) As UString
+Declare Function AIElapsedText(Seconds As Double) As UString
 'The messages to draw: from the last message of the view or from the start (Full); returns the index of the first one
 Function AIChatTakeMessages(Msgs() As AIChatMessage, ByRef Count As Integer, ByRef Full As Boolean) As Integer
 	Dim As UString Part
@@ -238,7 +274,50 @@ Function AIChatTakeMessages(Msgs() As AIChatMessage, ByRef Count As Integer, ByR
 		AIChatLastMsgPos = Msgs(Count - 1).StartPos
 		AIChatShownMsgs = First + Count
 	End If
+	'The tasks of the answers (as the list of Claude Code), the state of the answer which comes
+	Dim As UString Tasks, Running
+	For k As Integer = 0 To Count - 1
+		If Msgs(k).IsUser Then Continue For
+		Tasks = AITaskList(Msgs(k).Body)
+		If Tasks <> "" Then Msgs(k).Body &= !"\n\n~~~vfb-tasks\n" & Tasks & !"~~~vfb-end tasks\n"
+		If k = Count - 1 AndAlso bInAIThread Then
+			If AIChatBusyStart = 0 Then AIChatBusyStart = Timer
+			Running = ""
+			'The task which runs, else the call of a tool which runs
+			Dim As Integer P = InStr(Tasks, "in_progress|")
+			If P = 1 OrElse (P > 1 AndAlso Tasks[P - 2] = 10) Then
+				Running = Mid(Tasks, P + 12, InStr(P, Tasks, !"\n") - P - 12)
+			Else
+				Running = AIRunningTool(Msgs(k).Body)
+			End If
+			If Running = "" Then Running = ML("Working")
+			Msgs(k).Body &= !"\n\n~~~vfb-status " & Running & " " & WChr(183) & " " & AIElapsedText(Timer - AIChatBusyStart) & !"\n"
+		End If
+	Next
 	Return First
+End Function
+
+'The elapsed time: 45 s, 3 min 5 s, 1 h 2 min
+Function AIElapsedText(Seconds As Double) As UString
+	Dim As Integer S = Int(Max(Seconds, 0))
+	If S < 60 Then Return Str(S) & " " & ML("s")
+	If S < 3600 Then Return Str(S \ 60) & " " & ML("min") & " " & Str(S Mod 60) & " " & ML("s")
+	Return Str(S \ 3600) & " " & ML("h") & " " & Str((S Mod 3600) \ 60) & " " & ML("min")
+End Function
+
+
+'True when the view is drawn again for the state of the answer (each second while it comes, once after it)
+Function AIChatStatusTick() As Boolean
+	Static As Integer LastSec = -1
+	Static As Boolean WasBusy
+	If bInAIThread Then
+		WasBusy = True
+		If Int(Timer) <> LastSec Then LastSec = Int(Timer): Return True
+		Return False
+	End If
+	AIChatBusyStart = 0
+	If WasBusy Then WasBusy = False: Return True
+	Return False
 End Function
 
 'The last code block of the chat
@@ -267,6 +346,9 @@ Enum AIBlockKinds
 	abRule
 	abFold
 	abImage
+	'The tasks of Claude Code (the lines status|text), the state of the answer while it comes
+	abTasks
+	abStatus
 End Enum
 
 Type AIBlock
@@ -382,8 +464,11 @@ Function AIIsToolLine(ByRef T As WString) As Boolean
 	Return Len(T) > 2 AndAlso T[0] = 8594 AndAlso T[1] = 32
 End Function
 
-'The blocks of the markdown text
-Function AIParseBlocks(ByRef MD As WString, Blocks() As AIBlock) As Integer
+Declare Function AIIsToolBlockLine(ByRef T As WString) As Boolean
+Declare Sub AIAddToolBlocks(ByRef Raw As WString, Blocks() As AIBlock, ByRef Count As Integer)
+
+'The blocks of the markdown text (ToolsApart: the calls of the tools are not in one fold)
+Function AIParseBlocks(ByRef MD As WString, Blocks() As AIBlock, ToolsApart As Boolean = False) As Integer
 	Dim As UString Lns(Any), Para, L, T, LT, Content, Code, Lang, Rows, Tools, T2, Mk
 	Dim As Integer LnCount = AISplitLines(MD, Lns()), Count, i, j, E, H, N, Ind, TP
 	Dim As Boolean InPara, Closed, Ord
@@ -419,39 +504,84 @@ Function AIParseBlocks(ByRef MD As WString, Blocks() As AIBlock) As Integer
 		End If
 		'The end of thinking without its start
 		If LT = "</think>" Then i += 1: Continue Do
-		'The calls of the tools of Claude Code (-> Name), the blank lines between them
-		If AIIsToolLine(T) Then
+		'The calls of the tools of Claude Code (-> Name), their inputs and results, the pictures and the blank lines
+		'between them
+		If AIIsToolLine(T) OrElse AIIsToolBlockLine(T) Then
 			AIFlushPara(Blocks(), Count, Para, InPara)
-			Tools = T: N = 1
-			i += 1
+			Dim As UString Raw, Names, BlockID
+			N = 0
 			Do While i < LnCount
 				T2 = Trim(Lns(i), Any !" \t")
 				If AIIsToolLine(T2) Then
-					Tools &= !"\n" & T2: N += 1: i += 1
+					Raw &= T2 & !"\n": Names &= IIf(N > 0, !"\n", "") & T2: N += 1: i += 1
+				ElseIf AIIsToolBlockLine(T2) Then
+					'The block to its end
+					BlockID = Trim(Mid(T2, IIf(Left(T2, 9) = "~~~vfb-in", 10, 11)))
+					If Right(BlockID, 6) = " error" Then BlockID = Trim(Left(BlockID, Len(BlockID) - 6))
+					Raw &= T2 & !"\n"
+					i += 1
+					Do While i < LnCount
+						Raw &= Lns(i) & !"\n"
+						i += 1
+						If Left(Lns(i - 1), 11) = "~~~vfb-end " AndAlso Trim(Mid(Lns(i - 1), 12)) = BlockID Then Exit Do
+					Loop
+				ElseIf N > 0 AndAlso Left(T2, 2) = "![" AndAlso Right(T2, 1) = ")" AndAlso InStr(T2, "](") > 0 Then
+					Raw &= T2 & !"\n": i += 1
 				ElseIf T2 = "" Then
 					j = i + 1
 					Do While j < LnCount AndAlso Trim(Lns(j), Any !" \t") = ""
 						j += 1
 					Loop
-					If j < LnCount AndAlso AIIsToolLine(Trim(Lns(j), Any !" \t")) Then i = j Else Exit Do
+					If j < LnCount AndAlso (AIIsToolLine(Trim(Lns(j), Any !" \t")) OrElse AIIsToolBlockLine(Trim(Lns(j), Any !" \t"))) Then i = j Else Exit Do
 				Else
 					Exit Do
 				End If
 			Loop
-			AIAddBlock(Blocks(), Count, abFold, Tools, N)
-			Blocks(Count - 1).FoldKind = 2
+			If ToolsApart OrElse N <= 1 Then
+				AIAddToolBlocks(Raw, Blocks(), Count)
+			Else
+				'The calls in one fold (it is open), each call is a fold in it
+				AIAddBlock(Blocks(), Count, abFold, Raw, N)
+				Blocks(Count - 1).FoldKind = 2
+				Blocks(Count - 1).Lang = Names
+			End If
+			Continue Do
+		End If
+		'The tasks and the state of the answer (AIChatTakeMessages adds them)
+		If Left(T, 12) = "~~~vfb-tasks" Then
+			AIFlushPara(Blocks(), Count, Para, InPara)
+			Content = ""
+			i += 1
+			Do While i < LnCount
+				If Lns(i) = "~~~vfb-end tasks" Then i += 1: Exit Do
+				Content &= Lns(i) & !"\n"
+				i += 1
+			Loop
+			AIAddBlock(Blocks(), Count, abTasks, Content)
+			Continue Do
+		End If
+		If Left(T, 14) = "~~~vfb-status " Then
+			AIFlushPara(Blocks(), Count, Para, InPara)
+			AIAddBlock(Blocks(), Count, abStatus, Mid(T, 15))
+			i += 1
 			Continue Do
 		End If
 		'Code
 		If Left(T, 3) = "```" Then
 			AIFlushPara(Blocks(), Count, Para, InPara)
-			Lang = Trim(Mid(T, 4))
+			'The fence can be longer (the code has lines of backquotes): its end is a line of so many backquotes
+			Dim As Integer FenceLen = 3
+			Do While FenceLen < Len(T) AndAlso T[FenceLen] = 96
+				FenceLen += 1
+			Loop
+			Lang = Trim(Mid(T, FenceLen + 1))
 			Code = ""
 			Closed = False
 			j = 0
 			i += 1
 			Do While i < LnCount
-				If Left(Trim(Lns(i), Any !" \t"), 3) = "```" Then Closed = True: i += 1: Exit Do
+				T2 = Trim(Lns(i), Any !" \t")
+				If Len(T2) >= FenceLen AndAlso Left(T2, 3) = "```" AndAlso (FenceLen = 3 OrElse AIAllChars(T2, 96)) Then Closed = True: i += 1: Exit Do
 				If j = 0 Then Code = Lns(i) Else Code &= !"\n" & Lns(i)
 				j += 1
 				i += 1
@@ -668,6 +798,566 @@ Function AIThinkTitle(Closed As Boolean) As UString
 End Function
 
 ' ==========================================
+' JSON (the calls of the tools of Claude Code and their results)
+' ==========================================
+
+Function AIJSkipWS(ByRef S As WString, ByVal i As Integer, n As Integer) As Integer
+	Do While i < n AndAlso (S[i] = 32 OrElse S[i] = 9 OrElse S[i] = 10 OrElse S[i] = 13)
+		i += 1
+	Loop
+	Return i
+End Function
+
+'The end (0-based, after it) of the JSON value at i
+Function AIJSkip(ByRef S As WString, ByVal i As Integer, n As Integer) As Integer
+	If i >= n Then Return n
+	Dim As Integer Level, C
+	Dim As Boolean InString
+	Select Case S[i]
+	Case 34 '"
+		i += 1
+		Do While i < n
+			If S[i] = 92 Then
+				i += 2
+				Continue Do
+			End If
+			If S[i] = 34 Then Return i + 1
+			i += 1
+		Loop
+		Return n
+	Case 123, 91 '{ [
+		Do While i < n
+			C = S[i]
+			If InString Then
+				If C = 92 Then
+					i += 1
+				ElseIf C = 34 Then
+					InString = False
+				End If
+			ElseIf C = 34 Then
+				InString = True
+			ElseIf C = 123 OrElse C = 91 Then
+				Level += 1
+			ElseIf C = 125 OrElse C = 93 Then
+				Level -= 1
+				If Level = 0 Then Return i + 1
+			End If
+			i += 1
+		Loop
+		Return n
+	Case Else
+		Do While i < n
+			Select Case S[i]
+			Case 44, 125, 93, 32, 9, 10, 13
+				Exit Do
+			End Select
+			i += 1
+		Loop
+		Return i
+	End Select
+End Function
+
+'The members of a JSON object: their names and their values as they are
+Function AIJMembers(ByRef Obj As WString, JKeys() As UString, JValues() As UString) As Integer
+	Dim As Integer n = Len(Obj), i, KE, VE, Count
+	Erase JKeys, JValues
+	i = AIJSkipWS(Obj, 0, n)
+	If i >= n OrElse Obj[i] <> 123 Then Return 0
+	i += 1
+	Do
+		i = AIJSkipWS(Obj, i, n)
+		If i >= n OrElse Obj[i] <> 34 Then Exit Do
+		KE = AIJSkip(Obj, i, n)
+		ReDim Preserve JKeys(Count), JValues(Count)
+		JKeys(Count) = Mid(Obj, i + 2, KE - i - 2)
+		i = AIJSkipWS(Obj, KE, n)
+		If i < n AndAlso Obj[i] = 58 Then i = AIJSkipWS(Obj, i + 1, n)
+		VE = AIJSkip(Obj, i, n)
+		JValues(Count) = Mid(Obj, i + 1, VE - i)
+		Count += 1
+		i = AIJSkipWS(Obj, VE, n)
+		If i < n AndAlso Obj[i] = 44 Then i += 1 Else Exit Do
+	Loop
+	Return Count
+End Function
+
+'The value (as it is) of the member Key of a JSON object ("" if there is none)
+Function AIJMember(ByRef Obj As WString, ByRef Key As WString) As UString
+	Dim As Integer n = Len(Obj), i, KE, VE
+	i = AIJSkipWS(Obj, 0, n)
+	If i >= n OrElse Obj[i] <> 123 Then Return ""
+	i += 1
+	Do
+		i = AIJSkipWS(Obj, i, n)
+		If i >= n OrElse Obj[i] <> 34 Then Exit Do
+		KE = AIJSkip(Obj, i, n)
+		Dim As Boolean Found = (KE - i - 2 = Len(Key)) AndAlso Mid(Obj, i + 2, KE - i - 2) = Key
+		i = AIJSkipWS(Obj, KE, n)
+		If i < n AndAlso Obj[i] = 58 Then i = AIJSkipWS(Obj, i + 1, n)
+		VE = AIJSkip(Obj, i, n)
+		If Found Then Return Mid(Obj, i + 1, VE - i)
+		i = AIJSkipWS(Obj, VE, n)
+		If i < n AndAlso Obj[i] = 44 Then i += 1 Else Exit Do
+	Loop
+	Return ""
+End Function
+
+'The items of a JSON array (as they are)
+Function AIJItems(ByRef Arr As WString, Items() As UString) As Integer
+	Dim As Integer n = Len(Arr), i, VE, Count
+	Erase Items
+	i = AIJSkipWS(Arr, 0, n)
+	If i >= n OrElse Arr[i] <> 91 Then Return 0
+	i += 1
+	Do
+		i = AIJSkipWS(Arr, i, n)
+		If i >= n OrElse Arr[i] = 93 Then Exit Do
+		VE = AIJSkip(Arr, i, n)
+		ReDim Preserve Items(Count)
+		Items(Count) = Mid(Arr, i + 1, VE - i)
+		Count += 1
+		i = AIJSkipWS(Arr, VE, n)
+		If i < n AndAlso Arr[i] = 44 Then i += 1 Else Exit Do
+	Loop
+	Return Count
+End Function
+
+'The text of a JSON value: a string without its quotes and escapes, the others as they are
+Function AIJText(ByRef Raw As WString) As UString
+	Dim As Integer n = Len(Raw)
+	If n < 2 OrElse Raw[0] <> 34 Then Return Raw
+	If n = 2 Then Return ""
+	Dim As WString Ptr Text = EscapeFromJson(Mid(Raw, 2, n - 2))
+	If Text = 0 Then Return ""
+	Dim As UString Result = *Text
+	_Deallocate(Text)
+	Return Result
+End Function
+
+' ==========================================
+' The calls of the tools of Claude Code
+' ==========================================
+'In the chat a call is the line "-> Name", its input and its result come after it (the results of the calls which ran
+'together come after all of them):
+'  ~~~vfb-in <id>             ~~~vfb-out <id>[ error]
+'  {the input, JSON}          the text of the result
+'  ~~~vfb-end <id>            ~~~vfb-end <id>
+
+Const AITOOL_RUNNING = 0, AITOOL_DONE = 1, AITOOL_ERROR = 2, AITOOL_NODETAILS = 3
+
+Function AIIsToolBlockLine(ByRef T As WString) As Boolean
+	Return Left(T, 8) = "~~~vfb-i" OrElse Left(T, 8) = "~~~vfb-o"
+End Function
+
+'A code block whose fence is longer than the lines of backquotes in the text
+Function AIFence(ByRef Lang As WString, ByRef Content As WString) As UString
+	Dim As UString Lns(Any), T
+	Dim As Integer n = AISplitLines(Content, Lns()), FenceLen = 3
+	For i As Integer = 0 To n - 1
+		T = Trim(Lns(i), Any !" \t")
+		If Len(T) >= FenceLen AndAlso AIAllChars(T, 96) Then FenceLen = Len(T) + 1
+	Next
+	Dim As UString Fence = WString(FenceLen, 96)
+	Return Fence & Lang & !"\n" & Content & !"\n" & Fence & !"\n"
+End Function
+
+'The first line of a text, not longer than MaxLen
+Function AIFirstLine(ByRef S As WString, MaxLen As Integer = 200) As UString
+	Dim As UString R = Trim(S, Any !" \t\r\n")
+	Dim As Integer P = InStr(R, !"\n")
+	If P > 0 Then R = RTrim(Left(R, P - 1), Any !" \r") & " ..."
+	If Len(R) > MaxLen Then R = Left(R, MaxLen) & "..."
+	Return R
+End Function
+
+Function AIFileNameOf(ByRef Path As WString) As UString
+	Dim As Integer P = InStrRev(Path, "\"), P2 = InStrRev(Path, "/")
+	If P2 > P Then P = P2
+	Return Mid(Path, P + 1)
+End Function
+
+'What a call does in one line: the command, the file, the pattern ...
+Function AIToolSummary(ByRef Name_ As WString, ByRef InputJson As WString) As UString
+	Dim As UString S, Path
+	Select Case Name_
+	Case "Bash", "PowerShell"
+		S = AIJText(AIJMember(InputJson, "command"))
+	Case "Read", "Write", "Edit", "MultiEdit"
+		S = AIJText(AIJMember(InputJson, "file_path"))
+		If Name_ = "Read" Then
+			Dim As UString Offset = AIJMember(InputJson, "offset"), Limit = AIJMember(InputJson, "limit")
+			If Offset <> "" OrElse Limit <> "" Then
+				S &= " (" & IIf(Offset <> "", ML("from") & " " & Offset, "") & IIf(Offset <> "" AndAlso Limit <> "", ", ", "") & IIf(Limit <> "", Limit & " " & ML("lines"), "") & ")"
+			End If
+		End If
+	Case "NotebookEdit"
+		S = AIJText(AIJMember(InputJson, "notebook_path"))
+	Case "Grep", "Glob"
+		S = AIJText(AIJMember(InputJson, "pattern"))
+		Path = AIJText(AIJMember(InputJson, "path"))
+		If Path <> "" Then S &= "  " & ML("in") & " " & Path
+		If Name_ = "Grep" Then
+			Path = AIJText(AIJMember(InputJson, "glob"))
+			If Path <> "" Then S &= "  (" & Path & ")"
+		End If
+	Case "WebFetch"
+		S = AIJText(AIJMember(InputJson, "url"))
+	Case "WebSearch", "ToolSearch"
+		S = AIJText(AIJMember(InputJson, "query"))
+	Case "Task", "Agent"
+		S = AIJText(AIJMember(InputJson, "description"))
+	Case "Skill"
+		S = AIJText(AIJMember(InputJson, "skill"))
+	Case "TodoWrite"
+		Dim As UString Todos(Any)
+		S = Str(AIJItems(AIJMember(InputJson, "todos"), Todos())) & " " & ML("tasks")
+	End Select
+	If S = "" Then
+		'The first string of the input
+		Dim As UString JKeys(Any), JValues(Any)
+		Dim As Integer n = AIJMembers(InputJson, JKeys(), JValues())
+		For i As Integer = 0 To n - 1
+			If Left(JValues(i), 1) = """" Then S = AIJText(JValues(i)): Exit For
+		Next
+	End If
+	Return AIFirstLine(S)
+End Function
+
+'The lines of the change of Edit: - the old lines, + the new ones
+Function AIToolDiff(ByRef OldText As WString, ByRef NewText As WString) As UString
+	Dim As UString Lns(Any), R
+	Dim As Integer n
+	If Len(OldText) > 0 Then
+		n = AISplitLines(OldText, Lns())
+		For i As Integer = 0 To n - 1
+			R &= "- " & Lns(i) & !"\n"
+		Next
+	End If
+	If Len(NewText) > 0 Then
+		n = AISplitLines(NewText, Lns())
+		For i As Integer = 0 To n - 1
+			R &= "+ " & Lns(i) & !"\n"
+		Next
+	End If
+	If Right(R, 1) = !"\n" Then R = Left(R, Len(R) - 1)
+	Return R
+End Function
+
+'The details of a call (markdown): its input as it is shown in Claude Code (the command, the change, the text of the
+'file) and the other members of it, then its result
+Function AIToolBodyMD(ByRef Name_ As WString, ByRef InputJson As WString, ByRef Result As WString, State As Integer) As UString
+	Dim As UString R, Shown = "|", JKeys(Any), JValues(Any), Rest, V, Items(Any)
+	Dim As Integer n
+	Select Case Name_
+	Case "Bash", "PowerShell"
+		V = AIJText(AIJMember(InputJson, "description"))
+		If V <> "" Then
+			'The description as a text (its characters of markdown escaped)
+			Dim As UString Esc
+			For c As Integer = 0 To Len(V) - 1
+				If V[c] = 10 OrElse V[c] = 13 Then
+					Esc &= " "
+				ElseIf InStr("\`*_[]()#+-.!|~<>", WChr(V[c])) > 0 Then
+					Esc &= "\" & WChr(V[c])
+				Else
+					Esc &= WChr(V[c])
+				End If
+			Next
+			R &= "*" & Esc & !"*\n\n"
+		End If
+		R &= AIFence(Name_, AIJText(AIJMember(InputJson, "command")))
+		Shown &= "description|command|"
+	Case "Edit"
+		R &= AIFence(AIFileNameOf(AIJText(AIJMember(InputJson, "file_path"))), AIToolDiff(AIJText(AIJMember(InputJson, "old_string")), AIJText(AIJMember(InputJson, "new_string"))))
+		Shown &= "file_path|old_string|new_string|"
+	Case "MultiEdit"
+		n = AIJItems(AIJMember(InputJson, "edits"), Items())
+		For k As Integer = 0 To n - 1
+			R &= AIFence(AIFileNameOf(AIJText(AIJMember(InputJson, "file_path"))) & " (" & Str(k + 1) & "/" & Str(n) & ")", AIToolDiff(AIJText(AIJMember(Items(k), "old_string")), AIJText(AIJMember(Items(k), "new_string"))))
+		Next
+		Shown &= "file_path|edits|"
+	Case "Write"
+		R &= AIFence(AIFileNameOf(AIJText(AIJMember(InputJson, "file_path"))), AIJText(AIJMember(InputJson, "content")))
+		Shown &= "file_path|content|"
+	Case "Read"
+		Shown &= "file_path|"
+	Case "TodoWrite"
+		n = AIJItems(AIJMember(InputJson, "todos"), Items())
+		For k As Integer = 0 To n - 1
+			Select Case AIJText(AIJMember(Items(k), "status"))
+			Case "completed": V = WChr(9745)
+			Case "in_progress": V = WChr(9680)
+			Case Else: V = WChr(9744)
+			End Select
+			R &= "- " & V & " " & AIJText(AIJMember(Items(k), "content")) & !"\n"
+		Next
+		If n > 0 Then R &= !"\n"
+		Shown &= "todos|"
+	End Select
+	'The other members of the input
+	n = AIJMembers(InputJson, JKeys(), JValues())
+	For i As Integer = 0 To n - 1
+		If InStr(Shown, "|" & JKeys(i) & "|") > 0 Then Continue For
+		If Rest <> "" Then Rest &= !"\n"
+		Rest &= JKeys(i) & ": " & AIJText(JValues(i))
+	Next
+	If Rest <> "" Then R &= AIFence(ML("Input"), Rest)
+	Select Case State
+	Case AITOOL_RUNNING
+		R &= ML("Running") & "..." & !"\n"
+	Case AITOOL_DONE, AITOOL_ERROR
+		If Trim(Result, Any !" \t\r\n") = "" Then
+			R &= IIf(State = AITOOL_ERROR, ML("Error"), ML("No output")) & !"\n"
+		Else
+			R &= AIFence(IIf(State = AITOOL_ERROR, ML("Error"), ML("Output")), Result)
+		End If
+	End Select
+	Return R
+End Function
+
+'The text of a block of a call for the RTF view (a code block)
+Function AIToolBlockRTF(ByRef Chunk As WString) As UString
+	Dim As UString EndMark = !"\n~~~vfb-end", NL = !"\n"
+	Dim As Integer P1 = InStr(2, Chunk, NL), P2 = InStrRev(Chunk, EndMark)
+	If P1 = 0 OrElse P2 <= P1 Then Return ""
+	Dim As UString Head = Mid(Chunk, 2, P1 - 2), Body = Mid(Chunk, P1 + 1, P2 - P1 - 1)
+	If Left(Head, 9) = "~~~vfb-in" Then
+		Dim As UString JKeys(Any), JValues(Any), Rest
+		Dim As Integer n = AIJMembers(Body, JKeys(), JValues())
+		For i As Integer = 0 To n - 1
+			If Rest <> "" Then Rest &= !"\n"
+			Rest &= JKeys(i) & ": " & AIJText(JValues(i))
+		Next
+		Return !"\n```\n" & Rest & !"\n```\n"
+	End If
+	If Trim(Body, Any !" \t\r\n") = "" Then Return ""
+	Return !"\n```\n" & Body & !"\n```\n"
+End Function
+
+'Adds the blocks of the calls of a part of the chat (the lines "-> Name", their inputs and results, the pictures):
+'a fold for each call (FoldKind 3: Marker the name, Lang the input, Text the result, Level the state)
+Sub AIAddToolBlocks(ByRef Raw As WString, Blocks() As AIBlock, ByRef Count As Integer)
+	Dim As UString Lns(Any), T, ID, Body, IDs(Any)
+	Dim As Integer n = AISplitLines(Raw, Lns()), i, First = Count, k, Found
+	Dim As Boolean IsIn, IsError
+	ReDim IDs(n)
+	Do While i < n
+		T = Trim(Lns(i), Any !" \t")
+		If AIIsToolLine(T) Then
+			AIAddBlock(Blocks(), Count, abFold, "")
+			Blocks(Count - 1).FoldKind = 3
+			Blocks(Count - 1).Marker = Trim(Mid(T, 3))
+			Blocks(Count - 1).Level = AITOOL_NODETAILS
+			i += 1
+		ElseIf AIIsToolBlockLine(T) Then
+			IsIn = Left(T, 9) = "~~~vfb-in"
+			ID = Trim(Mid(T, IIf(IsIn, 10, 11)))
+			IsError = Right(ID, 6) = " error"
+			If IsError Then ID = Trim(Left(ID, Len(ID) - 6))
+			Body = ""
+			i += 1
+			Do While i < n
+				If Left(Lns(i), 11) = "~~~vfb-end " AndAlso Trim(Mid(Lns(i), 12)) = ID Then i += 1: Exit Do
+				If Body = "" AndAlso k = 0 Then Body = Lns(i) Else Body &= !"\n" & Lns(i)
+				k += 1
+				i += 1
+			Loop
+			k = 0
+			Found = -1
+			If IsIn Then
+				'The first call without its input
+				For b As Integer = First To Count - 1
+					If Blocks(b).Kind = abFold AndAlso Blocks(b).FoldKind = 3 AndAlso Blocks(b).Level = AITOOL_NODETAILS Then Found = b: Exit For
+				Next
+				If Found < 0 Then
+					AIAddBlock(Blocks(), Count, abFold, "")
+					Blocks(Count - 1).FoldKind = 3
+					Found = Count - 1
+				End If
+				Blocks(Found).Lang = Body
+				Blocks(Found).Level = AITOOL_RUNNING
+				IDs(Found - First) = ID
+			Else
+				For b As Integer = First To Count - 1
+					If Blocks(b).Kind = abFold AndAlso Blocks(b).FoldKind = 3 AndAlso IDs(b - First) = ID Then Found = b: Exit For
+				Next
+				If Found < 0 Then
+					AIAddBlock(Blocks(), Count, abFold, "")
+					Blocks(Count - 1).FoldKind = 3
+					Blocks(Count - 1).Marker = ML("Result")
+					Found = Count - 1
+				End If
+				Blocks(Found).Text = Body
+				Blocks(Found).Level = IIf(IsError, AITOOL_ERROR, AITOOL_DONE)
+			End If
+			If Count - First > UBound(IDs) Then ReDim Preserve IDs(Count - First + n)
+		ElseIf Left(T, 2) = "![" AndAlso InStr(T, "](") > 0 Then
+			AIAddBlock(Blocks(), Count, abImage, Mid(T, InStr(T, "](") + 2, Len(T) - InStr(T, "](") - 2))
+			Blocks(Count - 1).Marker = Mid(T, 3, InStr(T, "](") - 3)
+			i += 1
+		Else
+			i += 1
+		End If
+		If Count - First > UBound(IDs) Then ReDim Preserve IDs(Count - First + n)
+	Loop
+End Sub
+
+Function AILineCount(ByRef S As WString) As Integer
+	If Len(S) = 0 Then Return 0
+	Dim As Integer n = 1, P = InStr(S, !"\n")
+	Do While P > 0
+		If P < Len(S) Then n += 1
+		P = InStr(P + 1, S, !"\n")
+	Loop
+	Return n
+End Function
+
+'The lines added and removed by a call (Edit, MultiEdit, Write)
+Sub AIToolDiffCount(ByRef Name_ As WString, ByRef InputJson As WString, ByRef Added As Integer, ByRef Removed As Integer)
+	Dim As UString Items(Any)
+	Select Case Name_
+	Case "Edit"
+		Removed += AILineCount(AIJText(AIJMember(InputJson, "old_string")))
+		Added += AILineCount(AIJText(AIJMember(InputJson, "new_string")))
+	Case "MultiEdit"
+		Dim As Integer n = AIJItems(AIJMember(InputJson, "edits"), Items())
+		For k As Integer = 0 To n - 1
+			Removed += AILineCount(AIJText(AIJMember(Items(k), "old_string")))
+			Added += AILineCount(AIJText(AIJMember(Items(k), "new_string")))
+		Next
+	Case "Write"
+		Added += AILineCount(AIJText(AIJMember(InputJson, "content")))
+	End Select
+End Sub
+
+Function AICountText(n As Integer, ByRef One As WString, ByRef Many As WString) As UString
+	Return Str(n) & " " & IIf(n = 1, ML(One), ML(Many))
+End Function
+
+'The title of the calls of a part of the chat as in Claude Code: Ran 6 commands, edited 2 files (and the lines added
+'and removed by them), read 3 files ...
+Function AIToolsGroupTitle(ByRef Raw As WString, ByRef Added As Integer, ByRef Removed As Integer) As UString
+	Dim As AIBlock Blocks(Any)
+	Dim As Integer Count = AIParseBlocks(Raw, Blocks(), True)
+	Dim As Integer Cmds, Reads, Searches, Webs, Agents, Others, Edited
+	Dim As Boolean Tasks
+	Dim As UString Files = "|", Path, R
+	Added = 0: Removed = 0
+	For b As Integer = 0 To Count - 1
+		If Blocks(b).Kind <> abFold OrElse Blocks(b).FoldKind <> 3 Then Continue For
+		Select Case Blocks(b).Marker
+		Case "Bash", "PowerShell": Cmds += 1
+		Case "Read": Reads += 1
+		Case "Grep", "Glob": Searches += 1
+		Case "WebFetch", "WebSearch": Webs += 1
+		Case "Task", "Agent": Agents += 1
+		Case "TodoWrite", "TaskCreate", "TaskUpdate", "TaskList", "TaskGet": Tasks = True
+		Case "Edit", "MultiEdit", "Write", "NotebookEdit"
+			Path = LCase(AIJText(AIJMember(Blocks(b).Lang, IIf(Blocks(b).Marker = "NotebookEdit", "notebook_path", "file_path"))))
+			If InStr(Files, "|" & Path & "|") = 0 Then Files &= Path & "|": Edited += 1
+			AIToolDiffCount(Blocks(b).Marker, Blocks(b).Lang, Added, Removed)
+		Case Else: Others += 1
+		End Select
+	Next
+	If Cmds > 0 Then R &= ", " & ML("ran") & " " & AICountText(Cmds, "command", "commands")
+	If Edited > 0 Then R &= ", " & ML("edited") & " " & AICountText(Edited, "file", "files")
+	If Reads > 0 Then R &= ", " & ML("read") & " " & AICountText(Reads, "file", "files")
+	If Searches > 0 Then R &= ", " & ML("searched") & " " & AICountText(Searches, "time", "times")
+	If Webs > 0 Then R &= ", " & ML("opened") & " " & AICountText(Webs, "web page", "web pages")
+	If Agents > 0 Then R &= ", " & ML("ran") & " " & AICountText(Agents, "agent", "agents")
+	If Tasks Then R &= ", " & ML("updated the tasks")
+	If Others > 0 Then R &= ", " & ML("used") & " " & AICountText(Others, "tool", "tools")
+	R = Mid(R, 3)
+	If Len(R) > 0 Then R = UCase(Left(R, 1)) & Mid(R, 2)
+	Return R
+End Function
+
+'The task list of a message (TodoWrite, TaskCreate and TaskUpdate of Claude Code): the lines "status|text"
+Function AITaskList(ByRef Body As WString) As UString
+	Dim As AIBlock Blocks(Any), Inner(Any)
+	Dim As Integer Count = AIParseBlocks(Body, Blocks()), IC, n, P
+	Dim As UString IDs(Any), Texts(Any), States(Any), Items(Any), ID, St
+	Dim As Integer TC
+	Dim As Boolean Found
+	For b As Integer = 0 To Count - 1
+		If Blocks(b).Kind <> abFold Then Continue For
+		If Blocks(b).FoldKind = 2 Then
+			IC = AIParseBlocks(Blocks(b).Text, Inner(), True)
+		ElseIf Blocks(b).FoldKind = 3 Then
+			IC = 1: ReDim Inner(0): Inner(0) = Blocks(b)
+		Else
+			Continue For
+		End If
+		For i As Integer = 0 To IC - 1
+			If Inner(i).Kind <> abFold OrElse Inner(i).FoldKind <> 3 OrElse Inner(i).Lang = "" Then Continue For
+			Found = True
+			Select Case Inner(i).Marker
+			Case "TodoWrite"
+				n = AIJItems(AIJMember(Inner(i).Lang, "todos"), Items())
+				TC = n
+				ReDim IDs(n), Texts(n), States(n)
+				For k As Integer = 0 To n - 1
+					States(k) = AIJText(AIJMember(Items(k), "status"))
+					Texts(k) = AIJText(AIJMember(Items(k), IIf(States(k) = "in_progress" AndAlso AIJMember(Items(k), "activeForm") <> "", "activeForm", "content")))
+					IDs(k) = Str(k + 1)
+				Next
+			Case "TaskCreate"
+				'The number of the task is in the result: Task #3 created ...
+				P = InStr(Inner(i).Text, "#")
+				If P > 0 Then ID = Str(Val(Mid(Inner(i).Text, P + 1))) Else ID = Str(TC + 1)
+				ReDim Preserve IDs(TC), Texts(TC), States(TC)
+				IDs(TC) = ID: Texts(TC) = AIJText(AIJMember(Inner(i).Lang, "subject")): States(TC) = "pending"
+				TC += 1
+			Case "TaskUpdate"
+				ID = AIJText(AIJMember(Inner(i).Lang, "taskId"))
+				St = AIJText(AIJMember(Inner(i).Lang, "status"))
+				For k As Integer = 0 To TC - 1
+					If IDs(k) = ID Then
+						If St <> "" Then States(k) = St
+						If AIJMember(Inner(i).Lang, "subject") <> "" Then Texts(k) = AIJText(AIJMember(Inner(i).Lang, "subject"))
+						Exit For
+					End If
+				Next
+			Case Else
+				Found = False
+			End Select
+		Next
+	Next
+	Dim As UString R
+	For k As Integer = 0 To TC - 1
+		If States(k) = "deleted" Then Continue For
+		R &= States(k) & "|" & Texts(k) & !"\n"
+	Next
+	Return R
+End Function
+
+'The call of a tool which runs (its name and what it does)
+Function AIRunningTool(ByRef Body As WString) As UString
+	Dim As AIBlock Blocks(Any), Inner(Any)
+	Dim As Integer Count = AIParseBlocks(Body, Blocks()), IC
+	Dim As UString R
+	For b As Integer = 0 To Count - 1
+		If Blocks(b).Kind <> abFold Then Continue For
+		If Blocks(b).FoldKind = 2 Then
+			IC = AIParseBlocks(Blocks(b).Text, Inner(), True)
+			For i As Integer = 0 To IC - 1
+				If Inner(i).Kind = abFold AndAlso Inner(i).FoldKind = 3 AndAlso Inner(i).Level = AITOOL_RUNNING Then R = Inner(i).Marker & "  " & AIToolSummary(Inner(i).Marker, Inner(i).Lang)
+			Next
+		ElseIf Blocks(b).FoldKind = 3 AndAlso Blocks(b).Level = AITOOL_RUNNING Then
+			R = Blocks(b).Marker & "  " & AIToolSummary(Blocks(b).Marker, Blocks(b).Lang)
+		End If
+	Next
+	Return R
+End Function
+
+'The title of a call: its name and what it does, ... while it runs
+Function AIToolTitleText(ByRef B As AIBlock) As UString
+	Dim As UString S = IIf(B.Lang <> "", AIToolSummary(B.Marker, B.Lang), "")
+	If B.Level = AITOOL_RUNNING Then S &= IIf(S <> "", "  ", "") & "..."
+	Return S
+End Function
+
+' ==========================================
 ' HTML (WebView2, IE)
 ' ==========================================
 
@@ -787,10 +1477,55 @@ Function AIFileUrl(ByRef Path As WString) As UString
 	#endif
 End Function
 
+Function AIDiffHtml(Added As Integer, Removed As Integer) As UString
+	Dim As UString R
+	If Added > 0 Then R &= "<span class=""ad"">+" & Str(Added) & "</span>"
+	If Removed > 0 Then R &= "<span class=""rm"">" & WChr(8722) & Str(Removed) & "</span>"
+	Return R
+End Function
+
+'The lines status|text of the tasks: their states and texts, the number of the done ones
+Function AITaskCounts(ByRef Tasks As WString, St() As UString, Tx() As UString, ByRef Done As Integer) As Integer
+	Dim As UString Lns(Any)
+	Dim As Integer n = AISplitLines(Tasks, Lns()), Count, P
+	Erase St, Tx
+	Done = 0
+	For i As Integer = 0 To n - 1
+		P = InStr(Lns(i), "|")
+		If P = 0 Then Continue For
+		ReDim Preserve St(Count), Tx(Count)
+		St(Count) = Left(Lns(i), P - 1): Tx(Count) = Mid(Lns(i), P + 1)
+		If St(Count) = "completed" Then Done += 1
+		Count += 1
+	Next
+	Return Count
+End Function
+
+'The mark of the state of a task: done, running (it turns each second), waiting
+Function AITaskMark(ByRef St As WString) As UString
+	Select Case St
+	Case "completed": Return WChr(10003)
+	Case "in_progress": Return WChr(9680 + (Int(Timer) Mod 4))
+	Case Else: Return WChr(9675)
+	End Select
+End Function
+
+Function AITasksHtml(ByRef Tasks As WString) As UString
+	Dim As UString St(Any), Tx(Any), H, CssClass
+	Dim As Integer Done, n = AITaskCounts(Tasks, St(), Tx(), Done)
+	If n = 0 Then Return ""
+	H = "<div class=""tasks""><div class=""tt"">" & AIHtmlEscape(ML("Tasks")) & " " & Str(Done) & "/" & Str(n) & "</div>"
+	For i As Integer = 0 To n - 1
+		CssClass = IIf(St(i) = "completed", "ti done", IIf(St(i) = "in_progress", "ti now", "ti"))
+		H &= "<div class=""" & CssClass & """><span class=""tk"">" & AITaskMark(St(i)) & "</span>" & AIHtmlEscape(Tx(i)) & "</div>"
+	Next
+	Return H & "</div>"
+End Function
+
 'The HTML of the blocks of a markdown text; KeyPrefix makes the keys of the folds (thinking, tools) of a message
-Function AIBlocksHtml(ByRef MD As WString, ByRef KeyPrefix As WString = "") As UString
+Function AIBlocksHtml(ByRef MD As WString, ByRef KeyPrefix As WString = "", ToolsApart As Boolean = False) As UString
 	Dim As AIBlock Blocks(Any)
-	Dim As Integer Count = AIParseBlocks(MD, Blocks()), FoldNo
+	Dim As Integer Count = AIParseBlocks(MD, Blocks(), ToolsApart), FoldNo
 	Dim As UString H, Key, Title, Body, Caption
 	For b As Integer = 0 To Count - 1
 		Select Case Blocks(b).Kind
@@ -812,17 +1547,46 @@ Function AIBlocksHtml(ByRef MD As WString, ByRef KeyPrefix As WString = "") As U
 			Caption = Blocks(b).Marker
 			If Caption = "" Then Caption = Blocks(b).Text
 			H &= "<div class=""img""><a href=""#"" data-u=""" & AIHtmlEscape(Blocks(b).Text) & """><img src=""" & AIHtmlEscape(AIFileUrl(Blocks(b).Text)) & """ alt="""" onerror=""this.style.display='none'""><br>" & AIHtmlEscape(Caption) & "</a></div>"
+		Case abTasks
+			H &= AITasksHtml(Blocks(b).Text)
+		Case abStatus
+			H &= "<div class=""st""><span class=""sp"">" & WChr(9680 + (Int(Timer) Mod 4)) & "</span> " & AIHtmlEscape(Blocks(b).Text) & "</div>"
 		Case abFold
-			Key = KeyPrefix & Str(FoldNo)
-			FoldNo += 1
-			If Blocks(b).FoldKind = 1 Then
+			Select Case Blocks(b).FoldKind
+			Case 1
+				Key = KeyPrefix & Str(FoldNo)
 				Title = AIThinkTitle(Blocks(b).Closed)
 				Body = AIBlocksHtml(Blocks(b).Text, Key & ".")
-			Else
-				Title = AIToolsTitle(Blocks(b).Text, Blocks(b).Level)
-				Body = "<div class=""tl"">" & Replace(AIHtmlEscape(Blocks(b).Text), !"\n", "</div><div class=""tl"">") & "</div>"
-			End If
-			H &= "<div class=""fold"" data-k=""" & Key & """><div class=""fh"" data-f=""1"">" & AIHtmlEscape(Title) & "</div><div class=""fb"">" & Body & "</div></div>"
+				H &= "<div class=""fold"" data-k=""" & Key & """><div class=""fh"" data-f=""1"">" & AIHtmlEscape(Title) & "</div><div class=""fb"">" & Body & "</div></div>"
+			Case 2
+				'The calls of the tools: the fold is open, the key is of its closing
+				Key = KeyPrefix & "g" & Str(FoldNo)
+				Dim As Integer Added, Removed
+				'The numbers of the lines are known after the title is made
+				Title = "<span class=""el"">" & AIHtmlEscape(AIToolsGroupTitle(Blocks(b).Text, Added, Removed)) & "</span>"
+				Title &= AIDiffHtml(Added, Removed)
+				Body = AIBlocksHtml(Blocks(b).Text, Key & ".", True)
+				H &= "<div class=""fold open"" data-k=""" & Key & """ data-d=""1""><div class=""fh fx"" data-f=""1"">" & Title & "</div><div class=""fb"">" & Body & "</div></div>"
+			Case 3
+				'A call: its name and what it does, in it its input and its result
+				If ToolsApart Then Key = KeyPrefix & Str(FoldNo) Else Key = KeyPrefix & "g" & Str(FoldNo) & ".0"
+				Title = "<b>" & AIHtmlEscape(Blocks(b).Marker) & "</b>"
+				Caption = AIToolTitleText(Blocks(b))
+				If Caption <> "" Then Title &= "<span class=""ts el"">" & AIHtmlEscape(Caption) & "</span>"
+				If Blocks(b).Lang <> "" Then
+					Dim As Integer TA, TR
+					AIToolDiffCount(Blocks(b).Marker, Blocks(b).Lang, TA, TR)
+					Title &= AIDiffHtml(TA, TR)
+				End If
+				If Blocks(b).Level = AITOOL_ERROR Then Title &= "<span class=""te"">" & WChr(10007) & "</span>"
+				If Blocks(b).Level = AITOOL_NODETAILS Then
+					H &= "<div class=""tl"">" & Title & "</div>"
+				Else
+					Body = AIBlocksHtml(AIToolBodyMD(Blocks(b).Marker, Blocks(b).Lang, Blocks(b).Text, Blocks(b).Level), Key & ".")
+					H &= "<div class=""fold tool"" data-k=""" & Key & """><div class=""fh fx"" data-f=""1"">" & Title & "</div><div class=""fb"">" & Body & "</div></div>"
+				End If
+			End Select
+			FoldNo += 1
 		End Select
 	Next
 	Return H
@@ -865,7 +1629,12 @@ Function AIChatHtmlShell() As UString
 	".fold{margin:2px 0 8px 0}.fh{color:" & MU & ";cursor:pointer;display:inline-block;padding:1px 0}.fh:hover{color:" & FG & "}" & _
 	".fh:before{content:'\25B8\00a0\00a0'}.fold.open>.fh:before{content:'\25BE\00a0\00a0'}" & _
 	".fb{display:none;margin:4px 0 0 5px;padding:2px 0 2px 12px;border-left:2px solid " & BO & "}.fold.open>.fb{display:block}" & _
-	".tl{font-family:" & CodeFont & ";font-size:90%;color:" & MU & "}" & _
+	".tl{color:" & MU & ";padding:1px 0}" & _
+	".tool{margin:1px 0 3px 0}.fh.fx{display:flex;white-space:nowrap}.fx>*{flex:none;margin-right:.45em}.fx>.el{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis}" & _
+	".ts{font-family:" & CodeFont & ";font-size:92%}.te{color:#d04040}.ad{color:#3fa34d}.rm{color:#d04040}" & _
+	".tasks{margin:6px 0 10px 0;border:1px solid " & BO & ";border-radius:8px;padding:6px 10px}.tt{font-size:85%;color:" & MU & ";margin-bottom:3px}" & _
+	".ti{padding:1px 0 1px 1.5em;text-indent:-1.5em}.tk{display:inline-block;width:1.5em;text-indent:0;color:" & MU & "}.ti.done{color:" & MU & "}.ti.now{font-weight:600}" & _
+	".st{color:" & MU & ";margin:4px 0 8px 0}.sp{display:inline-block;width:1.2em}" & _
 	".img img{max-width:100%;border-radius:6px}" & _
 	"#vfbq{position:absolute;left:-10000px;top:0;width:10px;height:10px;overflow:hidden}" & _
 	"</style><script>" & _
@@ -884,7 +1653,8 @@ Function AIChatHtmlShell() As UString
 	"if(!m){m=document.createElement('div');m.id='m'+i;c.appendChild(m);}" & _
 	"m.className='msg '+(u?'user':'ai');" & _
 	"m.innerHTML=(h?'<div class=""hdr"">'+h+'</div>':'')+(u?'<div class=""bubble"">'+html+'</div>':html);" & _
-	"var d=m.getElementsByTagName('div');for(var k=0;k<d.length;k++){var key=d[k].getAttribute('data-k');if(key&&openF[i+':'+key])d[k].className+=' open';}}" & _
+	"var d=m.getElementsByTagName('div');for(var k=0;k<d.length;k++){var key=d[k].getAttribute('data-k');if(!key)continue;var v=openF[i+':'+key];" & _
+	"if(v===true&&!/\bopen\b/.test(d[k].className))d[k].className+=' open';else if(v===false)d[k].className=d[k].className.replace(/\s*\bopen\b/,'');}}" & _
 	"function msgIndex(t){while(t&&!(t.id&&t.id.charAt(0)=='m'))t=t.parentNode;return t?t.id.substring(1):'';}" & _
 	"function sel(){try{return window.getSelection?String(window.getSelection()):document.selection.createRange().text;}catch(e){return '';}}" & _
 	"document.onclick=function(e){e=e||window.event;var t=e.target||e.srcElement;" & _
@@ -1951,9 +2721,54 @@ Declare Sub AIChatSetViewMode(Mode As Integer, SaveMode As Boolean = True)
 		Return Y + 1
 	End Function
 
-	Function AICLayoutBlocks(ByRef MD As WString, X0 As Long, W As Long, ByVal Y As Long, ByRef KeyPrefix As WString) As Long
+	'The lines added (green) and removed (red) after a title: the width of them
+	Function AICDiffOps(X As Long, Y As Long, LineH As Long, Added As Integer, Removed As Integer) As Long
+		Dim As Long W0, TW
+		Dim As UString T
+		If Added > 0 Then
+			T = "  +" & Str(Added)
+			TW = AICTextW(T, 0)
+			AICAddOp(1, X + W0, Y + (LineH - AICFontH(0)) \ 2, TW, AICFontH(0), 0, IIf(AIChatIsDark(), &H5BC46A, &H2E8B3E), 0, T)
+			W0 += TW
+		End If
+		If Removed > 0 Then
+			T = "  " & WChr(8722) & Str(Removed)
+			TW = AICTextW(T, 0)
+			AICAddOp(1, X + W0, Y + (LineH - AICFontH(0)) \ 2, TW, AICFontH(0), 0, IIf(AIChatIsDark(), &HF07272, &HC83232), 0, T)
+			W0 += TW
+		End If
+		If X + W0 > AICMaxX Then AICMaxX = X + W0
+		Return W0
+	End Function
+
+	'The tasks of Claude Code in a frame: Tasks 2/6, the mark of the state and the text of each of them
+	Function AICLayoutTasks(ByRef Tasks As WString, X0 As Long, W As Long, ByVal Y As Long) As Long
+		Dim As UString St(Any), Tx(Any), Head, Mark
+		Dim As Integer Done, n = AITaskCounts(Tasks, St(), Tx(), Done)
+		If n = 0 Then Return Y
+		Dim As Long Top = Y, Pad = AICScale(10), SmallH = AICFontH(8), LineH = AICLineH(0), MW = AICScale(20), First
+		'The frame first (its texts are drawn over it)
+		First = AICMsgs(AICCur).OpCount
+		AICAddOp(3, X0, Top, W, 0, 0, AICColors.Back, AICColors.Border)
+		Y += AICScale(6)
+		Head = ML("Tasks") & " " & Str(Done) & "/" & Str(n)
+		AICAddOp(1, X0 + Pad, Y, AICTextW(Head, 8), SmallH, 8, AICColors.Muted, 0, Head)
+		Y += SmallH + AICScale(4)
+		For i As Integer = 0 To n - 1
+			Mark = AITaskMark(St(i))
+			AICAddOp(1, X0 + Pad, Y + (LineH - AICFontH(0)) \ 2, AICTextW(Mark, 0), AICFontH(0), 0, AICColors.Muted, 0, Mark)
+			Y = AICFlow(Tx(i), X0 + Pad + MW, W - 2 * Pad - MW, Y, IIf(St(i) = "in_progress", 1, 0), IIf(St(i) = "completed", AICColors.Muted, AICColors.Fore))
+		Next
+		Y += AICScale(6)
+		AICMsgs(AICCur).Ops(First).H = Y - Top
+		If X0 + W > AICMaxX Then AICMaxX = X0 + W
+		Return Y
+	End Function
+
+	Function AICLayoutBlocks(ByRef MD As WString, X0 As Long, W As Long, ByVal Y As Long, ByRef KeyPrefix As WString, ToolsApart As Boolean = False) As Long
 		Dim As AIBlock Blocks(Any)
-		Dim As Integer Count = AIParseBlocks(MD, Blocks()), FoldNo
+		Dim As Integer Count = AIParseBlocks(MD, Blocks(), ToolsApart), FoldNo
+		Dim As Integer DiffAdded, DiffRemoved
 		'The margins of the browser: p 8px, li 3px, h 12px over and 6px under
 		Dim As Long Gap = AICScale(8), Ind, MW, LineH = AICLineH(0), Top, TW
 		Dim As UString Key, Title, Caption
@@ -2005,31 +2820,103 @@ Declare Sub AIChatSetViewMode(Mode As Integer, SaveMode As Boolean = True)
 				Else
 					Y = AICFlow("[" & ML("Image") & ": " & Caption & "](" & Blocks(b).Text & ")", X0, W, Y, 0, AICColors.Fore) + Gap
 				End If
+			Case abTasks
+				Y = AICLayoutTasks(Blocks(b).Text, X0, W, Y) + Gap
+			Case abStatus
+				Dim As UString StatusText = AITaskMark("in_progress") & "  " & Blocks(b).Text
+				Dim As Integer StatusFit = AICFitChars(StatusText, 0, 0, W)
+				If StatusFit < Len(StatusText) Then StatusText = Left(StatusText, Max(StatusFit - 3, 1)) & "..."
+				AICAddOp(1, X0, Y + (LineH - AICFontH(0)) \ 2, AICTextW(StatusText, 0), AICFontH(0), 0, AICColors.Muted, 0, StatusText)
+				Y += LineH + Gap
 			Case abFold
-				Key = KeyPrefix & Str(FoldNo)
-				FoldNo += 1
-				IsOpen = AICIsOpen(Key)
-				If Blocks(b).FoldKind = 1 Then
+				Select Case Blocks(b).FoldKind
+				Case 1
+					Key = KeyPrefix & Str(FoldNo)
+					IsOpen = AICIsOpen(Key)
 					Title = AIThinkTitle(Blocks(b).Closed)
-				Else
-					Title = AIToolsTitle(Blocks(b).Text, Blocks(b).Level)
-				End If
-				Title = IIf(IsOpen, WChr(9662), WChr(9656)) & "  " & Title
-				TW = AICTextW(Title, 0)
-				AICAddOp(1, X0, Y + (LineH - AICFontH(0)) \ 2, TW, AICFontH(0), 0, AICColors.Muted, 0, Title)
-				AICAddOp(6, X0, Y, TW, LineH, 0, 0, 0, "", "fold:" & Key)
-				If X0 + TW > AICMaxX Then AICMaxX = X0 + TW
-				Y += LineH
-				If IsOpen Then
-					Top = Y
-					If Blocks(b).FoldKind = 2 Then
-						Y = AICFlow("`" & Replace(Blocks(b).Text, !"\n", !"`\n`") & "`", X0 + AICScale(16), W - AICScale(16), Y, 0, AICColors.Muted)
-					Else
-						Y = AICLayoutBlocks(Blocks(b).Text, X0 + AICScale(16), W - AICScale(16), Y, Key & ".")
+				Case 2
+					'The calls of the tools: the fold is open, the key is of its closing
+					Key = KeyPrefix & "g" & Str(FoldNo)
+					IsOpen = Not AICIsOpen(Key)
+					Title = AIToolsGroupTitle(Blocks(b).Text, DiffAdded, DiffRemoved)
+				Case Else
+					If ToolsApart Then Key = KeyPrefix & Str(FoldNo) Else Key = KeyPrefix & "g" & Str(FoldNo) & ".0"
+					IsOpen = AICIsOpen(Key) AndAlso Blocks(b).Level <> AITOOL_NODETAILS
+					Title = ""
+				End Select
+				FoldNo += 1
+				If Blocks(b).FoldKind = 3 Then
+					'A call: the name (bold) and what it does (code), the cross of an error
+					Dim As UString Head = IIf(Blocks(b).Level = AITOOL_NODETAILS, "", IIf(IsOpen, WChr(9662), WChr(9656)) & "  ") & Blocks(b).Marker
+					Dim As UString Summary = AIToolTitleText(Blocks(b))
+					Dim As Long HW = AICTextW(Head, 1), SX, SW, Avail
+					Dim As ULong ErrClr = IIf(AIChatIsDark(), &HF07272, &HC83232)
+					AICAddOp(1, X0, Y + (LineH - AICFontH(1)) \ 2, HW, AICFontH(1), 1, AICColors.Muted, 0, Head)
+					TW = HW
+					If Blocks(b).Level = AITOOL_ERROR Then
+						Dim As UString Cross = "  " & WChr(10007)
+						Dim As Long CW = AICTextW(Cross, 0)
+						AICAddOp(1, X0 + TW, Y + (LineH - AICFontH(0)) \ 2, CW, AICFontH(0), 0, ErrClr, 0, Cross)
+						TW += CW
 					End If
-					AICAddOp(2, X0 + AICScale(5), Top, AICScale(2), Y - Top, 0, AICColors.Border)
+					If Summary <> "" Then
+						SX = X0 + TW + AICTextW("  ", 0)
+						Avail = W - (SX - X0)
+						'The numbers of the lines of Edit and Write stay seen
+						If Blocks(b).Lang <> "" Then
+							Dim As Integer SA, SR
+							AIToolDiffCount(Blocks(b).Marker, Blocks(b).Lang, SA, SR)
+							Avail -= AICTextW(IIf(SA > 0, "  +" & Str(SA), "") & IIf(SR > 0, "  " & WChr(8722) & Str(SR), ""), 0)
+						End If
+						If Avail > AICScale(30) Then
+							SW = AICTextW(Summary, 4)
+							If SW > Avail Then
+								Dim As Integer Fit = AICFitChars(Summary, 0, 4, Avail - AICTextW("...", 4))
+								Summary = Left(Summary, Max(Fit, 1)) & "..."
+								SW = AICTextW(Summary, 4)
+							End If
+							AICAddOp(1, SX, Y + (LineH - AICFontH(4)) \ 2, SW, AICFontH(4), 4, IIf(Blocks(b).Level = AITOOL_ERROR, ErrClr, AICColors.Muted), 0, Summary)
+							TW = SX - X0 + SW
+						End If
+					End If
+					If Blocks(b).Lang <> "" Then
+						DiffAdded = 0: DiffRemoved = 0
+						AIToolDiffCount(Blocks(b).Marker, Blocks(b).Lang, DiffAdded, DiffRemoved)
+						TW += AICDiffOps(X0 + TW, Y, LineH, DiffAdded, DiffRemoved)
+					End If
+					If Blocks(b).Level <> AITOOL_NODETAILS Then AICAddOp(6, X0, Y, TW, LineH, 0, 0, 0, "", "fold:" & Key)
+					If X0 + TW > AICMaxX Then AICMaxX = X0 + TW
+					Y += LineH
+					If IsOpen Then
+						Top = Y + AICScale(2)
+						Y = AICLayoutBlocks(AIToolBodyMD(Blocks(b).Marker, Blocks(b).Lang, Blocks(b).Text, Blocks(b).Level), X0 + AICScale(16), W - AICScale(16), Top, Key & ".")
+						AICAddOp(2, X0 + AICScale(5), Top, AICScale(2), Y - Top, 0, AICColors.Border)
+					End If
+					Y += AICScale(2)
+				Else
+					Title = IIf(IsOpen, WChr(9662), WChr(9656)) & "  " & Title
+					TW = AICTextW(Title, 0)
+					If Blocks(b).FoldKind = 2 AndAlso (DiffAdded > 0 OrElse DiffRemoved > 0) Then
+						'The numbers of the lines stay seen: the title is shortened
+						Dim As Long DW = AICTextW(IIf(DiffAdded > 0, "  +" & Str(DiffAdded), "") & IIf(DiffRemoved > 0, "  " & WChr(8722) & Str(DiffRemoved), ""), 0)
+						If TW + DW > W Then
+							Dim As Integer TitleFit = AICFitChars(Title, 0, 0, Max(W - DW - AICTextW("...", 0), AICScale(30)))
+							Title = Left(Title, Max(TitleFit, 1)) & "..."
+							TW = AICTextW(Title, 0)
+						End If
+					End If
+					AICAddOp(1, X0, Y + (LineH - AICFontH(0)) \ 2, TW, AICFontH(0), 0, AICColors.Muted, 0, Title)
+					If Blocks(b).FoldKind = 2 Then TW += AICDiffOps(X0 + TW, Y, LineH, DiffAdded, DiffRemoved)
+					AICAddOp(6, X0, Y, TW, LineH, 0, 0, 0, "", "fold:" & Key)
+					If X0 + TW > AICMaxX Then AICMaxX = X0 + TW
+					Y += LineH
+					If IsOpen Then
+						Top = Y
+						Y = AICLayoutBlocks(Blocks(b).Text, X0 + AICScale(16), W - AICScale(16), Y, Key & ".", Blocks(b).FoldKind = 2)
+						AICAddOp(2, X0 + AICScale(5), Top, AICScale(2), Y - Top, 0, AICColors.Border)
+					End If
+					Y += Gap \ 2
 				End If
-				Y += Gap \ 2
 			End Select
 		Next
 		Return Y
@@ -2997,6 +3884,7 @@ Declare Sub AIChatSetViewMode(Mode As Integer, SaveMode As Boolean = True)
 		Static As Boolean Busy
 		If Busy OrElse AIChatViewMode = acvRTF Then Exit Sub
 		Busy = True
+		If AIChatStatusTick() Then AIChatViewDirty = True
 		Select Case AIChatViewMode
 		Case acvWebView2
 			If Not AIWV2Started Then AIWV2Start
@@ -3430,6 +4318,7 @@ Declare Sub AIChatSetViewMode(Mode As Integer, SaveMode As Boolean = True)
 		Static As Boolean Busy
 		If Busy Then Return True
 		Busy = True
+		If AIChatStatusTick() Then AIChatViewDirty = True
 		Select Case AIChatViewMode
 		Case acvWebView2
 			If Not AIWKStarted Then AIWKStart

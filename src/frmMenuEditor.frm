@@ -741,7 +741,15 @@ Sub frmMenuEditor.UpdateActiveBounds
 		'The entry of GTK is not lower than its theme allows (higher than the item): it is centered in the box,
 		'else its text was cut below the item; it is as wide as the box (it was 780 pixels wide)
 		Dim As gint MinHeight, NaturalHeight
-		gtk_widget_get_preferred_height(txtActive.Handle, @MinHeight, @NaturalHeight)
+		#if defined(__USE_GTK4__)
+			gtk_widget_measure(txtActive.Handle, GTK_ORIENTATION_VERTICAL, -1, @MinHeight, @NaturalHeight, NULL, NULL)
+		#elseif defined(__USE_GTK2__)
+			Dim As GtkRequisition Requisition
+			gtk_widget_size_request(txtActive.Handle, @Requisition)
+			MinHeight = Requisition.height
+		#else
+			gtk_widget_get_preferred_height(txtActive.Handle, @MinHeight, @NaturalHeight)
+		#endif
 		Dim As Integer EntryHeight = Max(UnScaleY(MinHeight), picActive.Height)
 		Dim As Integer EntryTop = (picActive.Height - EntryHeight) \ 2
 		If txtActive.Left <> 0 OrElse txtActive.Top <> EntryTop OrElse txtActive.Width <> NewWidth OrElse txtActive.Height <> EntryHeight Then

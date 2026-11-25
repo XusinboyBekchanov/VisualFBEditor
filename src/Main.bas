@@ -10870,6 +10870,21 @@ tpAIAgent->Add @pnlAIAgent
 pnlAIAgent.Align = DockStyle.alClient
 pnlAIAgent.Width = tabLeftWidth
 'pnlAIAgent.OnResize = @pnlAIAgent_Resize
+#ifdef __USE_GTK4__
+	'GTK 4: the pin is as big as its button (the theme gives its size), in the middle of the row of the toolbar,
+	'as far from the right edge as from the top (it was smaller than its button and higher than the middle)
+	Sub PinOverlayPlace(ByRef tbPin As ToolBar, tb As Control Ptr, x As gint, y As gint, allocation As GdkRectangle Ptr, ByRef Margin As Integer)
+		Dim As GtkRequisition MinSize, NatSize
+		gtk_widget_get_preferred_size(tbPin.Handle, @MinSize, @NatSize)
+		Dim As Integer RowHeight = gtk_widget_get_allocated_height(tb->Handle)
+		Dim As Integer Gap = Max(0, (RowHeight - NatSize.height) \ 2)
+		allocation->width = NatSize.width
+		allocation->height = NatSize.height
+		allocation->x = x - NatSize.width - Gap
+		allocation->y = y + Gap
+		Margin = tbPin.UnScaleX(NatSize.width + Gap * 2)
+	End Sub
+#endif
 #ifdef __USE_GTK__
 	#ifndef __USE_GTK2__
 		Function OverlayLeft_get_child_position(self As GtkOverlay Ptr, widget As GtkWidget Ptr, allocation As GdkRectangle Ptr, user_data As Any Ptr) As Boolean
@@ -10882,14 +10897,22 @@ pnlAIAgent.Width = tabLeftWidth
 			#else
 				gtk_widget_translate_coordinates(tb->Handle, pnlLeft.Handle, tb->ScaleX(pnlLeft.Width), 0, @x, @y)
 			#endif
-			tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
-			tbExplorer.ExtraMargins.Right = tbLeft.Width - 10
-			tbForm.ExtraMargins.Right = tbLeft.Width - 10
-			tbAIAgent.ExtraMargins.Right = tbLeft.Width - 10
-			allocation->x = x - tbLeft.ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0)
-			allocation->y = y
-			allocation->width = tbLeft.ScaleX(tbLeft.Width)
-			allocation->height = tbLeft.ScaleY(tbLeft.Height)
+			#ifdef __USE_GTK4__
+				Dim As Integer Margin
+				PinOverlayPlace tbLeft, tb, x - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0), y, allocation, Margin
+				If tbExplorer.ExtraMargins.Right <> Margin Then tbExplorer.ExtraMargins.Right = Margin
+				If tbForm.ExtraMargins.Right <> Margin Then tbForm.ExtraMargins.Right = Margin
+				If tbAIAgent.ExtraMargins.Right <> Margin Then tbAIAgent.ExtraMargins.Right = Margin
+			#else
+				tbLeft.Width = tbLeft.Buttons.Item(0)->Width + tbLeft.Height - tbLeft.Buttons.Item(0)->Height
+				tbExplorer.ExtraMargins.Right = tbLeft.Width - 10
+				tbForm.ExtraMargins.Right = tbLeft.Width - 10
+				tbAIAgent.ExtraMargins.Right = tbLeft.Width - 10
+				allocation->x = x - tbLeft.ScaleX(tbLeft.Width) - IIf(tabLeft.TabPosition = TabPosition.tpLeft, x - pnlLeft.ScaleX(pnlLeft.Width), 0)
+				allocation->y = y
+				allocation->width = tbLeft.ScaleX(tbLeft.Width)
+				allocation->height = tbLeft.ScaleY(tbLeft.Height)
+			#endif
 			Return True
 		End Function
 	#endif
@@ -11389,6 +11412,16 @@ Var tbAIModels = tbAIAgent.Buttons.Add(tbsCustom)
 cboAIAgentModels.Width = 2
 tbAIModels->Child = @cboAIAgentModels
 tbAIModels->Expand = True
+#ifdef __USE_GTK__
+	'The long name of a model ends with "…": the combo box is not wider than the bar (it went under the pin on GTK 4)
+	Scope
+		Dim As GList Ptr ModelCells = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(cboAIAgentModels.Handle))
+		If ModelCells Then
+			g_object_set(ModelCells->data, "ellipsize", PANGO_ELLIPSIZE_END, NULL)
+			g_list_free(ModelCells)
+		End If
+	End Scope
+#endif
 tbAIAgent.Buttons.Add tbsSeparator
 cboAIAgentModels.OnChange = @cboAIAgentModels_Change
 txtAIAgent.Align = DockStyle.alClient
@@ -12411,10 +12444,84 @@ Sub AIClaudeShowImages(ByRef Line_ As String)
 	Loop
 End Sub
 
+'The calls of the tools whose lines (-> Name) came by the stream events: their inputs come with the messages of the
+'assistant
+Dim Shared As UString AIClaudeStartedTools
+
+'The inputs of the calls of the tools of a message of the assistant (also of the agents which have no stream events)
+Sub AIClaudeToolInputs(ByRef Line_ As String)
+	Dim As WString Ptr W = FromUtf8(StrPtr(Line_))
+	If W = 0 Then Exit Sub
+	Dim As UString Items(Any), ID, Name_
+	Dim As Integer n = AIJItems(AIJMember(AIJMember(*W, "message"), "content"), Items())
+	_Deallocate(W)
+	For i As Integer = 0 To n - 1
+		If AIJText(AIJMember(Items(i), "type")) <> "tool_use" Then Continue For
+		ID = AIJText(AIJMember(Items(i), "id"))
+		Name_ = AIJText(AIJMember(Items(i), "name"))
+		If InStr(AIClaudeStartedTools, "|" & ID & "|") > 0 Then
+			AIClaudeStartedTools = Replace(AIClaudeStartedTools, "|" & ID & "|", "")
+		Else
+			AIClaudeFeed(!"\n" & WChr(8594) & " " & Name_ & !"\n", False)
+		End If
+		AIClaudeFeed(!"\n~~~vfb-in " & ID & !"\n" & AIJMember(Items(i), "input") & !"\n~~~vfb-end " & ID & !"\n", False)
+	Next
+End Sub
+
+'The results of the calls of the tools (a message of the user), their pictures
+Sub AIClaudeToolResults(ByRef Line_ As String)
+	Dim As WString Ptr W = FromUtf8(StrPtr(Line_))
+	If W = 0 Then Exit Sub
+	Dim As UString Items(Any), Parts(Any), ID, Content, Text, Kind
+	Dim As Integer n = AIJItems(AIJMember(AIJMember(*W, "message"), "content"), Items()), PC
+	_Deallocate(W)
+	For i As Integer = 0 To n - 1
+		If AIJText(AIJMember(Items(i), "type")) <> "tool_result" Then Continue For
+		ID = AIJText(AIJMember(Items(i), "tool_use_id"))
+		Content = AIJMember(Items(i), "content")
+		Text = ""
+		If Left(Content, 1) = "[" Then
+			PC = AIJItems(Content, Parts())
+			For k As Integer = 0 To PC - 1
+				Kind = AIJText(AIJMember(Parts(k), "type"))
+				If Text <> "" AndAlso Right(Text, 1) <> !"\n" Then Text &= !"\n"
+				If Kind = "text" Then
+					Text &= AIJText(AIJMember(Parts(k), "text"))
+				ElseIf Kind = "image" Then
+					Text &= "[" & ML("Image") & "]"
+				Else
+					Text &= Parts(k)
+				End If
+			Next
+		Else
+			Text = AIJText(Content)
+		End If
+		If Right(Text, 1) = !"\n" Then Text = RTrim(Text, Any !"\r\n")
+		AIClaudeFeed(!"\n~~~vfb-out " & ID & IIf(AIJMember(Items(i), "is_error") = "true", " error", "") & !"\n" & Text & !"\n~~~vfb-end " & ID & !"\n", False)
+	Next
+	If InStr(Line_, """type"":""image""") > 0 Then AIClaudeShowImages Line_
+End Sub
+
 Sub AIClaudeProcessLine(ByRef Line_ As String, ByRef GotText As Boolean, ByRef InThinking As Boolean, ByRef ErrorText As UString)
 	If Trim(Line_) = "" Then Exit Sub
 	Dim As Integer Pos1
 	If Left(LTrim(Line_), 1) = "{" Then AIClaudeContextUsage Line_
+	'The calls of the tools: their inputs and results
+	If Left(LTrim(Line_), 14) = "{""type"":""user""" Then
+		If InThinking Then
+			InThinking = False
+			AIClaudeFeed(!"\n</think>\n", False)
+		End If
+		AIClaudeToolResults Line_
+		Exit Sub
+	End If
+	If Left(LTrim(Line_), 19) = "{""type"":""assistant""" AndAlso InStr(Line_, """type"":""tool_use""") > 0 Then
+		If InThinking Then
+			InThinking = False
+			AIClaudeFeed(!"\n</think>\n", False)
+		End If
+		AIClaudeToolInputs Line_
+	End If
 	'The pictures of the results of the tools
 	If Left(LTrim(Line_), 1) = "{" AndAlso InStr(Line_, """type"":""image""") > 0 AndAlso InStr(Line_, """type"":""user""") > 0 Then
 		AIClaudeShowImages Line_
@@ -12451,8 +12558,13 @@ Sub AIClaudeProcessLine(ByRef Line_ As String, ByRef GotText As Boolean, ByRef I
 		'A tool of Claude (Read, Grep ...)
 		Pos1 = InStr(Line_, """type"":""tool_use""")
 		If Pos1 > 0 AndAlso InStr(Line_, """content_block_start""") > 0 Then
+			If InThinking Then
+				InThinking = False
+				AIClaudeFeed(!"\n</think>\n", False)
+			End If
 			'Plain text: the backquotes of Markdown broke the next lines
 			AIClaudeFeed(!"\n" & WChr(8594) & " " & AIJsonToText(AIJsonStringValue(Line_, "name", Pos1)) & !"\n", False)
+			AIClaudeStartedTools &= "|" & AIJsonStringValue(Line_, "id", Pos1) & "|"
 		End If
 	ElseIf InStr(Line_, """type"":""result""") > 0 Then
 		Dim As String SessionID = AIJsonStringValue(Line_, "session_id")
@@ -13081,9 +13193,9 @@ Function AIInputBorderColor() As Integer
 End Function
 
 'The text box has the colors of the box (on GTK the text view has the color of the theme, BackColor does not change
-'it): GTK 3 gets them by CSS of the text view, once for the colors
+'it): GTK 3 and GTK 4 get them by CSS of the text view, once for the colors
 Sub AIRequestSetColors(ClrBack As Integer, ClrText As Integer)
-	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__) AndAlso Not defined(__USE_GTK4__)
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK2__)
 		Static As GtkCssProvider Ptr Provider
 		Static As GtkWidget Ptr StyledWidget
 		Static As Integer LastBack = -1, LastText = -1
@@ -13096,12 +13208,20 @@ Sub AIRequestSetColors(ClrBack As Integer, ClrText As Integer)
 		Dim As String Css = "textview, textview text { background-color: " & Back & "; color: rgb(" & GetRed(ClrText) & "," & GetGreen(ClrText) & "," & GetBlue(ClrText) & "); }" & _
 			" scrolledwindow, scrolledwindow.frame { border: none; border-width: 0; box-shadow: none; outline: none; background-color: " & Back & "; }" & _
 			" scrolledwindow undershoot, scrolledwindow overshoot { background: none; border: none; box-shadow: none; }"
-		gtk_css_provider_load_from_data(Provider, Css, -1, NULL)
+		#ifdef __USE_GTK4__
+			gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
+		#else
+			gtk_css_provider_load_from_data(Provider, Css, -1, NULL)
+		#endif
 		If txtAIRequest.Handle <> StyledWidget Then
 			gtk_style_context_add_provider(gtk_widget_get_style_context(txtAIRequest.Handle), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_USER)
 			Dim As GtkWidget Ptr Scrolled = gtk_widget_get_parent(txtAIRequest.Handle)
 			If Scrolled <> 0 AndAlso GTK_IS_SCROLLED_WINDOW(Scrolled) Then
-				gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(Scrolled), GTK_SHADOW_NONE)
+				#ifdef __USE_GTK4__
+					gtk_scrolled_window_set_has_frame(GTK_SCROLLED_WINDOW(Scrolled), False)
+				#else
+					gtk_scrolled_window_set_shadow_type(GTK_SCROLLED_WINDOW(Scrolled), GTK_SHADOW_NONE)
+				#endif
 				gtk_style_context_add_provider(gtk_widget_get_style_context(Scrolled), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_USER)
 			End If
 			StyledWidget = txtAIRequest.Handle
@@ -13604,6 +13724,8 @@ Dim Shared As UString AIClaudeSessionDir
 'The chats of the AI Agent are the .md files of GetAIChatDirectory. A chat of Claude Code keeps its session (the id and
 'the folder of claude) in <chat>.md.session: an opened chat is continued (--resume) by the next question.
 Sub AIChatSaveSession(ByRef ChatFile As WString)
+	'The chat as it is shown (the calls of the tools, thinking) in <chat>.md.view
+	AIChatSaveView ChatFile
 	If AIClaudeSessionID = "" Then Exit Sub
 	SaveToFile(ChatFile & ".session", AIClaudeSessionID & Chr(10) & AIClaudeSessionDir)
 End Sub
@@ -14498,7 +14620,8 @@ Dim Shared As PopupMenu mnuAIModels
 				Exit Sub
 			End If
 		#endif
-		AIMenuPopup
+		'GTK 4: the menu at the mouse in the window (it called itself here and the stack was full)
+		mnuAIModels.Popup 0, 0
 	End Sub
 #endif
 'The places in the row (logical): the model, the mode, the circle
@@ -17515,13 +17638,20 @@ pnlRight.Add @tabRight
 			#else
 				gtk_widget_translate_coordinates(lv->Handle, pnlRight.Handle, lv->ScaleX(lv->Width), 0, @x1, @y1)
 			#endif
-			tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
-			tbProperties.ExtraMargins.Right = tbRight.Width - 10
-			tbEvents.ExtraMargins.Right = tbRight.Width - 10
-			allocation->x = x - tbRight.ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.ScaleX(pnlRight.Width) - x1 + 1, 0)
-			allocation->y = y
-			allocation->width = tbRight.ScaleX(tbRight.Width)
-			allocation->height = tbRight.ScaleY(tbRight.Height)
+			#ifdef __USE_GTK4__
+				Dim As Integer Margin
+				PinOverlayPlace tbRight, tb, x - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.ScaleX(pnlRight.Width) - x1 + 1, 0), y, allocation, Margin
+				If tbProperties.ExtraMargins.Right <> Margin Then tbProperties.ExtraMargins.Right = Margin
+				If tbEvents.ExtraMargins.Right <> Margin Then tbEvents.ExtraMargins.Right = Margin
+			#else
+				tbRight.Width = tbRight.Buttons.Item(0)->Width + tbRight.Height - tbRight.Buttons.Item(0)->Height
+				tbProperties.ExtraMargins.Right = tbRight.Width - 10
+				tbEvents.ExtraMargins.Right = tbRight.Width - 10
+				allocation->x = x - tbRight.ScaleX(tbRight.Width) - IIf(tabRight.TabPosition = TabPosition.tpRight, pnlRight.ScaleX(pnlRight.Width) - x1 + 1, 0)
+				allocation->y = y
+				allocation->width = tbRight.ScaleX(tbRight.Width)
+				allocation->height = tbRight.ScaleY(tbRight.Height)
+			#endif
 			Return True
 		End Function
 	#endif

@@ -272,7 +272,7 @@ Sub AIChatOpenName(ByRef ChatName As WString)
 		End If
 	Next
 	WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
-	AIChatFeed(*AIBodyWStringPtr)
+	If Not AIChatLoadView(FileName) Then AIChatFeed(*AIBodyWStringPtr)
 	'txtAIAgent.TextRTF = *AIBodyWStringPtr
 	'txtAIAgent.Zoom = Int(txtAIAgent.ScaleX(100) * 0.50)
 	txtAIRequest.Enabled = True
@@ -331,7 +331,7 @@ Sub mClickAIChat(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
 					WAdd(AIBodyWStringPtr, AIMessages.Item(i)->Key & Chr(10) & AIMessages.Item(i)->Text, , Capacity)
 				End If
 			Next
-			AIChatFeed(*AIBodyWStringPtr)
+			If Not AIChatLoadView(OpenD.FileName) Then AIChatFeed(*AIBodyWStringPtr)
 			WLet(AIBodyWStringSavePtr, *AIBodyWStringPtr)
 			_Deallocate(AIBodyWStringPtr): AIBodyWStringPtr = 0
 			frmMain.Cursor = 0
