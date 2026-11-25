@@ -12981,7 +12981,7 @@ Sub pnlAIImages_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 		GdipSetInterpolationMode(G, InterpolationModeHighQualityBicubic)
 		GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
 		GdipGraphicsClear(G, AIImageARGB(ClrBack))
-		Dim As GpSolidFill Ptr Brush
+		Dim As GpBrush Ptr Brush
 		Dim As GpPen Ptr Pen
 		Dim As Single sy = Sender.ScaleY(y), ss = Sender.ScaleX(s), Radius = Sender.ScaleX(8), One = Sender.ScaleX(1)
 		For i As Integer = 0 To AIImageCount - 1
@@ -12989,7 +12989,7 @@ Sub pnlAIImages_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 			Dim As Single sx = Sender.ScaleX(AIImageThumbLeft(i))
 			Dim As GpPath Ptr Path = AIImageRoundPath(sx + 0.5, sy + 0.5, ss - 1, ss - 1, Radius)
 			If Path = 0 Then Continue For
-			GdipCreateSolidFill(AIImageARGB(ClrTile), @Brush)
+			GdipCreateSolidFill(AIImageARGB(ClrTile), Cast(GpSolidFill Ptr Ptr, @Brush))
 			GdipFillPath(G, Brush, Path)
 			GdipDeleteBrush(Brush)
 			Dim As My.Sys.Drawing.BitmapType Ptr Bitm = AIImageBitmaps(i)
@@ -12999,7 +12999,7 @@ Sub pnlAIImages_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 				GdipDrawImageRectRectI(G, Bitm->pImage, CInt(sx), CInt(sy), CInt(ss), CInt(ss), (Bitm->Width - Side) \ 2, (Bitm->Height - Side) \ 2, Side, Side, UnitPixel, 0, 0, 0)
 				'The small image under the mouse is lighter
 				If Hover AndAlso Not HoverClose Then
-					GdipCreateSolidFill(AIImageARGB(&HFFFFFF, 40), @Brush)
+					GdipCreateSolidFill(AIImageARGB(&HFFFFFF, 40), Cast(GpSolidFill Ptr Ptr, @Brush))
 					GdipFillPath(G, Brush, Path)
 					GdipDeleteBrush(Brush)
 				End If
@@ -13015,7 +13015,7 @@ Sub pnlAIImages_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 			GdipDeletePath(Path)
 			'The button x: a dark circle with a border and the x of the color of the text, inverted under the mouse
 			Dim As Single c = Sender.ScaleX(AIImageCloseSize), cx = sx + ss - c - Sender.ScaleX(3), cy = sy + Sender.ScaleY(3)
-			GdipCreateSolidFill(IIf(HoverClose, AIImageARGB(ClrText), AIImageARGB(AIImageBlend(ClrText, ClrBack, 12), 235)), @Brush)
+			GdipCreateSolidFill(IIf(HoverClose, AIImageARGB(ClrText), AIImageARGB(AIImageBlend(ClrText, ClrBack, 12), 235)), Cast(GpSolidFill Ptr Ptr, @Brush))
 			GdipFillEllipse(G, Brush, cx, cy, c, c)
 			GdipDeleteBrush(Brush)
 			GdipCreatePen1(AIImageARGB(IIf(HoverClose, ClrText, ClrBorder)), One, UnitPixel, @Pen)
@@ -14363,18 +14363,18 @@ Sub AIButtonPaint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas
 		GdipGraphicsClear(G, AIImageARGB(ClrBack))
 		Dim As Single D = Sender.ScaleX(AIButtonSize - 2)
 		Dim As Single cx = Sender.ScaleX(Sender.Width) / 2, cy = Sender.ScaleY(Sender.Height) - Sender.ScaleY(AIButtonSize) / 2
-		Dim As GpSolidFill Ptr Brush
+		Dim As GpBrush Ptr Brush
 		Dim As GpPen Ptr Pen
 		If IsSend Then
 			'A filled circle with an arrow up (Stop: a square), grey when there is nothing to send
 			Dim As Integer ClrCircle = IIf(Active, IIf(Hover, AIImageBlend(ClrText, ClrBack, 80), ClrText), AIImageBlend(ClrText, ClrBack, 30))
-			GdipCreateSolidFill(AIImageARGB(ClrCircle), @Brush)
+			GdipCreateSolidFill(AIImageARGB(ClrCircle), Cast(GpSolidFill Ptr Ptr, @Brush))
 			GdipFillEllipse(G, Brush, cx - D / 2, cy - D / 2, D, D)
 			GdipDeleteBrush(Brush)
 			If Working Then
 				Dim As Single q = D * 0.32
 				Dim As GpPath Ptr Path = AIImageRoundPath(cx - q / 2, cy - q / 2, q, q, Sender.ScaleX(2))
-				GdipCreateSolidFill(AIImageARGB(ClrBack), @Brush)
+				GdipCreateSolidFill(AIImageARGB(ClrBack), Cast(GpSolidFill Ptr Ptr, @Brush))
 				If Path <> 0 Then GdipFillPath(G, Brush, Path): GdipDeletePath(Path)
 				GdipDeleteBrush(Brush)
 			Else
@@ -14388,7 +14388,7 @@ Sub AIButtonPaint(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Canvas
 		Else
 			'+ on a light circle while the mouse is over it
 			If Hover Then
-				GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 16)), @Brush)
+				GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 16)), Cast(GpSolidFill Ptr Ptr, @Brush))
 				GdipFillEllipse(G, Brush, cx - D / 2, cy - D / 2, D, D)
 				GdipDeleteBrush(Brush)
 			End If
@@ -14643,8 +14643,8 @@ Sub AIStatusDrawPill(ByRef Sender As Control, ByRef Canvas As My.Sys.Drawing.Can
 				GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
 				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(PillLeft), Sender.ScaleY(1), Sender.ScaleX(PillRight - PillLeft), Sender.ScaleY(Sender.Height - 2), Sender.ScaleX(6))
 				If Path <> 0 Then
-					Dim As GpSolidFill Ptr Brush
-					GdipCreateSolidFill(AIImageARGB(PillColor), @Brush)
+					Dim As GpBrush Ptr Brush
+					GdipCreateSolidFill(AIImageARGB(PillColor), Cast(GpSolidFill Ptr Ptr, @Brush))
 					GdipFillPath(G, Brush, Path)
 					GdipDeleteBrush(Brush)
 					GdipDeletePath(Path)
@@ -14708,8 +14708,8 @@ Sub pnlAIStatus_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control, 
 			If AIStatusHoverPart = 3 OrElse AIStatusMenuPart = 3 Then
 				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(AIStatusRingLeft - 5), Sender.ScaleY(1), Sender.ScaleX(AIStatusRingSize + 10), Sender.ScaleY(Sender.Height - 2), Sender.ScaleX(6))
 				If Path <> 0 Then
-					Dim As GpSolidFill Ptr Brush
-					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), @Brush)
+					Dim As GpBrush Ptr Brush
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), Cast(GpSolidFill Ptr Ptr, @Brush))
 					GdipFillPath(G, Brush, Path)
 					GdipDeleteBrush(Brush)
 					GdipDeletePath(Path)
@@ -14973,7 +14973,7 @@ End Sub
 			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
 			GdipGraphicsClear(G, AIImageARGB(ClrMenu))
 			Dim As GpPen Ptr Pen
-			Dim As GpSolidFill Ptr Brush
+			Dim As GpBrush Ptr Brush
 			'The border (the corners are round by Windows 11, else by the region of the window)
 			Dim As GpPath Ptr Path = AIImageRoundPath(0.5, 0.5, W - 1, H - 1, 8 * S)
 			If Path <> 0 Then
@@ -14992,7 +14992,7 @@ End Sub
 				If i = AIMenuHover Then
 					Path = AIImageRoundPath(AIMenuPad, y + 2 * S, W - 2 * AIMenuPad, AIMenuItemH - 4 * S, 6 * S)
 					If Path <> 0 Then
-						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), @Brush)
+						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 14)), Cast(GpSolidFill Ptr Ptr, @Brush))
 						GdipFillPath(G, Brush, Path)
 						GdipDeleteBrush(Brush)
 						GdipDeletePath(Path)
@@ -15016,7 +15016,7 @@ End Sub
 				Dim As Single ThumbY = Top + (TrackH - ThumbH) * AIMenuTop / (Count - AIMenuVisible)
 				Path = AIImageRoundPath(W - 5 * S, ThumbY, 3 * S, ThumbH, 1.5 * S)
 				If Path <> 0 Then
-					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 30)), @Brush)
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 30)), Cast(GpSolidFill Ptr Ptr, @Brush))
 					GdipFillPath(G, Brush, Path)
 					GdipDeleteBrush(Brush)
 					GdipDeletePath(Path)
@@ -15189,7 +15189,7 @@ End Sub
 			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
 			GdipGraphicsClear(G, AIImageARGB(AIImageBlend(ClrText, ClrBack, 5)))
 			Dim As GpPen Ptr Pen
-			Dim As GpSolidFill Ptr Brush
+			Dim As GpBrush Ptr Brush
 			Dim As GpPath Ptr Path = AIImageRoundPath(0.5, 0.5, W - 1, H - 1, 8 * S)
 			If Path <> 0 Then
 				GdipCreatePen1(AIImageARGB(AIInputBorderColor()), 1, UnitPixel, @Pen)
@@ -15204,7 +15204,7 @@ End Sub
 					Dim As Single BarY = y + 32 * S, BarW = W - 2 * Pad, BarH = 4 * S
 					Path = AIImageRoundPath(Pad, BarY, BarW, BarH, BarH / 2)
 					If Path <> 0 Then
-						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 18)), @Brush)
+						GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 18)), Cast(GpSolidFill Ptr Ptr, @Brush))
 						GdipFillPath(G, Brush, Path)
 						GdipDeleteBrush(Brush)
 						GdipDeletePath(Path)
@@ -15213,7 +15213,7 @@ End Sub
 					If Value > 0 Then
 						Path = AIImageRoundPath(Pad, BarY, Max(BarH, CSng(BarW * Value)), BarH, BarH / 2)
 						If Path <> 0 Then
-							GdipCreateSolidFill(AIImageARGB(IIf(Value >= 0.75, AIAccentWarnColor, AIAccentColor)), @Brush)
+							GdipCreateSolidFill(AIImageARGB(IIf(Value >= 0.75, AIAccentWarnColor, AIAccentColor)), Cast(GpSolidFill Ptr Ptr, @Brush))
 							GdipFillPath(G, Brush, Path)
 							GdipDeleteBrush(Brush)
 							GdipDeletePath(Path)
@@ -15907,22 +15907,22 @@ Sub pnlAIAccount_Paint(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 		If Canvas.Handle <> 0 AndAlso GdipCreateFromHDC(Canvas.Handle, @G) = 0 AndAlso G <> 0 Then
 			GdipSetSmoothingMode(G, SmoothingModeAntiAlias)
 			GdipSetPixelOffsetMode(G, PixelOffsetModeHighQuality)
-			Dim As GpSolidFill Ptr Brush
+			Dim As GpBrush Ptr Brush
 			'The line above the row
-			GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), @Brush)
+			GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), Cast(GpSolidFill Ptr Ptr, @Brush))
 			GdipFillRectangle(G, Brush, 0, 0, Sender.ScaleX(Sender.Width), Sender.ScaleY(1))
 			GdipDeleteBrush(Brush)
 			If AIAccountHover OrElse AIStatusMenuPart = 4 Then
 				Dim As GpPath Ptr Path = AIImageRoundPath(Sender.ScaleX(4), Sender.ScaleY(4), Sender.ScaleX(Sender.Width - 8), Sender.ScaleY(Sender.Height - 8), Sender.ScaleX(6))
 				If Path <> 0 Then
-					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), @Brush)
+					GdipCreateSolidFill(AIImageARGB(AIImageBlend(ClrText, ClrBack, 12)), Cast(GpSolidFill Ptr Ptr, @Brush))
 					GdipFillPath(G, Brush, Path)
 					GdipDeleteBrush(Brush)
 					GdipDeletePath(Path)
 				End If
 			End If
 			Dim As Single d = Sender.ScaleX(Avatar), ax = Sender.ScaleX(AvatarLeft), ay = (Sender.ScaleY(Sender.Height) - d) / 2
-			GdipCreateSolidFill(AIImageARGB(BGR(217, 119, 87)), @Brush)
+			GdipCreateSolidFill(AIImageARGB(BGR(217, 119, 87)), Cast(GpSolidFill Ptr Ptr, @Brush))
 			GdipFillEllipse(G, Brush, ax, ay, d, d)
 			GdipDeleteBrush(Brush)
 			'The arrow on the right
