@@ -3508,12 +3508,21 @@ End Sub
 	Sub OpenUrl(ByVal url As String)
 		Dim As String cmd
 		#ifdef __USE_GTK__
-			cmd = "xdg-open " & url
+			'PipeCmd waits for the end of the command: xdg-open of WSL (there is no browser of Linux) runs the console
+			'browser www-browser (w3m) in the terminal of the IDE and the IDE hangs until w3m is closed. Therefore the
+			'command runs in the background and the browser of Windows opens the page in WSL.
+			Dim As String u = "'" & Replace(url, "'", "'\''") & "'"
+			cmd = "( if grep -qi microsoft /proc/version 2>/dev/null; then" & _
+				" if command -v wslview >/dev/null 2>&1; then wslview " & u & ";" & _
+				" elif command -v explorer.exe >/dev/null 2>&1; then explorer.exe " & u & ";" & _
+				" elif [ -x /mnt/c/Windows/explorer.exe ]; then /mnt/c/Windows/explorer.exe " & u & ";" & _
+				" else xdg-open " & u & "; fi;" & _
+				" else xdg-open " & u & "; fi ) </dev/null >/dev/null 2>&1 &"
+			Shell cmd
 		#else
 			cmd =  "start /b " & url
+			PipeCmd "", cmd
 		#endif
-		'Shell cmd
-		PipeCmd "", cmd
 	End Sub
 #endif
 
