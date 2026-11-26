@@ -300,7 +300,7 @@ Private Sub frmComponentsType.cmdApply_Click(ByRef Sender As Control)
 				LoadToolBox CtlLibrary
 			End If
 		End If
-		iniSettings.WriteString("ControlLibraries", "Path_" & Str(i), GetRelative(Paths.Item(i), ExePath))
+		iniSettings.WriteString("ControlLibraries", "Path_" & Str(i), MakeRelativePath(Paths.Item(i), ExePath))
 		iniSettings.WriteBool("ControlLibraries", "Enabled_" & Str(i), chlControls.Checked(i))
 	Next
 	pnlToolBox.RequestAlign

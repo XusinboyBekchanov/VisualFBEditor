@@ -2983,7 +2983,7 @@ Sub DesignerInsertControl(ByRef Sender As Designer, ByRef ClassName As String, C
 	Dim As SymbolsType Ptr stCopied = tb->Des->Symbols(CopiedCtrl)
 	If stDesignControl = 0 OrElse stDesignControl->ReadPropertyFunc = 0 Then Exit Sub
 	If st = 0 OrElse st->ReadPropertyFunc = 0 Then Exit Sub
-	Dim As UString LibraryPath = Replace(GetRelative(GetFolderName(st->Path, False), ExePath), "\", "/")
+	Dim As UString LibraryPath = Replace(MakeRelativePath(GetFolderName(st->Path, False), ExePath), "\", "/")
 	If tb->Project <> 0 AndAlso Not tb->Project->Components.Contains(LibraryPath) Then tb->Project->Components.Add LibraryPath
 	Dim NewName As String = WGet(st->ReadPropertyFunc(Ctrl, "Name"))
 	tb->cboClass.Items.Add NewName, Ctrl, ClassName, ClassName, , 1, tb->FindControlIndex(NewName)
@@ -3275,7 +3275,7 @@ Sub ConvertHToBi(ByRef FileName As WString)
 						Dim As UString IncludeFileName = Mid(b, i + 11, Pos1 - (i + 11))
 						If EndsWith(IncludeFileName, ".h") Then
 							b = Left(b, i) & "#include once """ & Left(IncludeFileName, Len(IncludeFileName) - 2) & ".bi""" & Mid(b, Pos1 + 1)
-							Dim As UString FullPathH = GetRelativePath(IncludeFileName, FileName)
+							Dim As UString FullPathH = ResolvePath(IncludeFileName, FileName)
 							ConvertHToBi(FullPathH)
 						Else
 							b = Left(b, i) & "#include once """ & IncludeFileName & """" & Mid(b, Pos1 + 1)
@@ -3346,7 +3346,7 @@ End Sub
 Sub OnLinkClickedEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Link1 As WString)
 	Var tb = Cast(TabWindow Ptr, Sender.Tag)
 	If tb = 0 Then Exit Sub
-	AddTab GetRelativePath(Link1, tb->FileName)
+	AddTab ResolvePath(Link1, tb->FileName)
 End Sub
 
 Sub OnToolTipLinkClickedEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, ByRef Link1 As WString)
@@ -6000,7 +6000,7 @@ Sub OnKeyDownEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key 
 				If Pos2 = 0 Then
 					WLet(tb->txtCode.DropDownPath, "")
 				Else
-					WLet(tb->txtCode.DropDownPath, GetRelativePath(Left(sTemp, Pos2 - 1)))
+					WLet(tb->txtCode.DropDownPath, ResolvePath(Left(sTemp, Pos2 - 1)))
 				End If
 				Pos1 = Pos1 + Pos2
 				FillFileIntellisenses *tb->txtCode.DropDownPath, IIf(Pos2 = 0, sTemp, Mid(sTemp, Pos2 + 1))
@@ -6188,7 +6188,7 @@ Sub OnKeyPressEdit(ByRef Designer As My.Sys.Object, ByRef Sender As Control, Key
 				WLet(tb->txtCode.DropDownPath, "")
 			Else
 				If Pos1 = 0 Then Exit Sub
-				WLet(tb->txtCode.DropDownPath, GetRelativePath(Mid(*sLine, Pos1 + 1, iSelEndChar - Pos1 - 1)))
+				WLet(tb->txtCode.DropDownPath, ResolvePath(Mid(*sLine, Pos1 + 1, iSelEndChar - Pos1 - 1)))
 			End If
 			FillFileIntellisenses *tb->txtCode.DropDownPath
 			SelLinePos = iSelEndLine
@@ -6280,7 +6280,7 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 	'Dim As UString ResourceFile = GetResourceFile(True)
 	Dim As WString * 1024 FilePath
 	If InStr(ResName, ".") Then
-		FilePath = GetRelativePath(ResName, ResourceFile)
+		FilePath = ResolvePath(ResName, ResourceFile)
 		Return FilePath
 	Else
 		Var Fn = FreeFile_
@@ -6304,7 +6304,7 @@ Function GetResNamePath(ByRef ResName As WString, ByRef ResourceFile As WString)
 						FilePath = Trim(Mid(sLine, Pos1 + 2 + Len(Image)))
 						If EndsWith(FilePath, """") Then FilePath = ..Left(FilePath, Len(FilePath) - 1)
 						If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
-						FilePath = GetRelativePath(FilePath, ResourceFile)
+						FilePath = ResolvePath(FilePath, ResourceFile)
 						CloseFile_(Fn)
 						Return FilePath
 					End If
@@ -7843,7 +7843,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else WLet(FPath, "")
+						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, ResolvePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else WLet(FPath, "")
 						IncludesCount += 1
 						If IncludesCount > Content.OldIncludes.Count OrElse *FPath <> Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
 							IncludesChanged = True
@@ -8079,7 +8079,7 @@ Sub LoadFunctionsWithContent(ByRef FileName As WString, ByRef Project As Project
 						If Pos1 > 0 Then
 							Pos2 = InStr(Pos1 + 1, b, """")
 							If Pos2 - Pos1 - 1 > 0 Then
-								WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
+								WLet(FPath, ResolvePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
 								If bCurrentFile Then
 									If IncludesChanged Then
 										Content.Includes.Add *FPath
@@ -9178,7 +9178,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					Pos1 = InStr(b, """")
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
-						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else *FPath = ""
+						If Pos2 - Pos1 - 1 > 0 Then WLet(FPath, ResolvePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName)) Else *FPath = ""
 						IncludesCount += 1
 						If IncludesCount > txtCode.Content.OldIncludes.Count OrElse *FPath <> txtCode.Content.OldIncludes.Item(IncludesCount - 1) Then 'i <> OldIncludeLines.Item(IncludesCount - 1)
 							IncludesChanged = True
@@ -9457,9 +9457,9 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 					If Pos1 > 0 Then
 						Pos2 = InStr(Pos1 + 1, b, """")
 						If Pos2 - Pos1 - 1 > 0 Then
-							WLet(FPath, GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
+							WLet(FPath, ResolvePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), FileName))
 							If EndsWith(*FPath, ".bi") AndAlso Not FileExists(*FPath) Then
-								Dim As WString * 255 FullPathH = GetRelativePath(.Left(*FPath, Len(*FPath) - 3) & ".h", FileName)
+								Dim As WString * 255 FullPathH = ResolvePath(.Left(*FPath, Len(*FPath) - 3) & ".h", FileName)
 								If FileExists(FullPathH) Then
 									ConvertHToBi(FullPathH)
 								End If
@@ -10518,7 +10518,7 @@ Sub TabWindow.FormDesign(NotForms As Boolean = False)
 										If LCase(Mid(*FLine, p + 1, 4)) = "add " Then
 											st->ImageListAddFromFileSub(Ctrl, GetResNamePath(sText, ResourceFile), sRight)
 										Else
-											st->ImageListAddFromFileSub(Ctrl, GetRelativePath(sText, ResourceFile), sRight)
+											st->ImageListAddFromFileSub(Ctrl, ResolvePath(sText, ResourceFile), sRight)
 										End If
 									End If
 								End If

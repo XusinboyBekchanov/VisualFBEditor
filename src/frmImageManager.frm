@@ -363,7 +363,7 @@ Private Sub frmImageManager.cmdOK_Click(ByRef Sender As Control)
 				For i As Integer = 0 To lvImages.ListItems.Count - 1
 					tb->txtCode.InsertLine PosForAdd + i, sLeft & IIf(bInWith, "", ImageListName) & ".Add" & IIf(lvImages.ListItems.Item(i)->Text(1) = "File", "FromFile", "") & " """ & lvImages.ListItems.Item(i)->Text(2) & """, """ & lvImages.ListItems.Item(i)->Text(0) & """"
 					If lvImages.ListItems.Item(i)->Text(1) = "File" Then
-						st->ImageListAddFromFileSub(CurrentImageList, GetRelativePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
+						st->ImageListAddFromFileSub(CurrentImageList, ResolvePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
 					Else
 						st->ImageListAddFromFileSub(CurrentImageList, GetResNamePath(lvImages.ListItems.Item(i)->Text(2), ResourceFile), lvImages.ListItems.Item(i)->Text(0))
 					End If
@@ -472,7 +472,7 @@ Private Sub frmImageManager.lvImages_ItemActivate(ByRef Sender As ListView, ByVa
 					If pfrmPath->cboTypeText = ML("Resource") Then
 						ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 					Else
-						ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+						ImageList1.AddFromFile ResolvePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 					End If
 					lvImages.SelectedItem->ImageIndex = lvImages.ListItems.Count - 1
 				Else
@@ -494,7 +494,7 @@ End Sub
 Private Sub frmImageManager.lvImages_SelectedItemChanged(ByRef Sender As ListView, ByVal ItemIndex As Integer)
 	If CurrentImageList = 0 Then
 		If ItemIndex < 0 Then Exit Sub
-		Dim As UString Path = GetRelativePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
+		Dim As UString Path = ResolvePath(lvImages.ListItems.Item(ItemIndex)->Text(2), ResourceFile)
 		Select Case lvImages.ListItems.Item(ItemIndex)->Text(1)
 		Case "BITMAP": imgImage.Graphic.Bitmap.LoadFromFile(Path)
 		Case "PNG", "RCDATA": imgImage.Graphic.Bitmap.LoadFromFile(Path)
@@ -539,7 +539,7 @@ Private Sub frmImageManager.MenuItemClick(ByRef Sender As My.Sys.Object)
 		If OpenD.Execute Then
 			For i As Integer = 0 To OpenD.FileNames.Count - 1
 				Dim As UString FileName = OpenD.FileNames.Item(i)
-				Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
+				Dim As UString RelativePath = ResolvePath(FileName, ResourceFile)
 				Dim As UString Key = GetFileName(FileName)
 				Dim As String FileExt, ResourceType
 				Var Pos1 = InStrRev(Key, ".")
@@ -579,7 +579,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 			If OpenD.Execute Then
 				For i As Integer = 0 To OpenD.FileNames.Count - 1
 					Dim As UString FileName = OpenD.FileNames.Item(i)
-					Dim As UString RelativePath = GetRelativePath(FileName, ResourceFile)
+					Dim As UString RelativePath = ResolvePath(FileName, ResourceFile)
 					Dim As UString Key = GetFileName(FileName)
 					Dim As String FileExt, ResourceType
 					Var Pos1 = InStrRev(Key, ".")
@@ -627,7 +627,7 @@ Private Sub frmImageManager.tbToolbar_ButtonClick(ByRef Sender As ToolBar,ByRef 
 			'		If pfrmPath->cboType.Text = ML("Resource") Then
 			'			ImageList1.AddFromFile GetResNamePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 			'		Else
-			'			ImageList1.AddFromFile GetRelativePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
+			'			ImageList1.AddFromFile ResolvePath(pfrmPath->txtPath.Text, ResourceFile), pfrmPath->txtVersion.Text
 			'		End If
 			'		lvImages.ListItems.Add pfrmPath->txtVersion.Text
 			'		lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
@@ -740,9 +740,9 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 					If EndsWith(FilePath, """") Then FilePath = ..Left(FilePath, Len(FilePath) - 1)
 					If StartsWith(FilePath, """") Then FilePath = Mid(FilePath, 2)
 					If CurrentImageList Then
-						ResNamePaths.Add Trim(..Left(sLine, Pos1 - 1)), GetRelativePath(FilePath, ResourceFile)
+						ResNamePaths.Add Trim(..Left(sLine, Pos1 - 1)), ResolvePath(FilePath, ResourceFile)
 					Else
-						ImageList1.AddFromFile GetRelativePath(FilePath, ResourceFile), Trim(..Left(sLine, Pos1 - 1))
+						ImageList1.AddFromFile ResolvePath(FilePath, ResourceFile), Trim(..Left(sLine, Pos1 - 1))
 						lvImages.ListItems.Add Trim(..Left(sLine, Pos1 - 1))
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->ImageIndex = lvImages.ListItems.Count - 1
 						lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = Image
@@ -818,7 +818,7 @@ Private Sub frmImageManager.Form_Create(ByRef Sender As Control)
 							If EndsWith(sText, """") Then sText = ..Left(sText, Len(sText) - 1)
 							lvImages.ListItems.Add sRight
 							If InStr(b, LCase(".AddFromFile ")) Then
-								ImageList1.AddFromFile GetRelativePath(sText, ResourceFile), sRight
+								ImageList1.AddFromFile ResolvePath(sText, ResourceFile), sRight
 								lvImages.ListItems.Item(lvImages.ListItems.Count - 1)->Text(1) = "File"
 							Else
 								ImageList1.AddFromFile GetResNamePath(sText, ResourceFile), sRight

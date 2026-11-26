@@ -430,8 +430,8 @@ Declare Function GetFolderName(ByRef FileName As WString, WithSlash As Boolean =
 Declare Function GetOSPath(ByRef Path As WString) As UString
 Declare Function GetFullPathInSystem(ByRef Path As WString) As UString
 Declare Function GetFullPath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
-Declare Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
-Declare Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
+Declare Function MakeRelativePath(ByRef FileName As WString, ByRef FromFolder As WString) As UString
+Declare Function ResolvePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 Declare Function GetSpecialPath(ByRef key As WString) As UString
 Declare Function GetFilePath(ByRef source As WString) As UString
 Declare Function EnsureFolderExists(ByRef FolderName As WString) As Boolean

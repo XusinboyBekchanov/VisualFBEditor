@@ -1523,7 +1523,7 @@ Private Sub frmProjectProperties.CommandButton1_Click(ByRef Sender As Control)
 		If pfImageManager->SelectedItem <> 0 Then
 			txtIcon.Text = pfImageManager->SelectedItem->Text(0)
 			'#ifdef __USE_GTK__
-				imgIcon.Graphic.Icon.LoadFromFile(GetRelativePath(pfImageManager->SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
+				imgIcon.Graphic.Icon.LoadFromFile(ResolvePath(pfImageManager->SelectedItem->Text(2), pfImageManager->ResourceFile), 32, 32)
 			'#else
 			'	DrawIconEx GetDC(picApplication.Handle), 0, 0, imgIcon.Graphic.Icon.Handle, 32, 32, 0, 0, DI_NORMAL
 			'#endif

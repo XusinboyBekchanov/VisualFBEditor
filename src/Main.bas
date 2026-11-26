@@ -1772,9 +1772,9 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			End Select
 			For i As Integer = 0 To Project->Components.Count - 1
 				If EndsWith(Project->Components.Item(i), Slash) Then
-					WAdd(CompileWith, " -i """ & GetRelativePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """")
+					WAdd(CompileWith, " -i """ & ResolvePath(Left(Project->Components.Item(i), Len(Project->Components.Item(i)) - 1), *ProjectPath & Slash) & """")
 				Else
-					WAdd(CompileWith, " -i """ & GetRelativePath(Project->Components.Item(i), *ProjectPath & Slash) & """")
+					WAdd(CompileWith, " -i """ & ResolvePath(Project->Components.Item(i), *ProjectPath & Slash) & """")
 				End If
 			Next
 		End If
@@ -1829,13 +1829,13 @@ Function Compile(Parameter As String = "", bAll As Boolean = False) As Integer
 			For i As Integer = 0 To ProjectNode->Nodes.Count - 1
 				If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Text), ".bas") Then
 					If LCase(*MainFileNameOnly) <> LCase(ProjectNode->Nodes.Item(i)->Text) Then
-						OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
+						OtherModuleFiles &= " """ & MakeRelativePath(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 					End If
 				Else
 					For j As Integer = 0 To ProjectNode->Nodes.Item(i)->Nodes.Count - 1
 						If EndsWith(LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text), ".bas") Then
 							If LCase(*MainFileNameOnly) <> LCase(ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Text) Then
-								OtherModuleFiles &= " """ & GetRelative(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
+								OtherModuleFiles &= " """ & MakeRelativePath(*Cast(ExplorerElement Ptr, ProjectNode->Nodes.Item(i)->Nodes.Item(j)->Tag)->FileName, GetFolderName(*Project->MainFileName)) & """"
 							End If
 						End If
 					Next
@@ -3437,7 +3437,7 @@ Function AddProject(ByRef FileName As WString = "", pFilesList As WStringList Pt
 						If LibraryPath <> "" Then
 							Dim LibKey As String = GetLibKey
 							Dim As IniFile ini
-							ini.Load GetRelativePath(LibraryPath) & Slash & "Settings.ini"
+							ini.Load ResolvePath(LibraryPath) & Slash & "Settings.ini"
 							Var CtlLibrary = _New(Library)
 							CtlLibrary->Name = ini.ReadString("Setup", "Name")
 							CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
@@ -5337,7 +5337,7 @@ Function GetOSPath(ByRef Path As WString) As UString
 	Return Replace(Path, BackSlash, Slash)
 End Function
 
-Function GetRelativePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
+Function ResolvePath(ByRef Path As WString, ByRef FromFile As WString = "") As UString
 	If CInt(InStr(Path, ":") > 0) OrElse CInt(StartsWith(Path, "/")) OrElse CInt(StartsWith(Path, "\")) Then
 		Return GetOSPath(Path)
 	ElseIf StartsWith(Path, "./") OrElse StartsWith(Path, ".\") Then
@@ -5433,14 +5433,21 @@ Function DeleteSpaces(b As String) As String
 	Return bNew
 End Function
 
-Function GetRelative(ByRef FileName As WString, ByRef FromFile As WString) As UString
+'Returns FileName relative to the folder FromFolder if FileName lies inside it, otherwise returns FileName unchanged.
+Function MakeRelativePath(ByRef FileName As WString, ByRef FromFolder As WString) As UString
 	'The folders may be separated by "\" in one path and by "/" in the other (Web: the paths of the settings of Windows)
-	If StartsWith(Replace(FileName, "\", "/"), Replace(FromFile, "\", "/")) Then
-		Dim As UString Path = Mid(FileName, Len(FromFile) + 1)
-		If StartsWith(Path, "\") OrElse StartsWith(Path, "/") Then Path = Mid(Path, 2)
-		Return Path
-	Else Return FileName
-	End If
+	Dim As UString sFile = Replace(FileName, "\", "/"), sFolder = Replace(FromFolder, "\", "/")
+	If sFolder = "" Then Return FileName
+	If Not EndsWith(sFolder, "/") Then sFolder &= "/"
+	#ifdef __FB_WIN32__
+		'Windows paths are case-insensitive
+		sFile = LCase(sFile)
+		sFolder = LCase(sFolder)
+	#endif
+	If sFile & "/" = sFolder Then Return ""
+	'Compare whole folder names only: "C:/Foo/" must not match "C:/FooBar/a.bas"
+	If StartsWith(sFile, sFolder) Then Return Mid(FileName, Len(sFolder) + 1)
+	Return FileName
 End Function
 
 Private Function IsIdentifierChar(ByRef s As WString) As Boolean
@@ -5648,7 +5655,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 				Pos1 = InStr(b, """")
 				If Pos1 > 0 Then
 					Pos2 = InStr(Pos1 + 1, b, """")
-					LoadFunctionPath = GetRelativePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), PathFunction)
+					LoadFunctionPath = ResolvePath(Mid(b, Pos1 + 1, Pos2 - Pos1 - 1), PathFunction)
 					MutexLock tlockIncludeFiles
 					Var Idx = IncludeFiles.IndexOf(LoadFunctionPath)
 					If Idx <> -1 Then
@@ -5717,7 +5724,7 @@ Sub LoadFunctions(ByRef Path As WString, LoadParameter As LoadParam = FilePathAn
 						tbi->StartLine = i
 						tbi->StartChar = GetElementStartChar(Lines.Item(i), tbi->Name)
 						tbi->FileName = PathFunction
-						If CtlLibrary Then tbi->IncludeFile = Replace(GetRelative(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
+						If CtlLibrary Then tbi->IncludeFile = Replace(MakeRelativePath(PathFunction, CtlLibrary->IncludeFolder), "\", "/")
 						tbi->Parameters = Trim(Mid(bTrim, Pos1 + Pos5))
 						tbi->CtlLibrary = CtlLibrary
 						tbi->Tag = CtlLibrary
@@ -7431,7 +7438,7 @@ Sub LoadToolBox(ForLibrary As Library Ptr = 0)
 				Temp = GetOSPath(Temp)
 				MFF = GetOSPath(MFF)
 			#endif
-			ini.Load GetFolderName(GetRelativePath(Temp)) & "Settings.ini"
+			ini.Load GetFolderName(ResolvePath(Temp)) & "Settings.ini"
 			Var CtlLibrary = _New(Library)
 			CtlLibrary->Name = ini.ReadString("Setup", "Name")
 			CtlLibrary->Tips = ini.ReadString("Setup", "Tips")
@@ -10425,9 +10432,9 @@ Function ToolType.GetCommand(ByRef FileName As WString = "", WithoutProgram As B
 		'#else
 		If Not FileExists(This.Path) Then
 			'#endif
-			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
+			Params = """" & ResolvePath(This.Path, pApp->FileName) & """ "
 		Else
-			Params = """" & GetRelativePath(This.Path, pApp->FileName) & """ "
+			Params = """" & ResolvePath(This.Path, pApp->FileName) & """ "
 		End If
 	End If
 	Params &= This.Parameters
@@ -14612,25 +14619,233 @@ End Sub
 'their menu) and the circle of the context (on the right)
 Dim Shared As PopupMenu mnuAIModels
 #ifndef __USE_WINAPI__
-	'The menu of the row is shown from the press of the mouse: GTK 3 gets the button and the time of the press, then
-	'the release of the button does not close the menu (with the button 0 the release chose or closed it)
-	Sub AIMenuPopup()
-		mnuAIModels.ParentWindow = @frmMain
-		#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__)
-			Dim As GtkWidget Ptr MenuWidget = mnuAIModels.Handle
-			If MenuWidget <> 0 Then
-				'Without a parent Wayland can not place the menu (as PopupMenu.Popup)
-				Dim As GtkWidget Ptr ParentToplevel = gtk_widget_get_toplevel(frmMain.Handle)
-				Dim As GtkWidget Ptr MenuToplevel = gtk_widget_get_toplevel(MenuWidget)
-				If ParentToplevel <> 0 AndAlso GTK_IS_WINDOW(ParentToplevel) AndAlso MenuToplevel <> 0 AndAlso MenuToplevel <> MenuWidget AndAlso GTK_IS_WINDOW(MenuToplevel) Then
-					gtk_window_set_transient_for(GTK_WINDOW(MenuToplevel), GTK_WINDOW(ParentToplevel))
-				End If
-				gtk_menu_popup(GTK_MENU(MenuWidget), NULL, NULL, NULL, NULL, 1, gtk_get_current_event_time())
-				Exit Sub
+	#if defined(__USE_GTK__) AndAlso Not defined(__USE_GTK4__) AndAlso Not defined(__USE_GTK2__)
+		'GTK 3.22 (not in the headers of fbc)
+		Extern "C"
+			Declare Sub gtk_menu_popup_at_rect(ByVal menu As GtkMenu Ptr, ByVal rect_window As GdkWindow Ptr, ByVal rect As Const GdkRectangle Ptr, ByVal rect_anchor As GdkGravity, ByVal menu_anchor As GdkGravity, ByVal trigger_event As Const GdkEvent Ptr)
+			Declare Sub gtk_popover_popup(ByVal popover As GtkPopover Ptr)
+		End Extern
+	#endif
+
+	'The place x1..x2, y1..y2 of Ctrl (logical; y2 = -1: the height of Ctrl) in the pixels of GTK: in the window of the
+	'widget (InWindow, GTK 3), else in the widget
+	Function AIGtkAnchorRect(ByRef Ctrl As Control, x1 As Integer, x2 As Integer, y1 As Integer, y2 As Integer, InWindow As Boolean) As GdkRectangle
+		Dim As GdkRectangle r
+		r.x = Ctrl.ScaleX(x1)
+		r.width = Max(1, CInt(Ctrl.ScaleX(x2)) - r.x)
+		r.y = Ctrl.ScaleY(y1)
+		r.height = Max(1, CInt(Ctrl.ScaleY(IIf(y2 < 0, Ctrl.Height, y2))) - r.y)
+		#ifndef __USE_GTK4__
+			If InWindow AndAlso gtk_widget_get_has_window(Ctrl.Handle) = 0 Then
+				Dim As GtkAllocation a
+				gtk_widget_get_allocation(Ctrl.Handle, @a)
+				r.x += a.x
+				r.y += a.y
 			End If
 		#endif
-		'GTK 4: the menu at the mouse in the window (it called itself here and the stack was full)
-		mnuAIModels.Popup 0, 0
+		Return r
+	End Function
+
+	'The menu of the row as AIMenuShow of Windows: above the place x1..x2 of Ctrl (under it when there is no room), its
+	'right side at x2 (AlignLeft: its left side at x1). It is shown from the press of the mouse: the release of the
+	'button does not close it (GTK 3 gets the press as the current event)
+	#ifdef __USE_GTK4__
+		Declare Sub AIGtkMenuStyleAll()
+	#endif
+	Sub AIMenuPopup(ByRef Ctrl As Control, x1 As Integer, x2 As Integer, AlignLeft As Boolean = False, y1 As Integer = 0, y2 As Integer = -1)
+		mnuAIModels.ParentWindow = @frmMain
+		Dim As GtkWidget Ptr MenuWidget = mnuAIModels.Handle
+		If MenuWidget = 0 OrElse Ctrl.Handle = 0 Then
+			mnuAIModels.Popup 0, 0
+			Exit Sub
+		End If
+		#ifdef __USE_GTK4__
+			'The changes of the items are applied before the menu is shown (as PopupMenu.Popup)
+			#ifdef __MFF_MENU_MODEL__
+				If mnuAIModels.FModelIdle Then mnuAIModels.ModelRebuild
+			#endif
+			'The labels of the items get their markup before the size of the menu is measured (the long header of
+			'Effort in one line made the menu very wide)
+			AIGtkMenuStyleAll
+			If gtk_widget_get_parent(MenuWidget) <> Ctrl.Handle Then
+				If gtk_widget_get_parent(MenuWidget) Then gtk_widget_unparent(MenuWidget)
+				gtk_widget_set_parent(MenuWidget, Ctrl.Handle)
+			End If
+			Dim As GdkRectangle r = AIGtkAnchorRect(Ctrl, x1, x2, y1, y2, False)
+			gtk_popover_set_pointing_to(GTK_POPOVER(MenuWidget), @r)
+			gtk_popover_set_position(GTK_POPOVER(MenuWidget), GTK_POS_TOP)
+			gtk_widget_set_halign(MenuWidget, IIf(AlignLeft, GTK_ALIGN_START, GTK_ALIGN_END))
+			gtk_popover_popup(GTK_POPOVER(MenuWidget))
+		#elseif defined(__USE_GTK2__)
+			gtk_menu_popup(GTK_MENU(MenuWidget), NULL, NULL, NULL, NULL, 1, gtk_get_current_event_time())
+		#else
+			'Without a parent Wayland can not place the menu (as PopupMenu.Popup)
+			Dim As GtkWidget Ptr ParentToplevel = gtk_widget_get_toplevel(frmMain.Handle)
+			Dim As GtkWidget Ptr MenuToplevel = gtk_widget_get_toplevel(MenuWidget)
+			If ParentToplevel <> 0 AndAlso GTK_IS_WINDOW(ParentToplevel) AndAlso MenuToplevel <> 0 AndAlso MenuToplevel <> MenuWidget AndAlso GTK_IS_WINDOW(MenuToplevel) Then
+				gtk_window_set_transient_for(GTK_WINDOW(MenuToplevel), GTK_WINDOW(ParentToplevel))
+			End If
+			'The gap between the menu and the place (6 as in Windows)
+			Dim As GdkRectangle r = AIGtkAnchorRect(Ctrl, x1, x2, y1, y2, True)
+			r.y -= 6
+			r.height += 12
+			gtk_menu_popup_at_rect(GTK_MENU(MenuWidget), gtk_widget_get_window(Ctrl.Handle), @r, IIf(AlignLeft, GDK_GRAVITY_NORTH_WEST, GDK_GRAVITY_NORTH_EAST), IIf(AlignLeft, GDK_GRAVITY_SOUTH_WEST, GDK_GRAVITY_SOUTH_EAST), NULL)
+		#endif
+	End Sub
+
+	'The menus of the row as the menus of Windows (AIMenuPaint): the items are not checkable (no box on the left), the
+	'part of the title after the middle dot and the note (under the title) are grey, on the right the check of the chosen
+	'item (blue), else the key (1..4) or the value of the menu of the item (grey). The labels of the items get the markup:
+	'GTK 3 when the item is added, GTK 4 before the popup (the widgets of the model are made then, they are found by the
+	'text of the caption)
+	Dim Shared As String AIGtkMenuTexts(Any), AIGtkMenuMarkups(Any), AIGtkMenuRights(Any)
+	Dim Shared As Integer AIGtkMenuCount
+	Declare Sub mnuAIModels_Click(ByRef Designer As My.Sys.Object, Sender As My.Sys.Object)
+
+	Function AIGtkMarkupEscape(ByRef Text As UString) As String
+		Dim As String s = ToUtf8(Text)
+		Dim As gchar Ptr p = g_markup_escape_text(StrPtr(s), -1)
+		If p = 0 Then Return ""
+		s = *p
+		g_free p
+		Return s
+	End Function
+
+	Sub AIGtkMenuStyle(Lbl As GtkWidget Ptr, Index As Integer, OnlyLabel As Boolean = False)
+		If Lbl = 0 OrElse Index < 0 OrElse Index >= AIGtkMenuCount Then Exit Sub
+		Dim As GtkWidget Ptr Parent = gtk_widget_get_parent(Lbl)
+		Dim As Boolean InBox = Parent <> 0 AndAlso GTK_IS_BOX(Parent)
+		'Underscores of the names are not mnemonics
+		gtk_label_set_use_underline(GTK_LABEL(Lbl), False)
+		If AIGtkMenuRights(Index) <> "" AndAlso Not InBox Then
+			'The item of a submenu of GTK 4 (GtkModelButton): the value after the title
+			gtk_label_set_markup(GTK_LABEL(Lbl), AIGtkMenuMarkups(Index) & "    " & AIGtkMenuRights(Index))
+		Else
+			gtk_label_set_markup(GTK_LABEL(Lbl), AIGtkMenuMarkups(Index))
+		End If
+		If AIGtkMenuRights(Index) = "" OrElse Not InBox Then Exit Sub
+		Dim As GtkWidget Ptr RightLbl = gtk_label_new("")
+		gtk_label_set_markup(GTK_LABEL(RightLbl), AIGtkMenuRights(Index))
+		gtk_label_set_xalign(GTK_LABEL(RightLbl), 1.0)
+		gtk_widget_set_margin_start(RightLbl, 24)
+		gtk_widget_set_hexpand(Lbl, True)
+		gtk_widget_set_valign(RightLbl, GTK_ALIGN_START)
+		#ifdef __USE_GTK4__
+			gtk_box_append(GTK_BOX(Parent), RightLbl)
+		#else
+			'The label of the item is packed at the end: the new label goes after it
+			gtk_box_pack_end(GTK_BOX(Parent), RightLbl, False, False, 0)
+			gtk_box_reorder_child(GTK_BOX(Parent), RightLbl, 0)
+			gtk_widget_show(RightLbl)
+		#endif
+	End Sub
+
+	Sub AIGtkMenuClear()
+		AIGtkMenuCount = 0
+		Erase AIGtkMenuTexts, AIGtkMenuMarkups, AIGtkMenuRights
+		mnuAIModels.ParentWindow = @frmMain
+		mnuAIModels.Clear
+	End Sub
+
+	'The lines of the text (up to MaxChars): a label which wraps is as wide as its text in one line in the menus of GTK 4
+	Function AIGtkWrapText(ByRef Text As UString, MaxChars As Integer) As UString
+		Dim As UString Result, Line_, Word
+		Dim As Integer i = 1, n = Len(Text)
+		Do While i <= n
+			Dim As Integer j = InStr(i, Text, " ")
+			If j = 0 Then j = n + 1
+			Word = Mid(Text, i, j - i)
+			If Line_ <> "" AndAlso Len(Line_) + 1 + Len(Word) > MaxChars Then
+				Result &= Line_ & Chr(10)
+				Line_ = Word
+			ElseIf Line_ = "" Then
+				Line_ = Word
+			Else
+				Line_ &= " " & Word
+			End If
+			i = j + 1
+		Loop
+		Return Result & Line_
+	End Function
+	
+	'An item of the menu (of the item ParentItem when it is not 0). Header: the grey text above the items (not chosen)
+	Function AIGtkMenuAdd(ParentItem As MenuItem Ptr, ByRef Title As UString, ByRef Key As String, ByRef Note As UString = "", ByRef RightText As UString = "", Checked As Boolean = False, Header As Boolean = False) As MenuItem Ptr
+		Dim As Integer DotPos = IIf(Header, 0, InStrRev(Title, WChr(&HB7)))
+		Dim As UString Name_ = Title, Grey
+		If DotPos > 0 Then
+			Name_ = RTrim(Left(Title, DotPos - 1))
+			Grey = LTrim(Mid(Title, DotPos + 1))
+		End If
+		'The caption has no mnemonic: GTK 4 finds the label by it
+		Dim As UString Caption = Replace(Replace(Name_, "&", ""), "_", " ")
+		Dim As MenuItem Ptr mi
+		If ParentItem <> 0 Then
+			mi = ParentItem->Add(Caption, "", Key, @mnuAIModels_Click, False, -1, Not Header)
+		Else
+			mi = mnuAIModels.Add(Caption, "", Key, @mnuAIModels_Click, False, -1, Not Header)
+		End If
+		Dim As String Markup
+		If Header Then
+			Markup = "<span size=""smaller"" alpha=""60%"">" & AIGtkMarkupEscape(AIGtkWrapText(Name_, 46)) & "</span>"
+		Else
+			Markup = AIGtkMarkupEscape(Name_)
+			If Grey <> "" Then Markup &= "  <span alpha=""55%"">" & AIGtkMarkupEscape(Grey) & "</span>"
+			If Note <> "" Then Markup &= !"\n<span size=""smaller"" alpha=""55%"">" & AIGtkMarkupEscape(Note) & "</span>"
+		End If
+		Dim As String Right_
+		If Checked Then
+			Right_ = "<span foreground=""#598FEC""><b>" & ToUtf8(WChr(&H2713)) & "</b></span>"
+		ElseIf RightText <> "" Then
+			Right_ = "<span alpha=""55%"">" & AIGtkMarkupEscape(RightText) & "</span>"
+		End If
+		ReDim Preserve AIGtkMenuTexts(AIGtkMenuCount)
+		ReDim Preserve AIGtkMenuMarkups(AIGtkMenuCount)
+		ReDim Preserve AIGtkMenuRights(AIGtkMenuCount)
+		AIGtkMenuTexts(AIGtkMenuCount) = ToUtf8(Caption)
+		AIGtkMenuMarkups(AIGtkMenuCount) = Markup
+		AIGtkMenuRights(AIGtkMenuCount) = Right_
+		AIGtkMenuCount += 1
+		#ifndef __USE_GTK4__
+			If mi <> 0 Then AIGtkMenuStyle mi->Label, AIGtkMenuCount - 1
+		#endif
+		Return mi
+	End Function
+
+	#ifdef __USE_GTK4__
+		'The labels of the items in the widgets of the menu (the pages of the submenus too): the first item with the text
+		'which is not yet done
+		Sub AIGtkMenuStyleTree(w As GtkWidget Ptr, Done() As Boolean)
+			Dim As GtkWidget Ptr c = gtk_widget_get_first_child(w), NextChild
+			While c
+				NextChild = gtk_widget_get_next_sibling(c)
+				If GTK_IS_LABEL(c) Then
+					Dim As ZString Ptr pText = Cast(ZString Ptr, gtk_label_get_text(GTK_LABEL(c)))
+					If pText <> 0 AndAlso *pText <> "" Then
+						Dim As String Text = *pText
+						For i As Integer = 0 To AIGtkMenuCount - 1
+							If (Not Done(i)) AndAlso AIGtkMenuTexts(i) = Text Then
+								Done(i) = True
+								AIGtkMenuStyle c, i
+								Exit For
+							End If
+						Next
+					End If
+				Else
+					AIGtkMenuStyleTree c, Done()
+				End If
+				c = NextChild
+			Wend
+		End Sub
+		
+		Sub AIGtkMenuStyleAll()
+			If AIGtkMenuCount = 0 OrElse mnuAIModels.Handle = 0 Then Exit Sub
+			Dim As Boolean Done(AIGtkMenuCount - 1)
+			AIGtkMenuStyleTree mnuAIModels.Handle, Done()
+		End Sub
+	#endif
+
+	Sub AIGtkMenuShow(ByRef Ctrl As Control, x1 As Integer, x2 As Integer, AlignLeft As Boolean = False)
+		AIMenuPopup Ctrl, x1, x2, AlignLeft
 	End Sub
 #endif
 'The places in the row (logical): the model, the mode, the circle
@@ -15301,6 +15516,129 @@ End Sub
 			End If
 		End If
 	End Sub
+#ifndef __USE_WINAPI__
+	'The panel of the circle as in Windows (AIPanelPaint): a popover above the circle, the titles of the groups and the
+	'texts grey and small, the rows with a title, a grey text on the right and a bar under them
+	Sub AIGtkAddClass(w As GtkWidget Ptr, ByRef ClassName As String)
+		#ifdef __USE_GTK4__
+			gtk_widget_add_css_class(w, StrPtr(ClassName))
+		#else
+			gtk_style_context_add_class(gtk_widget_get_style_context(w), StrPtr(ClassName))
+		#endif
+	End Sub
+
+	Sub AIGtkBoxAdd(Box As GtkWidget Ptr, Child As GtkWidget Ptr, Expand As Boolean = False)
+		#ifdef __USE_GTK4__
+			If Expand Then gtk_widget_set_hexpand(Child, True)
+			gtk_box_append(GTK_BOX(Box), Child)
+		#else
+			gtk_box_pack_start(GTK_BOX(Box), Child, Expand, Expand, 0)
+		#endif
+	End Sub
+
+	Sub AIPanelInstallCss()
+		Static As Boolean Done
+		If Done Then Exit Sub
+		Done = True
+		Dim As GtkCssProvider Ptr Provider = gtk_css_provider_new()
+		Dim As String Css = "progressbar.aibar trough, progressbar.aibar progress { min-height: 4px; border: none; border-radius: 2px; box-shadow: none; }" & _
+			"progressbar.aibar trough { background-color: alpha(currentColor, 0.18); background-image: none; }" & _
+			"progressbar.aibar progress { background-color: #598FEC; background-image: none; }" & _
+			"progressbar.aiwarn progress { background-color: #E6963C; }"
+		#ifdef __USE_GTK4__
+			gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1)
+			gtk_style_context_add_provider_for_display(gdk_display_get_default(), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+		#else
+			gtk_css_provider_load_from_data(Provider, StrPtr(Css), -1, NULL)
+			gtk_style_context_add_provider_for_screen(gdk_screen_get_default(), GTK_STYLE_PROVIDER(Provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION)
+		#endif
+		g_object_unref(Provider)
+	End Sub
+
+	'The popover is freed after it is closed
+	Function AIPanelPopoverFree(user_data As gpointer) As gboolean
+		Dim As GtkWidget Ptr w = user_data
+		#ifdef __USE_GTK4__
+			gtk_widget_unparent(w)
+		#else
+			gtk_widget_destroy(w)
+		#endif
+		Return False
+	End Function
+
+	Sub AIPanelPopoverClosed(popover As GtkPopover Ptr, user_data As gpointer)
+		g_idle_add(Cast(GSourceFunc, @AIPanelPopoverFree), popover)
+	End Sub
+
+	Function AIPanelLabel(ByRef Markup As String, XAlign As Single) As GtkWidget Ptr
+		Dim As GtkWidget Ptr Lbl = gtk_label_new("")
+		gtk_label_set_markup(GTK_LABEL(Lbl), Markup)
+		gtk_label_set_xalign(GTK_LABEL(Lbl), XAlign)
+		gtk_label_set_ellipsize(GTK_LABEL(Lbl), PANGO_ELLIPSIZE_END)
+		Return Lbl
+	End Function
+
+	'Above the place x1..x2 of Ctrl (the circle), its right side at x2
+	Sub AIPanelPopup(ByRef Ctrl As Control, x1 As Integer, x2 As Integer)
+		If Ctrl.Handle = 0 Then Exit Sub
+		AIPanelSetRows
+		AIPanelInstallCss
+		Dim As GtkWidget Ptr Box = gtk_box_new(GTK_ORIENTATION_VERTICAL, 0)
+		gtk_widget_set_size_request(Box, 380, -1)
+		gtk_widget_set_margin_start(Box, 8)
+		gtk_widget_set_margin_end(Box, 8)
+		gtk_widget_set_margin_top(Box, 4)
+		gtk_widget_set_margin_bottom(Box, 6)
+		For i As Integer = 0 To UBound(AIPanelTitles)
+			Dim As Double Value = AIPanelValues(i)
+			Dim As GtkWidget Ptr Row = gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 12)
+			Dim As String Title = AIGtkMarkupEscape(AIPanelTitles(i))
+			If Value = -1 Then
+				Title = "<span size=""smaller"" alpha=""60%"">" & Title & "</span>"
+				gtk_widget_set_margin_top(Row, IIf(i = 0, 4, 12))
+				gtk_widget_set_margin_bottom(Row, 4)
+			ElseIf Value = -2 Then
+				Title = "<span size=""smaller"" alpha=""75%"">" & Title & "</span>"
+				gtk_widget_set_margin_top(Row, 4)
+				gtk_widget_set_margin_bottom(Row, 4)
+			Else
+				gtk_widget_set_margin_top(Row, 6)
+			End If
+			AIGtkBoxAdd Row, AIPanelLabel(Title, 0.0), True
+			If AIPanelRights(i) <> "" Then
+				AIGtkBoxAdd Row, AIPanelLabel("<span size=""smaller"" alpha=""60%"">" & AIGtkMarkupEscape(AIPanelRights(i)) & "</span>", 1.0)
+			End If
+			AIGtkBoxAdd Box, Row
+			If Value >= 0 Then
+				Dim As GtkWidget Ptr Bar = gtk_progress_bar_new()
+				gtk_progress_bar_set_fraction(GTK_PROGRESS_BAR(Bar), Min(1.0, Value))
+				AIGtkAddClass Bar, "aibar"
+				If Value >= 0.75 Then AIGtkAddClass Bar, "aiwarn"
+				gtk_widget_set_margin_top(Bar, 8)
+				gtk_widget_set_margin_bottom(Bar, 6)
+				AIGtkBoxAdd Box, Bar
+			End If
+		Next
+		Dim As GdkRectangle r = AIGtkAnchorRect(Ctrl, x1, x2, 0, -1, False)
+		Dim As GtkWidget Ptr Popover
+		#ifdef __USE_GTK4__
+			Popover = gtk_popover_new()
+			gtk_widget_set_parent(Popover, Ctrl.Handle)
+			gtk_popover_set_child(GTK_POPOVER(Popover), Box)
+			gtk_popover_set_has_arrow(GTK_POPOVER(Popover), False)
+			gtk_widget_set_halign(Popover, GTK_ALIGN_END)
+		#else
+			Popover = gtk_popover_new(Ctrl.Handle)
+			gtk_container_add(GTK_CONTAINER(Popover), Box)
+			gtk_widget_show_all(Box)
+		#endif
+		AIGtkAddClass Popover, "aipanel"
+		gtk_popover_set_pointing_to(GTK_POPOVER(Popover), @r)
+		gtk_popover_set_position(GTK_POPOVER(Popover), GTK_POS_TOP)
+		g_signal_connect(Popover, "closed", G_CALLBACK(@AIPanelPopoverClosed), NULL)
+		gtk_popover_popup(GTK_POPOVER(Popover))
+	End Sub
+#endif
 #ifdef __USE_WINAPI__
 
 	Sub AIPanelPaint(ByVal hWnd As HWND)
@@ -16190,15 +16528,12 @@ Sub pnlAIAccount_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Cont
 		Sender.Repaint
 	#else
 		'The menu of GTK: the item is done by mnuAIModels_Click (AIAccountChoose)
-		mnuAIModels.Clear
+		AIGtkMenuClear
 		For i As Integer = 0 To Items - 1
 			If i = Count Then mnuAIModels.Add("-")
-			Dim As UString Title = AIMenuTitles(i)
-			If AIMenuNotes(i) <> "" Then Title &= " " & WChr(&H2014) & " " & AIMenuNotes(i)
-			Var mi = mnuAIModels.Add(Title, "", "AIAccount" & i, @mnuAIModels_Click, i < Count)
-			If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
+			AIGtkMenuAdd 0, AIMenuTitles(i), "AIAccount" & i, AIMenuNotes(i), "", i = AIMenuChecked
 		Next
-		AIMenuPopup
+		AIGtkMenuShow Sender, 4, Sender.Width - 4, True
 		Exit Sub
 	#endif
 	AIAccountChoose Chosen
@@ -16228,17 +16563,8 @@ Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 		End If
 	#else
 		If Part = 3 Then
-			'The usage (the context and the limits of the plan) in a menu: its rows are not chosen
-			AIPanelSetRows
-			mnuAIModels.ParentWindow = @frmMain
-			mnuAIModels.Clear
-			For i As Integer = 0 To UBound(AIPanelTitles)
-				Dim As UString Text = AIPanelTitles(i)
-				If AIPanelRights(i) <> "" Then Text &= "    " & AIPanelRights(i)
-				If AIPanelValues(i) = -1 AndAlso i > 0 Then mnuAIModels.Add("-")
-				mnuAIModels.Add(Text, "", "AIUsage" & i, @mnuAIModels_Click, False, -1, AIPanelValues(i) = -1)
-			Next
-			AIMenuPopup
+			'The usage (the context and the limits of the plan): the panel above the circle as in Windows
+			AIPanelPopup Sender, AIStatusRingLeft - 5, AIStatusRingLeft + AIStatusRingSize + 5
 			Exit Sub
 		End If
 	#endif
@@ -16300,46 +16626,45 @@ Sub pnlAIStatus_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Contr
 			If Part = 1 Then AIModelSelect Chosen Else AIClaudeModeSelect Chosen
 		End If
 	#else
-		mnuAIModels.ParentWindow = @frmMain
-		mnuAIModels.Clear
+		'As the menu of Windows (AIGtkMenuAdd): the check of the chosen item or the key on the right
+		AIGtkMenuClear
 		If Part = 1 AndAlso IsClaudeCodeAgent() Then
-			'Claude Code: the models of claude, Effort > (the levels), More models > (the agents of the list)
+			'Claude Code: the models of claude (1..4), Effort > (the levels), More models > (the agents of the list)
 			Dim As String Current = LCase(AIClaudeModelName())
 			For i As Integer = 0 To 3
 				Dim As String Alias_ = AIClaudeMenuModel(i)
 				Dim As UString Title = AIClaudeModelTitle(IIf(AIClaudeModelID <> "" AndAlso InStr(LCase(AIClaudeModelID), Alias_) > 0, AIClaudeModelID, Alias_))
 				If Alias_ = "fable" Then Title &= " " & WChr(&HB7) & " " & ML("Requires usage credits")
-				Var mi = mnuAIModels.Add(Title, "", "AIClaude" & i, @mnuAIModels_Click, True)
-				If mi <> 0 AndAlso (Current = Alias_ OrElse (Left(Current, 7) = "claude-" AndAlso InStr(Current, Alias_) > 0)) Then mi->Checked = True
+				AIGtkMenuAdd 0, Title, "AIClaude" & i, "", Str(i + 1), Current = Alias_ OrElse (Left(Current, 7) = "claude-" AndAlso InStr(Current, Alias_) > 0)
 			Next
 			mnuAIModels.Add("-")
-			Var miEffort = mnuAIModels.Add(ML("Effort") & ": " & AIClaudeEffortTitle(AIClaudeEffort), "", "AIEffortMenu")
+			Var miEffort = AIGtkMenuAdd(0, ML("Effort"), "AIEffortMenu", "", AIClaudeEffortTitle(AIClaudeEffort))
 			If miEffort <> 0 Then
+				AIGtkMenuAdd miEffort, ML("Higher effort means more thorough responses, but takes longer and uses your limits faster."), "", "", "", False, True
 				For i As Integer = 0 To 4
 					Dim As UString Title = AIClaudeEffortTitle(AIClaudeEffortValue(i))
 					If i = 1 Then Title &= " " & WChr(&HB7) & " " & ML("Recommended")
 					If i = 4 Then Title &= " " & WChr(&HB7) & " " & ML("Uses the limits faster")
-					Var mi = miEffort->Add(Title, "", "AIEffort" & i, @mnuAIModels_Click, True)
-					If mi <> 0 AndAlso AIClaudeEffortValue(i) = LCase(AIClaudeEffort) Then mi->Checked = True
+					AIGtkMenuAdd miEffort, Title, "AIEffort" & i, "", "", AIClaudeEffortValue(i) = LCase(AIClaudeEffort)
 				Next
 			End If
-			Var miMore = mnuAIModels.Add(ML("More models"), "", "AIMoreModels")
+			mnuAIModels.Add("-")
+			Var miMore = AIGtkMenuAdd(0, ML("More models"), "AIMoreModels")
 			If miMore <> 0 Then
 				For i As Integer = 0 To cboAIAgentModels.ItemCount - 1
-					Var mi = miMore->Add(cboAIAgentModels.Item(i), "", "AIModel" & i, @mnuAIModels_Click, True)
-					If mi <> 0 AndAlso i = cboAIAgentModels.ItemIndex Then mi->Checked = True
+					AIGtkMenuAdd miMore, cboAIAgentModels.Item(i), "AIModel" & i, "", "", i = cboAIAgentModels.ItemIndex
 				Next
 			End If
 		Else
-			'The agents of the list, or the modes of Claude Code (the note after the title; AIMenuSetItems above)
+			'The agents of the list, or the modes of Claude Code (the header, the notes under the titles; AIMenuSetItems)
+			If AIMenuHeader <> "" Then AIGtkMenuAdd 0, AIMenuHeader, "", "", "", False, True
 			For i As Integer = 0 To UBound(AIMenuTitles)
-				Dim As UString Title = AIMenuTitles(i)
-				If i <= UBound(AIMenuNotes) AndAlso AIMenuNotes(i) <> "" Then Title &= " " & WChr(&H2014) & " " & AIMenuNotes(i)
-				Var mi = mnuAIModels.Add(Title, "", IIf(Part = 1, "AIModel", "AIMode") & i, @mnuAIModels_Click, True)
-				If mi <> 0 AndAlso i = AIMenuChecked Then mi->Checked = True
+				Dim As UString Note
+				If i <= UBound(AIMenuNotes) Then Note = AIMenuNotes(i)
+				AIGtkMenuAdd 0, AIMenuTitles(i), IIf(Part = 1, "AIModel", "AIMode") & i, Note, "", i = AIMenuChecked
 			Next
 		End If
-		AIMenuPopup
+		AIGtkMenuShow Sender, IIf(Part = 1, AIStatusModelLeft, AIStatusModeLeft), IIf(Part = 1, AIStatusModelRight, AIStatusModeRight)
 	#endif
 End Sub
 
@@ -16384,10 +16709,10 @@ Sub pnlAIAdd_MouseDown(ByRef Designer As My.Sys.Object, ByRef Sender As Control,
 	#ifndef __USE_WINAPI__
 		'The menu of GTK (always, as the menu of the row): the item is done by mnuAIModels_Click. A folder is only for
 		'Claude Code (--add-dir)
-		mnuAIModels.Clear
+		AIGtkMenuClear
 		mnuAIModels.Add(ML("Add files or photos"), "", "AIAddFiles", @mnuAIModels_Click)
 		mnuAIModels.Add(ML("Add folder"), "", "AIAddFolder", @mnuAIModels_Click, False, -1, IsClaudeCodeAgent())
-		AIMenuPopup
+		AIMenuPopup Sender, 0, Sender.Width, True, Sender.Height - AIButtonSize
 		Exit Sub
 	#endif
 	Dim As Integer Chosen = 0
